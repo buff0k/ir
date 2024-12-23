@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-DIS-{#}",
  "creation": "2024-07-23 09:55:56.786734",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -33,7 +32,7 @@
   "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
-  "incapacity_details",
+  "details_of_incapacity",
   "previous_incapacity_outcomes_section",
   "previous_incapacity_outcomes",
   "rights_section",
@@ -69,7 +68,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action"
+   "options": "Disciplinary Action",
+   "read_only": 1
   },
   {
    "fieldname": "dismissal_type",
@@ -217,18 +217,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Incapacity Proceeding",
-   "options": "Incapacity Proceedings"
+   "options": "Incapacity Proceedings",
+   "read_only": 1
   },
   {
    "fieldname": "incap_details_section",
    "fieldtype": "Section Break",
    "label": "Details of Incapacity"
-  },
-  {
-   "fieldname": "incapacity_details",
-   "fieldtype": "Small Text",
-   "label": "Details of Incapacity",
-   "read_only": 1
   },
   {
    "fieldname": "previous_incapacity_outcomes_section",
@@ -241,16 +236,21 @@
    "label": "Previous Incapacity History",
    "options": "Incapacity History",
    "read_only": 1
+  },
+  {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-19 10:51:32.308215",
+ "modified": "2024-12-23 16:15:36.319930",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dismissal Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
