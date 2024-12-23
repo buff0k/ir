@@ -1,0 +1,327 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{linked_incapacity_proceeding}-DED-{#}",
+ "creation": "2024-12-17 17:14:01.514971",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_dceb",
+  "amended_from",
+  "employee",
+  "company",
+  "letter_head",
+  "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
+  "employee_section",
+  "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
+  "column_break_okqk",
+  "names",
+  "coy",
+  "position",
+  "pay_deduction_details_section",
+  "outcome_date",
+  "applied_rights",
+  "reduction_amount",
+  "attached_signed_pay_deduction",
+  "column_break_tdkv",
+  "pay_reduction_type",
+  "from_date",
+  "to_date",
+  "details_responsibilities_section",
+  "details_responsibilities",
+  "details_of_offence_section",
+  "nta_charges",
+  "previous_disciplinary_offences_section",
+  "disciplinary_history",
+  "incap_details_section",
+  "incapacity_details",
+  "previous_incapacity_outcomes_section",
+  "previous_incapacity_outcomes",
+  "rights_section",
+  "employee_rights"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_dceb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Pay Reduction Form",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "employee_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Details"
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings"
+  },
+  {
+   "fieldname": "column_break_okqk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "names",
+   "fieldtype": "Read Only",
+   "label": "Employee Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coy",
+   "fieldtype": "Read Only",
+   "label": "Coy. No.",
+   "reqd": 1
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Read Only",
+   "label": "Position",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pay_deduction_details_section",
+   "fieldtype": "Section Break",
+   "label": "Pay Reduction Details"
+  },
+  {
+   "fieldname": "outcome_date",
+   "fieldtype": "Date",
+   "label": "Outcome Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applied_rights",
+   "fieldtype": "Link",
+   "label": "Applicable Rights",
+   "options": "Employee Rights",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reduction_amount",
+   "fieldtype": "Currency",
+   "label": "Monetary Value of Reduction",
+   "precision": "2"
+  },
+  {
+   "fieldname": "attached_signed_pay_deduction",
+   "fieldtype": "Attach",
+   "label": "Attached Signed Pay Deduction"
+  },
+  {
+   "fieldname": "column_break_tdkv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details_responsibilities_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Changed Responsibilities"
+  },
+  {
+   "fieldname": "details_responsibilities",
+   "fieldtype": "Small Text",
+   "label": "Details of Changed Responsibilities"
+  },
+  {
+   "fieldname": "incap_details_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "fieldname": "incapacity_details",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Incapacity Outcomes"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rights_section",
+   "fieldtype": "Section Break",
+   "label": "Rights"
+  },
+  {
+   "fieldname": "employee_rights",
+   "fieldtype": "Table",
+   "label": "Employee Rights",
+   "options": "Individual Right",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Pay Reduction Form",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "pay_reduction_type",
+   "fieldtype": "Link",
+   "label": "Pay Reduction Type",
+   "link_filters": "[[\"Offence Outcome\",\"ispaydeduction\",\"=\",1]]",
+   "options": "Offence Outcome",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_disciplinary_action_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Disciplinary Action Processed"
+  },
+  {
+   "fieldname": "linked_disciplinary_action",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Disciplinary Action",
+   "options": "Disciplinary Action"
+  },
+  {
+   "fieldname": "details_of_offence_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Offence"
+  },
+  {
+   "fieldname": "nta_charges",
+   "fieldtype": "Table",
+   "label": "Charges",
+   "options": "Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_disciplinary_offences_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Disciplinary Offences"
+  },
+  {
+   "fieldname": "disciplinary_history",
+   "fieldtype": "Table",
+   "label": "Disciplinary History:",
+   "options": "Disciplinary History",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-12-18 10:16:06.613013",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Pay Reduction Form",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

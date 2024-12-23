@@ -95,7 +95,13 @@ def fetch_disciplinary_history(accused, current_doc_name):
     for action in disciplinary_actions:
         action_doc = frappe.get_doc('Disciplinary Action', action.name)
         charges = '\n'.join([f"({charge_row.code_item}) {charge_row.charge}" for charge_row in action_doc.final_charges])
-        sanction = action_doc.outcome if action_doc.outcome else f"Pending {action_doc.name}"
+
+        # Check if the outcome is linked to an "Offence Outcome" document
+        if action_doc.outcome:
+            offence_outcome = frappe.get_doc('Offence Outcome', action_doc.outcome)
+            sanction = offence_outcome.disc_offence_out if offence_outcome else f"Pending {action_doc.name}"
+        else:
+            sanction = f"Pending {action_doc.name}"
 
         history.append({
             'disc_action': action_doc.name,

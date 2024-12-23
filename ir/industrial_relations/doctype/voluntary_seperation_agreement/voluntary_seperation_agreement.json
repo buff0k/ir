@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-VSP",
+ "autoname": "format:{linked_disciplinary_action}-VSP-{#}",
  "creation": "2024-08-07 12:10:20.758536",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,8 +12,10 @@
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
   "employee_details_section",
   "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
   "outcome_date",
   "signed_vsp",
   "column_break_jsbg",
@@ -51,21 +53,31 @@
   },
   {
    "fieldname": "employee",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Employee"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Company"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -83,9 +95,9 @@
    "fieldname": "linked_disciplinary_action",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action",
-   "reqd": 1
+   "options": "Disciplinary Action"
   },
   {
    "fieldname": "signed_vsp",
@@ -186,12 +198,27 @@
    "label": "VSP Type",
    "options": "Offence Outcome",
    "reqd": 1
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings"
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-08 22:35:15.468787",
+ "modified": "2024-12-19 10:52:16.393892",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Voluntary Seperation Agreement",

@@ -1,14 +1,15 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2024-07-12 19:35:50.243999",
+ "creation": "2024-12-17 17:15:32.453116",
+ "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "disciplinary_history_section",
-  "disc_action",
+  "incap_proc",
   "date",
-  "charges",
+  "incap_details",
   "sanction"
  ],
  "fields": [
@@ -18,37 +19,37 @@
    "label": "Disciplinary History"
   },
   {
+   "fieldname": "incap_proc",
+   "fieldtype": "Link",
+   "label": "Incapacity Proceeding:",
+   "options": "Incapacity Proceedings"
+  },
+  {
    "fieldname": "date",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Date"
   },
   {
-   "fieldname": "charges",
+   "fieldname": "incap_details",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "Charges"
+   "label": "Details of Incapacity"
   },
   {
    "fieldname": "sanction",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Sanction"
-  },
-  {
-   "fieldname": "disc_action",
-   "fieldtype": "Link",
-   "label": "Disciplinary Action:",
-   "options": "Disciplinary Action"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-19 14:22:22.116871",
+ "modified": "2024-12-19 14:22:46.008666",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Disciplinary History",
+ "name": "Incapacity History",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

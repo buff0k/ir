@@ -1,7 +1,7 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-OUT",
  "creation": "2024-07-22 12:59:58.712057",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,8 +12,10 @@
   "employee",
   "letter_head",
   "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
   "details_section",
   "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
   "linked_nta",
   "date",
   "chairperson",
@@ -29,6 +31,8 @@
   "background_section",
   "date_of_enquiry",
   "outcome_charges",
+  "type_of_incapacity",
+  "details_of_incapacity",
   "linked_rulings",
   "chairperson_summary_section",
   "introduction",
@@ -41,6 +45,7 @@
   "mitigating_considerations",
   "aggravating_conisderations",
   "disciplinary_history",
+  "previous_incapacity_outcomes",
   "outcome",
   "linked_sanction",
   "evidence",
@@ -70,10 +75,11 @@
   {
    "fieldname": "linked_disciplinary_action",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
-   "reqd": 1,
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "linked_nta",
@@ -155,22 +161,31 @@
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Company"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
   },
   {
    "fieldname": "employee",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Employee"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
   },
   {
    "columns": 3,
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
    "label": "Previous Disciplinary History",
-   "options": "Disciplinary History"
+   "options": "Disciplinary History",
+   "read_only": 1
   },
   {
    "fieldname": "mitigating_considerations",
@@ -189,9 +204,11 @@
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
   },
   {
    "fieldname": "names",
@@ -202,7 +219,8 @@
    "fieldname": "outcome_charges",
    "fieldtype": "Table",
    "label": "Charges as per NTA",
-   "options": "Charges"
+   "options": "Charges",
+   "read_only": 1
   },
   {
    "fieldname": "date",
@@ -274,16 +292,51 @@
    "fieldtype": "Text Editor",
    "label": "Complete Outcome",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-28 14:15:21.889059",
+ "modified": "2024-12-23 14:54:56.869647",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Outcome Report",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

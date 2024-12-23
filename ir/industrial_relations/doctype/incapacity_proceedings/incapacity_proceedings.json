@@ -14,14 +14,14 @@
   "company",
   "letter_head",
   "details_of_accused_employee_section",
-  "employee",
+  "accused",
   "branch",
   "engagement_date",
   "is_ss",
   "column_break_ugya",
-  "employee_name",
-  "employee_coy",
-  "designation",
+  "accused_name",
+  "accused_coy",
+  "accused_pos",
   "ss_union",
   "responsible_ir_section",
   "responsible_ir",
@@ -38,7 +38,7 @@
   "type_of_incapacity",
   "details_of_incapacity",
   "attach",
-  "disciplinary_history_section",
+  "incapacity_history_section",
   "previous_incapacity_outcomes",
   "incapacity_record",
   "action_taken_section",
@@ -52,7 +52,7 @@
   "linked_outcome",
   "linked_dismissal",
   "linked_demotion",
-  "linked_pay_deduction",
+  "linked_pay_reduction",
   "linked_not_guilty",
   "linked_suspension",
   "linked_vsp",
@@ -80,7 +80,6 @@
    "search_index": 1
   },
   {
-   "fetch_from": "employee.company",
    "fieldname": "company",
    "fieldtype": "Link",
    "hidden": 1,
@@ -91,9 +90,10 @@
   {
    "fetch_from": "company.default_letter_head",
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
    "label": "Letterhead",
+   "options": "Letter Head",
    "read_only": 1
   },
   {
@@ -142,7 +142,7 @@
    "fieldname": "responsible_ir",
    "fieldtype": "Link",
    "label": "Responsible IR",
-   "link_filters": "[[\"User\",\"role_profile_name\",\"in\",[\"IR Manager\",\"IR User\"]]]",
+   "link_filters": "[[\"User\",\"role\",\"in\",[\"IR Manager\",\"IR User\"]]]",
    "options": "User"
   },
   {
@@ -200,11 +200,6 @@
    "fieldtype": "Table",
    "label": "Attach Photos and/or Documents:",
    "options": "Disciplinary Action Files"
-  },
-  {
-   "fieldname": "disciplinary_history_section",
-   "fieldtype": "Section Break",
-   "label": "Incapacity History"
   },
   {
    "fieldname": "action_taken_section",
@@ -268,13 +263,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "linked_pay_deduction",
-   "fieldtype": "Link",
-   "label": "Linked Pay Deduction",
-   "options": "Pay Deduction Form",
-   "read_only": 1
-  },
-  {
    "fieldname": "linked_not_guilty",
    "fieldtype": "Link",
    "label": "Linked Not Guilty",
@@ -313,27 +301,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Employee:",
-   "options": "Employee",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fetch_from": "employee.employee_name",
-   "fieldname": "employee_name",
-   "fieldtype": "Read Only",
-   "label": "Employee Name:"
-  },
-  {
-   "fetch_from": "employee.employee",
-   "fieldname": "employee_coy",
-   "fieldtype": "Read Only",
-   "label": "Employee Coy No.:"
-  },
-  {
    "fieldname": "details_of_incapacity",
    "fieldtype": "Small Text",
    "label": "Details of Incapacity"
@@ -351,26 +318,59 @@
    "fieldname": "type_of_incapacity",
    "fieldtype": "Select",
    "label": "Type of Incapacity",
-   "options": "Medical Incapacity\nGeneral Incapacity\nIncompatibility"
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility"
   },
   {
    "columns": 4,
    "fieldname": "previous_incapacity_outcomes",
    "fieldtype": "Table",
    "ignore_user_permissions": 1,
-   "label": "Previous Disciplinary Outcomes",
-   "options": "Disciplinary History",
+   "label": "Previous Incapacity Outcomes",
+   "options": "Incapacity History",
    "read_only": 1
   },
   {
-   "description": "Attach any warnings or counselling that do not appear in the Disciplinary History Tab",
+   "description": "Attach any incapacity counselling that does not appear in the Disciplinary History Tab",
    "fieldname": "incapacity_record",
    "fieldtype": "Attach",
    "label": "Further Incapacity Record"
   },
   {
+   "fieldname": "incapacity_history_section",
+   "fieldtype": "Section Break",
+   "label": "Incapacity History"
+  },
+  {
+   "fieldname": "linked_pay_reduction",
+   "fieldtype": "Link",
+   "label": "Linked Pay Reduction",
+   "options": "Pay Reduction Form",
+   "read_only": 1
+  },
+  {
+   "fieldname": "accused",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee:",
+   "options": "Employee",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "accused_name",
+   "fieldtype": "Read Only",
+   "label": "Employee Name:"
+  },
+  {
+   "fetch_from": "employee.employee",
+   "fieldname": "accused_coy",
+   "fieldtype": "Read Only",
+   "label": "Employee Coy No.:"
+  },
+  {
    "fetch_from": "employee.designation",
-   "fieldname": "designation",
+   "fieldname": "accused_pos",
    "fieldtype": "Read Only",
    "label": "Accused Position:"
   }
@@ -411,7 +411,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2024-11-14 09:33:38.283878",
+ "modified": "2024-12-19 14:06:27.861532",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity Proceedings",

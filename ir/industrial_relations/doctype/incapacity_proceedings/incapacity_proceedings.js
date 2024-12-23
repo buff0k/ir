@@ -2,24 +2,24 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Incapacity Proceedings", {
-    employee: function(frm) {
+    accused: function(frm) {
         if (frm.doc.accused) {
-            fetch_employee_data(frm, frm.doc.employee, {
-                'employee_name': 'employee_name',
-                'employee': 'employee_coy',
-                'designation': 'designation',
+            fetch_employee_data(frm, frm.doc.accused, {
+                'employee_name': 'accused_name',
+                'employee': 'accused_coy',
+                'designation': 'accused_pos',
                 'company': 'company',
                 'date_of_joining': 'engagement_date',
                 'branch': 'branch'
             }, function() {
                 fetch_default_letter_head(frm, frm.doc.company);
             });
-            fetch_incapacity_history(frm, frm.doc.employee);
+            fetch_incapacity_history(frm, frm.doc.accused);
 
             frappe.call({
                 method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.check_if_ss',
                 args: {
-                    employee: frm.doc.employee
+                    accused: frm.doc.accused
                 },
                 callback: function(r) {
                     if (r.message) {
@@ -32,7 +32,7 @@ frappe.ui.form.on("Incapacity Proceedings", {
     },
 
     refresh: function(frm) {
-        frm.toggle_display(['make_warning_form', 'make_nta_hearing', 'write_disciplinary_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
+        frm.toggle_display(['make_nta_hearing', 'write_incapacity_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
 
         if (frappe.user.has_role("IR Manager")) {
             frm.add_custom_button(__('Actions'), function() {}, 'Actions')
@@ -40,23 +40,23 @@ frappe.ui.form.on("Incapacity Proceedings", {
                 .attr('id', 'actions_dropdown');
 
             frm.page.add_inner_button(__('Issue NTA'), function() {
-                make_nta_hearing(frm);
+                make_nta_incap(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Write Outcome Report'), function() {
-                write_disciplinary_outcome_report(frm);
+                write_incapacity_outcome_report(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Issue Not Guilty'), function() {
-                make_not_guilty_form(frm);
+            frm.page.add_inner_button(__('Issue Not Incapacitated'), function() {
+                make_not_incap(frm);
             }, 'Actions');
                 
             frm.page.add_inner_button(__('Issue Suspension'), function() {
-                make_suspension_form(frm);
+                make_suspension_form_incap(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Demotion'), function() {
-                make_demotion_form(frm);
+                make_demotion_form_incap(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Pay Deduction'), function() {
@@ -64,7 +64,7 @@ frappe.ui.form.on("Incapacity Proceedings", {
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Dismissal'), function() {
-                make_dismissal_form(frm);
+                make_dismissal_form_incap(frm);
             }, 'Actions');
         
             frm.page.add_inner_button(__('Issue VSP'), function() {
@@ -141,7 +141,7 @@ function fetch_incapacity_history(frm, accused) {
     frappe.call({
         method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.fetch_incapacity_history',
         args: {
-            employee: employee,
+            accused: accused,
             current_doc_name: frm.doc.name
         },
         callback: function(res) {
@@ -149,10 +149,10 @@ function fetch_incapacity_history(frm, accused) {
                 frm.clear_table('previous_incapacity_outcomes');
                 res.message.forEach(function(row) {
                     let child = frm.add_child('previous_incapacity_outcomes');
-                    child.disc_action = row.disc_action;
+                    child.incap_proc = row.incap_proc;
                     child.date = row.date;
                     child.sanction = row.sanction;
-                    child.charges = row.charges;
+                    child.incap_details = row.incap_details;
                 });
                 frm.refresh_field('previous_incapacity_outcomes');
             }
@@ -216,56 +216,56 @@ function fetch_additional_linked_documents(frm) {
     });
 }
 
-function make_nta_hearing(frm) {
+function make_nta_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_hearing",
+        method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_incap",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
-        freeze_message: __("Creating NTA Hearing ...")
+        freeze_message: __("Creating NTA Incapcaity ...")
     });
 }
 
-function write_disciplinary_outcome_report(frm) {
+function write_incapacity_outcome_report(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.write_disciplinary_outcome_report",
+        method: "ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.write_incapacity_outcome_report",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating Disciplinary Outcome Report ...")
     });
 }
 
-function make_not_guilty_form(frm) {
+function make_not_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.not_guilty_form.not_guilty_form.make_not_guilty_form",
+        method: "ir.industrial_relations.doctype.not_guilty_form.not_guilty_form.make_not_incap",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
-        freeze_message: __("Creating Not Guilty Form ...")
+        freeze_message: __("Creating Not Incapacitated Form ...")
     });
 }
 
-function make_suspension_form(frm) {
+function make_suspension_form_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.suspension_form.suspension_form.make_suspension_form",
+        method: "ir.industrial_relations.doctype.suspension_form.suspension_form.make_suspension_form_incap",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating Suspension Form ...")
     });
 }
 
-function make_demotion_form(frm) {
+function make_demotion_form_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form",
+        method: "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form_incap",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating Demotion Form ...")
     });
@@ -276,18 +276,18 @@ function make_pay_deduction_form(frm) {
         method: "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.make_pay_deduction_form",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating Pay Deduction Form ...")
     });
 }
 
-function make_dismissal_form(frm) {
+function make_dismissal_form_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form",
+        method: "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_incap",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating Dismissal Form ...")
     });
@@ -298,7 +298,7 @@ function make_vsp(frm) {
         method: "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Creating VSP ...")
     });
@@ -309,7 +309,7 @@ function cancel_disciplinary(frm) {
         method: "ir.industrial_relations.doctype.hearing_cancellation_form.hearing_cancellation_form.cancel_disciplinary",
         frm: frm,
         args: {
-            linked_disciplinary_action: frm.doc.name
+            linked_incapacity_proceeding: frm.doc.name
         },
         freeze_message: __("Generating Cancellation Form ...")
     });

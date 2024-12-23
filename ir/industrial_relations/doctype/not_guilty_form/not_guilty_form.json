@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-NG",
  "creation": "2024-07-23 09:59:48.155588",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,8 +11,11 @@
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
   "employee_section",
   "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
+  "signed_ng",
   "column_break_mxqk",
   "names",
   "coy",
@@ -25,7 +27,12 @@
   "details_of_offence_section",
   "ng_charges",
   "previous_disciplinary_offences_section",
-  "disciplinary_history"
+  "disciplinary_history",
+  "incap_details_section",
+  "type_of_incapacity",
+  "details_of_incapacity",
+  "previous_incapacity_outcomes_section",
+  "previous_incapacity_outcomes"
  ],
  "fields": [
   {
@@ -51,10 +58,10 @@
    "fieldname": "linked_disciplinary_action",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
-   "reqd": 1,
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "type_of_not_guilty",
@@ -72,21 +79,30 @@
   },
   {
    "fieldname": "employee",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Employee"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Company"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
+   "label": "Letterhead",
+   "options": "Letter Head"
   },
   {
    "default": "0",
@@ -120,7 +136,7 @@
   {
    "fieldname": "hearing_details_section",
    "fieldtype": "Section Break",
-   "label": "Hearing Details"
+   "label": "Enquiry Details"
   },
   {
    "fieldname": "column_break_hyou",
@@ -149,16 +165,66 @@
    "label": "Disciplinary History:",
    "options": "Disciplinary History",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "incap_details_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Incapacity Outcomes"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signed_ng",
+   "fieldtype": "Attach",
+   "label": "Attach Signed Outcome"
+  },
+  {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-08 22:35:03.464103",
+ "modified": "2024-12-23 15:31:28.730736",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Not Guilty Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

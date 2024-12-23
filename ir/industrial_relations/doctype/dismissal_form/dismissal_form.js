@@ -3,9 +3,11 @@
 
 frappe.ui.form.on('Dismissal Form', {
     refresh: function(frm) {
-        // Check the flag before triggering the handler
+        // Check the flags before triggering the handler
         if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
             frm.trigger('linked_disciplinary_action');
+        } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
+            frm.trigger('linked_incapacity_proceeding');
         }
     },
     
@@ -50,8 +52,62 @@ frappe.ui.form.on('Dismissal Form', {
                             child.indiv_charge = row.indiv_charge;
                         });
                         frm.refresh_field('dismissal_charges');
+                    
+                        // Update applied_rights field
+                        frm.set_value('applied_rights', 'Dismissal');
+                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
+
                         // Set the flag to prevent refresh loop
                         frm.set_value('linked_disciplinary_action_processed', true);
+                    }
+                }
+            });
+        }
+    },
+
+    linked_incapacity_proceeding: function(frm) {
+        if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.dismissal_form.dismissal_form.fetch_incpacity_proceeding_data',
+                args: {
+                    incapacity_proceeding: frm.doc.linked_incapacity_proceeding
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        const data = r.message;
+
+                        // Update fields
+                        frm.doc.employee = data.accused || '';
+                        frm.doc.names = data.accused_name || '';
+                        frm.doc.coy = data.accused_coy || '';
+                        frm.doc.position = data.accused_pos || '';
+                        frm.doc.company = data.company || '';
+                        frm.set_value('details_of_incapacity', data.details_of_incapacity || '');
+
+                        frm.refresh_field('employee');
+                        frm.refresh_field('names');
+                        frm.refresh_field('coy');
+                        frm.refresh_field('position');
+                        frm.refresh_field('company');
+
+                        // Update child tables
+                        frm.clear_table('previous_incapacity_outcomes');
+                        $.each(data.previous_incapacity_outcomes, function(_, row) {
+                            let child = frm.add_child('previous_incapacity_outcomes');
+                            child.incap_proc = row.incap_proc;
+                            child.date = row.date;
+                            child.sanction = row.sanction;
+                            child.incap_details = row.incap_details;
+                        });
+                        frm.refresh_field('previous_incapacity_outcomes');
+
+                        // Update applied_rights field
+                        frm.set_value('applied_rights', 'Dismissal');
+                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
+
+                        // Set the processed flag
+                        frm.set_value('linked_incapacity_proceeding_processed', true);
+
                     }
                 }
             });

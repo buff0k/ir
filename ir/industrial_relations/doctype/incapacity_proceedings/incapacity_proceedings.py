@@ -17,16 +17,18 @@ def update_outcome_dates(doc_name):
     linked_docs = {
         'linked_demotion': 'Demotion Form',
         'linked_pay_deduction': 'Pay Deduction Form',
-        'linked_suspension': 'Suspension Form'
+        'linked_suspension': 'Suspension Form',
+        'linked_pay_reduction': 'Pay Reduction Form'
     }
 
     relevant_fields = {
         'linked_demotion': ['from_date', 'to_date', 'Demoted from'],
         'linked_pay_deduction': ['from_date', 'to_date', 'Pay deduction effective from'],
-        'linked_suspension': ['from_date', 'to_date', 'Suspended from']
+        'linked_suspension': ['from_date', 'to_date', 'Suspended from'],
+        'linked_pay_reduction': ['from_date', 'to_date', 'Pay reduction effective from']
     }
     
-    doc = frappe.get_doc('Disciplinary Action', doc_name)
+    doc = frappe.get_doc('Incapacity Proceedings', doc_name)
     latest_outcome_date = None
     latest_doc = None
     latest_outcome_type = None
@@ -87,7 +89,7 @@ def fetch_incapacity_history(accused, current_doc_name):
     frappe.flags.ignore_permissions = True
 
     incapacity_actions = frappe.get_all('Incapacity Proceedings', filters={
-        'employee': employee,
+        'accused': accused,
         'name': ['!=', current_doc_name]
     }, fields=['name', 'outcome_date', 'outcome'])
 
@@ -95,14 +97,20 @@ def fetch_incapacity_history(accused, current_doc_name):
 
     for action in incapacity_actions:
         action_doc = frappe.get_doc('Incapacity Proceedings', action.name)
-        charges = action_doc.details_of_incapacity
         sanction = action_doc.outcome if action_doc.outcome else f"Pending {action_doc.name}"
 
+        # Check if the outcome is linked to an "Offence Outcome" document
+        if action_doc.outcome:
+            offence_outcome = frappe.get_doc('Offence Outcome', action_doc.outcome)
+            sanction = offence_outcome.disc_offence_out if offence_outcome else f"Pending {action_doc.name}"
+        else:
+            sanction = f"Pending {action_doc.name}"
+
         history.append({
-            'disc_action': action_doc.name,
+            'incap_proc': action_doc.name,
             'date': action_doc.outcome_date,
             'sanction': sanction,
-            'charges': charges
+            'incap_details': action_doc.details_of_incapacity
         })
 
     return history
@@ -114,7 +122,7 @@ def fetch_linked_documents(doc_name):
     linked_docs = {
         "Dismissal Form": "linked_dismissal",
         "Demotion Form": "linked_demotion",
-        "Pay Deduction Form": "linked_pay_deduction",
+        "Pay Reduction Form": "linked_pay_reduction",
         "Not Guilty Form": "linked_not_guilty",
         "Suspension Form": "linked_suspension",
         "Voluntary Seperation Agreement": "linked_vsp",
@@ -124,7 +132,7 @@ def fetch_linked_documents(doc_name):
     relevant_fields = {
         "linked_dismissal": "dismissal_type",
         "linked_demotion": "demotion_type",
-        "linked_pay_deduction": "pay_deduction_type",
+        "linked_pay_reduction": "pay_reduction_type",
         "linked_not_guilty": "type_of_not_guilty",
         "linked_suspension": "suspension_type",
         "linked_vsp": "vsp_type",
@@ -138,7 +146,7 @@ def fetch_linked_documents(doc_name):
     }
 
     for doctype, fieldname in linked_docs.items():
-        docs = frappe.get_all(doctype, filters={'linked_disciplinary_action': doc_name}, fields=['name', 'outcome_date'])
+        docs = frappe.get_all(doctype, filters={'linked_incapacity_proceeding': doc_name}, fields=['name', 'outcome_date'])
 
         if docs:
             result['linked_documents'][fieldname] = [doc['name'] for doc in docs]
@@ -161,8 +169,8 @@ def fetch_additional_linked_documents(doc_name):
         'linked_outcome': None
     }
 
-    nta_hearing = frappe.get_all('NTA Hearing', filters={'linked_disciplinary_action': doc_name}, fields=['name'])
-    disciplinary_outcome_report = frappe.get_all('Disciplinary Outcome Report', filters={'linked_disciplinary_action': doc_name}, fields=['name'])
+    nta_hearing = frappe.get_all('NTA Hearing', filters={'linked_incapacity_proceeding': doc_name}, fields=['name'])
+    disciplinary_outcome_report = frappe.get_all('Disciplinary Outcome Report', filters={'linked_incapacity_proceeding': doc_name}, fields=['name'])
 
     if nta_hearing:
         result['linked_nta'] = nta_hearing[0]['name']

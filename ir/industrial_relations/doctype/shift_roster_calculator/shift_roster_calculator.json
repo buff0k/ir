@@ -1,0 +1,169 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-12-17 17:16:37.012037",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "input_data_section",
+  "no_teams",
+  "from_date",
+  "column_break_ucwk",
+  "shift_duration",
+  "to_date",
+  "section_break_luwx",
+  "ismon",
+  "isfri",
+  "column_break_epbf",
+  "istue",
+  "issat",
+  "column_break_ybhi",
+  "iswed",
+  "issun",
+  "column_break_uurn",
+  "isthu"
+ ],
+ "fields": [
+  {
+   "fieldname": "input_data_section",
+   "fieldtype": "Section Break",
+   "label": "Input Data"
+  },
+  {
+   "fieldname": "no_teams",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number of Teams",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "column_break_ucwk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "shift_duration",
+   "fieldtype": "Int",
+   "label": "Hours per Shift"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "section_break_luwx",
+   "fieldtype": "Section Break",
+   "label": "Working Days per week"
+  },
+  {
+   "default": "0",
+   "fieldname": "ismon",
+   "fieldtype": "Check",
+   "label": "Mondays"
+  },
+  {
+   "default": "0",
+   "fieldname": "isfri",
+   "fieldtype": "Check",
+   "label": "Fridays"
+  },
+  {
+   "fieldname": "column_break_epbf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "istue",
+   "fieldtype": "Check",
+   "label": "Tuesdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "issat",
+   "fieldtype": "Check",
+   "label": "Saturdays"
+  },
+  {
+   "fieldname": "column_break_ybhi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "iswed",
+   "fieldtype": "Check",
+   "label": "Wednesdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "issun",
+   "fieldtype": "Check",
+   "label": "Sundays"
+  },
+  {
+   "fieldname": "column_break_uurn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "isthu",
+   "fieldtype": "Check",
+   "label": "Thursdays"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-12-17 17:16:37.012037",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Roster Calculator",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
