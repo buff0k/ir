@@ -3,7 +3,7 @@
 
 import frappe, re
 from frappe.model.document import Document
-from frappe.utils import add_months, add_years, format_time
+from frappe.utils import add_months, add_years, add_days, getdate, format_time
 from datetime import datetime
 from frappe import _
 
@@ -344,5 +344,30 @@ class ContractofEmployment(Document):
         self.generated_contract = contract_content
 
     def before_submit(self):
+        # Ensure the contract is signed before submitting
         if not self.signed_contract:
             frappe.throw(_("You cannot submit the document without attaching the signed contract."))
+
+        # Ensure employee exists
+        if not self.employee:
+            frappe.throw(_("Please link an Employee before submitting."))
+
+        # Fetch the Employee document
+        employee = frappe.get_doc("Employee", self.employee)
+
+        # If has_expiry is true, update employment_type and contract_end_date
+        if self.has_expiry and self.end_date:
+            employee.employment_type = "Contract"  # Set employment type to "Contract"
+            employee.contract_end_date = self.end_date  # Update contract end date
+
+        # Calculate and update date_of_retirement
+        if self.retirement_age and employee.date_of_birth:
+            # Calculate retirement date: date_of_birth + retirement_age - 1 day
+            retirement_date = add_days(
+                add_years(getdate(employee.date_of_birth), int(self.retirement_age)),
+                -1
+            )
+            employee.date_of_retirement = retirement_date
+
+        # Save the Employee document to trigger Track Changes
+        employee.save(ignore_permissions=True)

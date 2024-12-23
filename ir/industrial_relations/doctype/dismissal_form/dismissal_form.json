@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-DIS",
+ "autoname": "format:{linked_disciplinary_action}-DIS-{#}",
  "creation": "2024-07-23 09:55:56.786734",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -12,9 +12,11 @@
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
   "section_break_qeko",
   "employee_details_column",
   "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
   "linked_nta_hearing",
   "dismissal_type",
   "signed_dismissal",
@@ -30,6 +32,10 @@
   "dismissal_charges",
   "previous_disciplinary_offences_section",
   "disciplinary_history",
+  "incap_details_section",
+  "incapacity_details",
+  "previous_incapacity_outcomes_section",
+  "previous_incapacity_outcomes",
   "rights_section",
   "employee_rights"
  ],
@@ -61,10 +67,9 @@
    "fieldname": "linked_disciplinary_action",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action",
-   "reqd": 1,
-   "unique": 1
+   "options": "Disciplinary Action"
   },
   {
    "fieldname": "dismissal_type",
@@ -82,21 +87,31 @@
   },
   {
    "fieldname": "employee",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Employee"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Company"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -188,12 +203,50 @@
    "fieldname": "signed_dismissal",
    "fieldtype": "Attach",
    "label": "Attach Signed Dismissal"
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings"
+  },
+  {
+   "fieldname": "incap_details_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "fieldname": "incapacity_details",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Inacpacity Outcomes"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-08-08 22:34:51.467402",
+ "modified": "2024-12-19 10:51:32.308215",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dismissal Form",

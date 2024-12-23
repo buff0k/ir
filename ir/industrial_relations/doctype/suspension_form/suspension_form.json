@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-SUS",
  "creation": "2024-07-23 10:00:35.059672",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,8 +12,10 @@
   "letter_head",
   "ispaydeduction",
   "linked_disciplinary_action_processed",
+  "linked_incapacity_proceeding_processed",
   "employee_section",
   "linked_disciplinary_action",
+  "linked_incapacity_proceeding",
   "outcome_date",
   "signed_suspension",
   "column_break_lgzj",
@@ -31,6 +32,11 @@
   "susp_charges",
   "previous_disciplinary_offences_section",
   "disciplinary_history",
+  "incap_details_section",
+  "type_of_incapacity",
+  "details_of_incapacity",
+  "previous_incapacity_outcomes_section",
+  "previous_incapacity_outcomes",
   "rights_section",
   "employee_rights"
  ],
@@ -58,16 +64,19 @@
    "fieldname": "linked_disciplinary_action",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
-   "reqd": 1,
-   "unique": 1
+   "read_only": 1
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Company",
+   "options": "Company",
    "read_only": 1
   },
   {
@@ -91,15 +100,21 @@
   },
   {
    "fieldname": "employee",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Employee"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -152,7 +167,8 @@
    "fieldname": "susp_charges",
    "fieldtype": "Table",
    "label": "Charges",
-   "options": "Charges"
+   "options": "Charges",
+   "read_only": 1
   },
   {
    "fieldname": "previous_disciplinary_offences_section",
@@ -163,7 +179,8 @@
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
    "label": "Disciplinary History:",
-   "options": "Disciplinary History"
+   "options": "Disciplinary History",
+   "read_only": 1
   },
   {
    "fieldname": "rights_section",
@@ -200,16 +217,61 @@
    "hidden": 1,
    "label": "Is Unpaid Suspension",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_incapacity_proceeding_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "linked_incapacity_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Incapacity Proceeding",
+   "options": "Incapacity Proceedings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "incap_details_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Incapacity Outcomes"
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-09 12:39:43.681447",
+ "modified": "2024-12-23 15:05:04.224670",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Suspension Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

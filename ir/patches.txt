@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 ir.patches.create_placeholders
 ir.patches.update_warning_form_fields
+ir.patches.update_sanction_field
