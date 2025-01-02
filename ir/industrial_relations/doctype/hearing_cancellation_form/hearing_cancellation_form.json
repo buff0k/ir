@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-CAN-{#}",
  "creation": "2024-08-16 14:04:03.062706",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -33,7 +32,8 @@
   "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
-  "incapacity_details",
+  "type_of_incapacity",
+  "details_of_incapacity",
   "previous_incapacity_outcomes_section",
   "previous_incapacity_outcomes"
  ],
@@ -63,7 +63,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action"
+   "options": "Disciplinary Action",
+   "read_only": 1
   },
   {
    "fieldname": "outcome_date",
@@ -195,6 +196,7 @@
    "default": "0",
    "fieldname": "linked_incapacity_proceeding_processed",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Linked Incapacity Proceeding Processed"
   },
   {
@@ -203,18 +205,13 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Incapacity Proceeding",
-   "options": "Incapacity Proceedings"
+   "options": "Incapacity Proceedings",
+   "read_only": 1
   },
   {
    "fieldname": "incap_details_section",
    "fieldtype": "Section Break",
    "label": "Details of Incapacity"
-  },
-  {
-   "fieldname": "incapacity_details",
-   "fieldtype": "Small Text",
-   "label": "Details of Incapacity",
-   "read_only": 1
   },
   {
    "fieldname": "previous_incapacity_outcomes_section",
@@ -227,16 +224,28 @@
    "label": "Previous Incapacity History",
    "options": "Incapacity History",
    "read_only": 1
+  },
+  {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-19 10:52:36.550114",
+ "modified": "2025-01-02 13:22:20.910023",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Hearing Cancellation Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
