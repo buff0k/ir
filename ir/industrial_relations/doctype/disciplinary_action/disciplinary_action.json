@@ -54,6 +54,7 @@
   "linked_dismissal",
   "linked_demotion",
   "linked_pay_deduction",
+  "linked_pay_reduction",
   "linked_not_guilty",
   "linked_suspension",
   "linked_vsp",
@@ -374,6 +375,13 @@
    "fieldname": "responsible_ir_name",
    "fieldtype": "Read Only",
    "label": "Responsible IR Name"
+  },
+  {
+   "fieldname": "linked_pay_reduction",
+   "fieldtype": "Link",
+   "label": "Linked Pay Reduction",
+   "options": "Pay Reduction Form",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -412,7 +420,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2024-12-13 14:13:33.085317",
+ "modified": "2024-12-30 13:44:55.992223",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

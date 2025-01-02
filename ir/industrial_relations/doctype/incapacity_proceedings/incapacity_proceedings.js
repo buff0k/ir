@@ -2,35 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Incapacity Proceedings", {
-    accused: function(frm) {
-        if (frm.doc.accused) {
-            fetch_employee_data(frm, frm.doc.accused, {
-                'employee_name': 'accused_name',
-                'employee': 'accused_coy',
-                'designation': 'accused_pos',
-                'company': 'company',
-                'date_of_joining': 'engagement_date',
-                'branch': 'branch'
-            }, function() {
-                fetch_default_letter_head(frm, frm.doc.company);
-            });
-            fetch_incapacity_history(frm, frm.doc.accused);
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.check_if_ss',
-                args: {
-                    accused: frm.doc.accused
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frm.set_value('is_ss', r.message.is_ss);
-                        frm.set_value('ss_union', r.message.ss_union);
-                    }
-                }
-            });
-        }
-    },
-
     refresh: function(frm) {
         frm.toggle_display(['make_nta_hearing', 'write_incapacity_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
 
@@ -59,8 +30,8 @@ frappe.ui.form.on("Incapacity Proceedings", {
                 make_demotion_form_incap(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Issue Pay Deduction'), function() {
-                make_pay_deduction_form(frm);
+            frm.page.add_inner_button(__('Issue Pay Reduction'), function() {
+                make_pay_reduction_form(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Dismissal'), function() {
@@ -68,11 +39,11 @@ frappe.ui.form.on("Incapacity Proceedings", {
             }, 'Actions');
         
             frm.page.add_inner_button(__('Issue VSP'), function() {
-                make_vsp(frm);
+                make_vsp_incap(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Cancel Disciplinary Action'), function() {
-                cancel_disciplinary(frm);
+            frm.page.add_inner_button(__('Cancel Incapacity Proceeding'), function() {
+                cancel_incapacity(frm);
             }, 'Actions');
         }
 
@@ -81,6 +52,35 @@ frappe.ui.form.on("Incapacity Proceedings", {
             fetch_additional_linked_documents(frm);
             fetch_outcome_dates(frm);
         }      
+    },
+
+    accused: function(frm) {
+        if (frm.doc.accused) {
+            fetch_employee_data(frm, frm.doc.accused, {
+                'employee_name': 'accused_name',
+                'employee': 'accused_coy',
+                'designation': 'accused_pos',
+                'company': 'company',
+                'date_of_joining': 'engagement_date',
+                'branch': 'branch'
+            }, function() {
+                fetch_default_letter_head(frm, frm.doc.company);
+            });
+            fetch_incapacity_history(frm, frm.doc.accused);
+
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.check_if_ss',
+                args: {
+                    accused: frm.doc.accused
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value('is_ss', r.message.is_ss);
+                        frm.set_value('ss_union', r.message.ss_union);
+                    }
+                }
+            });
+        }
     },
 
     complainant: function(frm) {
@@ -271,14 +271,14 @@ function make_demotion_form_incap(frm) {
     });
 }
 
-function make_pay_deduction_form(frm) {
+function make_pay_reduction_form(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.make_pay_deduction_form",
+        method: "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form",
         frm: frm,
         args: {
             linked_incapacity_proceeding: frm.doc.name
         },
-        freeze_message: __("Creating Pay Deduction Form ...")
+        freeze_message: __("Creating Pay Reduction Form ...")
     });
 }
 
@@ -293,9 +293,9 @@ function make_dismissal_form_incap(frm) {
     });
 }
 
-function make_vsp(frm) {
+function make_vsp_incap(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp",
+        method: "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_incap",
         frm: frm,
         args: {
             linked_incapacity_proceeding: frm.doc.name
@@ -304,9 +304,9 @@ function make_vsp(frm) {
     });
 }
 
-function cancel_disciplinary(frm) {
+function cancel_incapacity(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.hearing_cancellation_form.hearing_cancellation_form.cancel_disciplinary",
+        method: "ir.industrial_relations.doctype.hearing_cancellation_form.hearing_cancellation_form.cancel_incapacity",
         frm: frm,
         args: {
             linked_incapacity_proceeding: frm.doc.name

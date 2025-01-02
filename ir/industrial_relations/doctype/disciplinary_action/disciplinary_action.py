@@ -16,12 +16,14 @@ def update_outcome_dates(doc_name):
     linked_docs = {
         'linked_demotion': 'Demotion Form',
         'linked_pay_deduction': 'Pay Deduction Form',
+        'linked_pay_reduction': 'Pay Reduction Form',
         'linked_suspension': 'Suspension Form'
     }
 
     relevant_fields = {
         'linked_demotion': ['from_date', 'to_date', 'Demoted from'],
         'linked_pay_deduction': ['from_date', 'to_date', 'Pay deduction effective from'],
+        'linked_pay_reduction': ['from_date', 'to_date', 'Pay reduction effective from'],
         'linked_suspension': ['from_date', 'to_date', 'Suspended from']
     }
     
@@ -50,6 +52,9 @@ def update_outcome_dates(doc_name):
         elif latest_outcome_type == 'linked_pay_deduction':
             outcome_start = f"Pay deduction effective from {latest_doc.from_date}"
             outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
+        elif latest_outcome_type == 'linked_pay_reduction':
+            outcome_start = f"Pay reduction effective from {latest_doc.from_date}"
+            outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
         elif latest_outcome_type == 'linked_suspension':
             outcome_start = f"Suspended from {latest_doc.from_date}"
             outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
@@ -58,7 +63,6 @@ def update_outcome_dates(doc_name):
         'outcome_start': outcome_start,
         'outcome_end': outcome_end
     }
-
 
 @frappe.whitelist()
 def fetch_employee_data(employee, fields):
@@ -121,6 +125,7 @@ def fetch_linked_documents(doc_name):
         "Dismissal Form": "linked_dismissal",
         "Demotion Form": "linked_demotion",
         "Pay Deduction Form": "linked_pay_deduction",
+        "Pay Reduction Form": "linked_pay_reduction",
         "Not Guilty Form": "linked_not_guilty",
         "Suspension Form": "linked_suspension",
         "Voluntary Seperation Agreement": "linked_vsp",
@@ -132,6 +137,7 @@ def fetch_linked_documents(doc_name):
         "linked_dismissal": "dismissal_type",
         "linked_demotion": "demotion_type",
         "linked_pay_deduction": "pay_deduction_type",
+        "linked_pay_reduction": "pay_reduction_type",
         "linked_not_guilty": "type_of_not_guilty",
         "linked_suspension": "suspension_type",
         "linked_vsp": "vsp_type",

@@ -1,33 +1,40 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-VSP-{#}",
  "creation": "2024-08-07 12:10:20.758536",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "section_break_kxtp",
   "amended_from",
-  "employee",
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
   "linked_incapacity_proceeding_processed",
   "employee_details_section",
+  "employee",
   "linked_disciplinary_action",
   "linked_incapacity_proceeding",
+  "engagement_date",
   "outcome_date",
   "signed_vsp",
   "column_break_jsbg",
   "names",
   "coy",
+  "custom_id_number",
   "position",
+  "current_address",
   "section_break_pnik",
   "reasons",
   "section_break_gfpw",
   "auth_manager",
+  "effective_date",
+  "release_date",
+  "payment_date",
   "column_break_raid",
   "auth_names",
+  "notice_ends",
+  "completed_years",
   "section_break_mqlq",
   "payment_details",
   "section_break_ctme",
@@ -54,12 +61,11 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
-   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
-   "read_only": 1
+   "reqd": 1
   },
   {
    "fieldname": "company",
@@ -97,7 +103,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action"
+   "options": "Disciplinary Action",
+   "read_only": 1
   },
   {
    "fieldname": "signed_vsp",
@@ -123,8 +130,10 @@
   },
   {
    "fieldname": "position",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Position",
+   "options": "Designation",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -196,6 +205,7 @@
    "fieldname": "vsp_type",
    "fieldtype": "Link",
    "label": "VSP Type",
+   "link_filters": "[[\"Offence Outcome\",\"istermination\",\"=\",1]]",
    "options": "Offence Outcome",
    "reqd": 1
   },
@@ -205,7 +215,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Linked Incapacity Proceeding",
-   "options": "Incapacity Proceedings"
+   "options": "Incapacity Proceedings",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -213,16 +224,64 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Linked Incapacity Proceeding Processed"
+  },
+  {
+   "fieldname": "custom_id_number",
+   "fieldtype": "Data",
+   "label": "RSA ID / Passport Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_address",
+   "fieldtype": "Small Text",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date of VSP",
+   "reqd": 1
+  },
+  {
+   "fieldname": "release_date",
+   "fieldtype": "Date",
+   "label": "Release from duties date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notice_ends",
+   "fieldtype": "Date",
+   "label": "Notice Ends Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Date of Payment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "completed_years",
+   "fieldtype": "Int",
+   "label": "Completed Years of Duty",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "engagement_date",
+   "fieldtype": "Date",
+   "label": "Starting Date",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-19 10:52:16.393892",
+ "modified": "2025-01-02 12:19:29.136247",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Voluntary Seperation Agreement",
- "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

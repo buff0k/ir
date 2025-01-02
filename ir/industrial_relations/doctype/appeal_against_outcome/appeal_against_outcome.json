@@ -1,38 +1,35 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2024-12-17 17:14:01.514971",
+ "creation": "2024-12-30 15:01:45.104038",
  "default_view": "List",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_dceb",
+  "section_break_ut3o",
   "amended_from",
   "employee",
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
   "linked_incapacity_proceeding_processed",
-  "employee_section",
+  "section_break_qeko",
+  "employee_details_column",
   "linked_disciplinary_action",
   "linked_incapacity_proceeding",
-  "column_break_okqk",
+  "linked_nta_hearing",
+  "dismissal_type",
+  "signed_dismissal",
+  "column_break_iuhw",
   "names",
   "coy",
   "position",
-  "pay_deduction_details_section",
+  "dismissal_details_section",
   "outcome_date",
+  "column_break_tnog",
   "applied_rights",
-  "reduction_amount",
-  "attached_signed_pay_deduction",
-  "column_break_tdkv",
-  "pay_reduction_type",
-  "from_date",
-  "to_date",
-  "details_responsibilities_section",
-  "details_responsibilities",
   "details_of_offence_section",
-  "nta_charges",
+  "dismissal_charges",
   "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
@@ -44,7 +41,7 @@
  ],
  "fields": [
   {
-   "fieldname": "section_break_dceb",
+   "fieldname": "section_break_ut3o",
    "fieldtype": "Section Break"
   },
   {
@@ -52,7 +49,7 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Pay Reduction Form",
+   "options": "Appeal Against Outcome",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
@@ -61,6 +58,8 @@
    "fieldname": "employee",
    "fieldtype": "Link",
    "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
    "read_only": 1
@@ -69,6 +68,8 @@
    "fieldname": "company",
    "fieldtype": "Link",
    "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Company",
    "options": "Company",
    "read_only": 1
@@ -83,15 +84,35 @@
   },
   {
    "default": "0",
+   "fieldname": "linked_disciplinary_action_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Discipliniary Action Processed"
+  },
+  {
+   "default": "0",
    "fieldname": "linked_incapacity_proceeding_processed",
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Linked Incapacity Proceeding Processed"
   },
   {
-   "fieldname": "employee_section",
+   "fieldname": "section_break_qeko",
    "fieldtype": "Section Break",
    "label": "Employee Details"
+  },
+  {
+   "fieldname": "employee_details_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linked_disciplinary_action",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked Disciplinary Action",
+   "options": "Disciplinary Action",
+   "read_only": 1
   },
   {
    "fieldname": "linked_incapacity_proceeding",
@@ -103,7 +124,25 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_okqk",
+   "fieldname": "linked_nta_hearing",
+   "fieldtype": "Read Only",
+   "label": "Linked NTA"
+  },
+  {
+   "fieldname": "dismissal_type",
+   "fieldtype": "Link",
+   "label": "Dismissal Type",
+   "link_filters": "[[\"Offence Outcome\",\"istermination\",\"=\",1]]",
+   "options": "Offence Outcome",
+   "reqd": 1
+  },
+  {
+   "fieldname": "signed_dismissal",
+   "fieldtype": "Attach",
+   "label": "Attach Signed Dismissal"
+  },
+  {
+   "fieldname": "column_break_iuhw",
    "fieldtype": "Column Break"
   },
   {
@@ -115,7 +154,7 @@
   {
    "fieldname": "coy",
    "fieldtype": "Read Only",
-   "label": "Coy. No.",
+   "label": "Coy. No",
    "reqd": 1
   },
   {
@@ -125,15 +164,19 @@
    "reqd": 1
   },
   {
-   "fieldname": "pay_deduction_details_section",
+   "fieldname": "dismissal_details_section",
    "fieldtype": "Section Break",
-   "label": "Pay Reduction Details"
+   "label": "Dismissal Details"
   },
   {
    "fieldname": "outcome_date",
    "fieldtype": "Date",
-   "label": "Outcome Date",
+   "label": "Date of Dismissal",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_tnog",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "applied_rights",
@@ -143,41 +186,28 @@
    "reqd": 1
   },
   {
-   "fieldname": "reduction_amount",
-   "fieldtype": "Currency",
-   "label": "Monetary Value of Reduction",
-   "precision": "2"
-  },
-  {
-   "fieldname": "attached_signed_pay_deduction",
-   "fieldtype": "Attach",
-   "label": "Attached Signed Pay Deduction"
-  },
-  {
-   "fieldname": "column_break_tdkv",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "from_date",
-   "fieldtype": "Date",
-   "label": "From Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "to_date",
-   "fieldtype": "Date",
-   "label": "To Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "details_responsibilities_section",
+   "fieldname": "details_of_offence_section",
    "fieldtype": "Section Break",
-   "label": "Details of Changed Responsibilities"
+   "label": "Details of Offence"
   },
   {
-   "fieldname": "details_responsibilities",
-   "fieldtype": "Small Text",
-   "label": "Details of Changed Responsibilities"
+   "fieldname": "dismissal_charges",
+   "fieldtype": "Table",
+   "label": "Charges",
+   "options": "Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_disciplinary_offences_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Disciplinary Offences"
+  },
+  {
+   "fieldname": "disciplinary_history",
+   "fieldtype": "Table",
+   "label": "Disciplinary History:",
+   "options": "Disciplinary History",
+   "read_only": 1
   },
   {
    "fieldname": "incap_details_section",
@@ -185,9 +215,15 @@
    "label": "Details of Incapacity"
   },
   {
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
    "fieldname": "previous_incapacity_outcomes_section",
    "fieldtype": "Section Break",
-   "label": "Previous Incapacity Outcomes"
+   "label": "Previous Inacpacity Outcomes"
   },
   {
    "fieldname": "previous_incapacity_outcomes",
@@ -213,73 +249,19 @@
    "fieldtype": "Link",
    "label": "Amended From",
    "no_copy": 1,
-   "options": "Pay Reduction Form",
+   "options": "Appeal Against Outcome",
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "pay_reduction_type",
-   "fieldtype": "Link",
-   "label": "Pay Reduction Type",
-   "link_filters": "[[\"Offence Outcome\",\"ispaydeduction\",\"=\",1]]",
-   "options": "Offence Outcome",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "linked_disciplinary_action_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Disciplinary Action Processed"
-  },
-  {
-   "fieldname": "linked_disciplinary_action",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action",
-   "read_only": 1
-  },
-  {
-   "fieldname": "details_of_offence_section",
-   "fieldtype": "Section Break",
-   "label": "Details of Offence"
-  },
-  {
-   "fieldname": "nta_charges",
-   "fieldtype": "Table",
-   "label": "Charges",
-   "options": "Charges",
-   "read_only": 1
-  },
-  {
-   "fieldname": "previous_disciplinary_offences_section",
-   "fieldtype": "Section Break",
-   "label": "Previous Disciplinary Offences"
-  },
-  {
-   "fieldname": "disciplinary_history",
-   "fieldtype": "Table",
-   "label": "Disciplinary History:",
-   "options": "Disciplinary History",
-   "read_only": 1
-  },
-  {
-   "fieldname": "details_of_incapacity",
-   "fieldtype": "Small Text",
-   "label": "Details of Incapacity",
-   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-02 09:06:25.043114",
+ "modified": "2024-12-30 15:02:02.581012",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Pay Reduction Form",
+ "name": "Appeal Against Outcome",
  "owner": "Administrator",
  "permissions": [
   {

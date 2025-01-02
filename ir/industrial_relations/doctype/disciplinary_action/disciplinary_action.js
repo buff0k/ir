@@ -2,35 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Disciplinary Action', {
-    accused: function(frm) {
-        if (frm.doc.accused) {
-            fetch_employee_data(frm, frm.doc.accused, {
-                'employee_name': 'accused_name',
-                'employee': 'accused_coy',
-                'designation': 'accused_pos',
-                'company': 'company',
-                'date_of_joining': 'engagement_date',
-                'branch': 'branch'
-            }, function() {
-                fetch_default_letter_head(frm, frm.doc.company);
-            });
-            fetch_disciplinary_history(frm, frm.doc.accused);
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.check_if_ss',
-                args: {
-                    accused: frm.doc.accused
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frm.set_value('is_ss', r.message.is_ss);
-                        frm.set_value('ss_union', r.message.ss_union);
-                    }
-                }
-            });
-        }
-    },
-
     refresh: function(frm) {
         frm.toggle_display(['make_warning_form', 'make_nta_hearing', 'write_disciplinary_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
 
@@ -66,6 +37,10 @@ frappe.ui.form.on('Disciplinary Action', {
             frm.page.add_inner_button(__('Issue Pay Deduction'), function() {
                 make_pay_deduction_form(frm);
             }, 'Actions');
+        
+            frm.page.add_inner_button(__('Issue Pay Reduction'), function() {
+                make_pay_reduction_form_misc(frm);
+            }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Dismissal'), function() {
                 make_dismissal_form(frm);
@@ -85,6 +60,35 @@ frappe.ui.form.on('Disciplinary Action', {
             fetch_additional_linked_documents(frm);
             fetch_outcome_dates(frm);
         }      
+    },
+
+    accused: function(frm) {
+        if (frm.doc.accused) {
+            fetch_employee_data(frm, frm.doc.accused, {
+                'employee_name': 'accused_name',
+                'employee': 'accused_coy',
+                'designation': 'accused_pos',
+                'company': 'company',
+                'date_of_joining': 'engagement_date',
+                'branch': 'branch'
+            }, function() {
+                fetch_default_letter_head(frm, frm.doc.company);
+            });
+            fetch_disciplinary_history(frm, frm.doc.accused);
+
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.check_if_ss',
+                args: {
+                    accused: frm.doc.accused
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value('is_ss', r.message.is_ss);
+                        frm.set_value('ss_union', r.message.ss_union);
+                    }
+                }
+            });
+        }
     },
 
     complainant: function(frm) {
@@ -310,6 +314,17 @@ function make_pay_deduction_form(frm) {
             linked_disciplinary_action: frm.doc.name
         },
         freeze_message: __("Creating Pay Deduction Form ...")
+    });
+}
+
+function make_pay_reduction_form_misc(frm) {
+    frappe.model.open_mapped_doc({
+        method: "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form_misc",
+        frm: frm,
+        args: {
+            linked_disciplinary_action: frm.doc.name
+        },
+        freeze_message: __("Creating Pay Reduction Form ...")
     });
 }
 

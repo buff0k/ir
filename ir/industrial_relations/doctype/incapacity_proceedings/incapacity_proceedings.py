@@ -16,16 +16,14 @@ def update_outcome_dates(doc_name):
     # Define the linked documents and relevant fields
     linked_docs = {
         'linked_demotion': 'Demotion Form',
-        'linked_pay_deduction': 'Pay Deduction Form',
-        'linked_suspension': 'Suspension Form',
-        'linked_pay_reduction': 'Pay Reduction Form'
+        'linked_pay_reduction': 'Pay Reduction Form',
+        'linked_suspension': 'Suspension Form'
     }
 
     relevant_fields = {
         'linked_demotion': ['from_date', 'to_date', 'Demoted from'],
-        'linked_pay_deduction': ['from_date', 'to_date', 'Pay deduction effective from'],
-        'linked_suspension': ['from_date', 'to_date', 'Suspended from'],
-        'linked_pay_reduction': ['from_date', 'to_date', 'Pay reduction effective from']
+        'linked_pay_reduction': ['from_date', 'to_date', 'Pay reduction effective from'],
+        'linked_suspension': ['from_date', 'to_date', 'Suspended from']
     }
     
     doc = frappe.get_doc('Incapacity Proceedings', doc_name)
@@ -50,8 +48,8 @@ def update_outcome_dates(doc_name):
         if latest_outcome_type == 'linked_demotion':
             outcome_start = f"Demoted from {latest_doc.from_date}"
             outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
-        elif latest_outcome_type == 'linked_pay_deduction':
-            outcome_start = f"Pay deduction effective from {latest_doc.from_date}"
+        elif latest_outcome_type == 'linked_pay_reduction':
+            outcome_start = f"Pay reduction effective from {latest_doc.from_date}"
             outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
         elif latest_outcome_type == 'linked_suspension':
             outcome_start = f"Suspended from {latest_doc.from_date}"
