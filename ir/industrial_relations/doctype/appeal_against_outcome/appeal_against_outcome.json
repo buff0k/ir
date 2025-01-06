@@ -33,6 +33,7 @@
   "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
+  "type_of_incapacity",
   "details_of_incapacity",
   "previous_incapacity_outcomes_section",
   "previous_incapacity_outcomes",
@@ -253,12 +254,19 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-30 15:02:02.581012",
+ "modified": "2025-01-02 13:31:11.671101",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Appeal Against Outcome",

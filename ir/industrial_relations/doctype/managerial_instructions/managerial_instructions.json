@@ -93,6 +93,8 @@
    "description": "With regards to what does the Instruction Apply, i.e. Working Hours, etc.",
    "fieldname": "regarding",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "RE",
    "reqd": 1,
    "search_index": 1
@@ -115,7 +117,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-10 10:09:24.665874",
+ "modified": "2025-01-06 09:14:04.121805",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Managerial Instructions",
