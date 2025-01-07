@@ -1,3 +1,6 @@
+# Copyright (c) 2024, BuFf0k and contributors
+# For license information, please see license.txt
+
 import frappe
 
 def execute():
@@ -6,26 +9,24 @@ def execute():
         {
             "sec_head": "Working Hours Placeholder",
             "notes": "Placeholder",
-            "sec_par": [{"ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
+            "sec_par": [{"doctype": "Contract Paragraph", "ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
         },
         {
             "sec_head": "Remuneration Placeholder",
             "notes": "Placeholder",
-            "sec_par": [{"ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
+            "sec_par": [{"doctype": "Contract Paragraph", "ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
         }
     ]
 
     for doc in documents:
-        # Check if the document already exists
+        # Create a new document with the sec_head as the name
         new_doc = frappe.get_doc({
             "doctype": "Contract Section",
+            "name": doc["sec_head"],
             "sec_head": doc["sec_head"],
             "notes": doc["notes"],
             "sec_par": doc["sec_par"]
         })
-        
-        # Explicitly set the document's name to sec_head
-        new_doc.set_name(doc["sec_head"])
 
         # Insert the document
         new_doc.insert(ignore_permissions=True)
