@@ -16,6 +16,12 @@ def execute():
     ]
 
     for doc in documents:
+        # Check if a document with the same 'sec_head' already exists
+        existing_doc = frappe.db.exists("Contract Section", {"sec_head": doc["sec_head"]})
+        if existing_doc:
+            frappe.logger().info(f"Document with sec_head '{doc['sec_head']}' already exists. Skipping creation.")
+            continue
+
         # Create a new document with default naming rule
         new_doc = frappe.get_doc({
             "doctype": "Contract Section",
@@ -24,51 +30,20 @@ def execute():
             "sec_par": doc["sec_par"]
         })
 
-        # Insert the document (this will use the naming rule)
+        # Insert the document
         new_doc.insert()
 
         # Commit the transaction to ensure the document is saved
         frappe.db.commit()
 
-        # Process the document to set the name as per sec_head
-        update_document_name(doc["sec_head"])
+        # Log successful creation
+        frappe.logger().info(f"Document '{doc['sec_head']}' created successfully.")
 
-def update_document_name(desired_name):
-    """Update document name after creation."""
-    try:
-        # Use pattern matching to find the document with the naming rule format
-        pattern = f"{desired_name}%"  # Pattern to match names starting with desired_name
-        result = frappe.db.sql("""
-            SELECT name FROM `tabContract Section`
-            WHERE name LIKE %s
-            ORDER BY creation DESC
-            LIMIT 1
-        """, (pattern,), as_dict=True)
+def update_document_name(sec_head):
+    # Fetch the document using sec_head
+    doc_name = frappe.db.exists("Contract Section", {"sec_head": sec_head})
+    if not doc_name:
+        frappe.logger().info(f"No document found with sec_head '{sec_head}'.")
+        return
 
-        if result:
-            auto_generated_name = result[0]['name']
-            # Fetch the document using the auto-generated name
-            doc = frappe.get_doc("Contract Section", auto_generated_name)
-
-            # Rename the document to the desired name
-            if doc.name != desired_name:
-
-                # Update the document with the new name
-                doc._rename(name=desired_name)
-
-                # Submit document
-                doc.submit()
-
-                # Commit changes
-                frappe.db.commit()
-
-                frappe.logger().info(f"Document renamed from {auto_generated_name} to {desired_name}.")
-            else:
-                frappe.logger().info(f"Document already has the desired name {desired_name}.")
-        else:
-            frappe.logger().error(f"Document with sec_head '{desired_name}' not found.")
-
-    except frappe.exceptions.DoesNotExistError as e:
-        frappe.logger().error(f"Error updating document {desired_name}: {str(e)}")
-        raise
-
+    frappe.logger().info(f"Document name for sec_head '{sec_head}' processed (if applicable).")
