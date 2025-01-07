@@ -31,7 +31,12 @@ def execute():
     for doc in documents:
         # Create a new document
         new_doc = frappe.new_doc("Contract Section")
-        new_doc.name = doc["sec_head"]  # Explicitly set the name
+        
+        # Explicitly set the name to match sec_head and bypass naming rule
+        new_doc.name = doc["sec_head"]
+        new_doc.flags.ignore_naming_rule = True
+
+        # Populate other fields
         new_doc.sec_head = doc["sec_head"]
         new_doc.notes = doc["notes"]
 
@@ -42,8 +47,7 @@ def execute():
                 "clause_text": child["clause_text"]
             })
 
-        # Insert the document, bypassing naming rules
-        new_doc.flags.ignore_naming_rule = True
+        # Insert the document, ensuring naming rules are bypassed
         new_doc.insert(ignore_permissions=True)
 
         # Automatically submit the document
