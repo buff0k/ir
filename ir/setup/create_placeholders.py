@@ -9,24 +9,40 @@ def execute():
         {
             "sec_head": "Working Hours Placeholder",
             "notes": "Placeholder",
-            "sec_par": [{"doctype": "Contract Paragraph", "ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
+            "sec_par": [
+                {
+                    "ss_num": "1",
+                    "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."
+                }
+            ]
         },
         {
             "sec_head": "Remuneration Placeholder",
             "notes": "Placeholder",
-            "sec_par": [{"doctype": "Contract Paragraph", "ss_num": "1", "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."}]
+            "sec_par": [
+                {
+                    "ss_num": "1",
+                    "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime."
+                }
+            ]
         }
     ]
 
     for doc in documents:
-        # Manually create the document with the desired name, bypassing naming rules
+        # Create a new document
         new_doc = frappe.new_doc("Contract Section")
         new_doc.name = doc["sec_head"]  # Explicitly set the name
         new_doc.sec_head = doc["sec_head"]
         new_doc.notes = doc["notes"]
-        new_doc.sec_par = doc["sec_par"]
 
-        # Insert the document without applying naming rules
+        # Populate the child table with proper child documents
+        for child in doc["sec_par"]:
+            new_doc.append("sec_par", {
+                "ss_num": child["ss_num"],
+                "clause_text": child["clause_text"]
+            })
+
+        # Insert the document, bypassing naming rules
         new_doc.flags.ignore_naming_rule = True
         new_doc.insert(ignore_permissions=True)
 
