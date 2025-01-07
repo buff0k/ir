@@ -19,16 +19,15 @@ def execute():
     ]
 
     for doc in documents:
-        # Create a new document with the sec_head as the name
-        new_doc = frappe.get_doc({
-            "doctype": "Contract Section",
-            "name": doc["sec_head"],
-            "sec_head": doc["sec_head"],
-            "notes": doc["notes"],
-            "sec_par": doc["sec_par"]
-        })
+        # Manually create the document with the desired name, bypassing naming rules
+        new_doc = frappe.new_doc("Contract Section")
+        new_doc.name = doc["sec_head"]  # Explicitly set the name
+        new_doc.sec_head = doc["sec_head"]
+        new_doc.notes = doc["notes"]
+        new_doc.sec_par = doc["sec_par"]
 
-        # Insert the document
+        # Insert the document without applying naming rules
+        new_doc.flags.ignore_naming_rule = True
         new_doc.insert(ignore_permissions=True)
 
         # Automatically submit the document
