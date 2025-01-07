@@ -1,0 +1,56 @@
+[
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "Contract Section",
+  "has_allowances": 0,
+  "has_hours": 0,
+  "is_hours": 0,
+  "is_remuneration": 0,
+  "modified": "2024-09-10 12:36:02.479797",
+  "name": "Working Hours Placeholder",
+  "notes": "Placeholder",
+  "sec_head": "Working Hours Placeholder",
+  "sec_par": [
+   {
+    "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime.",
+    "item_num": 0,
+    "par_num": 0,
+    "parent": "Working Hours Placeholder",
+    "parentfield": "sec_par",
+    "parenttype": "Contract Section",
+    "reference": null,
+    "sitem_num": 0,
+    "spar_num": 0,
+    "ss_num": 1
+   }
+  ]
+ },
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "Contract Section",
+  "has_allowances": 0,
+  "has_hours": 0,
+  "is_hours": 0,
+  "is_remuneration": 0,
+  "modified": "2024-09-10 12:36:03.271129",
+  "name": "Remuneration Placeholder",
+  "notes": "Placeholder",
+  "sec_head": "Remuneration Placeholder",
+  "sec_par": [
+   {
+    "clause_text": "This is a Placeholder Only and Should be Replaced by the Server Script at Runtime.",
+    "item_num": 0,
+    "par_num": 0,
+    "parent": "Remuneration Placeholder",
+    "parentfield": "sec_par",
+    "parenttype": "Contract Section",
+    "reference": null,
+    "sitem_num": 0,
+    "spar_num": 0,
+    "ss_num": 1
+   }
+  ]
+ }
+]

@@ -23,14 +23,15 @@ fixtures = [
     		       ]
                 ]
             ]},
-        {"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]}
+        {"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
+        {"dt": "Contract Section", "filters": [["sec_head", "in", ["Working Hours Placeholder", "Remuneration Placeholder"]]]}
         ]
 scheduler_events = {
     "weekly": [
         "ir.industrial_relations.controllers.send_weekly_hr_report.send_weekly_hr_report"
     ]
 }
-after_install = "ir.setup.create_placeholders.execute"
+#after_install = "ir.setup.create_placeholders.execute"
 # Includes in <head>
 # ------------------
 
