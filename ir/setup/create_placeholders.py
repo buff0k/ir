@@ -16,20 +16,25 @@ def execute():
     ]
 
     for doc in documents:
-        # Create a new document with the sec_head as the name
+        # Check if the document already exists
         new_doc = frappe.get_doc({
             "doctype": "Contract Section",
-            "name": doc["sec_head"],  # Explicitly set the name to sec_head
             "sec_head": doc["sec_head"],
             "notes": doc["notes"],
             "sec_par": doc["sec_par"]
         })
+        
+        # Explicitly set the document's name to sec_head
+        new_doc.set_name(doc["sec_head"])
 
-        # Insert the document (this will use the provided name)
+        # Insert the document
         new_doc.insert(ignore_permissions=True)
 
-    # Commit the transaction after all documents are created
+        # Automatically submit the document
+        new_doc.submit()
+
+    # Commit the transaction after all documents are created and submitted
     frappe.db.commit()
 
     # Log successful setup
-    frappe.logger().info("Default Contract Section documents created successfully.")
+    frappe.logger().info("Default Contract Section documents created and submitted successfully.")
