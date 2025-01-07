@@ -16,34 +16,20 @@ def execute():
     ]
 
     for doc in documents:
-        # Check if a document with the same 'sec_head' already exists
-        existing_doc = frappe.db.exists("Contract Section", {"sec_head": doc["sec_head"]})
-        if existing_doc:
-            frappe.logger().info(f"Document with sec_head '{doc['sec_head']}' already exists. Skipping creation.")
-            continue
-
-        # Create a new document with default naming rule
+        # Create a new document with the sec_head as the name
         new_doc = frappe.get_doc({
             "doctype": "Contract Section",
-            "notes": doc["notes"],
+            "name": doc["sec_head"],  # Explicitly set the name to sec_head
             "sec_head": doc["sec_head"],
+            "notes": doc["notes"],
             "sec_par": doc["sec_par"]
         })
 
-        # Insert the document
-        new_doc.insert()
+        # Insert the document (this will use the provided name)
+        new_doc.insert(ignore_permissions=True)
 
-        # Commit the transaction to ensure the document is saved
-        frappe.db.commit()
+    # Commit the transaction after all documents are created
+    frappe.db.commit()
 
-        # Log successful creation
-        frappe.logger().info(f"Document '{doc['sec_head']}' created successfully.")
-
-def update_document_name(sec_head):
-    # Fetch the document using sec_head
-    doc_name = frappe.db.exists("Contract Section", {"sec_head": sec_head})
-    if not doc_name:
-        frappe.logger().info(f"No document found with sec_head '{sec_head}'.")
-        return
-
-    frappe.logger().info(f"Document name for sec_head '{sec_head}' processed (if applicable).")
+    # Log successful setup
+    frappe.logger().info("Default Contract Section documents created successfully.")
