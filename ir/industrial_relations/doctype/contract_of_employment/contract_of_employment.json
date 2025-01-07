@@ -12,6 +12,7 @@
   "company",
   "letter_head",
   "has_expiry",
+  "has_project",
   "has_retirement",
   "has_hours",
   "has_allowances",
@@ -635,12 +636,20 @@
    "fieldname": "signed_contract",
    "fieldtype": "Attach",
    "label": "Signed Contract of Employment"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_project",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Has a Project",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-14 14:36:28.320629",
+ "modified": "2025-01-07 08:59:40.880266",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment",

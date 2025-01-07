@@ -15,6 +15,7 @@
   "column_break_znxa",
   "contract_type",
   "has_expiry",
+  "has_project",
   "has_retirement",
   "retirement_age",
   "contract_contents_section",
@@ -69,10 +70,10 @@
   },
   {
    "default": "0",
-   "description": "Does this contract type expire, such as on a fixed date or on the occurance of a fixed event?",
+   "description": "Does this contract type expire on a fixed date?",
    "fieldname": "has_expiry",
    "fieldtype": "Check",
-   "label": "Is Temporary?"
+   "label": "Is Period Based?"
   },
   {
    "default": "0",
@@ -98,12 +99,19 @@
    "label": "Applicable Clauses",
    "options": "Contract Terms",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Does this contract type expire on the completion of a specific task or project?",
+   "fieldname": "has_project",
+   "fieldtype": "Check",
+   "label": "Is Task Based?"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-17 18:04:30.335729",
+ "modified": "2025-01-07 08:49:24.065182",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract Type",

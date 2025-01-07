@@ -51,6 +51,7 @@ frappe.ui.form.on('Contract of Employment', {
 
                 // Update fields in Contract of Employment
                 frm.set_value('has_expiry', contract_type_doc.has_expiry || 0);
+                frm.set_value('has_project', contract_type_doc.has_project || 0);
                 frm.set_value('has_retirement', contract_type_doc.has_retirement || 0);
                 frm.set_value('retirement_age', contract_type_doc.retirement_age || '');
 
@@ -67,6 +68,13 @@ frappe.ui.form.on('Contract of Employment', {
                     frm.set_df_property('project', 'reqd', 1);
                 } else {
                     frm.set_df_property('end_date', 'reqd', 0);
+                    frm.set_df_property('project', 'reqd', 0);
+                }
+            
+                // Handle has_project logic
+                if (contract_type_doc.has_project) {
+                    frm.set_df_property('project', 'reqd', 1);
+                } else {
                     frm.set_df_property('project', 'reqd', 0);
                 }
             });
@@ -137,6 +145,10 @@ frappe.ui.form.on('Contract of Employment', {
         frm.events.toggle_expiry_fields(frm);
     },
 
+    has_project: function(frm) {
+        frm.events.toggle_project_field(frm);
+    },
+
     toggle_working_hours_section: function(frm) {
         let should_display = frm.doc.has_hours ? 1 : 0;
         frm.toggle_display('monday_section', should_display);
@@ -150,6 +162,11 @@ frappe.ui.form.on('Contract of Employment', {
     toggle_expiry_fields: function(frm) {
         let should_display = frm.doc.has_expiry ? 1 : 0;
         frm.toggle_display('end_date', should_display);
+        frm.toggle_display('project', should_display);
+    },
+
+    toggle_project_field: function(frm) {
+        let should_display = frm.doc.has_project ? 1 : 0;
         frm.toggle_display('project', should_display);
     },
 

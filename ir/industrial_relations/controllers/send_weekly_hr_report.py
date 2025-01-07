@@ -5,15 +5,24 @@ import frappe
 from frappe.utils import get_url
 
 def send_weekly_hr_report():
-    # Fetch expiring contracts
+    # Fetch expiring contracts with additional filters
     expiring_contracts = frappe.get_all(
         "Contract of Employment",
-        filters={"end_date": ["between", [frappe.utils.today(), frappe.utils.add_days(frappe.utils.today(), 28)]]},
+        filters={
+            "end_date": ["between", [frappe.utils.today(), frappe.utils.add_days(frappe.utils.today(), 28)]],
+            "has_expiry": 1,
+        },
         fields=["name", "employee", "employee_name", "end_date"]
     )
 
-    if not expiring_contracts:
-        frappe.logger().info("No expiring contracts found.")
+    # Exclude contracts where the linked Employee's status is "Left"
+    filtered_contracts = [
+        contract for contract in expiring_contracts
+        if frappe.get_value("Employee", contract["employee"], "status") != "Left"
+    ]
+
+    if not filtered_contracts:
+        frappe.logger().info("No expiring contracts found after applying filters.")
         return
 
     # Fetch recipients (IR Managers)
@@ -34,7 +43,7 @@ def send_weekly_hr_report():
         return
 
     # Prepare the email content
-    email_subject = "Weekly HR Report: Contracts Expiring Soon"
+    email_subject = "Weekly HR Report: Fixed-Term Contracts Expiring Soon"
     email_body = """
         <p>Dear {name},</p>
         <p>Please find below the list of contracts expiring soon:</p>
@@ -49,8 +58,8 @@ def send_weekly_hr_report():
             </thead>
             <tbody>
     """
-    
-    for contract in expiring_contracts:
+
+    for contract in filtered_contracts:
         contract_url = get_url(f"/app/contract-of-employment/{contract['name']}")
         email_body += f"""
             <tr>
@@ -64,7 +73,7 @@ def send_weekly_hr_report():
     email_body += """
             </tbody>
         </table>
-        <p>Kind regards,<br>Your HR Team</p>
+        <p>Kind regards,<br>Industrial Relations</p>
     """
 
     # Send email to each recipient

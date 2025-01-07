@@ -30,7 +30,8 @@ scheduler_events = {
         "ir.industrial_relations.controllers.send_weekly_hr_report.send_weekly_hr_report"
     ]
 }
-after_install = "ir.setup.create_placeholders"
+# TODO Fix the creation of placeholders
+#after_install = "ir.setup.create_placeholders"
 # Includes in <head>
 # ------------------
 
