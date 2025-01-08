@@ -338,7 +338,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-01-02 09:27:08.521457",
+ "modified": "2025-01-08 13:30:18.353425",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
@@ -347,7 +347,17 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR User"
+  }
+ ],
  "sequence_id": 39.0,
  "shortcuts": [],
  "title": "Industrial Relations"
