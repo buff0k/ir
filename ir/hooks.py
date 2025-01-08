@@ -6,6 +6,18 @@ app_email = "buff0k@buff0k.co.za"
 app_license = "mit"
 app_version = "1.0.2"
 required_apps = ["frappe/erpnext", "frappe/hrms"]
+source_link = "http://github.com/buff0k/ir"
+app_logo_url = "/assets/ir/images/ir-logo.svg"
+app_home = "/app/industrial-relations"
+add_to_apps_screen = [
+	{
+		"name": "ir",
+		"logo": "/assets/ir/images/ir-logo.svg",
+		"title": "Industrial Relations",
+		"route": "/app/industrial-relations",
+		"has_permission": "ir.industrial_relations.utils.check_app_permission",
+	}
+]
 fixtures = [
 		{"dt": "Role", "filters": [["name", "in", ["IR Manager", "IR User"]]]}, 
 		{"dt": "Custom DocPerm", "filters": [["role", "in", ["IR Manager", "IR User"]]]},
