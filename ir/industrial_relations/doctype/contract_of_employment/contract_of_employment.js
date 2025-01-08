@@ -6,11 +6,13 @@ frappe.ui.form.on('Contract of Employment', {
         frm.events.toggle_allowance_sections(frm);
         frm.events.toggle_working_hours_section(frm);
         frm.events.toggle_retirement_fields(frm);
-        frm.events.toggle_expiry_fields(frm);
+        frm.events.toggle_expiry_field(frm);
+        frm.events.toggle_project_fields(frm);
 
         // Always display values if they exist
         frm.toggle_display('end_date', frm.doc.has_expiry);
-        frm.toggle_display('project', frm.doc.has_expiry);
+        frm.toggle_display('project', frm.doc.has_project);
+        frm.toggle_display('end_date', frm.doc.has_project);
         frm.toggle_display('retirement_age', frm.doc.has_retirement);
         frm.toggle_display('monday_section', frm.doc.has_hours);
         
@@ -142,11 +144,11 @@ frappe.ui.form.on('Contract of Employment', {
     },
 
     has_expiry: function(frm) {
-        frm.events.toggle_expiry_fields(frm);
+        frm.events.toggle_expiry_field(frm);
     },
 
     has_project: function(frm) {
-        frm.events.toggle_project_field(frm);
+        frm.events.toggle_project_fields(frm);
     },
 
     toggle_working_hours_section: function(frm) {
@@ -159,15 +161,15 @@ frappe.ui.form.on('Contract of Employment', {
         frm.toggle_display('retirement_age', should_display);
     },
 
-    toggle_expiry_fields: function(frm) {
+    toggle_expiry_field: function(frm) {
         let should_display = frm.doc.has_expiry ? 1 : 0;
         frm.toggle_display('end_date', should_display);
-        frm.toggle_display('project', should_display);
     },
 
-    toggle_project_field: function(frm) {
+    toggle_project_fields: function(frm) {
         let should_display = frm.doc.has_project ? 1 : 0;
         frm.toggle_display('project', should_display);
+        frm.toggle_display('end_date', should_display);
     },
 
     // New function to toggle allowance sections based on description fields
