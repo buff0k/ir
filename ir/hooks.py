@@ -7,17 +7,14 @@ app_license = "mit"
 app_version = "1.0.2"
 required_apps = ["frappe/erpnext", "frappe/hrms"]
 fixtures = [
-        {"dt": "Role", "filters": [["name", "in", ["IR Manager", "IR User"]]]}, 
-        {"dt": "Custom DocPerm", "filters": [["role", "in", ["IR Manager", "IR User"]]]},
-        {"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
-        {"dt": "Contract Section", "filters": [["sec_head", "in", ["Working Hours Placeholder", "Remuneration Placeholder"]]]},
-		{"dt": "Employee Rights", "filters": [["name", "in", ["Demotion", "Disciplinary Hearing", "Dismissal", "Incapacity", "Pay Deduction", "Pay Reduction", "Suspension", "Warning Form"]]]}
+		{"dt": "Role", "filters": [["name", "in", ["IR Manager", "IR User"]]]}, 
+		{"dt": "Custom DocPerm", "filters": [["role", "in", ["IR Manager", "IR User"]]]},
+		{"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
+		{"dt": "Contract Section", "filters": [["sec_head", "in", ["Working Hours Placeholder", "Remuneration Placeholder"]]]},
+		{"dt": "Employee Rights", "filters": [["name", "in", ["Demotion", "Disciplinary Hearing", "Dismissal", "Incapacity", "Pay Deduction", "Pay Reduction", "Suspension", "Warning Form"]]]},
+		{"dt": "Module Profile", "filters": [["name", "in", ["Industrial Relations"]]]}
         ]
-scheduler_events = {
-    "weekly": [
-        "ir.industrial_relations.controllers.send_weekly_hr_report.send_weekly_hr_report"
-    ]
-}
+scheduler_events = {"weekly": ["ir.industrial_relations.controllers.send_weekly_hr_report.send_weekly_hr_report"]}
 # Includes in <head>
 # ------------------
 
