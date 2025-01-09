@@ -1,0 +1,29 @@
+[
+ {
+  "amended_from": null,
+  "appeal_ground": "Procedural",
+  "docstatus": 1,
+  "doctype": "Grounds for Appeal",
+  "modified": "2025-01-09 07:30:03.332367",
+  "name": "Procedural",
+  "notes": "Where a defect occurred in the procedure, either by virtue of non-compliance with the Disciplinary Code, or with statutory provisions."
+ },
+ {
+  "amended_from": null,
+  "appeal_ground": "Substantive",
+  "docstatus": 1,
+  "doctype": "Grounds for Appeal",
+  "modified": "2025-01-09 07:30:35.981870",
+  "name": "Substantive",
+  "notes": "Where there was a defect in terms of the substantive merits of the case, i.e. evidence, harshness of sanction, consistency, etc."
+ },
+ {
+  "amended_from": null,
+  "appeal_ground": "New Evidence",
+  "docstatus": 1,
+  "doctype": "Grounds for Appeal",
+  "modified": "2025-01-09 07:31:03.966044",
+  "name": "New Evidence",
+  "notes": "Where new evidence exists which was not, and could not have been reasonably available during the initial enquiry."
+ }
+]
