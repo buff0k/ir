@@ -341,6 +341,7 @@
  "modified": "2025-01-08 13:30:18.353425",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
+ "route": "/app/industrial-relations",
  "name": "Industrial Relations",
  "number_cards": [],
  "owner": "Administrator",

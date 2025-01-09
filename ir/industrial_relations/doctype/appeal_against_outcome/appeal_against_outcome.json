@@ -18,16 +18,15 @@
   "linked_disciplinary_action",
   "linked_incapacity_proceeding",
   "linked_nta_hearing",
-  "dismissal_type",
-  "signed_dismissal",
+  "signed_nta",
   "column_break_iuhw",
   "names",
   "coy",
   "position",
-  "dismissal_details_section",
-  "outcome_date",
-  "column_break_tnog",
-  "applied_rights",
+  "details_of_appeal_section",
+  "appeal_grounds",
+  "details_of_grounds_for_appeal",
+  "attach_supporting_documents",
   "details_of_offence_section",
   "dismissal_charges",
   "previous_disciplinary_offences_section",
@@ -36,9 +35,7 @@
   "type_of_incapacity",
   "details_of_incapacity",
   "previous_incapacity_outcomes_section",
-  "previous_incapacity_outcomes",
-  "rights_section",
-  "employee_rights"
+  "previous_incapacity_outcomes"
  ],
  "fields": [
   {
@@ -100,7 +97,7 @@
   {
    "fieldname": "section_break_qeko",
    "fieldtype": "Section Break",
-   "label": "Employee Details"
+   "label": "Appellant Details"
   },
   {
    "fieldname": "employee_details_column",
@@ -130,19 +127,6 @@
    "label": "Linked NTA"
   },
   {
-   "fieldname": "dismissal_type",
-   "fieldtype": "Link",
-   "label": "Dismissal Type",
-   "link_filters": "[[\"Offence Outcome\",\"istermination\",\"=\",1]]",
-   "options": "Offence Outcome",
-   "reqd": 1
-  },
-  {
-   "fieldname": "signed_dismissal",
-   "fieldtype": "Attach",
-   "label": "Attach Signed Dismissal"
-  },
-  {
    "fieldname": "column_break_iuhw",
    "fieldtype": "Column Break"
   },
@@ -162,28 +146,6 @@
    "fieldname": "position",
    "fieldtype": "Read Only",
    "label": "Position",
-   "reqd": 1
-  },
-  {
-   "fieldname": "dismissal_details_section",
-   "fieldtype": "Section Break",
-   "label": "Dismissal Details"
-  },
-  {
-   "fieldname": "outcome_date",
-   "fieldtype": "Date",
-   "label": "Date of Dismissal",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_tnog",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "applied_rights",
-   "fieldtype": "Link",
-   "label": "Applicable Rights",
-   "options": "Employee Rights",
    "reqd": 1
   },
   {
@@ -234,18 +196,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "rights_section",
-   "fieldtype": "Section Break",
-   "label": "Rights"
-  },
-  {
-   "fieldname": "employee_rights",
-   "fieldtype": "Table",
-   "label": "Employee Rights",
-   "options": "Individual Right",
-   "read_only": 1
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -261,12 +211,40 @@
    "label": "Type of Incapacity",
    "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
    "read_only": 1
+  },
+  {
+   "fieldname": "signed_nta",
+   "fieldtype": "Attach",
+   "label": "Attach Signed NTA"
+  },
+  {
+   "fieldname": "details_of_appeal_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Appeal"
+  },
+  {
+   "fieldname": "appeal_grounds",
+   "fieldtype": "Table MultiSelect",
+   "label": "Grounds for Appeal",
+   "options": "Appeal Grounds Selector",
+   "reqd": 1
+  },
+  {
+   "fieldname": "details_of_grounds_for_appeal",
+   "fieldtype": "Small Text",
+   "label": "Details of Grounds for Appeal"
+  },
+  {
+   "fieldname": "attach_supporting_documents",
+   "fieldtype": "Table",
+   "label": "Attach Supporting Documents",
+   "options": "Disciplinary Action Files"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-02 13:31:11.671101",
+ "modified": "2025-01-09 07:36:48.773924",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Appeal Against Outcome",
