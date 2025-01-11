@@ -45,6 +45,10 @@ frappe.ui.form.on("Incapacity Proceedings", {
             frm.page.add_inner_button(__('Cancel Incapacity Proceeding'), function() {
                 cancel_incapacity(frm);
             }, 'Actions');
+        
+            frm.page.add_inner_button(__('Appeal Against Outcome'), function() {
+                appeal_incapacity(frm);
+            }, 'Actions');
         }
 
         if (!frm.is_new()) {
@@ -314,3 +318,15 @@ function cancel_incapacity(frm) {
         freeze_message: __("Generating Cancellation Form ...")
     });
 }
+
+function appeal_incapacity(frm) {
+    frappe.model.open_mapped_doc({
+        method: "ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.appeal_incapacity",
+        frm: frm,
+        args: {
+            linked_incapacity_proceeding: frm.doc.name
+        },
+        freeze_message: __("Generating Cancellation Form ...")
+    });
+}
+

@@ -53,6 +53,10 @@ frappe.ui.form.on('Disciplinary Action', {
             frm.page.add_inner_button(__('Cancel Disciplinary Action'), function() {
                 cancel_disciplinary(frm);
             }, 'Actions');
+        
+            frm.page.add_inner_button(__('Appeal Against Outcome'), function() {
+                appeal_disciplinary(frm);
+            }, 'Actions');
         }
 
         if (!frm.is_new()) {
@@ -358,5 +362,16 @@ function cancel_disciplinary(frm) {
             linked_disciplinary_action: frm.doc.name
         },
         freeze_message: __("Generating Cancellation Form ...")
+    });
+}
+
+function appeal_disciplinary(frm) {
+    frappe.model.open_mapped_doc({
+        method: "ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.appeal_disciplinary",
+        frm: frm,
+        args: {
+            linked_disciplinary_action: frm.doc.name
+        },
+        freeze_message: __("Generating Appeal Form ...")
     });
 }

@@ -18,7 +18,7 @@ An Industrial Relations Management App built on the Frappe Framework.
 Log into your server as your frappe-bench user and cd to your frappe-bench folder
 
 ````
-bench get-app https://github.com/buff0k/ir --branch version-15 
+bench get-app https://github.com/buff0k/ir
 ````
 
 For latest Development Branch:

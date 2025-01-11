@@ -24,6 +24,7 @@
   "coy",
   "position",
   "details_of_appeal_section",
+  "outcome",
   "appeal_grounds",
   "details_of_grounds_for_appeal",
   "attach_supporting_documents",
@@ -239,12 +240,19 @@
    "fieldtype": "Table",
    "label": "Attach Supporting Documents",
    "options": "Disciplinary Action Files"
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Link",
+   "label": "Outcome Being Appealed",
+   "options": "Offence Outcome",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-09 07:36:48.773924",
+ "modified": "2025-01-09 08:14:20.482362",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Appeal Against Outcome",
