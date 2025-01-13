@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url
 
-def send_weekly_hr_report():
+def fixed_term_expiry():
     # Fetch expiring contracts with additional filters
     expiring_contracts = frappe.get_all(
         "Contract of Employment",
@@ -52,7 +52,7 @@ def send_weekly_hr_report():
                 <tr>
                     <th>Contract Name</th>
                     <th>Employee Name</th>
-                    <th>Employee Code</th>
+                    <th>Employee Coy</th>
                     <th>Contract End Date</th>
                 </tr>
             </thead>
