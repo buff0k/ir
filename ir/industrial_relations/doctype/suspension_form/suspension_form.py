@@ -4,8 +4,7 @@
 import frappe
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.document import Document
-from frappe.model.naming import getseries
-from frappe import _
+from frappe import _, get_doc
 
 class SuspensionForm(Document):
     def autoname(self):
@@ -48,26 +47,118 @@ class SuspensionForm(Document):
             new_revision = latest_revision + 1
             self.name = f"SUS-{linked_field}-{new_revision}"
 
+    def before_save(self):
+        if not getattr(self, "__confirmed_save", False):
+            self.clear_outcome_in_linked_documents()
+
     def before_submit(self):
-        # Ensure required fields are set
         if not self.employee:
             frappe.throw(_("Please link an Employee before submitting."))
 
-        # Fetch the Employee document
         employee = frappe.get_doc("Employee", self.employee)
-
-        # Update Employee status and relieving date
         employee.status = "Suspended"
-
-        # Save the Employee document to trigger Track Changes
+        employee.relieving_date = self.outcome_date
         employee.save(ignore_permissions=True)
 
         frappe.msgprint(
-            _("Employee {0}'s status has been updated to 'Suspended'.").format(
+            _("Employee {0}'s status has been updated to Suspended.").format(
                 self.employee
             ),
             alert=True
         )
+
+    def on_submit(self):
+        if not getattr(self, "__confirmed_submit", False):
+            self.set_outcome_in_linked_documents()
+
+    def clear_outcome_in_linked_documents(self):
+        linked_doc_name, linked_doctype = self.get_linked_document()
+        if linked_doc_name and linked_doctype:
+            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
+            linked_doc.flags.ignore_version = True  # Avoid version mismatch
+
+            previous_outcome = linked_doc.get("outcome")
+            previous_outcome_date = linked_doc.get("outcome_date")
+            previous_outcome_start = linked_doc.get("outcome_start")
+            previous_outcome_end = linked_doc.get("outcome_end")
+
+            if linked_doc.docstatus == 0:  # Non-submitted document
+                linked_doc.outcome = None
+                linked_doc.outcome_date = None
+                linked_doc.outcome_start = None
+                linked_doc.outcome_end = None
+                linked_doc.save(ignore_permissions=True)
+            else:  # Submitted document
+                linked_doc.db_set("outcome", None)
+                linked_doc.db_set("outcome_date", None)
+                linked_doc.db_set("outcome_start", None)
+                linked_doc.db_set("outcome_end", None)
+                # Create a manual version entry for the submitted document
+                create_manual_version(linked_doc, "outcome", previous_outcome, None)
+                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, None)
+                create_manual_version(linked_doc, "outcome_start", previous_outcome_date, None)
+                create_manual_version(linked_doc, "outcome_end", previous_outcome_date, None)
+
+            # Notify the user
+            frappe.msgprint(
+                _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been cleared.").format(linked_doc_name, linked_doctype),
+                alert=True
+            )
+
+    def set_outcome_in_linked_documents(self):
+        linked_doc_name, linked_doctype = self.get_linked_document()
+        if linked_doc_name and linked_doctype:
+            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
+            linked_doc.flags.ignore_version = True  # Avoid version mismatch
+
+            previous_outcome = linked_doc.get("outcome")
+            previous_outcome_date = linked_doc.get("outcome_date")
+            previous_outcome_start = linked_doc.get("outcome_start")
+            previous_outcome_end = linked_doc.get("outcome_end")
+
+            if linked_doc.docstatus == 0:  # Non-submitted document
+                linked_doc.outcome = self.suspension_type
+                linked_doc.outcome_date = self.outcome_date
+                linked_doc.outcome_start = f"The employee is suspended from {self.from_date}."
+                if self.to_date:
+                    linked_doc.outcome_end = f"The employee is suspended until {self.to_date}."
+                linked_doc.save(ignore_permissions=True)
+            else:  # Submitted document
+                linked_doc.db_set("outcome", self.suspension_type)
+                linked_doc.db_set("outcome_date", self.outcome_date)
+                linked_doc.db_set("outcome_start", f"The employee is supsended from {self.from_date}.")
+                if self.to_date:
+                    linked_doc.db_set("outcome_end", f"The employee is suspended until {self.to_date}.")
+                    create_manual_version(linked_doc, "outcome_end", previous_outcome_end, f"The employee is suspended until {self.to_date}.")
+                # Create a manual version entry for the submitted document
+                create_manual_version(linked_doc, "outcome", previous_outcome, self.suspension_type)
+                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, self.outcome_date)
+                create_manual_version(linked_doc, "outcome_start", previous_outcome_start, f"The employee is suspended from {self.from_date}.")
+
+            # Notify the user
+            frappe.msgprint(
+                _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been updated to {2} and {3}, respectively.")
+                .format(linked_doc_name, linked_doctype, self.suspension_type, self.outcome_date),
+                alert=True
+            )
+
+    def get_linked_document(self):
+        if self.linked_disciplinary_action:
+            return self.linked_disciplinary_action, "Disciplinary Action"
+        elif self.linked_incapacity_proceeding:
+            return self.linked_incapacity_proceeding, "Incapacity Proceedings"
+        return None, None
+
+def create_manual_version(doc, fieldname, old_value, new_value):
+    """Create a manual version entry for a submitted document."""
+    version_data = {
+        "ref_doctype": doc.doctype,
+        "docname": doc.name,
+        "data": frappe.as_json({
+            "changed": [[fieldname, old_value, new_value]]
+        })
+    }
+    frappe.get_doc({"doctype": "Version", **version_data}).insert(ignore_permissions=True)
 
 @frappe.whitelist()
 def make_suspension_form(source_name, target_doc=None):
@@ -172,3 +263,15 @@ def fetch_incpacity_proceeding_data(incapacity_proceeding):
 def fetch_company_letter_head(company):
     letter_head = frappe.db.get_value('Company', company, 'default_letter_head')
     return {'letter_head': letter_head} if letter_head else {}
+
+@frappe.whitelist()
+def get_linked_outcome(doc_name, doctype):
+    linked_doc = frappe.get_doc(doctype, doc_name)
+    return {
+        "linked_doc_name": linked_doc.name,
+        "linked_doctype": doctype,
+        "outcome": linked_doc.outcome,
+        "outcome_date": linked_doc.outcome_date,
+        "outcome_start": linked_doc.outcome_start,
+        "outcome_end": linked_doc.outcome_end
+    }
