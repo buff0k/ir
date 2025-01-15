@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-WAR-{#}",
  "creation": "2024-07-13 21:38:05.593454",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -131,6 +130,7 @@
    "fieldtype": "Link",
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -169,7 +169,9 @@
    "default": "0",
    "fieldname": "linked_disciplinary_action_processed",
    "fieldtype": "Check",
-   "label": "Linked Disciplinary Action Processed"
+   "hidden": 1,
+   "label": "Linked Disciplinary Action Processed",
+   "read_only": 1
   },
   {
    "fieldname": "signed_warning",
@@ -193,61 +195,11 @@
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "link_doctype": "Offence Outcome",
-   "link_fieldname": "disc_offence_out"
-  },
-  {
-   "link_doctype": "Offence Outcome",
-   "link_fieldname": "iswarning"
-  },
-  {
-   "link_doctype": "Employee",
-   "link_fieldname": "employee"
-  },
-  {
-   "link_doctype": "Employee",
-   "link_fieldname": "employee_name"
-  },
-  {
-   "link_doctype": "Employee",
-   "link_fieldname": "company"
-  },
-  {
-   "link_doctype": "Company",
-   "link_fieldname": "default_letter_head"
-  },
-  {
-   "link_doctype": "Company",
-   "link_fieldname": "company_name"
-  },
-  {
-   "link_doctype": "Disciplinary Offence",
-   "link_fieldname": "offence_description"
-  },
-  {
-   "link_doctype": "Disciplinary Offence",
-   "link_fieldname": "name"
-  },
-  {
-   "link_doctype": "Disciplinary Action",
-   "link_fieldname": "outcome"
-  },
-  {
-   "link_doctype": "Disciplinary Action",
-   "link_fieldname": "outcome_date"
-  },
-  {
-   "link_doctype": "Disciplinary Action",
-   "link_fieldname": "accused"
-  }
- ],
- "modified": "2024-12-17 12:36:15.099524",
+ "links": [],
+ "modified": "2025-01-15 07:58:50.602916",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Warning Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

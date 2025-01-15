@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-13 11:04:34.896504",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "linked_vsp"
+ ],
+ "fields": [
+  {
+   "fieldname": "linked_vsp",
+   "fieldtype": "Link",
+   "label": "VSP",
+   "options": "Voluntary Seperation Agreement"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-01-13 11:04:58.742871",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Voluntary Separation Selector",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

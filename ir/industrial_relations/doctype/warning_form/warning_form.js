@@ -52,6 +52,11 @@ frappe.ui.form.on('Warning Form', {
                             child.indiv_charge = row.indiv_charge;
                         });
                         frm.refresh_field('warning_charges');
+                    
+                        // Update applied_rights field
+                        frm.set_value('applied_rights', 'Warning Form');
+                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
+                    
                         // Set the flag to prevent refresh loop
                         frm.set_value('linked_disciplinary_action_processed', true);
                     }
@@ -91,10 +96,129 @@ frappe.ui.form.on('Warning Form', {
         }
     },
 
+    before_save: function(frm) {
+        console.log('Running before_save'); // Debug log
+
+        // Skip if already confirmed for this save
+        if (frm.__confirmed_save) {
+            console.log('Save already confirmed'); // Debug log
+            return;
+        }
+
+        // Determine linked document
+        let linked_doc_name = frm.doc.linked_disciplinary_action;
+        let linked_doctype = 'Disciplinary Action';
+
+        if (linked_doc_name) {
+            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
+
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.warning_form.warning_form.get_linked_outcome',
+                args: {
+                    doc_name: linked_doc_name,
+                    doctype: linked_doctype
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        const { outcome, outcome_date } = r.message;
+
+                        const outcome_str = outcome ? outcome.toString() : 'None';
+                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
+
+                        if (!outcome && !outcome_date) {
+                            console.log('No existing outcome, skipping confirmation'); // Debug log
+                            frm.__confirmed_save = true;
+                            frappe.validated = true;  // Allow save
+                            frm.save();
+                            return;
+                        }
+
+                        // Prompt for confirmation
+                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be cleared upon saving. Do you want to proceed?`;
+
+                        frappe.confirm(
+                            msg,
+                            function() {
+                                console.log('User confirmed save'); // Debug log
+                                frm.__confirmed_save = true;  // Set flag after confirmation
+                                frappe.validated = true;  // Allow save
+                                frm.save();
+                            },
+                            function() {
+                                console.log('User canceled save'); // Debug log
+                                frappe.msgprint(__('Save operation canceled.'));
+                                frappe.validated = false;  // Block save
+                            }
+                        );
+                    }
+                }
+            });
+
+            console.log('Blocking save until confirmation'); // Debug log
+            frappe.validated = false;  // Block save
+        }
+    },
+
     before_submit: function(frm) {
+        console.log('Running before_submit'); // Debug log
+
         if (!frm.doc.signed_warning) {
-            frappe.msgprint(__('You cannot submit this document untill you have attached a signed copy of the Warning'));
+            frappe.msgprint(__('You must attach the signed warning before submitting.'));
             frappe.validated = false;
+            return;
+        }
+
+        if (frm.__confirmed_submit) {
+            console.log('Submit already confirmed'); // Debug log
+            return;
+        }
+
+        let linked_doc_name = frm.doc.linked_disciplinary_action;
+        let linked_doctype = 'Disciplinary Action';
+
+        if (linked_doc_name) {
+            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
+
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.warning_form.warning_form.get_linked_outcome',
+                args: {
+                    doc_name: linked_doc_name,
+                    doctype: linked_doctype
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        const { outcome, outcome_date } = r.message;
+
+                        const outcome_str = outcome ? outcome.toString() : 'None';
+                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
+
+                        if (!outcome && !outcome_date) {
+                            console.log('No existing outcome, skipping confirmation for submit'); // Debug log
+                            frm.__confirmed_submit = true;
+                            frm.save({ action: 'submit' });
+                            return;
+                        }
+
+                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with dismissal type: ${frm.doc.dismissal_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
+
+                        frappe.confirm(
+                            msg,
+                            function() {
+                                console.log('User confirmed submit'); // Debug log
+                                frm.__confirmed_submit = true;
+                                frm.save({ action: 'submit' });
+                            },
+                            function() {
+                                frappe.msgprint(__('Submit operation canceled.'));
+                                frappe.validated = false;  // Block submit
+                            }
+                        );
+                    }
+                }
+            });
+
+            console.log('Blocking submit until confirmation'); // Debug log
+            frappe.validated = false;  // Block submit
         }
     },
 

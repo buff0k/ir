@@ -58,7 +58,8 @@
   "linked_not_guilty",
   "linked_suspension",
   "linked_vsp",
-  "linked_cancellation"
+  "linked_cancellation",
+  "linked_appeal"
  ],
  "fields": [
   {
@@ -210,7 +211,8 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Outcome Date"
+   "label": "Outcome Date",
+   "read_only": 1
   },
   {
    "description": "Attach any warnings or counselling that do not appear in the Disciplinary History Tab",
@@ -241,58 +243,58 @@
   },
   {
    "fieldname": "linked_nta",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked NTA",
-   "options": "NTA Hearing",
+   "options": "NTA Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_outcome",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Outcome Report",
-   "options": "Disciplinary Outcome Report",
+   "options": "Outcome Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_warning",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Warning",
-   "options": "Warning Form",
+   "options": "Warning Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_dismissal",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Dismissal",
-   "options": "Dismissal Form",
+   "options": "Dismissal Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_demotion",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Demotion",
-   "options": "Demotion Form",
+   "options": "Demotion Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_pay_deduction",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Pay Deduction",
-   "options": "Pay Deduction Form",
+   "options": "Pay Deduction Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_not_guilty",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Not Guilty",
-   "options": "Not Guilty Form",
+   "options": "Not Guilty Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_suspension",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Suspension",
-   "options": "Suspension Form",
+   "options": "Suspension Selector",
    "read_only": 1
   },
   {
@@ -320,9 +322,9 @@
   },
   {
    "fieldname": "linked_vsp",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked VSP",
-   "options": "Voluntary Seperation Agreement",
+   "options": "Voluntary Separation Selector",
    "read_only": 1
   },
   {
@@ -343,9 +345,9 @@
   },
   {
    "fieldname": "linked_cancellation",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Cancellation",
-   "options": "Hearing Cancellation Form",
+   "options": "Cancellation Selector",
    "read_only": 1
   },
   {
@@ -378,9 +380,16 @@
   },
   {
    "fieldname": "linked_pay_reduction",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Pay Reduction",
-   "options": "Pay Reduction Form",
+   "options": "Pay Reduction Selector",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_appeal",
+   "fieldtype": "Table MultiSelect",
+   "label": "Linked Appeal Against Outcome",
+   "options": "Appeal Selector",
    "read_only": 1
   }
  ],
@@ -420,7 +429,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2024-12-30 13:44:55.992223",
+ "modified": "2025-01-14 09:07:01.779278",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-13 11:05:17.154829",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "linked_cancellation"
+ ],
+ "fields": [
+  {
+   "fieldname": "linked_cancellation",
+   "fieldtype": "Link",
+   "label": "Cancellation",
+   "options": "Hearing Cancellation Form"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-01-13 11:05:46.205346",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Cancellation Selector",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

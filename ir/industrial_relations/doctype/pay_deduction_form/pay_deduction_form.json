@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{linked_disciplinary_action}-DED-{#}",
  "creation": "2024-07-23 09:58:38.872174",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -60,6 +59,7 @@
    "in_list_view": 1,
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -200,17 +200,17 @@
    "fieldname": "deduction_amount",
    "fieldtype": "Currency",
    "label": "Monetary Value of Deduction",
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-17 12:37:28.696455",
+ "modified": "2025-01-15 11:24:54.128998",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Pay Deduction Form",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

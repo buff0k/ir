@@ -158,27 +158,6 @@ scheduler_events = {
 # 	}
 # }
 
-# Scheduled Tasks
-# ---------------
-
-# scheduler_events = {
-# 	"all": [
-# 		"ir.tasks.all"
-# 	],
-# 	"daily": [
-# 		"ir.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"ir.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"ir.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"ir.tasks.monthly"
-# 	],
-# }
-
 # Testing
 # -------
 

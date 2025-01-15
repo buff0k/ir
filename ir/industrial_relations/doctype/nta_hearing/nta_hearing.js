@@ -83,6 +83,7 @@ frappe.ui.form.on('NTA Hearing', {
                         frm.doc.coy = data.accused_coy || '';
                         frm.doc.position = data.accused_pos || '';
                         frm.doc.company = data.company || '';
+                        frm.doc.type_of_incapacity = data.type_of_incapacity || '';
                         frm.set_value('details_of_incapacity', data.details_of_incapacity || '');
 
                         frm.refresh_field('employee');
@@ -90,6 +91,8 @@ frappe.ui.form.on('NTA Hearing', {
                         frm.refresh_field('coy');
                         frm.refresh_field('position');
                         frm.refresh_field('company');
+                        frm.refresh_field('type_of_incapacity');
+                        frm.refresh_field('details_of_incapacity');
 
                         // Update child tables
                         frm.clear_table('previous_incapacity_outcomes');

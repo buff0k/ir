@@ -10,61 +10,6 @@ class DisciplinaryAction(Document):
     pass
 
 @frappe.whitelist()
-def update_outcome_dates(doc_name):
-    frappe.flags.ignore_permissions = True
-    # Define the linked documents and relevant fields
-    linked_docs = {
-        'linked_demotion': 'Demotion Form',
-        'linked_pay_deduction': 'Pay Deduction Form',
-        'linked_pay_reduction': 'Pay Reduction Form',
-        'linked_suspension': 'Suspension Form'
-    }
-
-    relevant_fields = {
-        'linked_demotion': ['from_date', 'to_date', 'Demoted from'],
-        'linked_pay_deduction': ['from_date', 'to_date', 'Pay deduction effective from'],
-        'linked_pay_reduction': ['from_date', 'to_date', 'Pay reduction effective from'],
-        'linked_suspension': ['from_date', 'to_date', 'Suspended from']
-    }
-    
-    doc = frappe.get_doc('Disciplinary Action', doc_name)
-    latest_outcome_date = None
-    latest_doc = None
-    latest_outcome_type = None
-
-    for link_field, doc_type in linked_docs.items():
-        linked_doc_name = doc.get(link_field)
-        if linked_doc_name:
-            linked_doc = frappe.get_doc(doc_type, linked_doc_name)
-            outcome_date = linked_doc.get('outcome_date')
-            if outcome_date and (not latest_outcome_date or getdate(outcome_date) > getdate(latest_outcome_date)):
-                latest_outcome_date = outcome_date
-                latest_doc = linked_doc
-                latest_outcome_type = link_field
-
-    outcome_start = ""
-    outcome_end = ""
-
-    if latest_doc:
-        if latest_outcome_type == 'linked_demotion':
-            outcome_start = f"Demoted from {latest_doc.from_date}"
-            outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
-        elif latest_outcome_type == 'linked_pay_deduction':
-            outcome_start = f"Pay deduction effective from {latest_doc.from_date}"
-            outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
-        elif latest_outcome_type == 'linked_pay_reduction':
-            outcome_start = f"Pay reduction effective from {latest_doc.from_date}"
-            outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
-        elif latest_outcome_type == 'linked_suspension':
-            outcome_start = f"Suspended from {latest_doc.from_date}"
-            outcome_end = f"until {latest_doc.to_date}" if latest_doc.to_date else ""
-    
-    return {
-        'outcome_start': outcome_start,
-        'outcome_end': outcome_end
-    }
-
-@frappe.whitelist()
 def fetch_employee_data(employee, fields):
     frappe.flags.ignore_permissions = True
 
@@ -120,69 +65,44 @@ def fetch_disciplinary_history(accused, current_doc_name):
 def fetch_linked_documents(doc_name):
     frappe.flags.ignore_permissions = True
 
-    linked_docs = {
-        "Warning Form": "linked_warning",
-        "Dismissal Form": "linked_dismissal",
-        "Demotion Form": "linked_demotion",
-        "Pay Deduction Form": "linked_pay_deduction",
-        "Pay Reduction Form": "linked_pay_reduction",
-        "Not Guilty Form": "linked_not_guilty",
-        "Suspension Form": "linked_suspension",
-        "Voluntary Seperation Agreement": "linked_vsp",
-        "Hearing Cancellation Form": "linked_cancellation"
+    linked_tables = {
+        "linked_nta": {"doctype": "NTA Hearing", "child_table_field": "linked_nta"},
+        "linked_outcome": {"doctype": "Disciplinary Outcome Report", "child_table_field": "linked_outcome"},
+        "linked_warning": {"doctype": "Warning Form", "child_table_field": "linked_warning"},
+        "linked_dismissal": {"doctype": "Dismissal Form", "child_table_field": "linked_dismissal"},
+        "linked_demotion": {"doctype": "Demotion Form", "child_table_field": "linked_demotion"},
+        "linked_pay_deduction": {"doctype": "Pay Deduction Form", "child_table_field": "linked_pay_deduction"},
+        "linked_pay_reduction": {"doctype": "Pay Reduction Form", "child_table_field": "linked_pay_reduction"},
+        "linked_not_guilty": {"doctype": "Not Guilty Form", "child_table_field": "linked_not_guilty"},
+        "linked_suspension": {"doctype": "Suspension Form", "child_table_field": "linked_suspension"},
+        "linked_vsp": {"doctype": "Voluntary Seperation Agreement", "child_table_field": "linked_vsp"},
+        "linked_cancellation": {"doctype": "Hearing Cancellation Form", "child_table_field": "linked_cancellation"},
+        "linked_appeal": {"doctype": "Appeal Against Outcome", "child_table_field": "linked_appeal"}
     }
 
-    relevant_fields = {
-        "linked_warning": "warning_type",
-        "linked_dismissal": "dismissal_type",
-        "linked_demotion": "demotion_type",
-        "linked_pay_deduction": "pay_deduction_type",
-        "linked_pay_reduction": "pay_reduction_type",
-        "linked_not_guilty": "type_of_not_guilty",
-        "linked_suspension": "suspension_type",
-        "linked_vsp": "vsp_type",
-        "linked_cancellation": "cancellation_type"
-    }
+    disciplinary_doc = frappe.get_doc("Disciplinary Action", doc_name)
+    disciplinary_doc.flags.ignore_validate_update_after_submit = True
 
-    result = {
-        'linked_documents': {},
-        'latest_outcome': None,
-        'latest_outcome_date': None
-    }
+    updated = False
 
-    for doctype, fieldname in linked_docs.items():
-        docs = frappe.get_all(doctype, filters={'linked_disciplinary_action': doc_name}, fields=['name', 'outcome_date'])
+    for child_field, table_info in linked_tables.items():
+        linked_docs = frappe.get_all(
+            table_info["doctype"],
+            filters={"linked_disciplinary_action": doc_name},
+            fields=["name"]
+        )
 
-        if docs:
-            result['linked_documents'][fieldname] = [doc['name'] for doc in docs]
-            for doc in docs:
-                doc_outcome = frappe.db.get_value(doctype, doc['name'], relevant_fields[fieldname])
-                if doc_outcome:
-                    doc_outcome_date = doc['outcome_date']
-                    if not result['latest_outcome_date'] or doc_outcome_date > result['latest_outcome_date']:
-                        result['latest_outcome_date'] = doc_outcome_date
-                        result['latest_outcome'] = doc_outcome
-    
-    return result
+        existing_entries = {row.get(table_info["child_table_field"]) for row in disciplinary_doc.get(child_field)}
 
-@frappe.whitelist()
-def fetch_additional_linked_documents(doc_name):
-    frappe.flags.ignore_permissions = True
+        for linked_doc in linked_docs:
+            if linked_doc["name"] not in existing_entries:
+                disciplinary_doc.append(child_field, {table_info["child_table_field"]: linked_doc["name"]})
+                updated = True
 
-    result = {
-        'linked_nta': None,
-        'linked_outcome': None
-    }
+    if updated:
+        disciplinary_doc.save(ignore_permissions=True)
 
-    nta_hearing = frappe.get_all('NTA Hearing', filters={'linked_disciplinary_action': doc_name}, fields=['name'])
-    disciplinary_outcome_report = frappe.get_all('Disciplinary Outcome Report', filters={'linked_disciplinary_action': doc_name}, fields=['name'])
-
-    if nta_hearing:
-        result['linked_nta'] = nta_hearing[0]['name']
-    if disciplinary_outcome_report:
-        result['linked_outcome'] = disciplinary_outcome_report[0]['name']
-    
-    return result
+    return {"message": "Linked documents updated"}
 
 @frappe.whitelist()
 def fetch_complainant_data(complainant):

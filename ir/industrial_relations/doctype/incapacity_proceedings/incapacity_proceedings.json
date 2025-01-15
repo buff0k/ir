@@ -56,7 +56,8 @@
   "linked_not_guilty",
   "linked_suspension",
   "linked_vsp",
-  "linked_cancellation"
+  "linked_cancellation",
+  "linked_appeal"
  ],
  "fields": [
   {
@@ -216,7 +217,8 @@
   {
    "fieldname": "outcome_date",
    "fieldtype": "Date",
-   "label": "Outcome Date"
+   "label": "Outcome Date",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_mysc",
@@ -236,58 +238,58 @@
   },
   {
    "fieldname": "linked_nta",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked NTA",
-   "options": "NTA Hearing",
+   "options": "NTA Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_outcome",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Outcome Report",
-   "options": "Disciplinary Outcome Report",
+   "options": "Outcome Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_dismissal",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Dismissal",
-   "options": "Dismissal Form",
+   "options": "Dismissal Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_demotion",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Demotion",
-   "options": "Demotion Form",
+   "options": "Demotion Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_not_guilty",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Not Guilty",
-   "options": "Not Guilty Form",
+   "options": "Not Guilty Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_suspension",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Suspension",
-   "options": "Suspension Form",
+   "options": "Suspension Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_vsp",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked VSP",
-   "options": "Voluntary Seperation Agreement",
+   "options": "Voluntary Separation Selector",
    "read_only": 1
   },
   {
    "fieldname": "linked_cancellation",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Cancellation",
-   "options": "Hearing Cancellation Form",
+   "options": "Cancellation Selector",
    "read_only": 1
   },
   {
@@ -342,9 +344,9 @@
   },
   {
    "fieldname": "linked_pay_reduction",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Linked Pay Reduction",
-   "options": "Pay Reduction Form",
+   "options": "Pay Reduction Selector",
    "read_only": 1
   },
   {
@@ -373,6 +375,13 @@
    "fieldname": "accused_pos",
    "fieldtype": "Read Only",
    "label": "Accused Position:"
+  },
+  {
+   "fieldname": "linked_appeal",
+   "fieldtype": "Table MultiSelect",
+   "label": "Appeal Against Outcome",
+   "options": "Appeal Selector",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -411,7 +420,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2024-12-19 14:06:27.861532",
+ "modified": "2025-01-14 12:20:44.384795",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity Proceedings",

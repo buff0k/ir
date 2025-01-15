@@ -51,11 +51,10 @@ frappe.ui.form.on("Incapacity Proceedings", {
             }, 'Actions');
         }
 
-        if (!frm.is_new()) {
+        if (!frm.is_new() && !frm.__fetching_linked_documents) {
+            frm.__fetching_linked_documents = true;
             fetch_linked_documents(frm);
-            fetch_additional_linked_documents(frm);
-            fetch_outcome_dates(frm);
-        }      
+        }    
     },
 
     accused: function(frm) {
@@ -165,57 +164,32 @@ function fetch_incapacity_history(frm, accused) {
 }
 
 function fetch_linked_documents(frm) {
+    frm.__fetching_linked_documents = true;  // Set the flag to prevent loops
     frappe.call({
         method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.fetch_linked_documents',
-        args: {
-            doc_name: frm.doc.name
-        },
+        args: { doc_name: frm.doc.name },
         callback: function(res) {
             if (res.message) {
-                for (let field in res.message.linked_documents) {
-                    frm.set_value(field, res.message.linked_documents[field].join(', '));
-                }
-                if (res.message.latest_outcome) {
-                    frm.set_value('outcome', res.message.latest_outcome);
-                    frm.set_value('outcome_date', res.message.latest_outcome_date);
-                }
+                // Refresh specific fields instead of reloading the entire document
+                const fields_to_refresh = [
+                    'linked_nta',
+                    'linked_outcome',
+                    'linked_warning',
+                    'linked_dismissal',
+                    'linked_demotion',
+                    'linked_pay_deduction',
+                    'linked_pay_reduction',
+                    'linked_not_guilty',
+                    'linked_suspension',
+                    'linked_vsp',
+                    'linked_cancellation',
+                    'linked_appeal'
+                ];
+                fields_to_refresh.forEach(field => frm.refresh_field(field));
             }
-        }
-    });
-}
-
-function fetch_outcome_dates(frm) {
-    // Call the new server function to update outcome_start and outcome_end
-    frappe.call({
-        method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.update_outcome_dates',
-        args: {
-            doc_name: frm.doc.name
         },
-        callback: function(r) {
-            if (r.message) {
-                frm.set_value('outcome_start', r.message.outcome_start || '');
-                frm.set_value('outcome_end', r.message.outcome_end || ''); // Ensure outcome_end is set to an empty string if not present
-                frm.refresh_fields(); // Refresh fields to show updated outcome dates
-                }
-        }
-     });
-}
-
-function fetch_additional_linked_documents(frm) {
-    frappe.call({
-        method: 'ir.industrial_relations.doctype.incapacity_proceedings.incapacity_proceedings.fetch_additional_linked_documents',
-        args: {
-            doc_name: frm.doc.name
-        },
-        callback: function(r) {
-            if (r.message) {
-                if (r.message.linked_nta && !frm.doc.linked_nta) {
-                    frm.set_value('linked_nta', r.message.linked_nta);
-                }
-                if (r.message.linked_outcome && !frm.doc.linked_outcome) {
-                    frm.set_value('linked_outcome', r.message.linked_outcome);
-                }
-            }
+        always: function() {
+            frm.__fetching_linked_documents = false;
         }
     });
 }

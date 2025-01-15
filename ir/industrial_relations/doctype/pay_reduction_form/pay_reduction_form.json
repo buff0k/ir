@@ -24,7 +24,7 @@
   "outcome_date",
   "applied_rights",
   "reduction_amount",
-  "attached_signed_pay_deduction",
+  "signed_pay_reduction",
   "column_break_tdkv",
   "pay_reduction_type",
   "from_date",
@@ -36,6 +36,7 @@
   "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
+  "type_of_incapacity",
   "details_of_incapacity",
   "previous_incapacity_outcomes_section",
   "previous_incapacity_outcomes",
@@ -147,11 +148,6 @@
    "fieldtype": "Currency",
    "label": "Monetary Value of Reduction",
    "precision": "2"
-  },
-  {
-   "fieldname": "attached_signed_pay_deduction",
-   "fieldtype": "Attach",
-   "label": "Attached Signed Pay Deduction"
   },
   {
    "fieldname": "column_break_tdkv",
@@ -271,12 +267,24 @@
    "fieldtype": "Small Text",
    "label": "Details of Incapacity",
    "read_only": 1
+  },
+  {
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Select",
+   "label": "Type of Incapacity",
+   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signed_pay_reduction",
+   "fieldtype": "Attach",
+   "label": "Attached Signed Pay Deduction"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-02 09:06:25.043114",
+ "modified": "2025-01-15 12:21:17.315286",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Pay Reduction Form",

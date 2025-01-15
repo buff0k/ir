@@ -30,13 +30,13 @@ class AppealAgainstOutcome(Document):
         # If no existing documents are found, this is the first document
         if len(existing_docs) == 0:
             # Naming format for the first document
-            self.name = f"NTA-{linked_field}"
+            self.name = f"APP-{linked_field}"
         else:
             # If not the first document, find the latest revision number specific to this linked field
             latest_revision = 0
             for doc in existing_docs:
                 # Extract the revision number (after the dash)
-                if doc.name.startswith(f"NTA-{linked_field}-"):
+                if doc.name.startswith(f"APP-{linked_field}-"):
                     revision_number = doc.name.split('-')[-1]
                     try:
                         revision_number = int(revision_number)
@@ -46,7 +46,7 @@ class AppealAgainstOutcome(Document):
 
             # Increment the revision number for the next document
             new_revision = latest_revision + 1
-            self.name = f"NTA-{linked_field}-{new_revision}"
+            self.name = f"APP-{linked_field}-{new_revision}"
 
 @frappe.whitelist()
 def appeal_disciplinary(source_name, target_doc=None):
