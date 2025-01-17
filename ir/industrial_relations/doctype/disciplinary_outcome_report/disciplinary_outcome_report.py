@@ -87,13 +87,17 @@ def write_incapacity_outcome_report(source_name, target_doc=None):
 @frappe.whitelist()
 def fetch_disciplinary_action_data(disciplinary_action):
     data = frappe.db.get_value('Disciplinary Action', disciplinary_action, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'linked_nta'], as_dict=True)
+        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'complainant', 'compl_name'], as_dict=True)
 
     if not data:
         return {}
 
     # Fetch child table data
     disciplinary_action_doc = frappe.get_doc('Disciplinary Action', disciplinary_action)
+
+    linked_nta_entries = [
+        {"linked_nta": row.linked_nta} for row in disciplinary_action_doc.linked_nta
+    ]
     
     previous_disciplinary_outcomes = [
         {
@@ -111,6 +115,7 @@ def fetch_disciplinary_action_data(disciplinary_action):
     ]
     
     data.update({
+        'linked_nta': linked_nta_entries,
         'previous_disciplinary_outcomes': previous_disciplinary_outcomes,
         'final_charges': final_charges
     })
@@ -118,19 +123,19 @@ def fetch_disciplinary_action_data(disciplinary_action):
     return data
 
 @frappe.whitelist()
-def fetch_incpacity_proceeding_data(incapacity_proceeding):
-    # Check if the provided name exists and belongs to the correct DocType
-    if not frappe.db.exists('Incapacity Proceedings', incapacity_proceeding):
-        frappe.throw(_("Incapacity Proceedings {0} not found").format(incapacity_proceeding))
-
-    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceeding, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'type_of_incapacity', 'details_of_incapacity'], as_dict=True)
+def fetch_incpacity_proceeding_data(incapacity_proceedings):
+    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceedings, 
+        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'complainant', 'compl_name', 'type_of_incapacity', 'details_of_incapacity'], as_dict=True)
 
     if not data:
         return {}
     
     # Fetch child table data
-    incapacity_proceeding_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceeding)
+    incapacity_proceedings_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceedings)
+
+    linked_nta_entries = [
+        {"linked_nta": row.linked_nta} for row in incapacity_proceedings_doc.linked_nta
+    ]
     
     previous_incapacity_outcomes = [
         {
@@ -138,10 +143,11 @@ def fetch_incpacity_proceeding_data(incapacity_proceeding):
             'date': row.date,
             'sanction': row.sanction,
             'incap_details': row.incap_details
-        } for row in incapacity_proceeding_doc.previous_incapacity_outcomes
+        } for row in incapacity_proceedings_doc.previous_incapacity_outcomes
     ]
     
     data.update({
+        'linked_nta': linked_nta_entries,
         'previous_incapacity_outcomes': previous_incapacity_outcomes
     })
     
@@ -153,15 +159,36 @@ def fetch_company_letter_head(company):
     return {'letter_head': letter_head} if letter_head else {}
 
 @frappe.whitelist()
-def fetch_linked_fields(linked_nta, linked_disciplinary_action):
+def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked_incapacity_proceeding=None):
+    latest_nta = None
     chairperson = None
     complainant = None
 
+    # Process linked_nta to find the latest NTA Hearing
     if linked_nta:
-        chairperson = frappe.db.get_value('NTA Hearing', linked_nta, 'chairperson')
+        if isinstance(linked_nta, str):  # Convert string to list if necessary
+            linked_nta = frappe.parse_json(linked_nta)
+        
+        nta_names = [row.get('linked_nta') for row in linked_nta if row.get('linked_nta')]
+        if nta_names:
+            latest_nta = frappe.db.get_value(
+                'NTA Hearing', 
+                filters={"name": ("in", nta_names)}, 
+                fieldname=["name"], 
+                order_by="creation DESC"
+            )
 
-    if linked_disciplinary_action:
+    # Fetch chairperson and complainant from the latest NTA Hearing
+    if latest_nta:
+        chairperson = frappe.db.get_value('NTA Hearing', latest_nta, 'chairperson')
+        complainant = frappe.db.get_value('NTA Hearing', latest_nta, 'complainant')
+
+    # If no linked_nta, fallback to other logic
+    if linked_disciplinary_action and not complainant:
         complainant = frappe.db.get_value('Disciplinary Action', linked_disciplinary_action, 'complainant')
+
+    if linked_incapacity_proceeding and not complainant:
+        complainant = frappe.db.get_value('Incapacity Proceedings', linked_incapacity_proceeding, 'complainant')
 
     return {
         'chairperson': chairperson,

@@ -22,6 +22,10 @@
   "names",
   "coy",
   "position",
+  "sec_complainant",
+  "complainant",
+  "column_break_uxjv",
+  "compl_name",
   "hearing_details_section",
   "hearing_date_time",
   "applied_rights",
@@ -267,12 +271,32 @@
    "label": "Type of Incapacity",
    "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
    "read_only": 1
+  },
+  {
+   "fieldname": "sec_complainant",
+   "fieldtype": "Section Break",
+   "label": "Complainant Details"
+  },
+  {
+   "fieldname": "complainant",
+   "fieldtype": "Link",
+   "label": "Complainant",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_uxjv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "compl_name",
+   "fieldtype": "Read Only",
+   "label": "Complainant Name:"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 15:16:25.913820",
+ "modified": "2025-01-17 11:34:25.076767",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "NTA Hearing",

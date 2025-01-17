@@ -63,7 +63,7 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
     },
 
     linked_disciplinary_action: function(frm) {
-        if (frm.doc.linked_disciplinary_action) {
+        if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
             frappe.call({
                 method: 'ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.fetch_disciplinary_action_data',
                 args: {
@@ -77,13 +77,23 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
                         frm.doc.coy = data.accused_coy || '';
                         frm.doc.position = data.accused_pos || '';
                         frm.doc.company = data.company || '';
-                        frm.doc.linked_nta = data.linked_nta || '';
+                        frm.doc.complainant = data.complainant || '';
+                        frm.doc.compl_name = data.compl_name || '';
                         frm.refresh_field('employee');
                         frm.refresh_field('names');
                         frm.refresh_field('coy');
                         frm.refresh_field('position');
                         frm.refresh_field('company');
+                        frm.refresh_field('complainant');
+                        frm.refresh_field('compl_name');
+
+                        frm.clear_table('linked_nta');
+                        $.each(data.linked_nta, function(_, row) {
+                            let child = frm.add_child('linked_nta');
+                            child.linked_nta = row.linked_nta;
+                        });
                         frm.refresh_field('linked_nta');
+                    
                         frm.clear_table('disciplinary_history');
                         $.each(data.previous_disciplinary_outcomes, function(_, row) {
                             let child = frm.add_child('disciplinary_history');
@@ -100,10 +110,11 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
                             child.indiv_charge = row.indiv_charge;
                         });
                         frm.refresh_field('outcome_charges');
+                    
                         frm.trigger('fetch_linked_fields');
                         frm.trigger('fetch_employee_names');
+                    
                         frm.set_value('linked_disciplinary_action_processed', true);
-                        
                     }
                 }
             });
@@ -115,18 +126,19 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
             frappe.call({
                 method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_incpacity_proceeding_data',
                 args: {
-                    incapacity_proceeding: frm.doc.linked_incapacity_proceeding
+                    incapacity_proceedings: frm.doc.linked_incapacity_proceeding
                 },
                 callback: function(r) {
                     if (r.message) {
                         const data = r.message;
-
-                        // Update fields
                         frm.doc.employee = data.accused || '';
                         frm.doc.names = data.accused_name || '';
                         frm.doc.coy = data.accused_coy || '';
                         frm.doc.position = data.accused_pos || '';
                         frm.doc.company = data.company || '';
+                        frm.doc.complainant = data.complainant || '';
+                        frm.doc.compl_name = data.compl_name || '';
+                        frm.doc.type_of_incapacity = data.company || '';
                         frm.set_value('details_of_incapacity', data.details_of_incapacity || '');
 
                         frm.refresh_field('employee');
@@ -134,8 +146,18 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
                         frm.refresh_field('coy');
                         frm.refresh_field('position');
                         frm.refresh_field('company');
+                        frm.refresh_field('complainant');
+                        frm.refresh_field('compl_name');
+                        frm.refresh_field('type_of_incapacity');
+                        frm.refresh_field('details_of_incapacity');
+                    
+                        frm.clear_table('linked_nta');
+                        $.each(data.linked_nta, function(_, row) {
+                            let child = frm.add_child('linked_nta');
+                            child.linked_nta = row.linked_nta;
+                        });
+                        frm.refresh_field('linked_nta');
 
-                        // Update child tables
                         frm.clear_table('previous_incapacity_outcomes');
                         $.each(data.previous_incapacity_outcomes, function(_, row) {
                             let child = frm.add_child('previous_incapacity_outcomes');
@@ -146,9 +168,7 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
                         });
                         frm.refresh_field('previous_incapacity_outcomes');
 
-                        // Set the processed flag
                         frm.set_value('linked_incapacity_proceeding_processed', true);
-
                     }
                 }
             });
@@ -203,7 +223,8 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
             method: 'ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.fetch_linked_fields',
             args: {
                 linked_nta: frm.doc.linked_nta,
-                linked_disciplinary_action: frm.doc.linked_disciplinary_action
+                linked_disciplinary_action: frm.doc.linked_disciplinary_action,
+                linked_incapacity_proceeding: frm.doc.linked_incapacity_proceeding
             },
             callback: function(r) {
                 if (r.message) {

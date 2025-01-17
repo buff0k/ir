@@ -8,3 +8,4 @@ ir.patches.update_warning_form_fields
 ir.patches.update_sanction_field
 ir.patches.update_linked_disc_docs
 ir.patches.update_linked_incap_docs
+ir.patches.update_outcome_linked_nta
