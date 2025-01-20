@@ -159,7 +159,7 @@ def fetch_company_letter_head(company):
     return {'letter_head': letter_head} if letter_head else {}
 
 @frappe.whitelist()
-def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked_incapacity_proceedings=None):
+def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked_incapacity_proceeding=None):
     latest_nta = None
     chairperson = None
     complainant = None
