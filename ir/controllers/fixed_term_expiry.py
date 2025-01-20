@@ -12,7 +12,7 @@ def fixed_term_expiry():
             "end_date": ["between", [frappe.utils.today(), frappe.utils.add_days(frappe.utils.today(), 28)]],
             "has_expiry": 1,
         },
-        fields=["name", "employee", "employee_name", "end_date"]
+        fields=["name", "employee", "employee_name", "end_date", "branch"]
     )
 
     # Exclude contracts where the linked Employee's status is "Left"
@@ -71,6 +71,7 @@ def fixed_term_expiry():
                     <th>Employee Name</th>
                     <th>Employee Coy</th>
                     <th>Contract End Date</th>
+                    <th>Site</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,6 +85,7 @@ def fixed_term_expiry():
                 <td>{contract['employee_name']}</td>
                 <td>{contract['employee']}</td>
                 <td>{contract['end_date']}</td>
+                <td>{contract['branch']}</td>
             </tr>
         """
 

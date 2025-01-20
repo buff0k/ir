@@ -9,7 +9,7 @@ def outstanding_disciplinaries():
     outstanding_cases = frappe.get_all(
         "Disciplinary Action",
         filters={"outcome": ""},
-        fields=["name", "accused", "accused_name", "creation"]
+        fields=["name", "accused", "accused_name", "creation", "branch"]
     )
 
     if not outstanding_cases:
@@ -45,6 +45,7 @@ def outstanding_disciplinaries():
                     <th>Employee Name</th>
                     <th>Employee Coy</th>
                     <th>Outstanding Since</th>
+                    <th>Site</th>
                 </tr>
             </thead>
             <tbody>
@@ -58,6 +59,7 @@ def outstanding_disciplinaries():
                 <td>{case['accused_name']}</td>
                 <td>{case['accused']}</td>
                 <td>{formatdate(case['creation'])}</td>
+                <td>{case['branch']}</td>
             </tr>
         """
 
