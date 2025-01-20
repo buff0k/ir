@@ -5,7 +5,7 @@ import frappe
 from frappe.utils import get_url
 
 def fixed_term_expiry():
-    # Fetch expiring contracts with additional filters
+    # Fetch contracts expiring within the next four weeks with additional filters
     expiring_contracts = frappe.get_all(
         "Contract of Employment",
         filters={
@@ -19,6 +19,23 @@ def fixed_term_expiry():
     filtered_contracts = [
         contract for contract in expiring_contracts
         if frappe.get_value("Employee", contract["employee"], "status") != "Left"
+    ]
+
+    # Further filter contracts to exclude those with a later active contract for the same employee
+    def has_later_contract(employee, current_end_date):
+        later_contracts = frappe.get_all(
+            "Contract of Employment",
+            filters={
+                "employee": employee,
+                "start_date": [">", current_end_date],
+            },
+            fields=["name"]
+        )
+        return bool(later_contracts)
+    
+    filtered_contracts = [
+        contract for contract in filtered_contracts
+        if not has_later_contract(contract["employee"], contract["end_date"])
     ]
 
     if not filtered_contracts:

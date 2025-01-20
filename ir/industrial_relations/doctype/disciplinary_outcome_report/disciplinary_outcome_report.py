@@ -123,18 +123,18 @@ def fetch_disciplinary_action_data(disciplinary_action):
     return data
 
 @frappe.whitelist()
-def fetch_incpacity_proceeding_data(incapacity_proceedings):
-    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceedings, 
+def fetch_incpacity_proceeding_data(incapacity_proceeding):
+    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceeding, 
         ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'complainant', 'compl_name', 'type_of_incapacity', 'details_of_incapacity'], as_dict=True)
 
     if not data:
         return {}
     
     # Fetch child table data
-    incapacity_proceedings_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceedings)
+    incapacity_proceeding_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceeding)
 
     linked_nta_entries = [
-        {"linked_nta": row.linked_nta} for row in incapacity_proceedings_doc.linked_nta
+        {"linked_nta": row.linked_nta} for row in incapacity_proceeding_doc.linked_nta
     ]
     
     previous_incapacity_outcomes = [
@@ -143,7 +143,7 @@ def fetch_incpacity_proceeding_data(incapacity_proceedings):
             'date': row.date,
             'sanction': row.sanction,
             'incap_details': row.incap_details
-        } for row in incapacity_proceedings_doc.previous_incapacity_outcomes
+        } for row in incapacity_proceeding_doc.previous_incapacity_outcomes
     ]
     
     data.update({
@@ -159,7 +159,7 @@ def fetch_company_letter_head(company):
     return {'letter_head': letter_head} if letter_head else {}
 
 @frappe.whitelist()
-def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked_incapacity_proceeding=None):
+def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked_incapacity_proceedings=None):
     latest_nta = None
     chairperson = None
     complainant = None

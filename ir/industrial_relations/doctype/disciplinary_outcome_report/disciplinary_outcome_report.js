@@ -126,7 +126,7 @@ frappe.ui.form.on("Disciplinary Outcome Report", {
             frappe.call({
                 method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_incpacity_proceeding_data',
                 args: {
-                    incapacity_proceedings: frm.doc.linked_incapacity_proceeding
+                    incapacity_proceeding: frm.doc.linked_incapacity_proceeding
                 },
                 callback: function(r) {
                     if (r.message) {
