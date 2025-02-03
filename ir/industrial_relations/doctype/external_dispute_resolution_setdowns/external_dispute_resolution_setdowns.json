@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-03 09:07:01.937343",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "setdown_datetime",
+  "setdown_venue",
+  "setdown_process",
+  "setdown_notice"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "setdown_datetime",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Date and Time",
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "setdown_venue",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Venue",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "setdown_process",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Process",
+   "options": "External Dispute Resolution Process",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "setdown_notice",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Notice of Setdown",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-02-03 09:19:59.753992",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "External Dispute Resolution Setdowns",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

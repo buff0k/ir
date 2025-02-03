@@ -1,0 +1,192 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:case_no",
+ "creation": "2025-02-03 08:55:40.681187",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_2np6",
+  "amended_from",
+  "section_break_aocz",
+  "forum",
+  "applicant_external",
+  "company",
+  "referral_attach",
+  "outcome_attach",
+  "settlement_attach",
+  "column_break_bifu",
+  "case_no",
+  "respondent_external",
+  "employee",
+  "outcome",
+  "outcome_details",
+  "section_break_irmm",
+  "applicant_history",
+  "setdowns_section",
+  "setdowns"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_2np6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "External Dispute Resolution",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_aocz",
+   "fieldtype": "Section Break",
+   "label": "Referral Details"
+  },
+  {
+   "fieldname": "forum",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Forum",
+   "options": "Dispute Resolution Forum",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_irmm",
+   "fieldtype": "Section Break",
+   "label": "Employee History"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant_external",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Applicant (As Per Matter)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "case_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Case Number",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_bifu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "setdowns_section",
+   "fieldtype": "Section Break",
+   "label": "Setdown(s)"
+  },
+  {
+   "columns": 10,
+   "fieldname": "setdowns",
+   "fieldtype": "Table",
+   "label": "Setdown Date(s)",
+   "options": "External Dispute Resolution Setdowns"
+  },
+  {
+   "fieldname": "respondent_external",
+   "fieldtype": "Data",
+   "label": "Respondent (As Per Matter)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Table MultiSelect",
+   "label": "Employee(s)",
+   "options": "Employee Selector"
+  },
+  {
+   "fieldname": "referral_attach",
+   "fieldtype": "Attach",
+   "label": "Referral Form"
+  },
+  {
+   "fieldname": "applicant_history",
+   "fieldtype": "Table",
+   "options": "External Dispute Resolution Applicants"
+  },
+  {
+   "fieldname": "outcome_attach",
+   "fieldtype": "Attach",
+   "label": "Formal Outcome"
+  },
+  {
+   "fieldname": "settlement_attach",
+   "fieldtype": "Attach",
+   "label": "Settlement Agreement"
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Link",
+   "label": "Outcome",
+   "options": "External Dispute Resolution Outcome"
+  },
+  {
+   "fieldname": "outcome_details",
+   "fieldtype": "Small Text",
+   "label": "Details about Outcome"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-02-03 09:38:51.167965",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "External Dispute Resolution",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

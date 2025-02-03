@@ -10,22 +10,28 @@
  ],
  "fields": [
   {
+   "columns": 4,
    "fieldname": "attachment",
    "fieldtype": "Attach",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Attachment",
    "reqd": 1
   },
   {
+   "columns": 4,
    "fieldname": "description",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Description"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-07 11:05:33.447343",
+ "modified": "2025-02-03 09:59:13.398866",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action Files",
