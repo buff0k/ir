@@ -1,0 +1,42 @@
+[
+ {
+  "description": "The Forum determined that the application did not have merit and the matter was dismissed. Ordinarily in favour of the Respondent.",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Outcome",
+  "external_outcome": "Matter Dismissed",
+  "modified": "2025-02-03 09:35:10.261545",
+  "name": "Matter Dismissed"
+ },
+ {
+  "description": "The application succeeded and the Applicant was awarded retrospective re-instatement, meaning that the Applicant will resume his/her duties and the Respondent must pay the Applicant's lost income.",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Outcome",
+  "external_outcome": "Retrospective Re-instatement",
+  "modified": "2025-02-03 09:36:02.010245",
+  "name": "Retrospective Re-instatement"
+ },
+ {
+  "description": "The application succeeded and the Applicant was awarded re-instatement, meaning that the Applicant will resume his/her duties.",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Outcome",
+  "external_outcome": "Re-instatement",
+  "modified": "2025-02-03 09:36:35.565200",
+  "name": "Re-instatement"
+ },
+ {
+  "description": "The application was succesful and the Respondent must pay the Applicant a monetary amount in damages.",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Outcome",
+  "external_outcome": "Monetary Award",
+  "modified": "2025-02-03 09:37:03.900100",
+  "name": "Monetary Award"
+ },
+ {
+  "description": "The parties reached a settlement agreement and the matter was resolved.",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Outcome",
+  "external_outcome": "Settled",
+  "modified": "2025-02-03 09:37:20.038217",
+  "name": "Settled"
+ }
+]

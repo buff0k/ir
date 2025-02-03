@@ -25,7 +25,10 @@ fixtures = [
 	{"dt": "Contract Section", "filters": [["sec_head", "in", ["Working Hours Placeholder", "Remuneration Placeholder"]]]},
 	{"dt": "Employee Rights", "filters": [["name", "in", ["Demotion", "Disciplinary Hearing", "Dismissal", "Incapacity", "Pay Deduction", "Pay Reduction", "Suspension", "Warning Form"]]]},
 	{"dt": "Module Profile", "filters": [["name", "in", ["Industrial Relations"]]]},
-	{"dt": "Grounds for Appeal", "filters": [["name", "in", ["Procedural", "Substantive", "New Evidence"]]]}
+	{"dt": "Grounds for Appeal", "filters": [["name", "in", ["Procedural", "Substantive", "New Evidence"]]]},
+	{"dt": "External Dispute Resolution Outcome", "filters": [["name", "in", ["Settled", "Monetary Award", "Re-instatement", "Retrospective Re-instatement", "Matter Dismissed"]]]},
+	{"dt": "External Dispute Resolution Process", "filters": [["name", "in", ["Con/Arb", "In-Linine", "Arbitration", "Conciliatio"]]]},
+	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", ["Labour Court", "CCMA"]]]}
 ]
 scheduler_events = {
 	"weekly": [

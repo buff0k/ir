@@ -16,8 +16,7 @@
    "ignore_user_permissions": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Attachment",
-   "reqd": 1
+   "label": "Attachment"
   },
   {
    "columns": 4,
@@ -31,7 +30,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-03 09:59:13.398866",
+ "modified": "2025-02-03 10:53:59.992871",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action Files",

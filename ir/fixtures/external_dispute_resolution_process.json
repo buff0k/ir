@@ -1,0 +1,16 @@
+[
+ {
+  "dispute_process": "Arbitration",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Process",
+  "modified": "2025-02-03 09:10:06.043940",
+  "name": "Arbitration"
+ },
+ {
+  "dispute_process": "Con/Arb",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Process",
+  "modified": "2025-02-03 09:10:19.747404",
+  "name": "Con/Arb"
+ }
+]
