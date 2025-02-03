@@ -13,7 +13,7 @@ def outstanding_external_disputes():
     )
 
     if not outstanding_cases:
-        frappe.logger().info("No outstanding incapacity processes found.")
+        frappe.logger().info("No outstanding external disputes found.")
         return
 
     # Fetch recipients (IR Managers)
@@ -37,7 +37,7 @@ def outstanding_external_disputes():
     email_subject = "Weekly HR Report: Outstanding External Dispute Resolution Matters"
     email_body = """
         <p>Dear {name},</p>
-        <p>The following incapacity processes are pending outcomes:</p>
+        <p>The following external dispute resolution matters are pending outcomes:</p>
         <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
             <thead>
                 <tr>
