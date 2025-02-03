@@ -12,7 +12,6 @@
   "forum",
   "applicant_external",
   "company",
-  "referral_attach",
   "outcome_attach",
   "settlement_attach",
   "column_break_bifu",
@@ -24,8 +23,12 @@
   "settlement_value",
   "section_break_irmm",
   "applicant_history",
+  "referral_forms_section",
+  "referral_attach",
   "setdowns_section",
-  "setdowns"
+  "setdowns",
+  "additional_documents_section",
+  "additional_docs"
  ],
  "fields": [
   {
@@ -116,8 +119,9 @@
   },
   {
    "fieldname": "referral_attach",
-   "fieldtype": "Attach",
-   "label": "Referral Form"
+   "fieldtype": "Table",
+   "label": "Referral Form(s)",
+   "options": "External Dispute Resolution Referrals"
   },
   {
    "fieldname": "applicant_history",
@@ -151,12 +155,28 @@
    "label": "Monetary Value of Outcome /  Settlement",
    "non_negative": 1,
    "precision": "2"
+  },
+  {
+   "fieldname": "referral_forms_section",
+   "fieldtype": "Section Break",
+   "label": "Referral Form(s)"
+  },
+  {
+   "fieldname": "additional_documents_section",
+   "fieldtype": "Section Break",
+   "label": "Additional Documents"
+  },
+  {
+   "fieldname": "additional_docs",
+   "fieldtype": "Table",
+   "label": "Additional Documents",
+   "options": "Disciplinary Action Files"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-03 13:20:21.054283",
+ "modified": "2025-02-03 13:46:57.615773",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution",
