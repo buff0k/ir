@@ -3,14 +3,32 @@
   "docstatus": 0,
   "doctype": "Dispute Resolution Forum",
   "forum": "CCMA",
-  "modified": "2025-02-03 08:57:48.009722",
+  "forum_description": "Normally the first level of external dispute resolution, the CCMA is empowered in terms of the Labour Relations Act, 1995 (Act No. 66 of 1995), the Basic Conditions of Employment Act, 1997 (Act No. 75 of 1997), the Employment Equity Act, 1998 (Act No. 55 of 1998), and the National Minimum Wage Act, 2018 (Act No. 9 of 2018) to conciliate and/or arbitrate certain labour disputes.",
+  "modified": "2025-02-03 14:55:59.963120",
   "name": "CCMA"
  },
  {
   "docstatus": 0,
   "doctype": "Dispute Resolution Forum",
   "forum": "Labour Court",
-  "modified": "2025-02-03 08:57:56.940351",
+  "forum_description": "The Labour Court is empowered in terms of the Labour Relations Act, 1995 (Act No. 66 of 1995), the Basic Conditions of Employment Act, 1997 (Act No. 75 of 1997), and the Employment Equity Act, 1998 (Act No. 55 of 1998) to adjudicate certain disputes, as well as review certain disputes that were decided in the CCMA, or other Bargaining Councils. It is a court of review, or a court of first instance in certain matters.",
+  "modified": "2025-02-03 14:58:18.124855",
   "name": "Labour Court"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Dispute Resolution Forum",
+  "forum": "Labour Appeal Court",
+  "forum_description": "The Labour Appeal Court is empowered in terms of the Labour Relations Act, 1995 (Act No. 66 of 1995) to appeal certain judgements that have been heard in the Labour Court, as well as review certain disputes that were decided in the CCMA, or other Bargaining Councils. It is a court of appeal.",
+  "modified": "2025-02-03 14:58:34.798603",
+  "name": "Labour Appeal Court"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Dispute Resolution Forum",
+  "forum": "Constitutional Court",
+  "forum_description": "The Constitutional Court is empowered in terms of the Constitution of the Republic of South Africa, 1996, to appeal certain judgements that have been heard in any Court, as well as certain disputes that were decided in the CCMA, or other Bargaining Councils. It is not ordinarily a court of first instance.",
+  "modified": "2025-02-03 14:59:50.704044",
+  "name": "Constitutional Court"
  }
 ]

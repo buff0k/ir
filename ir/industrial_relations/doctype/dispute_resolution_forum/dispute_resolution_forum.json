@@ -7,7 +7,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "forum"
+  "forum",
+  "forum_description"
  ],
  "fields": [
   {
@@ -17,11 +18,16 @@
    "label": "Name of Forum",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "forum_description",
+   "fieldtype": "Small Text",
+   "label": "Description"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-03 08:57:29.263461",
+ "modified": "2025-02-03 14:53:24.451466",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dispute Resolution Forum",

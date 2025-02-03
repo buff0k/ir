@@ -28,7 +28,7 @@ fixtures = [
 	{"dt": "Grounds for Appeal", "filters": [["name", "in", ["Procedural", "Substantive", "New Evidence"]]]},
 	{"dt": "External Dispute Resolution Outcome", "filters": [["name", "in", ["Settled", "Monetary Award", "Re-instatement", "Retrospective Re-instatement", "Matter Dismissed"]]]},
 	{"dt": "External Dispute Resolution Process", "filters": [["name", "in", ["Con/Arb", "In-Linine", "Arbitration", "Conciliatio"]]]},
-	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", ["Labour Court", "CCMA"]]]}
+	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", ["CCMA", "Labour Court", "Labour Appeal Court", "Constitutional Court"]]]}
 ]
 scheduler_events = {
 	"weekly": [
