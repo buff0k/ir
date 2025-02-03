@@ -21,6 +21,7 @@
   "employee",
   "outcome",
   "outcome_details",
+  "settlement_value",
   "section_break_irmm",
   "applicant_history",
   "setdowns_section",
@@ -143,12 +144,19 @@
    "fieldname": "outcome_details",
    "fieldtype": "Small Text",
    "label": "Details about Outcome"
+  },
+  {
+   "fieldname": "settlement_value",
+   "fieldtype": "Currency",
+   "label": "Monetary Value of Outcome /  Settlement",
+   "non_negative": 1,
+   "precision": "2"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-03 09:38:51.167965",
+ "modified": "2025-02-03 13:20:21.054283",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution",

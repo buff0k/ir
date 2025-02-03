@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}}]",
+ "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}}]",
  "creation": "2024-07-10 08:50:21.843775",
  "custom_blocks": [],
  "docstatus": 0,
@@ -326,9 +326,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dispute Resolution Forum",
+   "link_count": 0,
+   "link_to": "Dispute Resolution Forum",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Process",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Process",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Outcome",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-01-15 15:14:36.723291",
+ "modified": "2025-02-03 12:19:58.965728",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

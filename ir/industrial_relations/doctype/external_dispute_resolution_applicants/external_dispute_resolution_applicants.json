@@ -8,46 +8,56 @@
  "field_order": [
   "applicant",
   "contract",
-  "disc_actions",
-  "incap_proceedings",
-  "appeals"
+  "disc_action",
+  "incap_proceeding",
+  "appeal"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "applicant",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Applicant",
    "options": "Employee"
   },
   {
+   "columns": 2,
    "fieldname": "contract",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Contract of Employment",
-   "options": "Contract of Employment Selector"
+   "options": "Contract of Employment"
   },
   {
-   "fieldname": "disc_actions",
-   "fieldtype": "Table MultiSelect",
+   "columns": 2,
+   "fieldname": "disc_action",
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Disciplinary Action(s)",
-   "options": "Disciplinary Action Selector"
+   "options": "Disciplinary Action"
   },
   {
-   "fieldname": "incap_proceedings",
-   "fieldtype": "Table MultiSelect",
+   "columns": 2,
+   "fieldname": "incap_proceeding",
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Incapacity Proceeding(s)",
-   "options": "Incapacity Proceeding Selector"
+   "options": "Incapacity Proceedings"
   },
   {
-   "fieldname": "appeals",
-   "fieldtype": "Table MultiSelect",
+   "columns": 2,
+   "fieldname": "appeal",
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Appeal(s)",
-   "options": "Appeal Selector"
+   "options": "Appeal Against Outcome"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-03 09:30:32.423718",
+ "modified": "2025-02-03 13:19:06.125009",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution Applicants",
