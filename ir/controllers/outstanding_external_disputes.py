@@ -51,7 +51,7 @@ def outstanding_external_disputes():
     """
 
     for case in outstanding_cases:
-        case_url = get_url(f"/app/incapacity-proceedings/{case['name']}")
+        case_url = get_url(f"/app/external-dispute-resolution/{case['name']}")
         email_body += f"""
             <tr>
                 <td><a href="{case_url}">{case['name']}</a></td>
