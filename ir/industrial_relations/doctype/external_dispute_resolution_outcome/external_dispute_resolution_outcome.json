@@ -30,7 +30,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-03 09:34:23.209194",
+ "modified": "2025-02-04 15:47:42.603706",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution Outcome",
@@ -61,6 +61,16 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",
