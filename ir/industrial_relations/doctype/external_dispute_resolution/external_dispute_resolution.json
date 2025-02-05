@@ -14,6 +14,7 @@
   "company",
   "outcome_attach",
   "settlement_attach",
+  "respondent_rep",
   "column_break_bifu",
   "case_no",
   "respondent_external",
@@ -171,12 +172,18 @@
    "fieldtype": "Table",
    "label": "Additional Documents",
    "options": "Disciplinary Action Files"
+  },
+  {
+   "fieldname": "respondent_rep",
+   "fieldtype": "Link",
+   "label": "Company Representative",
+   "options": "Employee"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-04 14:06:23.885846",
+ "modified": "2025-02-05 08:21:39.239659",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution",
