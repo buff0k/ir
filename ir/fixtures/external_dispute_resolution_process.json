@@ -1,5 +1,12 @@
 [
  {
+  "dispute_process": "Conciliation",
+  "docstatus": 0,
+  "doctype": "External Dispute Resolution Process",
+  "modified": "2025-02-03 09:09:52.069926",
+  "name": "Conciliation"
+ },
+ {
   "dispute_process": "Arbitration",
   "docstatus": 0,
   "doctype": "External Dispute Resolution Process",

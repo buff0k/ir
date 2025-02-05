@@ -22,7 +22,7 @@ fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",
 		"IR User"
-	]]]}, 
+	]]]},
 	{"dt": "Custom DocPerm", "filters": [["role", "in", [
 		"IR Manager",
 		"IR User"
@@ -83,7 +83,7 @@ fixtures = [
 		"Con/Arb",
 		"In-Linine",
 		"Arbitration",
-		"Conciliatio"
+		"Conciliation"
 	]]]},
 	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", [
 		"CCMA",

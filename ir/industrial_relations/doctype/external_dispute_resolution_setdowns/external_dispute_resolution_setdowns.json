@@ -46,13 +46,14 @@
    "fieldtype": "Attach",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Notice of Setdown"
+   "label": "Notice of Setdown",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-02-05 08:27:31.459820",
+ "modified": "2025-02-05 08:29:48.194831",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution Setdowns",
