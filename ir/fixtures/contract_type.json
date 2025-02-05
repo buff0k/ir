@@ -1,0 +1,393 @@
+[
+ {
+  "amended_from": null,
+  "contract_terms": [
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 1,
+    "section": "Employment (Indefinite)"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 2,
+    "section": "Position"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 3,
+    "section": "Commencement and Nature of Contract (Indefinite)"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 4,
+    "section": "Remuneration Placeholder"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 5,
+    "section": "Deductions (Indefinite)"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 6,
+    "section": "Working Hours Placeholder"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 7,
+    "section": "Leave"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 8,
+    "section": "Duties"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 9,
+    "section": "Industrial Action"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 10,
+    "section": "Termination of Employment (Fixed Term Period)"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 11,
+    "section": "Other Benefits"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 12,
+    "section": "Rules and Regulations"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 13,
+    "section": "Safety and Security"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 14,
+    "section": "Confidentiality of Company and/or Client Information"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 15,
+    "section": "Restraint of Trade"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 16,
+    "section": "Protection of Personal Information in terms of the Protection of Personal Information Act, 2013 (POPIA)"
+   },
+   {
+    "parent": "2.3 Rev.24 - Indefinite",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 17,
+    "section": "General"
+   }
+  ],
+  "contract_type": "Indefinite",
+  "doc_number": "2.3",
+  "docstatus": 1,
+  "doctype": "Contract Type",
+  "has_expiry": 0,
+  "has_project": 0,
+  "has_retirement": 1,
+  "modified": "2024-09-19 14:09:56.901436",
+  "name": "2.3 Rev.24 - Indefinite",
+  "retirement_age": 65,
+  "rev_date": "2024-09-01"
+ },
+ {
+  "amended_from": null,
+  "contract_terms": [
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 1,
+    "section": "Employment (Fixed Term Period)"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 2,
+    "section": "Position"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 3,
+    "section": "Commencement and Nature of Contract (Fixed Term Period)"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 4,
+    "section": "Remuneration Placeholder"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 5,
+    "section": "Deductions (Fixed Term Period)"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 6,
+    "section": "Working Hours Placeholder"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 7,
+    "section": "Leave"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 8,
+    "section": "Duties"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 9,
+    "section": "Industrial Action"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 10,
+    "section": "Termination of Employment (Fixed Term Period)"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 11,
+    "section": "Other Benefits"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 12,
+    "section": "Rules and Regulations"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 13,
+    "section": "Safety and Security"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 14,
+    "section": "Confidentiality of Company and/or Client Information"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 15,
+    "section": "Protection of Personal Information in terms of the Protection of Personal Information Act, 2013 (POPIA)"
+   },
+   {
+    "parent": "2.1 Rev.24 - Period Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 16,
+    "section": "General"
+   }
+  ],
+  "contract_type": "Period Based Fixed Term",
+  "doc_number": "2.1",
+  "docstatus": 1,
+  "doctype": "Contract Type",
+  "has_expiry": 1,
+  "has_project": 0,
+  "has_retirement": 1,
+  "modified": "2024-09-19 14:09:57.479931",
+  "name": "2.1 Rev.24 - Period Based Fixed Term",
+  "retirement_age": 65,
+  "rev_date": "2024-09-01"
+ },
+ {
+  "amended_from": null,
+  "contract_terms": [
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 1,
+    "section": "Employment (Fixed Term Project)"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 2,
+    "section": "Position"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 3,
+    "section": "Commencement and Nature of Contract (Fixed Term Project)"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 4,
+    "section": "Remuneration Placeholder"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 5,
+    "section": "Deductions (Fixed Term Project)"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 6,
+    "section": "Working Hours Placeholder"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 7,
+    "section": "Leave"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 8,
+    "section": "Duties"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 9,
+    "section": "Industrial Action"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 10,
+    "section": "Termination of Employment (Fixed Term Project)"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 11,
+    "section": "Other Benefits"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 12,
+    "section": "Rules and Regulations"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 13,
+    "section": "Safety and Security"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 14,
+    "section": "Confidentiality of Company and/or Client Information"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 15,
+    "section": "Protection of Personal Information in terms of the Protection of Personal Information Act, 2013 (POPIA)"
+   },
+   {
+    "parent": "2.2 Rev.24 - Project Based Fixed Term",
+    "parentfield": "contract_terms",
+    "parenttype": "Contract Type",
+    "sec_no": 16,
+    "section": "General"
+   }
+  ],
+  "contract_type": "Project Based Fixed Term",
+  "doc_number": "2.2",
+  "docstatus": 1,
+  "doctype": "Contract Type",
+  "has_expiry": 0,
+  "has_project": 1,
+  "has_retirement": 1,
+  "modified": "2024-09-19 14:09:57.204497",
+  "name": "2.2 Rev.24 - Project Based Fixed Term",
+  "retirement_age": 65,
+  "rev_date": "2024-09-01"
+ }
+]

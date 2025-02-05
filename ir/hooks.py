@@ -19,24 +19,88 @@ add_to_apps_screen = [
 	}
 ]
 fixtures = [
-	{"dt": "Role", "filters": [["name", "in", ["IR Manager", "IR User"]]]}, 
-	{"dt": "Custom DocPerm", "filters": [["role", "in", ["IR Manager", "IR User"]]]},
+	{"dt": "Role", "filters": [["name", "in", [
+		"IR Manager",
+		"IR User"
+	]]]}, 
+	{"dt": "Custom DocPerm", "filters": [["role", "in", [
+		"IR Manager",
+		"IR User"
+	]]]},
 	{"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
-	{"dt": "Contract Section", "filters": [["sec_head", "in", ["Working Hours Placeholder", "Remuneration Placeholder"]]]},
-	{"dt": "Employee Rights", "filters": [["name", "in", ["Demotion", "Disciplinary Hearing", "Dismissal", "Incapacity", "Pay Deduction", "Pay Reduction", "Suspension", "Warning Form"]]]},
+	{"dt": "Contract Section", "filters": [["sec_head", "in", [
+		"Working Hours Placeholder",
+		"Remuneration Placeholder",
+		"Employment (Fixed Term Period)",
+		"Employment (Fixed Term Project)",
+		"Employment (Indefinite)",
+		"Position",
+		"Commencement and Nature of Contract (Fixed Term Period)",
+		"Commencement and Nature of Contract (Fixd Term Period)",
+		"Commencement and Nature of Contract (Indefinite)",
+		"Deductions (Fixed Term Period)",
+		"Deductions (Fixed Term Project)",
+		"Deductions (Indefinite)", "Leave",
+		"Duties", "Industrial Action",
+		"Termination of Employment (Fixed Term Period)",
+		"Termination of Employment (Fixed Term Project)",
+		"Termination of Employment (Indefinite)",
+		"Other Benefits", "Rules and Regulations",
+		"Safety and Security",
+		"Confidentiality of Company and/or Client Information",
+		"Protection of Personal Information in terms of the Protection of Personal Information Act, 2013 (POPIA)",
+		"General"
+	]]]},
+	{"dt": "Contract Type", "filters": [["name", "in", [
+		"2.1 Rev.24 - Period Based Fixed Term",
+		"2.2 Rev.24 - Project Based Fixed Term",
+		"2.3 Rev.24 - Indefinite"
+	]]]},
+	{"dt": "Employee Rights", "filters": [["name", "in", [
+		"Demotion",
+		"Disciplinary Hearing",
+		"Dismissal",
+		"Incapacity",
+		"Pay Deduction",
+		"Pay Reduction",
+		"Suspension",
+		"Warning Form"
+	]]]},
 	{"dt": "Module Profile", "filters": [["name", "in", ["Industrial Relations"]]]},
-	{"dt": "Grounds for Appeal", "filters": [["name", "in", ["Procedural", "Substantive", "New Evidence"]]]},
-	{"dt": "External Dispute Resolution Outcome", "filters": [["name", "in", ["Settled", "Monetary Award", "Re-instatement", "Retrospective Re-instatement", "Matter Dismissed"]]]},
-	{"dt": "External Dispute Resolution Process", "filters": [["name", "in", ["Con/Arb", "In-Linine", "Arbitration", "Conciliatio"]]]},
-	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", ["CCMA", "Labour Court", "Labour Appeal Court", "Constitutional Court"]]]}
+	{"dt": "Grounds for Appeal", "filters": [["name", "in", [
+		"Procedural",
+		"Substantive",
+		"New Evidence"
+	]]]},
+	{"dt": "External Dispute Resolution Outcome", "filters": [["name", "in", [
+		"Settled",
+		"Monetary Award",
+		"Re-instatement",
+		"Retrospective Re-instatement",
+		"Matter Dismissed"
+	]]]},
+	{"dt": "External Dispute Resolution Process", "filters": [["name", "in", [
+		"Con/Arb",
+		"In-Linine",
+		"Arbitration",
+		"Conciliatio"
+	]]]},
+	{"dt": "Dispute Resolution Forum", "filters": [["name", "in", [
+		"CCMA",
+		"Labour Court",
+		"Labour Appeal Court",
+		"Constitutional Court"
+	]]]},
+	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},
+	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]}
 ]
 scheduler_events = {
 	"weekly": [
-    	"ir.controllers.fixed_term_expiry.fixed_term_expiry",
+    		"ir.controllers.fixed_term_expiry.fixed_term_expiry",
 		"ir.controllers.outstanding_disciplinaries.outstanding_disciplinaries",
 		"ir.controllers.outstanding_incapacities.outstanding_incapacities",
-    	"ir.controllers.outstanding_external_disputes.outstanding_external_disputes"
-    ]
+    		"ir.controllers.outstanding_external_disputes.outstanding_external_disputes"
+	]
 }
 # Includes in <head>
 # ------------------
