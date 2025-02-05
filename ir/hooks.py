@@ -97,8 +97,7 @@ fixtures = [
                 "General Incapacity",
                 "Medical Incapacity",
                 "Incompatibility"
-        ]]]},
-	{"dt": "Customize Form", "filters": [["doc_type", "=", "Employee"]]}
+        ]]]}
 ]
 scheduler_events = {
 	"weekly": [
