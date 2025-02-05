@@ -107,6 +107,9 @@ scheduler_events = {
     		"ir.controllers.outstanding_external_disputes.outstanding_external_disputes"
 	]
 }
+before_migrate = [
+	"ir.setup.add_employee_doclinks.ensure_employee_links"
+]
 # Includes in <head>
 # ------------------
 
