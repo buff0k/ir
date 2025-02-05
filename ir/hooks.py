@@ -92,7 +92,13 @@ fixtures = [
 		"Constitutional Court"
 	]]]},
 	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},
-	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]}
+	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]},
+	{"dt": "Type of Incapacity", "filters": [["name", "in", [
+                "General Incapacity",
+                "Medical Incapacity",
+                "Incompatibility"
+        ]]]},
+	{"dt": "Customize Form", "filters": [["doc_type", "=", "Employee"]]}
 ]
 scheduler_events = {
 	"weekly": [

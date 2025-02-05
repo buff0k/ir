@@ -1,0 +1,26 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Type of Incapacity",
+  "incap_desc": "Incapacity due to the ill-health or medical suitability of the Employee.",
+  "incap_type": "Medical Incapacity",
+  "modified": "2025-02-05 09:16:32.176616",
+  "name": "Medical Incapacity"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Type of Incapacity",
+  "incap_desc": "Incapacity due to the Employee not meeting an inherent requirement of the job.",
+  "incap_type": "General Incapacity",
+  "modified": "2025-02-05 09:17:35.275779",
+  "name": "General Incapacity"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Type of Incapacity",
+  "incap_desc": "Incapacity due to the Employee being compatible with other employees.",
+  "incap_type": "Incompatibility",
+  "modified": "2025-02-05 09:18:26.584593",
+  "name": "Incompatibility"
+ }
+]

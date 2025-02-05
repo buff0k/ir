@@ -318,9 +318,9 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility"
+   "options": "Type of Incapacity"
   },
   {
    "columns": 4,
@@ -387,7 +387,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 15:16:07.986135",
+ "modified": "2025-02-05 09:19:11.935837",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity Proceedings",

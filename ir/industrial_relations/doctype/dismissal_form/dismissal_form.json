@@ -246,16 +246,16 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "options": "Type of Incapacity",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 08:17:28.002200",
+ "modified": "2025-02-05 09:24:28.693745",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dismissal Form",

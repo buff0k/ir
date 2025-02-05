@@ -270,9 +270,9 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "options": "Type of Incapacity",
    "read_only": 1
   },
   {
@@ -284,7 +284,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 12:21:17.315286",
+ "modified": "2025-02-05 09:25:37.349101",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Pay Reduction Form",

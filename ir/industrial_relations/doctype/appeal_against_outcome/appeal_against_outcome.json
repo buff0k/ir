@@ -208,9 +208,9 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "options": "Type of Incapacity",
    "read_only": 1
   },
   {
@@ -252,7 +252,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-09 08:14:20.482362",
+ "modified": "2025-02-05 09:21:41.146126",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Appeal Against Outcome",

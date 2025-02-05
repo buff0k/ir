@@ -233,16 +233,16 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "options": "Type of Incapacity",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-02 13:22:20.910023",
+ "modified": "2025-02-05 09:26:32.435732",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Hearing Cancellation Form",

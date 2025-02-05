@@ -201,9 +201,9 @@
   },
   {
    "fieldname": "type_of_incapacity",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Type of Incapacity",
-   "options": "\nMedical Incapacity\nGeneral Incapacity\nIncompatibility",
+   "options": "Type of Incapacity",
    "read_only": 1
   },
   {
@@ -221,7 +221,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-23 15:31:28.730736",
+ "modified": "2025-02-05 09:25:52.328083",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Not Guilty Form",
