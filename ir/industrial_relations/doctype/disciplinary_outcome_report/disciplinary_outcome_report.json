@@ -7,7 +7,6 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_lzdi",
-  "amended_from",
   "company",
   "employee",
   "letter_head",
@@ -290,7 +289,7 @@
   },
   {
    "fieldname": "complete_outcome",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Complete Outcome",
    "read_only": 1
   },
@@ -344,7 +343,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-05 11:39:49.488900",
+ "modified": "2025-02-05 13:38:33.832231",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Outcome Report",
@@ -364,16 +363,6 @@
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "IR User",
-   "select": 1,
-   "share": 1
-  },
-  {
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -386,6 +375,16 @@
    "share": 1,
    "submit": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",

@@ -2,9 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
-import markdown2
+import re
 from frappe.model.document import Document
-from frappe.utils import formatdate
+from frappe.utils import getdate, formatdate
 
 class DisciplinaryOutcomeReport(Document):
     def autoname(self):
@@ -210,80 +210,71 @@ def fetch_employee_names(chairperson=None, complainant=None):
         'complainant_name': complainant_name,
     }
 
-# Helper function to convert a date to words
-def date_to_words(date_str):
-    return frappe.utils.formatdate(date_str, "d MMMM yyyy")
-
-# Helper function to generate numbered content
-def generate_numbered_html(content, paragraph_counter):
-    numbered_content = ""
+@frappe.whitelist()
+def normalize_headings(content):
+    """
+    Normalize all Markdown headings (#, ##, ###) to a single # (H1).
+    """
+    if not content:
+        return content
     
-    for item in content:
-        if item.get("insert"):
-            text = item["insert"].strip()
-            if not text:  # Skip empty lines
-                continue
-            
-            # Handle headings
-            if "attributes" in item and "header" in item["attributes"]:
-                header_level = item["attributes"]["header"]
-                numbered_content += f"<h{header_level}>{text}</h{header_level}>"
-            else:
-                # Number paragraphs
-                paragraph_counter += 1
-                numbered_content += f"<p>{paragraph_counter}. {text}</p>"
-    
-    return numbered_content, paragraph_counter
+    # Use regex to replace any number of # at the start of a line with a single #
+    normalized_content = re.sub(r'^#+\s', '# ', content, flags=re.MULTILINE)
+    return normalized_content
 
 @frappe.whitelist()
 def compile_outcome(docname):
+    # Fetch the document
     doc = frappe.get_doc("Disciplinary Outcome Report", docname)
-
-    # Fetch the linked NTA document's venue
-    venue = ""
-    if doc.linked_nta:
-        linked_nta_doc = frappe.get_doc("NTA Hearing", doc.linked_nta)
-        venue = linked_nta_doc.venue or "Unknown Venue"
-
-    date_in_words = date_to_words(doc.date) if doc.date else "Unknown Date"
-
-    # Start compiling the outcome
-    outcome_content = f"""
-        <h1 style="text-align:center;">OUTCOME OF A DISCIPLINARY ENQUIRY</h1>
-        <h3>Held at {venue}, on the {date_in_words}, with:</h3>
-        <p>Chairperson: {doc.chairperson_name or 'Unknown'}</p>
-        <p>Complainant: {doc.complainant_name or 'Unknown'}</p>
-        <p>Accused Employee: {doc.names or 'Unknown'} ({doc.coy or 'Unknown'})</p>
-    """
-
-    # Sections to compile
-    sections = [
-        ("Introduction", doc.introduction),
-        ("Complainant's Statement of Case", doc.complainant_case),
-        ("Accused Employee's Statement of Case", doc.accused_case),
-        ("Analysis of Evidence", doc.analysis_of_evidence),
-        ("Finding", doc.finding),
-        ("Mitigating Considerations", doc.mitigating_considerations),
-        ("Aggravating Considerations", doc.aggravating_conisderations),  # Intentional typo
-        ("Outcome", doc.outcome),
-    ]
-
-    paragraph_counter = 1  # Start numbering from 1
     
-    for title, content in sections:
+    # Initialize the compiled outcome content
+    compiled_outcome = ""
+    
+    # Determine the type of enquiry
+    if doc.linked_disciplinary_action:
+        enquiry_type = "Disciplinary"
+    elif doc.linked_incapacity_proceeding:
+        enquiry_type = "Incapacity"
+    else:
+        frappe.throw("No linked disciplinary action or incapacity proceeding found.")
+    
+    # Add employee and company details with proper indentation
+    if enquiry_type == "Disciplinary":
+        compiled_outcome += f"**Name of Accused Employee:** {doc.names} ({doc.coy})\n\n"
+        compiled_outcome += f"**Name of Complainant:** {doc.complainant_name}\n\n"
+    else:
+        compiled_outcome += f"**Name of Employee:** {doc.names} ({doc.coy})\n\n"
+        compiled_outcome += f"**Name of Employer Representative:** {doc.complainant_name}\n\n"
+    
+    # Add chairperson name and date of enquiry with proper indentation
+    compiled_outcome += f"**Chairperson Name:** {doc.chairperson_name}\n\n"
+    compiled_outcome += f"**Date of Enquiry:** {formatdate(doc.date_of_enquiry, 'd MMMM YYYY')}\n\n"
+    
+    # Add the standard paragraph
+    compiled_outcome += "This is the outcome of an enquiry conducted by myself on the {} and serves merely as a summary of the most salient points considered in arriving at my conclusion and does not purport to be a comprehensive, blow-by-blow recounting of the enquiry. Any failure to specifically refer to any fact or point does not mean that it was not considered in arriving at my conclusion.\n\n".format(formatdate(doc.date_of_enquiry, 'd MMMM YYYY'))
+    
+    # Define the markdown fields and their corresponding headings
+    markdown_fields = {
+        "introduction": "Introduction",
+        "complainant_case": "Complainant's Case" if enquiry_type == "Disciplinary" else "Employer's Case",
+        "accused_case": "Accused Employee Case" if enquiry_type == "Disciplinary" else "Employee Case",
+        "analysis_of_evidence": "Analysis of Evidence",
+        "finding": "Finding by Chairperson",
+        "mitigating_considerations": "Mitigating Considerations",
+        "aggravating_conisderations": "Aggravating Considerations",
+        "outcome": "Outcome"
+    }
+    
+    # Add each markdown field to the compiled outcome
+    for field, heading in markdown_fields.items():
+        content = doc.get(field)
         if content:
-            # Add section heading
-            outcome_content += f"<h3>{title}</h3>"
-            
-            # Convert Markdown to HTML
-            html_content = markdown2.markdown(content)
-            
-            # Process numbered paragraphs (continuing numbers)
-            numbered_html, paragraph_counter = generate_numbered_html([{"insert": item} for item in html_content.split("\n")], paragraph_counter)
-            outcome_content += numbered_html
-
-    # Save the compiled content into the complete_outcome field
-    doc.complete_outcome = outcome_content
+            # Normalize headings in the content
+            normalized_content = normalize_headings(content)
+            compiled_outcome += f"### {heading}\n\n{normalized_content}\n\n"
+    
+    # Update the complete_outcome field
+    doc.complete_outcome = compiled_outcome
     doc.save()
-
-    return {"success": True}
+    
+    frappe.msgprint("Outcome compiled successfully.")
