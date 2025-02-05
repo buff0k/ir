@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "creation": "2024-07-22 12:59:58.712057",
+ "creation": "2025-02-05 11:39:49.488900",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -50,7 +50,8 @@
   "linked_sanction",
   "evidence",
   "compiled_outcome_tab",
-  "complete_outcome"
+  "complete_outcome",
+  "amended_from"
  ],
  "fields": [
   {
@@ -126,32 +127,32 @@
   },
   {
    "fieldname": "introduction",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Introduction"
   },
   {
    "fieldname": "complainant_case",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Complainant Case"
   },
   {
    "fieldname": "accused_case",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Accused Case"
   },
   {
    "fieldname": "analysis_of_evidence",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Analysis of Evidence"
   },
   {
    "fieldname": "finding",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Finding"
   },
   {
    "fieldname": "outcome",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Outcome"
   },
   {
@@ -189,12 +190,12 @@
   },
   {
    "fieldname": "mitigating_considerations",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Mitigating Considerations"
   },
   {
    "fieldname": "aggravating_conisderations",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Markdown Editor",
    "label": "Aggravating Conisderations"
   },
   {
@@ -328,12 +329,22 @@
    "label": "Previous Incapacity History",
    "options": "Incapacity History",
    "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Disciplinary Outcome Report",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-05 09:23:12.084686",
+ "modified": "2025-02-05 11:39:49.488900",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Outcome Report",

@@ -2,10 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
+import markdown2
 from frappe.model.document import Document
 from frappe.utils import formatdate
-from bs4 import BeautifulSoup
-import re
 
 class DisciplinaryOutcomeReport(Document):
     def autoname(self):
@@ -211,9 +210,12 @@ def fetch_employee_names(chairperson=None, complainant=None):
         'complainant_name': complainant_name,
     }
 
-@frappe.whitelist()
+# Helper function to convert a date to words
+def date_to_words(date_str):
+    return frappe.utils.formatdate(date_str, "d MMMM yyyy")
+
+# Helper function to generate numbered content
 def generate_numbered_html(content, paragraph_counter):
-    """Generates numbered HTML content based on Quill's Delta format."""
     numbered_content = ""
     
     for item in content:
@@ -243,10 +245,6 @@ def compile_outcome(docname):
         linked_nta_doc = frappe.get_doc("NTA Hearing", doc.linked_nta)
         venue = linked_nta_doc.venue or "Unknown Venue"
 
-    # Helper to convert a date to words
-    def date_to_words(date_str):
-        return frappe.utils.formatdate(date_str, "d MMMM yyyy")
-
     date_in_words = date_to_words(doc.date) if doc.date else "Unknown Date"
 
     # Start compiling the outcome
@@ -258,7 +256,7 @@ def compile_outcome(docname):
         <p>Accused Employee: {doc.names or 'Unknown'} ({doc.coy or 'Unknown'})</p>
     """
 
-    # Process sections with continuous numbering
+    # Sections to compile
     sections = [
         ("Introduction", doc.introduction),
         ("Complainant's Statement of Case", doc.complainant_case),
@@ -271,15 +269,20 @@ def compile_outcome(docname):
     ]
 
     paragraph_counter = 1  # Start numbering from 1
+    
     for title, content in sections:
         if content:
             # Add section heading
             outcome_content += f"<h3>{title}</h3>"
-            # Generate numbered content for the section
-            numbered_html, paragraph_counter = generate_numbered_html(content, paragraph_counter)
+            
+            # Convert Markdown to HTML
+            html_content = markdown2.markdown(content)
+            
+            # Process numbered paragraphs (continuing numbers)
+            numbered_html, paragraph_counter = generate_numbered_html([{"insert": item} for item in html_content.split("\n")], paragraph_counter)
             outcome_content += numbered_html
 
-    # Save to the complete_outcome field
+    # Save the compiled content into the complete_outcome field
     doc.complete_outcome = outcome_content
     doc.save()
 
