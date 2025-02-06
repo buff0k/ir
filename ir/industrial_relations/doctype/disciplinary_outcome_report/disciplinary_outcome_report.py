@@ -210,26 +210,45 @@ def fetch_employee_names(chairperson=None, complainant=None):
         'complainant_name': complainant_name,
     }
 
-@frappe.whitelist()
 def normalize_headings(content):
     """
-    Normalize all Markdown headings (#, ##, ###) to a single # (H1).
+    Normalize all Markdown headings (#, ##, ###) to ### (H3).
     """
     if not content:
         return content
     
-    # Use regex to replace any number of # at the start of a line with a single #
-    normalized_content = re.sub(r'^#+\s', '# ', content, flags=re.MULTILINE)
+    # Use regex to replace any number of # at the start of a line, with or without space, with ###
+    normalized_content = re.sub(r'^#+\s?', '### ', content, flags=re.MULTILINE)
+    return normalized_content
+
+@frappe.whitelist()
+def normalize_headings(content):
+    """
+    Normalize all Markdown headings (#, ##, ###) to ### (H3).
+    Ensures correct formatting even if there is no space between # and text.
+    """
+    if not content:
+        return content
+    
+    # Ensure that any heading (#, ##, ###, etc.) is converted to '### '
+    normalized_content = re.sub(r'^(#{1,})\s*(\S.*)', r'### \2', content, flags=re.MULTILINE)
     return normalized_content
 
 @frappe.whitelist()
 def compile_outcome(docname):
+    """
+    Compile the outcome report for the given Disciplinary Outcome Report document.
+    Formats headings, aligns details in a Markdown table, and compiles structured content.
+    """
     # Fetch the document
     doc = frappe.get_doc("Disciplinary Outcome Report", docname)
-    
-    # Initialize the compiled outcome content
-    compiled_outcome = ""
-    
+
+    # Initialize the compiled outcome with a Markdown table header
+    compiled_outcome = (
+        "| **Field**                          | **Value**                           |\n"
+        "|------------------------------------|-----------------------------------|\n"
+    )
+
     # Determine the type of enquiry
     if doc.linked_disciplinary_action:
         enquiry_type = "Disciplinary"
@@ -237,22 +256,27 @@ def compile_outcome(docname):
         enquiry_type = "Incapacity"
     else:
         frappe.throw("No linked disciplinary action or incapacity proceeding found.")
-    
-    # Add employee and company details with proper indentation
+
+    # Add employee details based on enquiry type
     if enquiry_type == "Disciplinary":
-        compiled_outcome += f"**Name of Accused Employee:** {doc.names} ({doc.coy})\n\n"
-        compiled_outcome += f"**Name of Complainant:** {doc.complainant_name}\n\n"
+        compiled_outcome += f"| **Name of Accused Employee**       | {doc.names} ({doc.coy}) |\n"
+        compiled_outcome += f"| **Name of Complainant**            | {doc.complainant_name} |\n"
     else:
-        compiled_outcome += f"**Name of Employee:** {doc.names} ({doc.coy})\n\n"
-        compiled_outcome += f"**Name of Employer Representative:** {doc.complainant_name}\n\n"
-    
-    # Add chairperson name and date of enquiry with proper indentation
-    compiled_outcome += f"**Chairperson Name:** {doc.chairperson_name}\n\n"
-    compiled_outcome += f"**Date of Enquiry:** {formatdate(doc.date_of_enquiry, 'd MMMM YYYY')}\n\n"
-    
-    # Add the standard paragraph
-    compiled_outcome += "This is the outcome of an enquiry conducted by myself on the {} and serves merely as a summary of the most salient points considered in arriving at my conclusion and does not purport to be a comprehensive, blow-by-blow recounting of the enquiry. Any failure to specifically refer to any fact or point does not mean that it was not considered in arriving at my conclusion.\n\n".format(formatdate(doc.date_of_enquiry, 'd MMMM YYYY'))
-    
+        compiled_outcome += f"| **Name of Employee**               | {doc.names} ({doc.coy}) |\n"
+        compiled_outcome += f"| **Name of Employer Representative** | {doc.complainant_name} |\n"
+
+    # Add chairperson and date of enquiry
+    compiled_outcome += f"| **Chairperson Name**               | {doc.chairperson_name} |\n"
+    compiled_outcome += f"| **Date of Enquiry**                | {formatdate(doc.date_of_enquiry, 'd MMMM YYYY')} |\n\n"
+
+    # Add the standard introductory paragraph
+    compiled_outcome += (
+        "This is the outcome of an enquiry conducted by myself on the {} and serves merely "
+        "as a summary of the most salient points considered in arriving at my conclusion and does "
+        "not purport to be a comprehensive, blow-by-blow recounting of the enquiry. Any failure to "
+        "specifically refer to any fact or point does not mean that it was not considered in arriving at my conclusion.\n\n"
+    ).format(formatdate(doc.date_of_enquiry, 'd MMMM YYYY'))
+
     # Define the markdown fields and their corresponding headings
     markdown_fields = {
         "introduction": "Introduction",
@@ -264,7 +288,7 @@ def compile_outcome(docname):
         "aggravating_conisderations": "Aggravating Considerations",
         "outcome": "Outcome"
     }
-    
+
     # Add each markdown field to the compiled outcome
     for field, heading in markdown_fields.items():
         content = doc.get(field)
@@ -272,9 +296,9 @@ def compile_outcome(docname):
             # Normalize headings in the content
             normalized_content = normalize_headings(content)
             compiled_outcome += f"### {heading}\n\n{normalized_content}\n\n"
-    
+
     # Update the complete_outcome field
     doc.complete_outcome = compiled_outcome
     doc.save()
-    
+
     frappe.msgprint("Outcome compiled successfully.")

@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_lzdi",
+  "amended_from",
   "company",
   "employee",
   "letter_head",
@@ -49,8 +50,7 @@
   "linked_sanction",
   "evidence",
   "compiled_outcome_tab",
-  "complete_outcome",
-  "amended_from"
+  "complete_outcome"
  ],
  "fields": [
   {
@@ -125,31 +125,37 @@
    "label": "Chairperson Summary"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "introduction",
    "fieldtype": "Markdown Editor",
    "label": "Introduction"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "complainant_case",
    "fieldtype": "Markdown Editor",
    "label": "Complainant Case"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "accused_case",
    "fieldtype": "Markdown Editor",
    "label": "Accused Case"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "analysis_of_evidence",
    "fieldtype": "Markdown Editor",
    "label": "Analysis of Evidence"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "finding",
    "fieldtype": "Markdown Editor",
    "label": "Finding"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "outcome",
    "fieldtype": "Markdown Editor",
    "label": "Outcome"
@@ -188,11 +194,13 @@
    "read_only": 1
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "mitigating_considerations",
    "fieldtype": "Markdown Editor",
    "label": "Mitigating Considerations"
   },
   {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
    "fieldname": "aggravating_conisderations",
    "fieldtype": "Markdown Editor",
    "label": "Aggravating Conisderations"
@@ -343,7 +351,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-05 13:38:33.832231",
+ "modified": "2025-02-06 11:16:32.781090",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Outcome Report",
