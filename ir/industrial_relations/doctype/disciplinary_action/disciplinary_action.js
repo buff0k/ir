@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('Disciplinary Action', {
     refresh: function(frm) {
+        if (!frm.is_new()) {
+            fetch_linked_documents(frm);
+        };
+    
         frm.toggle_display(['make_warning_form', 'make_nta_hearing', 'write_disciplinary_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
 
         if (frappe.user.has_role("IR Manager")) {
@@ -57,11 +61,6 @@ frappe.ui.form.on('Disciplinary Action', {
             frm.page.add_inner_button(__('Appeal Against Outcome'), function() {
                 appeal_disciplinary(frm);
             }, 'Actions');
-        }
-
-        if (!frm.is_new() && !frm.__fetching_linked_documents) {
-            frm.__fetching_linked_documents = true;
-            fetch_linked_documents(frm);
         }
     },
 
@@ -188,32 +187,51 @@ function fetch_disciplinary_history(frm, accused) {
 }
 
 function fetch_linked_documents(frm) {
-    frappe.call({
-        method: 'ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.fetch_linked_documents',
-        args: { doc_name: frm.doc.name },
-        callback: function(res) {
-            if (res.message) {
-                // Refresh specific fields instead of reloading the entire document
-                const fields_to_refresh = [
-                    'linked_nta',
-                    'linked_outcome',
-                    'linked_warning',
-                    'linked_dismissal',
-                    'linked_demotion',
-                    'linked_pay_deduction',
-                    'linked_pay_reduction',
-                    'linked_not_guilty',
-                    'linked_suspension',
-                    'linked_vsp',
-                    'linked_cancellation',
-                    'linked_appeal'
-                ];
-                fields_to_refresh.forEach(field => frm.refresh_field(field));
+    // List of all the linked doctypes, their corresponding fields, and the linking field in the child table
+    const linked_fields = [
+        { fieldname: 'linked_nta', doctype: 'NTA Hearing', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_nta' },
+        { fieldname: 'linked_outcome', doctype: 'Written Outcome', linking_field: 'linked_intervention', child_table_field: 'linked_outcome' },
+        { fieldname: 'linked_warning', doctype: 'Warning Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_warning' },
+        { fieldname: 'linked_dismissal', doctype: 'Dismissal Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_dismissal' },
+        { fieldname: 'linked_demotion', doctype: 'Demotion Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_demotion' },
+        { fieldname: 'linked_pay_deduction', doctype: 'Pay Deduction Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_pay_deduction' },
+        { fieldname: 'linked_pay_reduction', doctype: 'Pay Reduction Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_pay_reduction' },
+        { fieldname: 'linked_not_guilty', doctype: 'Not Guilty Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_not_guilty' },
+        { fieldname: 'linked_suspension', doctype: 'Suspension Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_suspension' },
+        { fieldname: 'linked_vsp', doctype: 'Voluntary Seperation Agreement', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_vsp' },
+        { fieldname: 'linked_cancellation', doctype: 'Hearing Cancellation Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_cancellation' },
+        { fieldname: 'linked_appeal', doctype: 'Appeal Against Outcome', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_appeal' }
+    ];
+
+    // Iterate over each linked field and fetch the linked documents
+    linked_fields.forEach((linked_field) => {
+        frappe.call({
+            method: 'ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.get_linked_documents',
+            args: {
+                disciplinary_action_name: frm.doc.name,
+                linked_doctype: linked_field.doctype,
+                linking_field: linked_field.linking_field
+            },
+            callback: function(r) {
+                if (r.message) {
+                    // Debugging: Log the fetched documents
+                    console.log(`Fetched documents for ${linked_field.fieldname}:`, r.message);
+
+                    // Prepare the data for the virtual field
+                    const virtual_data = r.message.map((docname) => {
+                        return { [linked_field.child_table_field]: docname }; // Correct structure for the virtual field
+                    });
+
+                    // Directly update the virtual field's data in the form's doc object
+                    frm.doc[linked_field.fieldname] = virtual_data;
+
+                    // Refresh the field to reflect the changes
+                    frm.refresh_field(linked_field.fieldname);
+                } else {
+                    console.log(`No documents found for ${linked_field.fieldname}`);
+                }
             }
-        },
-        always: function() {
-            frm.__fetching_linked_documents = false;
-        }
+        });
     });
 }
 
@@ -236,6 +254,25 @@ function write_disciplinary_outcome_report(frm) {
             linked_disciplinary_action: frm.doc.name
         },
         freeze_message: __("Creating Disciplinary Outcome Report ...")
+    });
+}
+
+//Testing
+function create_written_outcome(frm) {
+    frappe.call({
+        method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
+        args: {
+            source_name: frm.doc.name,  // ✅ Pass the document ID (e.g. DISC-000376)
+            source_doctype: frm.doctype  // ✅ Pass the document type (e.g. "Disciplinary Action")
+        },
+        freeze: true,
+        freeze_message: __("Creating Written Outcome Report ..."),
+        callback: function(r) {
+            if (!r.exc) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "Written Outcome", r.message.name);
+            }
+        }
     });
 }
 

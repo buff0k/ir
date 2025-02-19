@@ -1,0 +1,424 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2025-02-07 10:04:47.250418",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tab_input",
+  "section_system",
+  "amended_from",
+  "company",
+  "letter_head",
+  "linked_intervention_processed",
+  "section_details",
+  "ir_intervention",
+  "employee",
+  "employee_designation",
+  "complainant",
+  "chairperson",
+  "approver",
+  "attach_record",
+  "column_break_cfpj",
+  "linked_intervention",
+  "employee_name",
+  "employee_branch",
+  "complainant_name",
+  "chairperson_name",
+  "approver_name",
+  "attach_outcome",
+  "section_background",
+  "linked_nta",
+  "linked_rulings",
+  "enquiry_date",
+  "nta_charges",
+  "incap_type_nta",
+  "incapacity_details_nta",
+  "section_summary",
+  "outcome_date",
+  "summary_introduction",
+  "summary_complainant",
+  "complainant_evidence",
+  "summary_accused",
+  "accused_evidence",
+  "summary_analysis",
+  "summary_finding",
+  "final_charges",
+  "final_incapacity_details",
+  "summary_mitigation",
+  "disciplinary_history",
+  "previous_incapacity_outcomes",
+  "summary_aggravation",
+  "summary_outcome",
+  "outcome",
+  "tab_output",
+  "complete_outcome"
+ ],
+ "fields": [
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Written Outcome",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_system",
+   "fieldtype": "Section Break",
+   "label": "System Use"
+  },
+  {
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "label": "IR Intervention",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Appeal Against Outcome\",\"External Dispute Resolution\"]]]",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cfpj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Dynamic Link",
+   "label": "Linked IR Intervention",
+   "options": "ir_intervention",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee Coy. No.",
+   "options": "Employee",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_designation",
+   "fieldtype": "Link",
+   "label": "Employee Position",
+   "options": "Designation",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_branch",
+   "fieldtype": "Link",
+   "label": "Employee Site",
+   "options": "Branch",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_details",
+   "fieldtype": "Section Break",
+   "label": "Matter Details"
+  },
+  {
+   "fieldname": "linked_nta",
+   "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
+   "label": "Linked NTA(s)",
+   "options": "NTA Selector"
+  },
+  {
+   "fieldname": "chairperson",
+   "fieldtype": "Link",
+   "label": "Chairperson Coy. No.",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "chairperson_name",
+   "fieldtype": "Data",
+   "label": "Chairperson Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "complainant",
+   "fieldtype": "Link",
+   "label": "Company Rep. (Complainant) Coy. No.",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "complainant_name",
+   "fieldtype": "Data",
+   "label": "Company Rep. (Complainant) Name",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Required if the outcome was not approved by the Chairperson.",
+   "fieldname": "approver",
+   "fieldtype": "Link",
+   "label": "Approver Coy. No.",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "label": "Approver Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_background",
+   "fieldtype": "Section Break",
+   "label": "Matter Background"
+  },
+  {
+   "fieldname": "enquiry_date",
+   "fieldtype": "Date",
+   "label": "Date of Enquiry",
+   "reqd": 1
+  },
+  {
+   "fieldname": "nta_charges",
+   "fieldtype": "Table",
+   "label": "Charges as per NTA",
+   "options": "Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "incap_type_nta",
+   "fieldtype": "Link",
+   "label": "Type of Incapacity as per NTA",
+   "options": "Incapacity Proceedings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "incapacity_details_nta",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity as per NTA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_rulings",
+   "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
+   "label": "Linked Ruling(s)",
+   "options": "Ruling Selector"
+  },
+  {
+   "fieldname": "section_summary",
+   "fieldtype": "Section Break",
+   "label": "Chairperson Summary"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_introduction",
+   "fieldtype": "Markdown Editor",
+   "label": "Introduction"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_complainant",
+   "fieldtype": "Markdown Editor",
+   "label": "Complainant Case"
+  },
+  {
+   "fieldname": "complainant_evidence",
+   "fieldtype": "Table",
+   "label": "Complainant Evidence",
+   "options": "Attach Evidence"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_accused",
+   "fieldtype": "Markdown Editor",
+   "label": "Accused Case"
+  },
+  {
+   "fieldname": "accused_evidence",
+   "fieldtype": "Table",
+   "label": "Accused Evidence",
+   "options": "Attach Evidence"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_analysis",
+   "fieldtype": "Markdown Editor",
+   "label": "Analysis of Evidence"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_finding",
+   "fieldtype": "Markdown Editor",
+   "label": "Finding"
+  },
+  {
+   "fieldname": "disciplinary_history",
+   "fieldtype": "Table",
+   "label": "Previous Disciplinary History",
+   "options": "Disciplinary History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_outcome",
+   "fieldtype": "Markdown Editor",
+   "label": "Outcome"
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Link",
+   "label": "Outcome",
+   "options": "Disciplinary Outcome"
+  },
+  {
+   "fieldname": "attach_record",
+   "fieldtype": "Attach",
+   "label": "Upload Record"
+  },
+  {
+   "fieldname": "attach_outcome",
+   "fieldtype": "Attach",
+   "label": "Attach Written Outcome"
+  },
+  {
+   "fieldname": "outcome_date",
+   "fieldtype": "Date",
+   "label": "Date of Outcome",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tab_input",
+   "fieldtype": "Tab Break",
+   "label": "User Form"
+  },
+  {
+   "fieldname": "tab_output",
+   "fieldtype": "Tab Break",
+   "label": "Compiled Output"
+  },
+  {
+   "fieldname": "complete_outcome",
+   "fieldtype": "Markdown Editor",
+   "label": "Complete Outcome",
+   "read_only": 1
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_mitigation",
+   "fieldtype": "Markdown Editor",
+   "label": "Mitigating Considerations"
+  },
+  {
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "fieldname": "summary_aggravation",
+   "fieldtype": "Markdown Editor",
+   "label": "Aggravating Considerations"
+  },
+  {
+   "fieldname": "final_charges",
+   "fieldtype": "Table",
+   "label": "Final Charges",
+   "options": "Charges"
+  },
+  {
+   "fieldname": "final_incapacity_details",
+   "fieldtype": "Small Text",
+   "label": "Final Incapacity Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_intervention_processed",
+   "fieldtype": "Check",
+   "label": "Linked IR Intervention Processed",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "External Dispute Resolution",
+   "link_fieldname": "outcome"
+  }
+ ],
+ "modified": "2025-02-14 15:01:54.823418",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Written Outcome",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

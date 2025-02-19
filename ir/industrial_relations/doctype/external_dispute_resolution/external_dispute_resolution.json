@@ -15,6 +15,7 @@
   "outcome_attach",
   "settlement_attach",
   "respondent_rep",
+  "linked_outcome",
   "column_break_bifu",
   "case_no",
   "respondent_external",
@@ -178,12 +179,20 @@
    "fieldtype": "Link",
    "label": "Company Representative",
    "options": "Employee"
+  },
+  {
+   "fieldname": "linked_outcome",
+   "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
+   "label": "Linked Outcome",
+   "options": "Outcome Selector",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-05 08:21:39.239659",
+ "modified": "2025-02-14 08:11:34.504432",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution",

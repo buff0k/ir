@@ -182,6 +182,84 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "IR Interventions",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incapacity Proceedings",
+   "link_count": 0,
+   "link_to": "Incapacity Proceedings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dispute Resolution Forum",
+   "link_count": 0,
+   "link_to": "Dispute Resolution Forum",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Process",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Process",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Outcome",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "IR Documents",
    "link_count": 11,
    "link_type": "DocType",
@@ -194,16 +272,6 @@
    "label": "NTA Hearing",
    "link_count": 0,
    "link_to": "NTA Hearing",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Outcome Report",
-   "link_count": 0,
-   "link_to": "Disciplinary Outcome Report",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -301,83 +369,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "IR Interventions",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
+   "label": "Written Outcome",
    "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incapacity Proceedings",
-   "link_count": 0,
-   "link_to": "Incapacity Proceedings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution",
-   "link_count": 0,
-   "link_to": "External Dispute Resolution",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dispute Resolution Forum",
-   "link_count": 0,
-   "link_to": "Dispute Resolution Forum",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution Process",
-   "link_count": 0,
-   "link_to": "External Dispute Resolution Process",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution Outcome",
-   "link_count": 0,
-   "link_to": "External Dispute Resolution Outcome",
+   "link_to": "Written Outcome",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-02-03 12:19:58.965728",
+ "modified": "2025-02-14 14:58:50.517569",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

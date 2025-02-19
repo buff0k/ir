@@ -19,34 +19,41 @@
    "label": "Disciplinary History"
   },
   {
+   "columns": 2,
    "fieldname": "incap_proc",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Incapacity Proceeding:",
    "options": "Incapacity Proceedings"
   },
   {
+   "columns": 2,
    "fieldname": "date",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Date"
   },
   {
+   "columns": 4,
    "fieldname": "incap_details",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "Details of Incapacity"
+   "label": "Details of Incapacity",
+   "permlevel": 4
   },
   {
+   "columns": 2,
    "fieldname": "sanction",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Sanction"
+   "label": "Outcome",
+   "permlevel": 2
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-19 14:22:46.008666",
+ "modified": "2025-02-07 11:47:59.513740",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity History",

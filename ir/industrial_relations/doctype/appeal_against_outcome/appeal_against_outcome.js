@@ -13,7 +13,7 @@ frappe.ui.form.on("Appeal Against Outcome", {
             }, 'Actions');
 
             frm.page.add_inner_button(__('Write Outcome Report'), function() {
-                write_appeal_outcome_report(frm);
+                create_written_outcome(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Warning'), function() {
@@ -283,14 +283,21 @@ function make_nta_appeal(frm) {
     });
 }
 
-function write_appeal_outcome_report(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.write_appeal_outcome_report",
-        frm: frm,
+function create_written_outcome(frm) {
+    frappe.call({
+        method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
         args: {
-            linked_appeal: frm.doc.name
+            source_name: frm.doc.name,  // ✅ Pass the document ID (e.g. DISC-000376)
+            source_doctype: frm.doctype  // ✅ Pass the document type (e.g. "Disciplinary Action")
         },
-        freeze_message: __("Creating Appeal Outcome Report ...")
+        freeze: true,
+        freeze_message: __("Creating Written Outcome Report ..."),
+        callback: function(r) {
+            if (!r.exc) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "Written Outcome", r.message.name);
+            }
+        }
     });
 }
 

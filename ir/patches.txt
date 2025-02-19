@@ -10,3 +10,5 @@ ir.patches.update_linked_disc_docs
 ir.patches.update_linked_incap_docs
 ir.patches.update_outcome_linked_nta
 ir.patches.convert_richtext_to_markdown
+ir.patches.patch_clear_disc_action_child_table
+ir.patches.patch_clear_incap_child_table

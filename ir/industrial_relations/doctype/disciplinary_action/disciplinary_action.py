@@ -61,48 +61,29 @@ def fetch_disciplinary_history(accused, current_doc_name):
 
     return history
 
+import frappe
+
 @frappe.whitelist()
-def fetch_linked_documents(doc_name):
-    frappe.flags.ignore_permissions = True
+def get_linked_documents(disciplinary_action_name, linked_doctype, linking_field):
+    """
+    Fetch all documents of the specified doctype that are linked to the given Disciplinary Action.
+    """
+    frappe.flags.ignore_permissions = True  # Bypass permissions
+    # Debugging: Print the input arguments
+    frappe.logger().info(f"Fetching linked documents for {disciplinary_action_name} in {linked_doctype} with linking field {linking_field}")
 
-    linked_tables = {
-        "linked_nta": {"doctype": "NTA Hearing", "child_table_field": "linked_nta"},
-        "linked_outcome": {"doctype": "Disciplinary Outcome Report", "child_table_field": "linked_outcome"},
-        "linked_warning": {"doctype": "Warning Form", "child_table_field": "linked_warning"},
-        "linked_dismissal": {"doctype": "Dismissal Form", "child_table_field": "linked_dismissal"},
-        "linked_demotion": {"doctype": "Demotion Form", "child_table_field": "linked_demotion"},
-        "linked_pay_deduction": {"doctype": "Pay Deduction Form", "child_table_field": "linked_pay_deduction"},
-        "linked_pay_reduction": {"doctype": "Pay Reduction Form", "child_table_field": "linked_pay_reduction"},
-        "linked_not_guilty": {"doctype": "Not Guilty Form", "child_table_field": "linked_not_guilty"},
-        "linked_suspension": {"doctype": "Suspension Form", "child_table_field": "linked_suspension"},
-        "linked_vsp": {"doctype": "Voluntary Seperation Agreement", "child_table_field": "linked_vsp"},
-        "linked_cancellation": {"doctype": "Hearing Cancellation Form", "child_table_field": "linked_cancellation"},
-        "linked_appeal": {"doctype": "Appeal Against Outcome", "child_table_field": "linked_appeal"}
-    }
+    # Query to find all documents of the specified doctype that have the specified linking field equal to the given Disciplinary Action name.
+    linked_docs = frappe.get_all(
+        linked_doctype,
+        filters={linking_field: disciplinary_action_name},
+        fields=["name"]
+    )
 
-    disciplinary_doc = frappe.get_doc("Disciplinary Action", doc_name)
-    disciplinary_doc.flags.ignore_validate_update_after_submit = True
+    # Debugging: Print the results of the query
+    frappe.logger().info(f"Found {len(linked_docs)} linked documents: {linked_docs}")
 
-    updated = False
-
-    for child_field, table_info in linked_tables.items():
-        linked_docs = frappe.get_all(
-            table_info["doctype"],
-            filters={"linked_disciplinary_action": doc_name},
-            fields=["name"]
-        )
-
-        existing_entries = {row.get(table_info["child_table_field"]) for row in disciplinary_doc.get(child_field)}
-
-        for linked_doc in linked_docs:
-            if linked_doc["name"] not in existing_entries:
-                disciplinary_doc.append(child_field, {table_info["child_table_field"]: linked_doc["name"]})
-                updated = True
-
-    if updated:
-        disciplinary_doc.save(ignore_permissions=True)
-
-    return {"message": "Linked documents updated"}
+    # Return the list of document names
+    return [doc.name for doc in linked_docs]
 
 @frappe.whitelist()
 def fetch_complainant_data(complainant):

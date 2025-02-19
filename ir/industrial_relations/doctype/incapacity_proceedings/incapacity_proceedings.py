@@ -62,49 +62,26 @@ def fetch_incapacity_history(accused, current_doc_name):
     return history
 
 @frappe.whitelist()
-def fetch_linked_documents(doc_name):
-    frappe.flags.ignore_permissions = True
+def get_linked_documents(incapacity_proceeding_name, linked_doctype, linking_field):
+    """
+    Fetch all documents of the specified doctype that are linked to the given Incapacity Proceeding.
+    """
+    frappe.flags.ignore_permissions = True  # Bypass permissions
+    # Debugging: Print the input arguments
+    frappe.logger().info(f"Fetching linked documents for {incapacity_proceeding_name} in {linked_doctype} with linking field {linking_field}")
 
-    # Map Table Multiselect fields to their respective linked Doctypes
-    linked_tables = {
-        "linked_nta": {"doctype": "NTA Hearing", "child_table_field": "linked_nta"},
-        "linked_outcome": {"doctype": "Disciplinary Outcome Report", "child_table_field": "linked_outcome"},
-        "linked_dismissal": {"doctype": "Dismissal Form", "child_table_field": "linked_dismissal"},
-        "linked_demotion": {"doctype": "Demotion Form", "child_table_field": "linked_demotion"},
-        "linked_pay_reduction": {"doctype": "Pay Reduction Form", "child_table_field": "linked_pay_reduction"},
-        "linked_not_guilty": {"doctype": "Not Guilty Form", "child_table_field": "linked_not_guilty"},
-        "linked_suspension": {"doctype": "Suspension Form", "child_table_field": "linked_suspension"},
-        "linked_vsp": {"doctype": "Voluntary Seperation Agreement", "child_table_field": "linked_vsp"},
-        "linked_cancellation": {"doctype": "Hearing Cancellation Form", "child_table_field": "linked_cancellation"},
-        "linked_appeal": {"doctype": "Appeal Against Outcome", "child_table_field": "linked_appeal"}
-    }
+    # Query to find all documents of the specified doctype that have the specified linking field equal to the given Incapacity Proceeding name.
+    linked_docs = frappe.get_all(
+        linked_doctype,
+        filters={linking_field: incapacity_proceeding_name},
+        fields=["name"]
+    )
 
-    # Get the Incapacity Proceedings document
-    incapacity_doc = frappe.get_doc("Incapacity Proceedings", doc_name)
+    # Debugging: Print the results of the query
+    frappe.logger().info(f"Found {len(linked_docs)} linked documents: {linked_docs}")
 
-    # Allow updates to submitted documents without validation errors
-    incapacity_doc.flags.ignore_validate_update_after_submit = True
-
-    updated = False
-
-    for child_field, table_info in linked_tables.items():
-        linked_docs = frappe.get_all(
-            table_info["doctype"],
-            filters={"linked_incapacity_proceeding": doc_name},
-            fields=["name"]
-        )
-
-        existing_entries = {row.get(table_info["child_table_field"]) for row in incapacity_doc.get(child_field)}
-
-        for linked_doc in linked_docs:
-            if linked_doc["name"] not in existing_entries:
-                incapacity_doc.append(child_field, {table_info["child_table_field"]: linked_doc["name"]})
-                updated = True
-
-    if updated:
-        incapacity_doc.save(ignore_permissions=True)
-
-    return {"message": "Linked documents updated"}
+    # Return the list of document names
+    return [doc.name for doc in linked_docs]
 
 @frappe.whitelist()
 def fetch_complainant_data(complainant):

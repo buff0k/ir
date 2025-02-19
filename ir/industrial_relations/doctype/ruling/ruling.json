@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-07 11:28:43.514773",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_kvr5",
+  "amended_from",
+  "section_break_sbbj",
+  "ir_intervention",
+  "column_break_quaw",
+  "linked_intervention"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_kvr5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Ruling",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_sbbj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "label": "IR Intervention",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_quaw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Dynamic Link",
+   "label": "Linked IR Intervention",
+   "options": "ir_intervention"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-02-14 14:17:24.537152",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Ruling",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

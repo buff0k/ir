@@ -86,6 +86,7 @@
    "fieldname": "accused",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee:",
    "options": "Employee",
    "reqd": 1,
@@ -244,58 +245,58 @@
   {
    "fieldname": "linked_nta",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked NTA",
-   "options": "NTA Selector",
-   "read_only": 1
+   "options": "NTA Selector"
   },
   {
    "fieldname": "linked_outcome",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Outcome Report",
-   "options": "Outcome Selector",
-   "read_only": 1
+   "options": "Outcome Selector"
   },
   {
    "fieldname": "linked_warning",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Warning",
-   "options": "Warning Selector",
-   "read_only": 1
+   "options": "Warning Selector"
   },
   {
    "fieldname": "linked_dismissal",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Dismissal",
-   "options": "Dismissal Selector",
-   "read_only": 1
+   "options": "Dismissal Selector"
   },
   {
    "fieldname": "linked_demotion",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Demotion",
-   "options": "Demotion Selector",
-   "read_only": 1
+   "options": "Demotion Selector"
   },
   {
    "fieldname": "linked_pay_deduction",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Pay Deduction",
-   "options": "Pay Deduction Selector",
-   "read_only": 1
+   "options": "Pay Deduction Selector"
   },
   {
    "fieldname": "linked_not_guilty",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Not Guilty",
-   "options": "Not Guilty Selector",
-   "read_only": 1
+   "options": "Not Guilty Selector"
   },
   {
    "fieldname": "linked_suspension",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Suspension",
-   "options": "Suspension Selector",
-   "read_only": 1
+   "options": "Suspension Selector"
   },
   {
    "fieldname": "engagement_date",
@@ -323,9 +324,9 @@
   {
    "fieldname": "linked_vsp",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked VSP",
-   "options": "Voluntary Separation Selector",
-   "read_only": 1
+   "options": "Voluntary Separation Selector"
   },
   {
    "fieldname": "column_break_mysc",
@@ -346,9 +347,9 @@
   {
    "fieldname": "linked_cancellation",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Cancellation",
-   "options": "Cancellation Selector",
-   "read_only": 1
+   "options": "Cancellation Selector"
   },
   {
    "fieldname": "responsible_ir_section",
@@ -381,22 +382,22 @@
   {
    "fieldname": "linked_pay_reduction",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Pay Reduction",
-   "options": "Pay Reduction Selector",
-   "read_only": 1
+   "options": "Pay Reduction Selector"
   },
   {
    "fieldname": "linked_appeal",
    "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
    "label": "Linked Appeal Against Outcome",
-   "options": "Appeal Selector",
-   "read_only": 1
+   "options": "Appeal Selector"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 20:33:22.516682",
+ "modified": "2025-02-14 13:00:40.590324",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-07 11:31:27.719609",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "evidence_attach",
+  "evidence_annexure",
+  "evidence_description"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "evidence_attach",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment"
+  },
+  {
+   "columns": 3,
+   "fieldname": "evidence_annexure",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Annexure Name"
+  },
+  {
+   "columns": 5,
+   "fieldname": "evidence_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Annexure Description"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-02-07 11:36:35.508628",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Attach Evidence",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
