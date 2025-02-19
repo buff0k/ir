@@ -101,10 +101,11 @@ fixtures = [
 ]
 scheduler_events = {
 	"weekly": [
-    		"ir.controllers.fixed_term_expiry.fixed_term_expiry",
+    	"ir.controllers.fixed_term_expiry.fixed_term_expiry",
 		"ir.controllers.outstanding_disciplinaries.outstanding_disciplinaries",
 		"ir.controllers.outstanding_incapacities.outstanding_incapacities",
-    		"ir.controllers.outstanding_external_disputes.outstanding_external_disputes"
+    	"ir.controllers.outstanding_external_disputes.outstanding_external_disputes",
+        "ir.controllers.retirement_age.retirement_age"
 	]
 }
 before_migrate = [
