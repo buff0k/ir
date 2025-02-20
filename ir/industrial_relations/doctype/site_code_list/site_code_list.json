@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-20 10:29:25.665680",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "site_code",
+  "location"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "site_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Site Code",
+   "options": "Site Code",
+   "reqd": 1
+  },
+  {
+   "columns": 8,
+   "fieldname": "location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Location",
+   "options": "Location",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-02-20 13:49:22.290935",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Site Code List",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
