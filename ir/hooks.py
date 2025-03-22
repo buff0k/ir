@@ -1,3 +1,5 @@
+from frappe import _
+from . import __version__ as app_version
 app_name = "ir"
 app_title = "Industrial Relations"
 app_publisher = "BuFf0k"
