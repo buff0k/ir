@@ -60,7 +60,8 @@ frappe.ui.form.on('Contract of Employment', {
                 // Handle has_retirement logic
                 if (contract_type_doc.has_retirement) {
                     let retirement_age = contract_type_doc.retirement_age;
-                    let notification_date = frappe.datetime.add_months(frappe.datetime.add_years(frm.doc.date_of_birth, retirement_age), -1);
+                    let retirement_date = addYears(frm.doc.date_of_birth, retirement_age);
+                    let notification_date = frappe.datetime.add_months(retirement_date, -1);
                     // Add notification logic here if needed
                 }
 
@@ -191,3 +192,9 @@ frappe.ui.form.on('Contract of Employment', {
         frm.toggle_display('allowance_5_rate', frm.doc.allowance_5_desc ? 1 : 0);
     }
 });
+
+function addYears(dateStr, years) {
+    let dateObj = frappe.datetime.str_to_obj(dateStr);
+    dateObj.setFullYear(dateObj.getFullYear() + years);
+    return frappe.datetime.obj_to_str(dateObj);
+}
