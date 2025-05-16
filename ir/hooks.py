@@ -23,10 +23,12 @@ add_to_apps_screen = [
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",
+        "IR Officer",
 		"IR User"
 	]]]},
 	{"dt": "Custom DocPerm", "filters": [["role", "in", [
 		"IR Manager",
+        "IR Officer",
 		"IR User"
 	]]]},
 	{"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},

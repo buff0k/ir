@@ -193,10 +193,11 @@
    "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 07:58:50.602916",
+ "modified": "2025-05-16 11:41:26.712462",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Warning Form",
@@ -230,8 +231,22 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -240,6 +255,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

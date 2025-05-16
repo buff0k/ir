@@ -75,6 +75,7 @@
    "search_index": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -86,7 +87,7 @@
    "link_fieldname": "disc_offence_out"
   }
  ],
- "modified": "2024-07-17 18:09:49.742327",
+ "modified": "2025-05-16 11:43:09.586361",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Offence",
@@ -114,19 +115,35 @@
    "read": 1,
    "report": 1,
    "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
    "email": 1,
    "export": 1,
+   "if_owner": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "IR User",
+   "select": 1,
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

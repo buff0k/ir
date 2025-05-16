@@ -31,6 +31,7 @@
    "label": "Details of Offence Category:"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -38,7 +39,7 @@
    "link_fieldname": "category_of_offence"
   }
  ],
- "modified": "2024-07-10 08:29:55.020753",
+ "modified": "2025-05-16 11:39:37.661843",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Offence Category",
@@ -75,10 +76,22 @@
    "print": 1,
    "read": 1,
    "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
    "role": "IR User",
+   "select": 1,
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
