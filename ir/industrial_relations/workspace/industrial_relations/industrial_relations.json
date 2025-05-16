@@ -377,7 +377,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-02-14 14:58:50.517569",
+ "modified": "2025-05-16 12:14:48.115989",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
@@ -389,6 +389,9 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "IR Officer"
   },
   {
    "role": "IR Manager"
