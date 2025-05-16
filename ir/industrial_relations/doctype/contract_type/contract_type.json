@@ -108,10 +108,11 @@
    "label": "Is Task Based?"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-07 08:49:24.065182",
+ "modified": "2025-05-16 11:47:09.709815",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract Type",
@@ -151,11 +152,22 @@
    "print": 1,
    "read": 1,
    "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
    "role": "IR User",
    "select": 1,
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
