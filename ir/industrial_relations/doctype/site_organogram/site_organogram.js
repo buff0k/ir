@@ -2,32 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Site Organogram', {
-    // Populate from Staffing Plan
-    staffing_plan: function(frm) {
-        if (frm.doc.staffing_plan) {
-            frappe.call({
-                method: 'frappe.client.get',
-                args: {
-                    doctype: 'Staffing Plan',
-                    name: frm.doc.staffing_plan
-                },
-                callback: function(r) {
-                    if (r.message && r.message.staffing_details) {
-                        frm.clear_table('employee_list');
-                        r.message.staffing_details.forEach(detail => {
-                            for (let i = 0; i < detail.number_of_positions; i++) {
-                                let row = frm.add_child('employee_list');
-                                row.designation = detail.designation;
-                            }
-                        });
-                        frm.refresh_field('employee_list');
-                        frappe.msgprint(__('Employee list populated from Staffing Plan.'));
-                    }
-                }
-            });
-        }
-    },
-
     // Auto-set location if it matches branch
     branch: function(frm) {
         if (frm.doc.branch) {

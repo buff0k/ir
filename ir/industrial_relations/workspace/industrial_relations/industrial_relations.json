@@ -163,25 +163,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General IR Documents",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Managerial Instructions",
-   "link_count": 0,
-   "link_to": "Managerial Instructions",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "IR Interventions",
    "link_count": 2,
    "link_type": "DocType",
@@ -375,9 +356,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General IR Documents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Managerial Instructions",
+   "link_count": 0,
+   "link_to": "Managerial Instructions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Edit Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Display Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-05-16 12:14:48.115989",
+ "modified": "2025-06-04 14:59:08.934746",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

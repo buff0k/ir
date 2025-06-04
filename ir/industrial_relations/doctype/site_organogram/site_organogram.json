@@ -6,25 +6,17 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "staffing_plan",
-  "column_break_qkkw",
   "branch",
+  "column_break_qkkw",
   "location",
   "section_break_ruaa",
   "employee_list"
  ],
  "fields": [
   {
-   "fieldname": "staffing_plan",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Staffing Plan",
-   "options": "Staffing Plan",
-   "reqd": 1
-  },
-  {
    "fieldname": "branch",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Site",
    "options": "Branch",
    "reqd": 1,
@@ -47,6 +39,7 @@
   {
    "fieldname": "location",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Location",
    "options": "Location",
    "read_only": 1,
@@ -56,7 +49,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 12:56:28.484926",
+ "modified": "2025-06-04 15:15:37.754186",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",
