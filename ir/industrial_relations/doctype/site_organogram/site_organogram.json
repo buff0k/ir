@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:branch",
+ "creation": "2025-06-04 12:43:04.152269",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "staffing_plan",
+  "column_break_qkkw",
+  "branch",
+  "location",
+  "section_break_ruaa",
+  "employee_list"
+ ],
+ "fields": [
+  {
+   "fieldname": "staffing_plan",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Staffing Plan",
+   "options": "Staffing Plan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Site",
+   "options": "Branch",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_qkkw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ruaa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "employee_list",
+   "fieldtype": "Table",
+   "label": "Employee List",
+   "options": "Site Organogram Details"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Link",
+   "label": "Location",
+   "options": "Location",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-04 12:56:28.484926",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Site Organogram",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
