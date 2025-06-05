@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-05 20:23:17.293578",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kpi",
+  "weight",
+  "max_score",
+  "score",
+  "weighted_score",
+  "notes"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "kpi",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "KPI",
+   "options": "Key Performance Indicator"
+  },
+  {
+   "columns": 1,
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weight (%)",
+   "precision": "2"
+  },
+  {
+   "columns": 1,
+   "fieldname": "max_score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max Score"
+  },
+  {
+   "columns": 1,
+   "fieldname": "score",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Score",
+   "precision": "2"
+  },
+  {
+   "columns": 1,
+   "fieldname": "weighted_score",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weighted Score (%)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-05 21:29:44.437291",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "KPI Review Scoring",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

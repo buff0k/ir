@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-05 18:06:22.108385",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kpi",
+  "weight",
+  "max_score",
+  "parent_kpi",
+  "effective_weight"
+ ],
+ "fields": [
+  {
+   "columns": 5,
+   "fieldname": "kpi",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "KPI",
+   "options": "Key Performance Indicator",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weight (%)",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "max_score",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max Score",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "parent_kpi",
+   "fieldtype": "Link",
+   "label": "Parent KPI",
+   "link_filters": "[[\"Key Performance Indicator\",\"is_group\",\"=\",1]]",
+   "options": "Key Performance Indicator",
+   "read_only": 1
+  },
+  {
+   "fieldname": "effective_weight",
+   "fieldtype": "Float",
+   "label": "Effective Weight",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-05 19:25:44.517292",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "KPI Template Criteria",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
