@@ -13,6 +13,7 @@ frappe.ui.form.on('KPI Review', {
             frappe.db.get_doc('Employee', frm.doc.employee).then(emp => {
                 frm.set_value('employee_name', emp.employee_name);
                 frm.set_value('employee_designation', emp.designation);
+                frm.set_value('branch', emp.branch);
             });
         }
     },

@@ -9,6 +9,7 @@
   "employee",
   "employee_name",
   "employee_designation",
+  "branch",
   "kpi_template",
   "kpi_attach",
   "column_break_axzg",
@@ -116,13 +117,20 @@
    "fieldtype": "Data",
    "label": "Overall Score",
    "read_only": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Site",
+   "options": "Branch",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-05 21:14:09.823238",
+ "modified": "2025-06-06 10:58:25.090753",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Review",
