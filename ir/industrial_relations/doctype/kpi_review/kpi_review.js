@@ -3,6 +3,24 @@
 
 frappe.ui.form.on('KPI Review', {
     onload(frm) {
+        // Auto-fill manager if new and user has linked Employee record
+        if (frm.is_new()) {
+            frappe.call({
+                method: 'frappe.client.get_list',
+                args: {
+                    doctype: 'Employee',
+                    filters: {
+                        user_id: frappe.session.user
+                    },
+                    fields: ['name']
+                },
+                callback(res) {
+                    if (res.message && res.message.length) {
+                        frm.set_value('manager', res.message[0].name);
+                    }
+                }
+            });
+        }
         if (frm.doc.kpi_template && !frm.doc.__islocal) {
             render_kpi_sections(frm);
         }
@@ -14,6 +32,10 @@ frappe.ui.form.on('KPI Review', {
                 frm.set_value('employee_name', emp.employee_name);
                 frm.set_value('employee_designation', emp.designation);
                 frm.set_value('branch', emp.branch);
+                // Now check for matching KPI Template
+                frappe.db.exists('KPI Template', emp.designation).then(exists => {
+                    frm.set_value('kpi_template', exists ? emp.designation : '');
+                });
             });
         }
     },
