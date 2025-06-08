@@ -5,7 +5,7 @@ def get_data():
         {
             "module_name": "Industrial Relations",
             "category": "Modules",
-            "label": _("Industrial Relatoins"),
+            "label": _("Industrial Relations"),
             "color": "FF5733",
             "icon": "/assets/ir/images/ir-logo.svg",
             "type": "module",

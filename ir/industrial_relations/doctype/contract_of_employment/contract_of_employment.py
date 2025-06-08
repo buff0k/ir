@@ -92,7 +92,7 @@ class ContractofEmployment(Document):
         if not self.branch:
             self.branch = frappe.db.get_value('Employee', self.employee, 'branch')
         if not self.retirement_age:
-            self.retirmenet_age = frappe.db.get_value('Contract Type', self.contract_type, 'retirement_age')
+            self.retirement_age = frappe.db.get_value('Contract Type', self.contract_type, 'retirement_age')
         
         # Ensure all required fields have been populated
         self.ensure_required_fields()
