@@ -3,24 +3,6 @@
 
 frappe.ui.form.on('KPI Review', {
     onload(frm) {
-        // Auto-fill manager if new and user has linked Employee record
-        if (frm.is_new()) {
-            frappe.call({
-                method: 'frappe.client.get_list',
-                args: {
-                    doctype: 'Employee',
-                    filters: {
-                        user_id: frappe.session.user
-                    },
-                    fields: ['name']
-                },
-                callback(res) {
-                    if (res.message && res.message.length) {
-                        frm.set_value('manager', res.message[0].name);
-                    }
-                }
-            });
-        }
         if (frm.doc.kpi_template && !frm.doc.__islocal) {
             render_kpi_sections(frm);
         }
