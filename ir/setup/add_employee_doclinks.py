@@ -19,8 +19,7 @@ def ensure_employee_links():
         {"link_doctype": "Pay Reduction Form", "link_fieldname": "employee"},
         {"link_doctype": "Dismissal Form", "link_fieldname": "employee"},
         {"link_doctype": "Voluntary Seperation Agreement", "link_fieldname": "employee"},
-        {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"},
-        {"link_doctype": "KPI Review", "link_fieldname": "employees"}
+        {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"}
     ]
 
     # Fetch existing links
