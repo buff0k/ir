@@ -5,7 +5,9 @@ import frappe
 
 def ensure_employee_links():
     """Ensure required Document Links exist in the Employee DocType."""
+
     required_links = [
+        # Normal links
         {"link_doctype": "Disciplinary Action", "link_fieldname": "accused"},
         {"link_doctype": "Contract of Employment", "link_fieldname": "employee"},
         {"link_doctype": "Incapacity Proceedings", "link_fieldname": "accused"},
@@ -20,18 +22,23 @@ def ensure_employee_links():
         {"link_doctype": "Dismissal Form", "link_fieldname": "employee"},
         {"link_doctype": "Voluntary Seperation Agreement", "link_fieldname": "employee"},
         {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"},
-        {"link_doctype": "KPI Review Employees", "link_fieldname": "employee", "parent_doctype": "KPI Review", "is_child_table": 1}
+        {"link_doctype": "KPI Review Employees", "link_fieldname": "employee", "parent_doctype": "KPI Review", "table_fieldname": "employees", "is_child_table": 1}
     ]
 
-    # Fetch existing links
     existing_links = frappe.get_all(
         "DocType Link",
         filters={"parent": "Employee"},
-        fields=["link_doctype", "link_fieldname", "child_table_doctype", "is_child_table"]
+        fields=["link_doctype", "link_fieldname", "parent_doctype", "table_fieldname", "is_child_table"]
     )
 
     existing_links_set = {
-        (link["link_doctype"], link["link_fieldname"], link.get("child_table_doctype") or "", int(link.get("is_child_table", 0)))
+        (
+            link["link_doctype"],
+            link["link_fieldname"],
+            link.get("parent_doctype") or "",
+            link.get("table_fieldname") or "",
+            int(link.get("is_child_table", 0))
+        )
         for link in existing_links
     }
 
@@ -39,7 +46,8 @@ def ensure_employee_links():
         key = (
             link["link_doctype"],
             link["link_fieldname"],
-            link.get("child_table_doctype", ""),
+            link.get("parent_doctype", ""),
+            link.get("table_fieldname", ""),
             int(link.get("is_child_table", 0))
         )
 
@@ -51,12 +59,13 @@ def ensure_employee_links():
                 "parenttype": "DocType",
                 "link_doctype": link["link_doctype"],
                 "link_fieldname": link["link_fieldname"],
-                "group": "Industrial Relations",
+                "parent_doctype": link.get("parent_doctype"),
+                "table_fieldname": link.get("table_fieldname"),
                 "is_child_table": link.get("is_child_table", 0),
-                "child_table_doctype": link.get("child_table_doctype", "")
+                "group": "Industrial Relations"
             })
             doc.insert(ignore_permissions=True)
             frappe.db.commit()
-            frappe.msgprint(f"✅ Added missing Document Link: {link['link_doctype']} to Employee")
+            frappe.msgprint(f"✅ Added: {link['link_doctype']} ({'child' if link.get('is_child_table') else 'direct'})")
 
-    print("✅ Employee DocType Links to IR DocTypes verified/updated.")
+    print("✅ Employee DocType Links verified/updated.")
