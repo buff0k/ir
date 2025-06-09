@@ -1,22 +1,18 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{employee_name} ({employee}) - {date_of_review}",
+ "autoname": "format:{branch} - {date_of_review}",
  "creation": "2025-06-05 17:52:32.368244",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "employee",
-  "employee_name",
-  "employee_designation",
+  "reviewers",
+  "employees",
+  "section_break_unwo",
   "branch",
-  "kpi_template",
   "kpi_attach",
-  "column_break_axzg",
-  "manager",
-  "manager_name",
-  "manager_designation",
-  "date_of_review",
+  "column_break_kuda",
+  "kpi_template",
   "section_break_orla",
   "review_data",
   "score",
@@ -25,62 +21,11 @@
  ],
  "fields": [
   {
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Manager",
-   "options": "Employee",
-   "reqd": 1
-  },
-  {
-   "fieldname": "employee_name",
-   "fieldtype": "Data",
-   "label": "Full Name",
-   "read_only": 1
-  },
-  {
-   "fieldname": "employee_designation",
-   "fieldtype": "Link",
-   "label": "Designation",
-   "options": "Designation",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_axzg",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "manager",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "HOD",
-   "options": "Employee",
-   "reqd": 1
-  },
-  {
-   "fieldname": "manager_name",
-   "fieldtype": "Data",
-   "label": "Full Name",
-   "read_only": 1
-  },
-  {
-   "fieldname": "manager_designation",
-   "fieldtype": "Link",
-   "label": "Designation",
-   "options": "Designation",
-   "read_only": 1
-  },
-  {
    "fieldname": "kpi_template",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "KPI Template",
    "options": "KPI Template",
-   "reqd": 1
-  },
-  {
-   "fieldname": "date_of_review",
-   "fieldtype": "Date",
-   "label": "Date of Review",
    "reqd": 1
   },
   {
@@ -121,16 +66,36 @@
   {
    "fieldname": "branch",
    "fieldtype": "Link",
-   "label": "Site",
+   "label": "Site under Review",
    "options": "Branch",
-   "read_only": 1
+   "reqd": 1
+  },
+  {
+   "fieldname": "reviewers",
+   "fieldtype": "Table",
+   "label": "Review Committee",
+   "options": "KPI Review Employees"
+  },
+  {
+   "fieldname": "section_break_unwo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_kuda",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employee(s) under Review",
+   "options": "KPI Review Employees"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-06 10:58:25.090753",
+ "modified": "2025-06-09 11:04:46.898890",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Review",

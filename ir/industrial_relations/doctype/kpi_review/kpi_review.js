@@ -26,29 +26,6 @@ frappe.ui.form.on('KPI Review', {
         }
     },
 
-    employee(frm) {
-        if (frm.doc.employee) {
-            frappe.db.get_doc('Employee', frm.doc.employee).then(emp => {
-                frm.set_value('employee_name', emp.employee_name);
-                frm.set_value('employee_designation', emp.designation);
-                frm.set_value('branch', emp.branch);
-                // Now check for matching KPI Template
-                frappe.db.exists('KPI Template', emp.designation).then(exists => {
-                    frm.set_value('kpi_template', exists ? emp.designation : '');
-                });
-            });
-        }
-    },
-
-    manager(frm) {
-        if (frm.doc.manager) {
-            frappe.db.get_doc('Employee', frm.doc.manager).then(emp => {
-                frm.set_value('manager_name', emp.employee_name);
-                frm.set_value('manager_designation', emp.designation);
-            });
-        }
-    },
-
     kpi_template(frm) {
         if (!frm.doc.kpi_template) return;
 
@@ -87,6 +64,8 @@ function render_kpi_sections(frm) {
             return `
                 <div class="kpi-section" style="margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
                     <h5>${row.kpi} (${row.weight}%)</h5>
+                    ${kpiMap[row.kpi]?.description ? `<p class="text-muted">${frappe.utils.escape_html(kpiMap[row.kpi].description)}</p>` : ''}
+
 
                     ${!isGroup ? `
                         <div>
@@ -205,3 +184,15 @@ function render_kpi_sections(frm) {
 
     Promise.all(kpiPromises).then(render);
 }
+
+frappe.ui.form.on('KPI Review Employees', {
+    employee(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (row.employee) {
+            frappe.db.get_doc('Employee', row.employee).then(emp => {
+                frappe.model.set_value(cdt, cdn, 'employee_name', emp.employee_name);
+                frappe.model.set_value(cdt, cdn, 'designation', emp.designation);
+            });
+        }
+    }
+});
