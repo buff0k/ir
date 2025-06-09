@@ -196,3 +196,15 @@ frappe.ui.form.on('KPI Review Employees', {
         }
     }
 });
+
+frappe.ui.form.on('KPI Review Reviewers', {
+    reviewer(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (row.reviewer) {
+            frappe.db.get_doc('Employee', row.reviewer).then(emp => {
+                frappe.model.set_value(cdt, cdn, 'employee_name', emp.employee_name);
+                frappe.model.set_value(cdt, cdn, 'designation', emp.designation);
+            });
+        }
+    }
+});
