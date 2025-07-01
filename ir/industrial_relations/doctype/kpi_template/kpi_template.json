@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:designation",
  "creation": "2025-06-05 17:55:58.459837",
@@ -40,7 +41,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-05 19:11:46.731835",
+ "modified": "2025-07-01 08:39:28.529496",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Template",

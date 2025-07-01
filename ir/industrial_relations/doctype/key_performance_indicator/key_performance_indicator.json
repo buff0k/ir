@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:kpi",
  "creation": "2025-06-05 17:45:15.113935",
@@ -46,7 +47,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-05 18:29:36.555468",
+ "modified": "2025-07-01 08:39:37.037863",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Key Performance Indicator",
