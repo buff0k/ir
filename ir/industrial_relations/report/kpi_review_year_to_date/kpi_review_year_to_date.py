@@ -31,13 +31,12 @@ def execute(filters=None):
     scoring_score_field = "score"
     scoring_max_score_field = "max_score"
 
+    # Group query: only need avg percentage now
     group_query = f"""
         SELECT 
             branch AS site,
             kpi_template,
             COUNT(name) AS total_reviews,
-            SUM(CAST(SUBSTRING_INDEX(score, ' ', 1) AS DECIMAL(10,2))) AS total_score,
-            SUM(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(score, '/', -1), '(', 1) AS DECIMAL(10,2))) AS total_possible,
             ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
         FROM `tabKPI Review`
         {where_clause}
@@ -45,6 +44,7 @@ def execute(filters=None):
         ORDER BY branch, kpi_template
     """
 
+    # Detail rows (children)
     detail_query = f"""
         SELECT
             kpr.branch AS site,
@@ -55,9 +55,7 @@ def execute(filters=None):
                 GROUP_CONCAT(
                     CONCAT(
                         s.{scoring_kpi_field}, ': ',
-                        FORMAT(CAST(s.{scoring_score_field} AS DECIMAL(10,2)), 2),
-                        '/',
-                        FORMAT(CAST(s.{scoring_max_score_field} AS DECIMAL(10,2)), 2)
+                        FORMAT(s.{scoring_score_field}, 2), '/', s.{scoring_max_score_field}
                     )
                     ORDER BY s.idx SEPARATOR ', '
                 ),
@@ -65,22 +63,62 @@ def execute(filters=None):
             ) AS parent_kpi_scores
         FROM `tabKPI Review` kpr
         LEFT JOIN `tabKPI Review Scoring` s 
-            ON s.parent = kpr.name 
-            AND s.{scoring_kpi_field} IS NOT NULL
+            ON s.parent = kpr.name AND s.{scoring_kpi_field} IS NOT NULL
         {where_clause}
         GROUP BY kpr.name
     """
 
+    # Chart rows
+    chart_query = f"""
+        SELECT 
+            branch AS site,
+            MONTH(date_of_review) AS review_month,
+            ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
+        FROM `tabKPI Review`
+        {where_clause}
+        GROUP BY branch, MONTH(date_of_review)
+        ORDER BY branch, MONTH(date_of_review)
+    """
+
     groups = frappe.db.sql(group_query, values, as_dict=True)
     details = frappe.db.sql(detail_query, values, as_dict=True)
+    chart_rows = frappe.db.sql(chart_query, values, as_dict=True)
 
     data = []
 
     for g in groups:
-        total_score = g.total_score or 0
-        total_possible = g.total_possible or 0
+        # Find matching children
+        children = [d for d in details if d.site == g.site and d.kpi_template == g.kpi_template]
 
-        avg_score = f"{total_score:.2f}/{total_possible:.2f}" if total_possible else "-"
+        numerators = []
+        denominators = []
+
+        for d in children:
+            if d.score:
+                parts = d.score.split("/")
+                if len(parts) == 2:
+                    left = parts[0].strip()
+                    right = d.score.split("/")[1].split("(")[0].strip()
+                    try:
+                        numerators.append(float(left))
+                        denominators.append(float(right))
+                    except:
+                        pass
+
+        if numerators:
+            avg_numerator = sum(numerators) / len(numerators)
+        else:
+            avg_numerator = 0
+
+        if denominators:
+            avg_denominator = sum(denominators) / len(denominators)
+        else:
+            avg_denominator = 0
+
+        if avg_denominator:
+            avg_score = f"{round(avg_numerator, 2):.2f}/{round(avg_denominator, 2):.2f}"
+        else:
+            avg_score = "-"
 
         data.append({
             "site": g.site or "(No Site)",
@@ -93,42 +131,38 @@ def execute(filters=None):
             "is_group": 1
         })
 
-        for d in details:
-            if d.site == g.site and d.kpi_template == g.kpi_template:
-                score_display = "-"
-                avg_pct = 0
+        for d in children:
+            score_display = "-"
+            avg_pct = 0
 
-                if d.score:
-                    parts = d.score.split("/")
-                    if len(parts) == 2:
-                        left = parts[0].strip()
-                        right = parts[1].split("(")[0].strip()
+            if d.score:
+                parts = d.score.split("/")
+                if len(parts) == 2:
+                    left = parts[0].strip()
+                    right = parts[1].split("(")[0].strip()
+                    try:
+                        left_val = round(float(left), 2)
+                        right_val = round(float(right), 2)
+                        score_display = f"{left_val:.2f}/{right_val:.2f}"
+                    except:
+                        score_display = "-"
+                    if "(" in d.score and "%" in d.score:
+                        pct_part = d.score.split("(")[-1].replace("%", "").replace(")", "").strip()
                         try:
-                            left_val = float(left)
-                            right_val = float(right)
-                            score_display = f"{left_val:.2f}/{right_val:.2f}"
+                            avg_pct = float(pct_part)
                         except:
-                            score_display = f"{left}/{right}"
-                        if "(" in d.score and "%" in d.score:
-                            pct_part = d.score.split("(")[-1].replace("%", "").replace(")", "").strip()
-                            try:
-                                avg_pct = float(pct_part)
-                            except:
-                                avg_pct = 0
+                            avg_pct = 0
 
-                site_label = d.site or "(No Site)"
-                link_value = d.review_name or ""
-
-                data.append({
-                    "site": f"↳ {site_label}",
-                    "kpi_template": "",
-                    "total_reviews": "",
-                    "avg_score": score_display,
-                    "avg_percentage": avg_pct,
-                    "review_link": link_value,
-                    "parent_kpis": d.parent_kpi_scores or "(No Parent KPIs)",
-                    "is_group": 0
-                })
+            data.append({
+                "site": f"↳ {d.site or '(No Site)'}",
+                "kpi_template": "",
+                "total_reviews": "",
+                "avg_score": score_display,
+                "avg_percentage": avg_pct,
+                "review_link": d.review_name or "",
+                "parent_kpis": d.parent_kpi_scores or "(No Parent KPIs)",
+                "is_group": 0
+            })
 
     columns = [
         {"label": _("Site"), "fieldname": "site", "fieldtype": "Data", "width": 120},
@@ -140,4 +174,30 @@ def execute(filters=None):
         {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 300},
     ]
 
-    return columns, data
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    sites = {}
+    for row in chart_rows:
+        site = row.site or "Unknown"
+        month_idx = int(row.review_month) - 1 if row.review_month else 0
+        if site not in sites:
+            sites[site] = [None] * 12
+        sites[site][month_idx] = row.avg_percentage
+
+    datasets = []
+    for site, values in sites.items():
+        datasets.append({
+            "name": site,
+            "values": values
+        })
+
+    chart = {
+        "data": {
+            "labels": months,
+            "datasets": datasets
+        },
+        "type": "line"
+    }
+
+    return columns, data, None, chart
