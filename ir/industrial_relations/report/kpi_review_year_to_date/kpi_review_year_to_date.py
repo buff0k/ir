@@ -27,7 +27,11 @@ def execute(filters=None):
     if conditions:
         where_clause = "WHERE " + " AND ".join(conditions)
 
-    group_query = """
+    scoring_kpi_field = "kpi"
+    scoring_score_field = "score"
+    scoring_max_score_field = "max_score"
+
+    group_query = f"""
         SELECT 
             branch AS site,
             kpi_template,
@@ -36,20 +40,28 @@ def execute(filters=None):
             SUM(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(score, '/', -1), '(', 1) AS DECIMAL(10,2))) AS total_possible,
             ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
         FROM `tabKPI Review`
-        {where}
+        {where_clause}
         GROUP BY branch, kpi_template
         ORDER BY branch, kpi_template
-    """.format(where=where_clause)
+    """
 
-    detail_query = """
+    detail_query = f"""
         SELECT
-            branch AS site,
-            kpi_template,
-            name AS review_name,
-            score
-        FROM `tabKPI Review`
-        {where}
-    """.format(where=where_clause)
+            kpr.branch AS site,
+            kpr.kpi_template,
+            kpr.name AS review_name,
+            kpr.score,
+            IFNULL(
+                GROUP_CONCAT(CONCAT(s.{scoring_kpi_field}, ': ', s.{scoring_score_field}, '/', s.{scoring_max_score_field}) ORDER BY s.idx SEPARATOR ', '),
+                ''
+            ) AS parent_kpi_scores
+        FROM `tabKPI Review` kpr
+        LEFT JOIN `tabKPI Review Scoring` s 
+            ON s.parent = kpr.name 
+            AND s.{scoring_kpi_field} IS NOT NULL
+        {where_clause}
+        GROUP BY kpr.name
+    """
 
     groups = frappe.db.sql(group_query, values, as_dict=True)
     details = frappe.db.sql(detail_query, values, as_dict=True)
@@ -59,7 +71,8 @@ def execute(filters=None):
     for g in groups:
         total_score = g.total_score or 0
         total_possible = g.total_possible or 0
-        avg_score = f"{round(total_score, 2)}/{round(total_possible, 2)}" if total_possible else "-"
+
+        avg_score = f"{total_score:.2f}/{total_possible:.2f}" if total_possible else "-"
 
         data.append({
             "site": g.site or "(No Site)",
@@ -68,6 +81,7 @@ def execute(filters=None):
             "avg_score": avg_score,
             "avg_percentage": round(g.avg_percentage or 0, 2),
             "review_link": "",
+            "parent_kpis": "",
             "is_group": 1
         })
 
@@ -81,8 +95,12 @@ def execute(filters=None):
                     if len(parts) == 2:
                         left = parts[0].strip()
                         right = parts[1].split("(")[0].strip()
-                        score_display = f"{left}/{right}"
-                        # Extract child %
+                        try:
+                            left_val = float(left)
+                            right_val = float(right)
+                            score_display = f"{left_val:.2f}/{right_val:.2f}"
+                        except:
+                            score_display = f"{left}/{right}"
                         if "(" in d.score and "%" in d.score:
                             pct_part = d.score.split("(")[-1].replace("%", "").replace(")", "").strip()
                             try:
@@ -100,6 +118,7 @@ def execute(filters=None):
                     "avg_score": score_display,
                     "avg_percentage": avg_pct,
                     "review_link": link_value,
+                    "parent_kpis": d.parent_kpi_scores or "(No Parent KPIs)",
                     "is_group": 0
                 })
 
@@ -110,6 +129,7 @@ def execute(filters=None):
         {"label": _("Average Score"), "fieldname": "avg_score", "fieldtype": "Data", "width": 120},
         {"label": _("Average %"), "fieldname": "avg_percentage", "fieldtype": "Percent", "width": 100},
         {"label": _("Review"), "fieldname": "review_link", "fieldtype": "Link", "options": "KPI Review", "width": 180},
+        {"label": _("Parent KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 300},
     ]
 
     return columns, data
