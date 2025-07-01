@@ -400,7 +400,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "KPIs",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -434,9 +434,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "KPI Review Year To Date",
+   "link_count": 0,
+   "link_to": "KPI Review Year To Date",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-06-05 17:58:28.477768",
+ "modified": "2025-07-01 06:25:26.716326",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
