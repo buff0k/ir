@@ -27,7 +27,6 @@ def execute(filters=None):
     if conditions:
         where_clause = "WHERE " + " AND ".join(conditions)
 
-    # Group query
     group_query = """
         SELECT 
             branch AS site,
@@ -75,25 +74,32 @@ def execute(filters=None):
         for d in details:
             if d.site == g.site and d.kpi_template == g.kpi_template:
                 score_display = "-"
+                avg_pct = 0
+
                 if d.score:
                     parts = d.score.split("/")
                     if len(parts) == 2:
                         left = parts[0].strip()
                         right = parts[1].split("(")[0].strip()
                         score_display = f"{left}/{right}"
-                    else:
-                        score_display = d.score
+                        # Extract child %
+                        if "(" in d.score and "%" in d.score:
+                            pct_part = d.score.split("(")[-1].replace("%", "").replace(")", "").strip()
+                            try:
+                                avg_pct = float(pct_part)
+                            except:
+                                avg_pct = 0
 
-                # ✅ Always fallback to "(No Site)" if None
                 site_label = d.site or "(No Site)"
+                link_value = d.review_name or ""
 
                 data.append({
                     "site": f"↳ {site_label}",
                     "kpi_template": "",
                     "total_reviews": "",
                     "avg_score": score_display,
-                    "avg_percentage": "",
-                    "review_link": d.review_name,
+                    "avg_percentage": avg_pct,
+                    "review_link": link_value,
                     "is_group": 0
                 })
 
