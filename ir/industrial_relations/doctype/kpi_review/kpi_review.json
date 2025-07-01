@@ -15,6 +15,7 @@
   "column_break_kuda",
   "kpi_template",
   "date_of_review",
+  "date_under_review",
   "section_break_orla",
   "review_data",
   "score",
@@ -99,13 +100,19 @@
    "fieldtype": "Date",
    "label": "Date of Review",
    "reqd": 1
+  },
+  {
+   "fieldname": "date_under_review",
+   "fieldtype": "Date",
+   "label": "Month under Review",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-01 08:39:20.198685",
+ "modified": "2025-07-01 11:50:30.629663",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Review",

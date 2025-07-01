@@ -8,6 +8,22 @@ frappe.ui.form.on('KPI Review', {
         }
     },
 
+    date_of_review: function(frm) {
+        if (frm.doc.date_of_review) {
+            // Create a JS Date object from the input date
+            let dateOfReview = frappe.datetime.str_to_obj(frm.doc.date_of_review);
+
+            // Subtract one month
+            dateOfReview.setMonth(dateOfReview.getMonth() - 1);
+
+            // Convert back to string in YYYY-MM-DD format
+            let dateUnderReview = frappe.datetime.obj_to_str(dateOfReview);
+
+            // Set the target field value
+            frm.set_value('date_under_review', dateUnderReview);
+        }
+    },
+
     kpi_template(frm) {
         if (!frm.doc.kpi_template) return;
 

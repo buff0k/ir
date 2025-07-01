@@ -12,7 +12,7 @@ def execute(filters=None):
     values = {}
 
     if filters.get("year"):
-        conditions.append("YEAR(date_of_review) = %(year)s")
+        conditions.append("YEAR(date_under_review) = %(year)s")
         values["year"] = filters["year"]
 
     if filters.get("site"):
@@ -72,12 +72,12 @@ def execute(filters=None):
     chart_query = f"""
         SELECT 
             branch AS site,
-            MONTH(date_of_review) AS review_month,
+            MONTH(date_under_review) AS review_month,
             ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
         FROM `tabKPI Review`
         {where_clause}
-        GROUP BY branch, MONTH(date_of_review)
-        ORDER BY branch, MONTH(date_of_review)
+        GROUP BY branch, MONTH(date_under_review)
+        ORDER BY branch, MONTH(date_under_review)
     """
 
     groups = frappe.db.sql(group_query, values, as_dict=True)
