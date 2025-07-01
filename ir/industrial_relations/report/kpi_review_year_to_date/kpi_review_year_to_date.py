@@ -52,7 +52,15 @@ def execute(filters=None):
             kpr.name AS review_name,
             kpr.score,
             IFNULL(
-                GROUP_CONCAT(CONCAT(s.{scoring_kpi_field}, ': ', s.{scoring_score_field}, '/', s.{scoring_max_score_field}) ORDER BY s.idx SEPARATOR ', '),
+                GROUP_CONCAT(
+                    CONCAT(
+                        s.{scoring_kpi_field}, ': ',
+                        FORMAT(CAST(s.{scoring_score_field} AS DECIMAL(10,2)), 2),
+                        '/',
+                        FORMAT(CAST(s.{scoring_max_score_field} AS DECIMAL(10,2)), 2)
+                    )
+                    ORDER BY s.idx SEPARATOR ', '
+                ),
                 ''
             ) AS parent_kpi_scores
         FROM `tabKPI Review` kpr
@@ -126,10 +134,10 @@ def execute(filters=None):
         {"label": _("Site"), "fieldname": "site", "fieldtype": "Data", "width": 120},
         {"label": _("KPI Template"), "fieldname": "kpi_template", "fieldtype": "Link", "options": "KPI Template", "width": 200},
         {"label": _("Total Reviews"), "fieldname": "total_reviews", "fieldtype": "Int", "width": 100},
-        {"label": _("Average Score"), "fieldname": "avg_score", "fieldtype": "Data", "width": 120},
-        {"label": _("Average %"), "fieldname": "avg_percentage", "fieldtype": "Percent", "width": 100},
+        {"label": _("Overall Score"), "fieldname": "avg_score", "fieldtype": "Data", "width": 120},
+        {"label": _("Overall %"), "fieldname": "avg_percentage", "fieldtype": "Percent", "width": 100},
         {"label": _("Review"), "fieldname": "review_link", "fieldtype": "Link", "options": "KPI Review", "width": 180},
-        {"label": _("Parent KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 300},
+        {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 300},
     ]
 
     return columns, data
