@@ -165,13 +165,13 @@ def execute(filters=None):
             })
 
     columns = [
-        {"label": _("Site"), "fieldname": "site", "fieldtype": "Data", "width": 120},
-        {"label": _("KPI Template"), "fieldname": "kpi_template", "fieldtype": "Link", "options": "KPI Template", "width": 200},
-        {"label": _("Total Reviews"), "fieldname": "total_reviews", "fieldtype": "Int", "width": 100},
+        {"label": _("Site"), "fieldname": "site", "fieldtype": "Data", "width": 180},
+        {"label": _("KPI Template"), "fieldname": "kpi_template", "fieldtype": "Link", "options": "KPI Template", "width": 100},
+        {"label": _("Qty"), "fieldname": "total_reviews", "fieldtype": "Int", "width": 50},
         {"label": _("Overall Score"), "fieldname": "avg_score", "fieldtype": "Data", "width": 120},
         {"label": _("Overall %"), "fieldname": "avg_percentage", "fieldtype": "Percent", "width": 100},
-        {"label": _("Review"), "fieldname": "review_link", "fieldtype": "Link", "options": "KPI Review", "width": 180},
-        {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 300},
+        {"label": _("Review"), "fieldname": "review_link", "fieldtype": "Link", "options": "KPI Review", "width": 200},
+        {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 400},
     ]
 
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
