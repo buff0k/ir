@@ -9,7 +9,7 @@ frappe.query_reports["Employment Equity Report"] = {
       fieldtype: "Link",
       options: "Company",
       reqd: 1,
-      default: frappe.defaults.get_default("company")
+      default: frappe.defaults.get_default("company") || frappe.sys_defaults.company
     },
     {
       fieldname: "country",
@@ -17,7 +17,7 @@ frappe.query_reports["Employment Equity Report"] = {
       fieldtype: "Link",
       options: "Country",
       reqd: 1,
-      default: frappe.defaults.get_default("country")
+      default: frappe.defaults.get_default("country") || "South Africa"
     }
   ]
 };

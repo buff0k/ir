@@ -117,11 +117,12 @@ fixtures = [
 		"Unknown"
 	]]]},
 	{"dt": "Occupational Level", "filters": [["name", "in", [
-		"Unskilled and defined decision making",
-		"Semi-skilled and discretionary decision making",
-		"Skilled technical and academically qualified workers, junior management, supervisors, foremen, and superintendents",
-		"Professionally qualified and experienced specialists and mid-management",
-		"Senior management"
+		"Unskilled",
+		"Semi-skilled",
+		"Skilled technical",
+		"Professionally qualified",
+		"Senior management",
+        "Top management"
 	]]]}
 ]
 scheduler_events = {
