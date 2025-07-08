@@ -7,7 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "occupational_level",
-  "paterson_band"
+  "paterson_band",
+  "designations_html"
  ],
  "fields": [
   {
@@ -27,12 +28,17 @@
    "label": "Paterson Band",
    "options": "Undefined\nA\nB\nC\nD\nE\nF",
    "search_index": 1
+  },
+  {
+   "fieldname": "designations_html",
+   "fieldtype": "HTML",
+   "label": "Linked Designations"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-08 15:40:27.534105",
+ "modified": "2025-07-08 19:22:41.370053",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Occupational Level",

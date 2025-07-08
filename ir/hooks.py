@@ -95,8 +95,14 @@ fixtures = [
 		"Labour Appeal Court",
 		"Constitutional Court"
 	]]]},
-	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},
-	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]},
+	{"dt": "Custom Field", "filters": [["dt", "in", [
+    	"Employee",
+    	"Designation"
+	]]]},
+	{"dt": "Property Setter", "filters": [["doc_type", "in", [
+    	"Employee",
+        "Designation"
+    ]]]},
 	{"dt": "Type of Incapacity", "filters": [["name", "in", [
 		"General Incapacity",
 		"Medical Incapacity",
