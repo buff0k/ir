@@ -1,0 +1,42 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:15.150883",
+  "name": "Professionally qualified and experienced specialists and mid-management",
+  "occupational_level": "Professionally qualified and experienced specialists and mid-management",
+  "paterson_band": "D"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:24.392358",
+  "name": "Semi-skilled and discretionary decision making",
+  "occupational_level": "Semi-skilled and discretionary decision making",
+  "paterson_band": "B"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:40.142256",
+  "name": "Senior management",
+  "occupational_level": "Senior management",
+  "paterson_band": "E"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:50.675514",
+  "name": "Skilled technical and academically qualified workers, junior management, supervisors, foremen, and superintendents",
+  "occupational_level": "Skilled technical and academically qualified workers, junior management, supervisors, foremen, and superintendents",
+  "paterson_band": "C"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:40:04.441421",
+  "name": "Unskilled and defined decision making",
+  "occupational_level": "Unskilled and defined decision making",
+  "paterson_band": "A"
+ }
+]

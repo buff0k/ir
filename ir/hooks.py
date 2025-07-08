@@ -98,10 +98,24 @@ fixtures = [
 	{"dt": "Custom Field", "filters": [["dt", "=", "Employee"]]},
 	{"dt": "Property Setter", "filters": [["doc_type", "=", "Employee"]]},
 	{"dt": "Type of Incapacity", "filters": [["name", "in", [
-                "General Incapacity",
-                "Medical Incapacity",
-                "Incompatibility"
-        ]]]}
+		"General Incapacity",
+		"Medical Incapacity",
+		"Incompatibility"
+	]]]},
+	{"dt": "Designated Group", "filters": [["name", "in", [
+		"African",
+		"Coloured",
+		"Indian",
+		"White",
+		"Unknown"
+	]]]},
+	{"dt": "Occupational Level", "filters": [["name", "in", [
+		"Unskilled and defined decision making",
+		"Semi-skilled and discretionary decision making",
+		"Skilled technical and academically qualified workers, junior management, supervisors, foremen, and superintendents",
+		"Professionally qualified and experienced specialists and mid-management",
+		"Senior management"
+	]]]}
 ]
 scheduler_events = {
 	"weekly": [
