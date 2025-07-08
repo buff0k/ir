@@ -8,7 +8,16 @@ frappe.query_reports["Employment Equity Report"] = {
       label: "Company",
       fieldtype: "Link",
       options: "Company",
-      reqd: 1
+      reqd: 1,
+      default: frappe.defaults.get_default("company")
+    },
+    {
+      fieldname: "country",
+      label: "Country (RSA)",
+      fieldtype: "Link",
+      options: "Country",
+      reqd: 1,
+      default: frappe.defaults.get_default("country")
     }
   ]
 };

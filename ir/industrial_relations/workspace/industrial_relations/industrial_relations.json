@@ -449,7 +449,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Employment Equity",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -473,9 +473,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employment Equity Report",
+   "link_count": 0,
+   "link_to": "Employment Equity Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-07-08 18:37:51.448621",
+ "modified": "2025-07-08 20:09:27.415349",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

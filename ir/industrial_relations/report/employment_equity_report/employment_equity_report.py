@@ -4,52 +4,88 @@
 import frappe
 
 def execute(filters=None):
-    if not filters or not filters.get("company"):
-        frappe.throw("Please select a Company")
+    if not filters or not filters.get("company") or not filters.get("country"):
+        frappe.throw("Please select both Company and Country")
 
     company = filters["company"]
+    rsa_country = filters["country"]
 
-    # Fetch all occupational levels
+    # Order groups as standard
+    designated_groups = ["African", "Coloured", "Indian", "White"]
+    genders = ["Male", "Female"]
+
     occupational_levels = [r.name for r in frappe.get_all("Occupational Level", order_by="name")]
 
-    # Fetch all designated groups
-    designated_groups = [r.name for r in frappe.get_all("Designated Group", order_by="name")]
-
+    # Build dynamic columns: e.g. African Male, African Female ...
     columns = [
-        {"fieldname": "occupational_level", "label": "Occupational Level", "fieldtype": "Data", "width": 200},
-        {"fieldname": "designated_group", "label": "Designated Group", "fieldtype": "Data", "width": 180},
-        {"fieldname": "male", "label": "Male", "fieldtype": "Int", "width": 80},
-        {"fieldname": "female", "label": "Female", "fieldtype": "Int", "width": 80},
-        {"fieldname": "total", "label": "Total", "fieldtype": "Int", "width": 80},
+        {"fieldname": "occupational_level", "label": "Occupational Level", "fieldtype": "Data", "width": 200}
     ]
+
+    group_columns = []
+    for dg in designated_groups:
+        for gender in genders:
+            col_name = f"{dg.lower()}_{gender.lower()}"
+            columns.append({
+                "fieldname": col_name,
+                "label": f"{dg} {gender}",
+                "fieldtype": "Int",
+                "width": 80
+            })
+            group_columns.append(col_name)
+
+    # Add Foreign Nationals
+    for gender in genders:
+        col_name = f"foreign_{gender.lower()}"
+        columns.append({
+            "fieldname": col_name,
+            "label": f"Foreign {gender}",
+            "fieldtype": "Int",
+            "width": 80
+        })
+        group_columns.append(col_name)
+
+    # Add Total
+    columns.append({
+        "fieldname": "total",
+        "label": "Total",
+        "fieldtype": "Int",
+        "width": 100
+    })
 
     data = []
 
     for ol in occupational_levels:
+        row = {"occupational_level": ol}
+        row_total = 0
+
+        # Local counts
         for dg in designated_groups:
-            male_count = frappe.db.count("Employee", {
+            for gender in genders:
+                count = frappe.db.count("Employee", {
+                    "company": company,
+                    "custom_occupational_level": ol,
+                    "custom_designated_group": dg,
+                    "gender": gender,
+                    "custom_nationality": rsa_country,
+                    "status": "Active"
+                })
+                key = f"{dg.lower()}_{gender.lower()}"
+                row[key] = count
+                row_total += count
+
+        # Foreign counts
+        for gender in genders:
+            foreign_count = frappe.db.count("Employee", {
                 "company": company,
                 "custom_occupational_level": ol,
-                "custom_designated_group": dg,
-                "gender": "Male",
-                "status": "Active"
+                "gender": gender,
+                "status": "Active",
+                "custom_nationality": ["!=", rsa_country]
             })
-            female_count = frappe.db.count("Employee", {
-                "company": company,
-                "custom_occupational_level": ol,
-                "custom_designated_group": dg,
-                "gender": "Female",
-                "status": "Active"
-            })
+            row[f"foreign_{gender.lower()}"] = foreign_count
+            row_total += foreign_count
 
-            row_total = male_count + female_count
-
-            data.append({
-                "occupational_level": ol,
-                "designated_group": dg,
-                "male": male_count,
-                "female": female_count,
-                "total": row_total
-            })
+        row["total"] = row_total
+        data.append(row)
 
     return columns, data
