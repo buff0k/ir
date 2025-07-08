@@ -112,7 +112,7 @@ scheduler_events = {
         "ir.controllers.retirement_age.retirement_age"
 	]
 }
-before_migrate = [
+after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links"
 ]
 # Includes in <head>
