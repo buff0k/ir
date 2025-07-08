@@ -95,7 +95,7 @@
   "name": "Employee-custom_designated_group",
   "no_copy": 0,
   "non_negative": 0,
-  "options": "African\nColoured\nIndian\nWhite",
+  "options": "African\nColoured\nIndian\nWhite\nUnknown",
   "permlevel": 0,
   "placeholder": null,
   "precision": "",
