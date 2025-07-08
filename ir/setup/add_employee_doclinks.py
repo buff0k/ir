@@ -68,4 +68,3 @@ def ensure_employee_links():
             frappe.db.commit()
             frappe.msgprint(f"✅ Added: {link['link_doctype']} ({'child' if link.get('is_child_table') else 'direct'})")
 
-    print("✅ Employee DocType Links verified/updated.")
