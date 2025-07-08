@@ -1,0 +1,13 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Employee",
+  "enabled": 1,
+  "modified": "2025-07-08 19:30:37.510407",
+  "module": "Industrial Relations",
+  "name": "Auto Populate Occupational Level",
+  "script": "frappe.ui.form.on('Employee', {\n  designation: function(frm) {\n    if (!frm.doc.designation) {\n      frm.set_value('custom_occupational_level', '');\n      return;\n    }\n\n    frappe.db.get_value('Designation', frm.doc.designation, 'custom_occupational_level')\n      .then(r => {\n        const occupational_level = r.message ? r.message.custom_occupational_level : null;\n        frm.set_value('custom_occupational_level', occupational_level || '');\n      });\n  }\n});\n",
+  "view": "Form"
+ }
+]
