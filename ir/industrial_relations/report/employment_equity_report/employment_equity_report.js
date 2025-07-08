@@ -19,5 +19,15 @@ frappe.query_reports["Employment Equity Report"] = {
       reqd: 1,
       default: frappe.defaults.get_default("country") || "South Africa"
     }
-  ]
+  ],
+
+  onload: function(report) {
+    report.page.add_inner_button("Download XLSX", function() {
+      const filters = report.get_values();
+      const company = filters.company;
+      const country = filters.country;
+      const url = `/api/method/ir.industrial_relations.report.employment_equity_report.employment_equity_report.download_eea2_xlsx?company=${company}&country=${country}`;
+      window.open(url);
+    });
+  }
 };
