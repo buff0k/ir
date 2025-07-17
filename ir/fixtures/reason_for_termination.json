@@ -1,0 +1,83 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:25:13.504556",
+  "name": "Resignation",
+  "notice": 1,
+  "reason": "Resignation",
+  "uif_termination_reason": "6 - Resigned"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:26:55.290581",
+  "name": "Dismissal for Incapacity",
+  "notice": 0,
+  "reason": "Dismissal for Incapacity",
+  "uif_termination_reason": "10 - Illness / Medical Boarded"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:17.048419",
+  "name": "Retirement",
+  "notice": 0,
+  "reason": "Retirement",
+  "uif_termination_reason": "3 - Retired"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:33.597075",
+  "name": "End of Fixed-Term Contract",
+  "notice": 0,
+  "reason": "End of Fixed-Term Contract",
+  "uif_termination_reason": "5 - Contract Expired"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:46.649589",
+  "name": "Transfer of Employment",
+  "notice": 0,
+  "reason": "Transfer of Employment",
+  "uif_termination_reason": "12 - Transfer to Another Branch"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:58.317773",
+  "name": "Employee Deceased",
+  "notice": 0,
+  "reason": "Employee Deceased",
+  "uif_termination_reason": "2 - Deceased"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 10:44:12.242929",
+  "name": "Dismissal for Misconduct",
+  "notice": 0,
+  "reason": "Dismissal for Misconduct",
+  "uif_termination_reason": "4 - Dismissed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:00.439289",
+  "name": "Dismissal for Operational Requirements (Retrenchment)",
+  "notice": 1,
+  "reason": "Dismissal for Operational Requirements (Retrenchment)",
+  "uif_termination_reason": "11 - Retrenchment / Staff Reduction"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:27:35.534997",
+  "name": "Dismissal for Poor Performance",
+  "notice": 0,
+  "reason": "Dismissal for Poor Performance",
+  "uif_termination_reason": "4 - Dismissed"
+ }
+]
