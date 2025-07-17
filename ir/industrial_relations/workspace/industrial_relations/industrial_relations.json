@@ -16,147 +16,10 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Trade Unions",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trade Union",
-   "link_count": 0,
-   "link_to": "Trade Union",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Code",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Offence Category",
-   "link_count": 0,
-   "link_to": "Offence Category",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Offence Outcome",
-   "link_count": 0,
-   "link_to": "Offence Outcome",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Offence",
-   "link_count": 0,
-   "link_to": "Disciplinary Offence",
-   "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employee Rights",
-   "link_count": 0,
-   "link_to": "Employee Rights",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Schedule of Offences",
-   "link_count": 0,
-   "link_to": "Schedule of Offences",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Incapacity Proceedings",
    "link_count": 0,
    "link_to": "Incapacity Proceedings",
    "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contracts of Employment",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contract of Employment",
-   "link_count": 0,
-   "link_to": "Contract of Employment",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contract Type",
-   "link_count": 0,
-   "link_to": "Contract Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Contract Section",
-   "link_count": 0,
-   "link_to": "Contract Section",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Contracts Expiring Soon",
-   "link_count": 0,
-   "link_to": "Contracts Expiring Soon",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Employees Approaching Retirement",
-   "link_count": 0,
-   "link_to": "Employees Approaching Retirement",
-   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },
@@ -192,8 +55,124 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "General IR Documents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Managerial Instructions",
+   "link_count": 0,
+   "link_to": "Managerial Instructions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Edit Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Display Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Code",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Schedule of Offences",
+   "link_count": 0,
+   "link_to": "Schedule of Offences",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employment Equity Report",
+   "link_count": 0,
+   "link_to": "Employment Equity Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contracts of Employment",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract of Employment",
+   "link_count": 0,
+   "link_to": "Contract of Employment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Contracts Expiring Soon",
+   "link_count": 0,
+   "link_to": "Contracts Expiring Soon",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employees Approaching Retirement",
+   "link_count": 0,
+   "link_to": "Employees Approaching Retirement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "External Dispute Resolution",
-   "link_count": 4,
+   "link_count": 1,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -211,9 +190,18 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Dispute Resolution Forum",
+   "label": "Trade Unions",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Union",
    "link_count": 0,
-   "link_to": "Dispute Resolution Forum",
+   "link_to": "Trade Union",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -221,20 +209,29 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "External Dispute Resolution Process",
+   "label": "KPIs",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Review",
    "link_count": 0,
-   "link_to": "External Dispute Resolution Process",
+   "link_to": "KPI Review",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution Outcome",
+   "is_query_report": 1,
+   "label": "KPI Review Year To Date",
    "link_count": 0,
-   "link_to": "External Dispute Resolution Outcome",
-   "link_type": "DocType",
+   "link_to": "KPI Review Year To Date",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },
@@ -242,7 +239,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "IR Documents",
-   "link_count": 11,
+   "link_count": 12,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -360,132 +357,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General IR Documents",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Managerial Instructions",
+   "label": "Termination Form",
    "link_count": 0,
-   "link_to": "Managerial Instructions",
+   "link_to": "Termination Form",
    "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Edit Site Organogram",
-   "link_count": 0,
-   "link_to": "Site Organogram",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Display Site Organogram",
-   "link_count": 0,
-   "link_to": "Site Organogram",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPIs",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPI Review",
-   "link_count": 0,
-   "link_to": "KPI Review",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPI Template",
-   "link_count": 0,
-   "link_to": "KPI Template",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Key Performance Indicator",
-   "link_count": 0,
-   "link_to": "Key Performance Indicator",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "KPI Review Year To Date",
-   "link_count": 0,
-   "link_to": "KPI Review Year To Date",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Designated Group",
-   "link_count": 0,
-   "link_to": "Designated Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Occupational Level",
-   "link_count": 0,
-   "link_to": "Occupational Level",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Employment Equity Report",
-   "link_count": 0,
-   "link_to": "Employment Equity Report",
-   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-07-08 20:09:27.415349",
+ "modified": "2025-07-17 11:28:15.584497",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

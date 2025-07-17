@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-17 09:55:46.998032",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document",
+  "received",
+  "attach"
+ ],
+ "fields": [
+  {
+   "columns": 7,
+   "fieldname": "document",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document",
+   "options": "Termination Documentation"
+  },
+  {
+   "columns": 2,
+   "fieldname": "received",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Received",
+   "options": "\nNo\nYes\nN/A",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attached"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-17 10:27:30.446174",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Termination Form Documents",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

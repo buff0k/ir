@@ -1,0 +1,257 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"x9ie0oTb51\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"RicSW2VOz8\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"iPlCF3Xf08\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"iWK_V84VOS\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"ky4IRPhcJp\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"qGoJXr18-4\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"T9UPdzU0WP\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"UZAOw1C_2z\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination Form\",\"col\":4}}]",
+ "creation": "2025-07-17 08:49:36.496342",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "setting-gear",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Setup",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Code",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Offence Category",
+   "link_count": 0,
+   "link_to": "Offence Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Offence Outcome",
+   "link_count": 0,
+   "link_to": "Offence Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Offence",
+   "link_count": 0,
+   "link_to": "Disciplinary Offence",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Designated Group",
+   "link_count": 0,
+   "link_to": "Designated Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Occupational Level",
+   "link_count": 0,
+   "link_to": "Occupational Level",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract of Employment",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract Section",
+   "link_count": 0,
+   "link_to": "Contract Section",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract Type",
+   "link_count": 0,
+   "link_to": "Contract Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dispute Resolution Forum",
+   "link_count": 0,
+   "link_to": "Dispute Resolution Forum",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Process",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Process",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Outcome",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPIs",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Template",
+   "link_count": 0,
+   "link_to": "KPI Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Key Performance Indicator",
+   "link_count": 0,
+   "link_to": "Key Performance Indicator",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Rights",
+   "link_count": 0,
+   "link_to": "Employee Rights",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reason for Termination",
+   "link_count": 0,
+   "link_to": "Reason for Termination",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination Form",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reason for Termination",
+   "link_count": 0,
+   "link_to": "Reason for Termination",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination Documentation",
+   "link_count": 0,
+   "link_to": "Termination Documentation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-07-17 09:36:37.111686",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Setup",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "Industrial Relations",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "IR Manager"
+  }
+ ],
+ "sequence_id": 47.0,
+ "shortcuts": [],
+ "title": "Setup"
+}

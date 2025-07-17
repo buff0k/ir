@@ -123,6 +123,18 @@ fixtures = [
 		"Professionally qualified",
 		"Senior management",
         "Top management"
+	]]]},
+    {"dt": "Reason for Termination", "filters": [["name", "in", [
+		"Employee Deceased",
+		"Transfer of Employment",
+		"End of Fixed-Term Contract",
+		"Retirement",
+		"Dismissal for Operational Requirements (Retrenchment)",
+        "Dismissal for Poor Performance",
+        "Dismissal for Incapacity",
+        "Asbcondment / Desertion",
+        "Dismissal for Misconduct",
+        "Resignation"
 	]]]}
 ]
 scheduler_events = {

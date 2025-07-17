@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:reason",
+ "creation": "2025-07-17 09:14:32.009037",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reason",
+  "notice",
+  "uif_termination_reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "reason",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reason for Termination",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "notice",
+   "fieldtype": "Check",
+   "label": "Notice Applies"
+  },
+  {
+   "fieldname": "uif_termination_reason",
+   "fieldtype": "Select",
+   "label": "UIF Termination Reason",
+   "options": "2 - Deceased\n3 - Retired\n4 - Dismissed\n5 - Contract Expired\n6 - Resigned\n7 - Constructive Dismissal\n8 - Insolvency / Liquidation\n9 - Maternity / Adoption\n10 - Illness / Medical Boarded\n11 - Retrenchment / Staff Reduction\n12 - Transfer to Another Branch\n13 - Absconded\n14 - Business Closed\n15 - Death of Domestic Employer\n16 - Voluntary Severance Package\n17 - Reduced Work Time\n18 - Commissioning Parental\n19 - Parental Leave"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-07-17 09:36:01.112776",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Reason for Termination",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IT Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IT User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

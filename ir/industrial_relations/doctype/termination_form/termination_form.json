@@ -1,0 +1,283 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:doc_name",
+ "creation": "2025-07-17 09:40:56.316562",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_3gat",
+  "amended_from",
+  "letter_head",
+  "company",
+  "notice",
+  "doc_name",
+  "person_requesting_termination_section",
+  "requested_by",
+  "requested_by_designation",
+  "column_break_qtnf",
+  "requested_by_names",
+  "requested_by_site",
+  "employee_being_terminated_section",
+  "requested_for",
+  "requested_for_designation",
+  "id_number",
+  "column_break_dyqf",
+  "requested_for_names",
+  "requested_for_site",
+  "termination_details_section",
+  "reason",
+  "column_break_ccxo",
+  "termination_date",
+  "notice_ends",
+  "section_break_sivl",
+  "documents_received",
+  "comments",
+  "attach_signed"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_3gat",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Termination Form",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Letter Head",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "person_requesting_termination_section",
+   "fieldtype": "Section Break",
+   "label": "Person Requesting Termination"
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Coy No",
+   "link_filters": "[[\"Employee\",\"status\",\"=\",\"Active\"]]",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "requested_by_designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qtnf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requested_by_names",
+   "fieldtype": "Data",
+   "label": "Full Names",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_by_site",
+   "fieldtype": "Link",
+   "label": "Site",
+   "options": "Branch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_being_terminated_section",
+   "fieldtype": "Section Break",
+   "label": "Employee being Terminated"
+  },
+  {
+   "fieldname": "requested_for",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Coy No",
+   "link_filters": "[[\"Employee\",\"status\",\"=\",\"Active\"]]",
+   "options": "Employee",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "requested_for_designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dyqf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requested_for_names",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Full Names",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_for_site",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Site",
+   "options": "Branch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "termination_details_section",
+   "fieldtype": "Section Break",
+   "label": "Termination Details"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Link",
+   "label": "Reason for Termination",
+   "options": "Reason for Termination",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "notice",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Notice Required"
+  },
+  {
+   "fieldname": "column_break_ccxo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "termination_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Termination Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notice_ends",
+   "fieldtype": "Date",
+   "label": "Last Day of Notice"
+  },
+  {
+   "fieldname": "section_break_sivl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "documents_received",
+   "fieldtype": "Table",
+   "label": "Documents Received",
+   "options": "Termination Form Documents"
+  },
+  {
+   "fieldname": "attach_signed",
+   "fieldtype": "Attach",
+   "label": "Attach Signed Termination Form"
+  },
+  {
+   "fieldname": "doc_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Document Name",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Small Text",
+   "label": "Comments / Remarks"
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "ID/Passport Number",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-07-17 11:29:32.238759",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Termination Form",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
