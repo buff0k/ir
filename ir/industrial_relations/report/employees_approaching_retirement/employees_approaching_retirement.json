@@ -1,5 +1,6 @@
 {
  "add_total_row": 0,
+ "add_translate_data": 0,
  "columns": [
   {
    "fieldname": "contract_name",
@@ -45,11 +46,11 @@
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 0,
+ "idx": 21,
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2024-12-07 13:56:53.380199",
+ "modified": "2025-07-17 12:57:04.705481",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employees Approaching Retirement",
@@ -68,6 +69,9 @@
   },
   {
    "role": "IR User"
+  },
+  {
+   "role": "IR Officer"
   }
  ],
  "timeout": 0

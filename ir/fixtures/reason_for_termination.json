@@ -47,6 +47,15 @@
  {
   "docstatus": 0,
   "doctype": "Reason for Termination",
+  "modified": "2025-07-17 10:44:12.242929",
+  "name": "Dismissal for Misconduct",
+  "notice": 0,
+  "reason": "Dismissal for Misconduct",
+  "uif_termination_reason": "4 - Dismissed"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
   "modified": "2025-07-17 09:26:55.290581",
   "name": "Dismissal for Incapacity",
   "notice": 0,
@@ -56,10 +65,10 @@
  {
   "docstatus": 0,
   "doctype": "Reason for Termination",
-  "modified": "2025-07-17 10:44:12.242929",
-  "name": "Dismissal for Misconduct",
+  "modified": "2025-07-17 09:27:35.534997",
+  "name": "Dismissal for Poor Performance",
   "notice": 0,
-  "reason": "Dismissal for Misconduct",
+  "reason": "Dismissal for Poor Performance",
   "uif_termination_reason": "4 - Dismissed"
  },
  {
@@ -70,14 +79,5 @@
   "notice": 1,
   "reason": "Dismissal for Operational Requirements (Retrenchment)",
   "uif_termination_reason": "11 - Retrenchment / Staff Reduction"
- },
- {
-  "docstatus": 0,
-  "doctype": "Reason for Termination",
-  "modified": "2025-07-17 09:27:35.534997",
-  "name": "Dismissal for Poor Performance",
-  "notice": 0,
-  "reason": "Dismissal for Poor Performance",
-  "uif_termination_reason": "4 - Dismissed"
  }
 ]

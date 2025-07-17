@@ -28,7 +28,7 @@
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-17 12:32:22.646311",
+ "modified": "2025-07-17 12:58:44.791695",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Report",
@@ -43,6 +43,9 @@
   },
   {
    "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
   }
  ],
  "timeout": 0
