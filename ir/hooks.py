@@ -149,6 +149,9 @@ scheduler_events = {
 after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links"
 ]
+app_include_js = [
+	"/assets/ir/js/site_organogram_ui.js"
+]
 # Includes in <head>
 # ------------------
 

@@ -2,111 +2,94 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Site Organogram', {
-    // Auto-set location if it matches branch
+    onload_post_render: function(frm) {
+        if (frm.fields_dict.employee_list?.grid) {
+            frm.fields_dict.employee_list.grid.wrapper.find('.grid-add-row').hide();
+        }
+    },
+
     branch: function(frm) {
-        if (frm.doc.branch) {
-            frappe.call({
-                method: 'frappe.client.get_list',
-                args: {
-                    doctype: 'Location',
-                    filters: { name: frm.doc.branch },
-                    limit_page_length: 1
-                },
-                callback: function(r) {
-                    frm.set_value('location', r.message.length > 0 ? frm.doc.branch : '');
-                }
-            });
+        if (!frm.doc.branch) return;
+        frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+                doctype: 'Location',
+                filters: { name: frm.doc.branch },
+                limit_page_length: 1
+            },
+            callback: function(r) {
+                frm.set_value('location', r.message.length ? frm.doc.branch : '');
+                render_organogram_ui(frm);
+            }
+        });
+    },
+
+    location: function(frm) {
+        render_organogram_ui(frm);
+    },
+
+    asset_categories: function(frm) {
+        render_organogram_ui(frm);
+    },
+
+    refresh: function(frm) {
+        if (frm.doc.branch && frm.doc.location) {
+            render_organogram_ui(frm);
         }
     },
 
     setup: function(frm) {
-        // Employee field filter based on parent branch
-        frm.fields_dict.employee_list.grid.get_field('employee').get_query = function(doc, cdt, cdn) {
-            let parent = frm.doc;
-            return {
-                filters: {
-                    branch: parent.branch || ''
-                }
-            };
-        };
-
-        // Asset field filter based on parent location
-        frm.fields_dict.employee_list.grid.get_field('asset').get_query = function(doc, cdt, cdn) {
-            let parent = frm.doc;
-            return {
-                filters: {
-                    location: parent.location || ''
-                }
-            };
-        };
-    },
-
-    onload: function(frm) {
-        frm.fields_dict['employee_list'].grid.wrapper.find('.grid-add-row').hide();
+        frm.fields_dict.employee_list.grid.get_field('employee').get_query = () => ({
+            filters: { branch: frm.doc.branch || '' }
+        });
+        frm.fields_dict.employee_list.grid.get_field('asset').get_query = () => ({
+            filters: { location: frm.doc.location || '' }
+        });
     }
 });
 
-// Child Table Logic
 frappe.ui.form.on('Site Organogram Details', {
     employee: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
+        if (!row.employee) return;
 
-        // Rule 1: Prevent duplicate employee
         let dup = frm.doc.employee_list.filter(r => r.employee === row.employee);
-        if (row.employee && dup.length > 1) {
+        if (dup.length > 1) {
             frappe.msgprint(`Employee ${row.employee} is already assigned.`);
             frappe.model.set_value(cdt, cdn, 'employee', null);
             return;
         }
 
-        // Auto-fill employee_name
-        if (row.employee) {
-            frappe.call({
-                method: 'frappe.client.get',
-                args: {
-                    doctype: 'Employee',
-                    name: row.employee
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.model.set_value(cdt, cdn, 'employee_name', r.message.employee_name);
-                    }
+        frappe.call({
+            method: 'frappe.client.get',
+            args: { doctype: 'Employee', name: row.employee },
+            callback: r => {
+                if (r.message) {
+                    frappe.model.set_value(cdt, cdn, 'employee_name', r.message.employee_name);
+                    frappe.model.set_value(cdt, cdn, 'designation', r.message.designation);
                 }
-            });
-        }
+            }
+        });
     },
 
     asset: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
+        if (!row.asset) return;
 
-        // Auto-fill asset_name
-        if (row.asset) {
-            frappe.call({
-                method: 'frappe.client.get',
-                args: {
-                    doctype: 'Asset',
-                    name: row.asset
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frappe.model.set_value(cdt, cdn, 'asset_name', r.message.asset_name);
-                    }
+        frappe.call({
+            method: 'frappe.client.get',
+            args: { doctype: 'Asset', name: row.asset },
+            callback: r => {
+                if (r.message) {
+                    frappe.model.set_value(cdt, cdn, 'asset_name', r.message.asset_name);
                 }
-            });
-        }
+            }
+        });
     },
 
-    shift: function(frm, cdt, cdn) {
-        validate_combination(frm, cdt, cdn);
-    },
-
-    designation: function(frm, cdt, cdn) {
-        validate_combination(frm, cdt, cdn);
-    },
-
-    asset_name: function(frm, cdt, cdn) {
-        validate_combination(frm, cdt, cdn);
-    }
+    shift: validate_combination,
+    designation: validate_combination,
+    asset_name: validate_combination
 });
 
 function validate_combination(frm, cdt, cdn) {
@@ -121,7 +104,7 @@ function validate_combination(frm, cdt, cdn) {
     );
 
     if (duplicates.length > 0) {
-        frappe.msgprint(`The combination of Designation "${row.designation}", Asset "${row.asset}" and Shift "${row.shift}" already exists.`);
-        frappe.model.set_value(cdt, cdn, 'shift', null);  // or whichever field the user last updated
+        frappe.msgprint(`Duplicate role: "${row.designation}" for "${row.asset}" in "${row.shift}".`);
+        frappe.model.set_value(cdt, cdn, 'shift', null);
     }
 }

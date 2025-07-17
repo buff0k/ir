@@ -1,16 +1,18 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:branch",
+ "autoname": "format:{branch} - {DD} {MMMM} {YYYY}",
  "creation": "2025-06-04 12:43:04.152269",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "branch",
+  "asset_categories",
   "column_break_qkkw",
   "location",
   "section_break_ruaa",
-  "employee_list"
+  "employee_list",
+  "html"
  ],
  "fields": [
   {
@@ -44,16 +46,28 @@
    "options": "Location",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "HTML",
+   "label": "Drag and Drop"
+  },
+  {
+   "fieldname": "asset_categories",
+   "fieldtype": "Table MultiSelect",
+   "label": "Applicable Asset Categories",
+   "options": "Site Organogram Assets",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-04 15:15:37.754186",
+ "modified": "2025-07-17 17:42:42.244550",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
