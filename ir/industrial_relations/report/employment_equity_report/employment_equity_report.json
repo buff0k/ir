@@ -24,11 +24,11 @@
    "wildcard_filter": 0
   }
  ],
- "idx": 0,
+ "idx": 10,
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-08 20:02:44.713927",
+ "modified": "2025-07-17 12:32:22.646311",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Report",
@@ -39,37 +39,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Employee"
-  },
-  {
-   "role": "HR User"
-  },
-  {
    "role": "HR Manager"
   },
   {
-   "role": "Employee Self Service"
-  },
-  {
-   "role": "IR User"
-  },
-  {
    "role": "IR Manager"
-  },
-  {
-   "role": "Procurement Admin"
-  },
-  {
-   "role": "Procurement User"
-  },
-  {
-   "role": "IT User"
-  },
-  {
-   "role": "Production Manager"
-  },
-  {
-   "role": "Production User"
   }
  ],
  "timeout": 0

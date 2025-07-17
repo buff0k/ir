@@ -18,14 +18,6 @@
  {
   "docstatus": 0,
   "doctype": "Occupational Level",
-  "modified": "2025-07-08 15:39:40.142256",
-  "name": "Senior management",
-  "occupational_level": "Senior management",
-  "paterson_band": "E"
- },
- {
-  "docstatus": 0,
-  "doctype": "Occupational Level",
   "modified": "2025-07-08 15:39:50.675514",
   "name": "Skilled technical",
   "occupational_level": "Skilled technical",
@@ -46,5 +38,13 @@
   "name": "Top management",
   "occupational_level": "Top management",
   "paterson_band": "F"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:40.142256",
+  "name": "Senior management",
+  "occupational_level": "Senior management",
+  "paterson_band": "E"
  }
 ]

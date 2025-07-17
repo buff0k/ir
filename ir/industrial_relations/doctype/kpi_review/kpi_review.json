@@ -112,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-01 11:50:30.629663",
+ "modified": "2025-07-17 12:18:51.874487",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Review",
@@ -164,13 +164,13 @@
    "create": 1,
    "email": 1,
    "export": 1,
+   "if_owner": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "IR User",
    "select": 1,
    "share": 1,
-   "submit": 1,
    "write": 1
   }
  ],

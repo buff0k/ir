@@ -2,24 +2,6 @@
  {
   "docstatus": 0,
   "doctype": "Reason for Termination",
-  "modified": "2025-07-17 09:25:13.504556",
-  "name": "Resignation",
-  "notice": 1,
-  "reason": "Resignation",
-  "uif_termination_reason": "6 - Resigned"
- },
- {
-  "docstatus": 0,
-  "doctype": "Reason for Termination",
-  "modified": "2025-07-17 09:26:55.290581",
-  "name": "Dismissal for Incapacity",
-  "notice": 0,
-  "reason": "Dismissal for Incapacity",
-  "uif_termination_reason": "10 - Illness / Medical Boarded"
- },
- {
-  "docstatus": 0,
-  "doctype": "Reason for Termination",
   "modified": "2025-07-17 09:28:17.048419",
   "name": "Retirement",
   "notice": 0,
@@ -52,6 +34,24 @@
   "notice": 0,
   "reason": "Employee Deceased",
   "uif_termination_reason": "2 - Deceased"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:25:13.504556",
+  "name": "Resignation",
+  "notice": 1,
+  "reason": "Resignation",
+  "uif_termination_reason": "6 - Resigned"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:26:55.290581",
+  "name": "Dismissal for Incapacity",
+  "notice": 0,
+  "reason": "Dismissal for Incapacity",
+  "uif_termination_reason": "10 - Illness / Medical Boarded"
  },
  {
   "docstatus": 0,
