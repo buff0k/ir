@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{region} {qlfs_date}",
  "creation": "2025-07-14 12:14:07.154049",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -8,7 +9,21 @@
   "section_break_gsqi",
   "amended_from",
   "region",
-  "qlfs_date"
+  "qlfs_date",
+  "section_break_qtcv",
+  "male",
+  "african",
+  "couloured_male",
+  "indian_male",
+  "white_male",
+  "column_break_icmf",
+  "female",
+  "african_female",
+  "coloured_female",
+  "indian_female",
+  "white_female",
+  "section_break_sjmn",
+  "total"
  ],
  "fields": [
   {
@@ -34,20 +49,117 @@
   },
   {
    "fieldname": "qlfs_date",
-   "fieldtype": "Data",
+   "fieldtype": "Date",
    "in_list_view": 1,
    "label": "QLFS Date",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_qtcv",
+   "fieldtype": "Section Break",
+   "label": "Ecconomically Active Population, illustrated as a Percentage per Group:"
+  },
+  {
+   "fieldname": "male",
+   "fieldtype": "HTML",
+   "label": "Male",
+   "options": "<h4>Male</h4>"
+  },
+  {
+   "fieldname": "column_break_icmf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "female",
+   "fieldtype": "HTML",
+   "label": "Female",
+   "options": "<h4>Female</h4>"
+  },
+  {
+   "fieldname": "african",
+   "fieldtype": "Float",
+   "label": "African",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "african_female",
+   "fieldtype": "Float",
+   "label": "African",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "couloured_male",
+   "fieldtype": "Float",
+   "label": "Coloured",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coloured_female",
+   "fieldtype": "Float",
+   "label": "Coloured",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "indian_male",
+   "fieldtype": "Float",
+   "label": "Indian",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "white_male",
+   "fieldtype": "Float",
+   "label": "White",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "indian_female",
+   "fieldtype": "Float",
+   "label": "Indian",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "white_female",
+   "fieldtype": "Float",
+   "label": "White",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_sjmn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-14 12:14:40.318925",
+ "modified": "2025-07-18 12:18:34.155693",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Economically Active Population",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
