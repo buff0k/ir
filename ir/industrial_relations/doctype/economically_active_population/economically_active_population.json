@@ -10,6 +10,7 @@
   "amended_from",
   "region",
   "qlfs_date",
+  "attach",
   "section_break_qtcv",
   "male",
   "african",
@@ -149,13 +150,18 @@
    "label": "Total",
    "non_negative": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach QLFS"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-18 12:18:34.155693",
+ "modified": "2025-07-18 12:38:12.265905",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Economically Active Population",

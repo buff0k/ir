@@ -6,7 +6,9 @@ from frappe.model.document import Document
 
 
 class EconomicallyActivePopulation(Document):
-	pass
+    def before_submit(self):
+        if not self.attach_signed:
+            frappe.throw(_("Please attach a signed copy before submitting."))
 
 def validate(self):
     total = (
