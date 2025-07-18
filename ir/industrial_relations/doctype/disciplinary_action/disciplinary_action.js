@@ -9,7 +9,7 @@ frappe.ui.form.on('Disciplinary Action', {
     
         frm.toggle_display(['make_warning_form', 'make_nta_hearing', 'write_disciplinary_outcome_report'], frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.workflow_state !== 'Submitted');
 
-        if (frappe.user.has_role("IR Manager")) {
+        if (frappe.user.has_role("IR Manager") || frappe.user.has_role("IR Officer")) {
             frm.add_custom_button(__('Actions'), function() {}, 'Actions')
                 .addClass('btn-primary')
                 .attr('id', 'actions_dropdown');
