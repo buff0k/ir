@@ -1,7 +1,7 @@
 {
  "based_on": "creation",
  "chart_name": "Disciplinary Action Status",
- "chart_type": "Count",
+ "chart_type": "Custom",
  "creation": "2025-07-20 13:34:22.764652",
  "currency": "",
  "docstatus": 0,
@@ -14,7 +14,7 @@
  "is_public": 0,
  "is_standard": 1,
  "last_synced_on": "2025-07-20 13:49:26.819161",
- "modified": "2025-07-20 15:08:51.718043",
+ "modified": "2025-07-20 15:50:34.878830",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action Status",
@@ -27,9 +27,12 @@
   },
   {
    "role": "IR Officer"
+  },
+  {
+   "role": "System Manager"
   }
  ],
- "source": "",
+ "source": "Disciplinary Action Status",
  "time_interval": "Monthly",
  "timeseries": 0,
  "timespan": "Last Quarter",
