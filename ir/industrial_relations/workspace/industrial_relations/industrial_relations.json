@@ -1,10 +1,5 @@
 {
- "charts": [
-  {
-   "chart_name": "Disciplinary Action Status",
-   "label": "Disciplinary Action Status"
-  }
- ],
+ "charts": [],
  "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"KUL85LiKLJ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Action Status\",\"col\":12}},{\"id\":\"Gn8dJHn9tl\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Action Status\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
  "creation": "2024-07-10 08:50:21.843775",
  "custom_blocks": [],
@@ -370,7 +365,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-07-20 15:48:50.648744",
+ "modified": "2025-07-21 08:43:46.792506",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
