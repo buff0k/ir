@@ -149,6 +149,13 @@ scheduler_events = {
 after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links"
 ]
+doc_events = {
+	"Termination Form": {
+		"after_insert": "ir.controllers.termination_notifications.on_create",
+		"on_update": "ir.controllers.termination_notifications.on_update",
+		"on_submit": "ir.controllers.termination_notifications.on_submit",
+	}
+}
 # Includes in <head>
 # ------------------
 
@@ -264,14 +271,6 @@ after_migrate = [
 # Document Events
 # ---------------
 # Hook on document methods and events
-
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
 
 # Testing
 # -------
