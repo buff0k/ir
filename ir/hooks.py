@@ -154,6 +154,11 @@ doc_events = {
 		"after_insert": "ir.controllers.termination_notifications.on_create",
 		"on_update": "ir.controllers.termination_notifications.on_update",
 		"on_submit": "ir.controllers.termination_notifications.on_submit",
+	},
+	"NTA Hearing": {
+		"after_insert": "ir.controllers.nta_notifications.on_create",
+		"on_update": "ir.controllers.nta_notifications.on_update",
+		"on_submit": "ir.controllers.nta.on_submit",
 	}
 }
 # Includes in <head>

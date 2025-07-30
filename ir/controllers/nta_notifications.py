@@ -76,7 +76,7 @@ def _notify_ir(doc, action, changed_fields=None):
     if not recipient_emails:
         return
 
-    subject = f"Termination form for {doc.get('requested_for_names')} ({doc.get('requested_for')}) {action}"
+    subject = f"A Notice to Attend for {doc.get('names')} ({doc.get('coy')}) {action}"
     url = frappe.utils.get_url(doc.get_url())
 
     # Send a personalized email to each recipient (so "Dear {user}" works)
@@ -87,7 +87,7 @@ def _notify_ir(doc, action, changed_fields=None):
         lines = [
             f"Dear {full_name}",
             "",
-            f"A Termination Form for {doc.get('requested_for_names')} ({doc.get('requested_for')}) at {doc.get('requested_for_site')} has been {action}",
+            f"A Notice to Attend for {doc.get('names')} ({doc.get('coy')}) at {doc.get('venue')} has been {action}",
             "",
             f"Click here {url} to view",
         ]
