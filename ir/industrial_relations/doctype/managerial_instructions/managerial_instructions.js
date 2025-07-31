@@ -28,8 +28,8 @@ frappe.ui.form.on("Managerial Instructions", {
                 },
                 callback: function(r) {
                     if (r.message) {
-                        frm.doc.employee_name = r.message.employee_name || '';
-                        frm.refresh_field('employee_name');
+                        frm.set_value('employee_name', r.message.employee_name || '');
+                        frm.set_value('designation', r.message.designation || '');
                     }
                 }
             });

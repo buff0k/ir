@@ -15,5 +15,8 @@ def fetch_company_letter_head(company):
 
 @frappe.whitelist()
 def fetch_employee_name(employee):
-    employee_name = frappe.db.get_value('Employee', employee, 'employee_name')
-    return {'employee_name': employee_name} if employee_name else {}
+    employee_doc = frappe.get_doc("Employee", employee)
+    return {
+        "employee_name": employee_doc.employee_name,
+        "designation": employee_doc.designation
+    }

@@ -17,6 +17,7 @@
   "column_break_dggk",
   "date",
   "employee_name",
+  "designation",
   "contents_of_instruction_section",
   "text_editor_ktap",
   "signed_instruction"
@@ -112,12 +113,18 @@
    "fieldname": "signed_instruction",
    "fieldtype": "Attach",
    "label": "Attach Signed Instruction"
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Data",
+   "label": "Manager Designation"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-06 09:14:04.121805",
+ "modified": "2025-07-31 10:06:53.746084",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Managerial Instructions",
@@ -226,6 +233,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
