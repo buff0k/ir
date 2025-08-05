@@ -134,6 +134,22 @@ frappe.ui.form.on('NTA Hearing', {
         }
     },
 
+    complainant: function(frm) {
+        if (frm.doc.complainant) {
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_chairperson_name',
+                args: {
+                    employee: frm.doc.complainant
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value('compl_name', r.message.employee_name || '');
+                    }
+                }
+            });
+        }
+    },
+
     company: function(frm) {
         if (frm.doc.company) {
             frappe.call({
