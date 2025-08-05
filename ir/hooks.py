@@ -151,14 +151,14 @@ after_migrate = [
 ]
 doc_events = {
 	"Termination Form": {
-		"after_insert": "ir.controllers.termination_notifications.on_create",
-		"on_update": "ir.controllers.termination_notifications.on_update",
-		"on_submit": "ir.controllers.termination_notifications.on_submit",
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"on_update": "ir.controllers.notifications.handle_doc_event_update",
+		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
 	"NTA Hearing": {
-		"after_insert": "ir.controllers.nta_notifications.on_create",
-		"on_update": "ir.controllers.nta_notifications.on_update",
-		"on_submit": "ir.controllers.nta.on_submit",
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"on_update": "ir.controllers.notifications.handle_doc_event_update",
+		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	}
 }
 # Includes in <head>
