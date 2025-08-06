@@ -10,23 +10,27 @@ IGNORE_FIELDS = {
     "docstatus", "parent", "parenttype", "parentfield", "amended_from", "version"
 }
 
+
 def handle_doc_event(doc, method, action, changed_fields=None):
     if doc.doctype == "Termination Form":
         return handle_notification(
             doc, action,
             subject_template="Termination form for {requested_for_names} ({requested_for}) {action}",
-            body_template="A Termination Form for {requested_for_names} ({requested_for}) at {requested_for_site} has been {action}.",
+            body_template="A Termination Form for {requested_for_names} ({requested_for}) at {requested_for_site} has been {action} by {actor}.",
             changed_fields=changed_fields
         )
     elif doc.doctype == "NTA Hearing":
         return handle_notification(
             doc, action,
             subject_template="A Notice to Attend for {names} ({coy}) {action}",
-            body_template="A Notice to Attend for {names} ({coy}) at {venue} has been {action}.",
-            changed_fields=changed_fields  # 👈 this was missing
+            body_template="A Notice to Attend for {names} ({coy}) at {venue} has been {action} by {actor}.",
+            changed_fields=changed_fields
         )
 
-def handle_doc_event_create(doc, method): return handle_doc_event(doc, method, "created")
+
+def handle_doc_event_create(doc, method):
+    return handle_doc_event(doc, method, "created")
+
 
 def handle_doc_event_update(doc, method):
     before = doc.get_doc_before_save()
@@ -36,7 +40,10 @@ def handle_doc_event_update(doc, method):
     if changed_fields:
         return handle_doc_event(doc, method, "updated", changed_fields)
 
-def handle_doc_event_submit(doc, method): return handle_doc_event(doc, method, "completed")
+
+def handle_doc_event_submit(doc, method):
+    return handle_doc_event(doc, method, "submitted")
+
 
 # ---------- helpers ----------
 
@@ -48,12 +55,16 @@ def handle_notification(doc, action, subject_template, body_template, changed_fi
     subject = subject_template.format(**doc.as_dict(), action=action)
     url = frappe.utils.get_url(doc.get_url())
 
+    # Get current user
+    actor = frappe.session.user
+    actor_fullname = frappe.db.get_value("User", actor, "full_name") or actor
+
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
         lines = [
             f"Dear {full_name}",
             "",
-            body_template.format(**doc.as_dict(), action=action),
+            body_template.format(**doc.as_dict(), action=action, actor=actor_fullname),
             ""
         ]
 
@@ -79,6 +90,7 @@ def handle_notification(doc, action, subject_template, body_template, changed_fi
             subject=subject,
             message=message,
         )
+
 
 def _collect_recipients(doc):
     users = set()
@@ -107,6 +119,7 @@ def _collect_recipients(doc):
 
     return sorted(recipient_emails), name_by_email
 
+
 def _diff_changed_fields(curr_doc, prev_doc):
     changed = {}
     curr = curr_doc.as_dict()
@@ -125,8 +138,8 @@ def _diff_changed_fields(curr_doc, prev_doc):
 
         if fieldtype == "Table":
             diffs = _diff_child_table_rows(curr_value, prev_value)
-            if diffs:  # only add if something actually changed
-                changed[fieldname] = (None, diffs)  # We'll format these nicely in the email
+            if diffs:
+                changed[fieldname] = (None, diffs)
         else:
             if isinstance(curr_value, (int, float)) and isinstance(prev_value, (int, float)):
                 if abs(curr_value - prev_value) > 1e-6:
@@ -135,6 +148,7 @@ def _diff_changed_fields(curr_doc, prev_doc):
                 changed[fieldname] = (prev_value, curr_value)
 
     return changed
+
 
 def _diff_child_table_rows(curr_rows, prev_rows):
     changes = []
@@ -145,7 +159,6 @@ def _diff_child_table_rows(curr_rows, prev_rows):
     curr_map = {row.get("name"): row for row in curr_rows or []}
     prev_map = {row.get("name"): row for row in prev_rows or []}
 
-    # Detect updated or changed rows
     for name, curr_row in curr_map.items():
         if name in prev_map:
             prev_row = prev_map[name]
@@ -160,7 +173,6 @@ def _diff_child_table_rows(curr_rows, prev_rows):
         else:
             changes.append(f"Row {curr_row.get('idx')}: added")
 
-    # Detect deleted rows
     for name in prev_map:
         if name not in curr_map:
             prev_idx = prev_map[name].get("idx", "?")
