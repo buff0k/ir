@@ -119,7 +119,7 @@
    "link_filters": "[[\"Employee\",\"status\",\"=\",\"Active\"]]",
    "options": "Employee",
    "reqd": 1,
-   "unique": 1
+   "search_index": 1
   },
   {
    "fieldname": "requested_for_designation",
@@ -224,7 +224,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-08 12:04:28.723995",
+ "modified": "2025-08-08 12:10:24.675841",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Termination Form",
