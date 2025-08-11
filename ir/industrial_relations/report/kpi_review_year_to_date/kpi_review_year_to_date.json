@@ -7,11 +7,11 @@
  "docstatus": 0,
  "doctype": "Report",
  "filters": [],
- "idx": 12,
+ "idx": 15,
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-17 12:19:10.871184",
+ "modified": "2025-08-11 16:01:57.754710",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Review Year To Date",
@@ -29,6 +29,9 @@
   },
   {
    "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
   }
  ],
  "timeout": 0
