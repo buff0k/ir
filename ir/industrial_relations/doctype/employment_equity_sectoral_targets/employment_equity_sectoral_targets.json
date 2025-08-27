@@ -1,0 +1,289 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{sector} as per {government_notice} of {notice_date}",
+ "creation": "2025-08-27 15:14:56.106784",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_tiwl",
+  "amended_from",
+  "government_notice",
+  "notice_date",
+  "attach_notice",
+  "sector",
+  "top_management_section",
+  "top_management_male",
+  "top_management_total",
+  "column_break_eknx",
+  "top_management_female",
+  "senior_management_section",
+  "senior_management_male",
+  "senior_management_total",
+  "column_break_wwot",
+  "senior_management_female",
+  "mid_management_section",
+  "mid_management_male",
+  "mid_management_total",
+  "column_break_okqm",
+  "mid_management_female",
+  "skilled_technical_section",
+  "skilled_male",
+  "skilled_total",
+  "column_break_vkns",
+  "skilled_female",
+  "disability_only_section",
+  "disability_only"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_tiwl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employment Equity Sectoral Targets",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "government_notice",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Government Notice",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notice_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Notice Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach_notice",
+   "fieldtype": "Attach",
+   "label": "Attach Notice"
+  },
+  {
+   "fieldname": "sector",
+   "fieldtype": "Link",
+   "label": "Sector",
+   "options": "Employment Equity Sectors",
+   "reqd": 1
+  },
+  {
+   "fieldname": "top_management_section",
+   "fieldtype": "Section Break",
+   "label": "Top Management (As a %)"
+  },
+  {
+   "fieldname": "top_management_male",
+   "fieldtype": "Float",
+   "label": "Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "top_management_total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_eknx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "top_management_female",
+   "fieldtype": "Float",
+   "label": "Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "senior_management_section",
+   "fieldtype": "Section Break",
+   "label": "Senior Management (As a %)"
+  },
+  {
+   "fieldname": "senior_management_male",
+   "fieldtype": "Float",
+   "label": "Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_wwot",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "senior_management_female",
+   "fieldtype": "Float",
+   "label": "Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "senior_management_total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mid_management_section",
+   "fieldtype": "Section Break",
+   "label": "Professionally Qualified & Middle Management (As a %)"
+  },
+  {
+   "fieldname": "mid_management_male",
+   "fieldtype": "Float",
+   "label": "Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mid_management_total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_okqm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mid_management_female",
+   "fieldtype": "Float",
+   "label": "Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "skilled_technical_section",
+   "fieldtype": "Section Break",
+   "label": "Skilled Technical (As a %)"
+  },
+  {
+   "fieldname": "skilled_male",
+   "fieldtype": "Float",
+   "label": "Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "skilled_total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vkns",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "skilled_female",
+   "fieldtype": "Float",
+   "label": "Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "disability_only_section",
+   "fieldtype": "Section Break",
+   "label": "Disability Only (As a %)"
+  },
+  {
+   "fieldname": "disability_only",
+   "fieldtype": "Float",
+   "label": "Disability Only",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-08-27 15:37:46.282938",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employment Equity Sectoral Targets",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-27 15:40:43.854431",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "top_management_male",
+  "top_management_female",
+  "top_management_total",
+  "senior_management_male",
+  "senior_management_female",
+  "senior_management_total",
+  "mid_management_male",
+  "mid_management_female",
+  "mid_management_total",
+  "skilled_male",
+  "skilled_female",
+  "skilled_total",
+  "disability_only"
+ ],
+ "fields": [
+  {
+   "fieldname": "top_management_male",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Top Management Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "top_management_female",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Top Management Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "top_management_total",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Top Management Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "senior_management_male",
+   "fieldtype": "Float",
+   "label": "Senior Management Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "senior_management_female",
+   "fieldtype": "Float",
+   "label": "Senior Management Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "senior_management_total",
+   "fieldtype": "Float",
+   "label": "Senior Management Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mid_management_male",
+   "fieldtype": "Float",
+   "label": "Professionally Qualified & Middle Management Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mid_management_female",
+   "fieldtype": "Float",
+   "label": "Professionally Qualified & Middle Management Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "mid_management_total",
+   "fieldtype": "Float",
+   "label": "Professionally Qualified & Middle Management Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "skilled_male",
+   "fieldtype": "Float",
+   "label": "Skilled Technical Male",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "skilled_female",
+   "fieldtype": "Float",
+   "label": "Skilled Technical Female",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "skilled_total",
+   "fieldtype": "Float",
+   "label": "Skilled Technical Total",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "disability_only",
+   "fieldtype": "Float",
+   "label": "Disability Only",
+   "non_negative": 1,
+   "precision": "1",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-27 15:46:19.728727",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employment Equity Sectoral Target Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

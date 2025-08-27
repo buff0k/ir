@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{company} - {target_date}",
+ "creation": "2025-08-27 13:51:54.287992",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_lfox",
+  "amended_from",
+  "target_date",
+  "company",
+  "sectoral_target",
+  "previous_target",
+  "previous_employment_equity",
+  "employment_equity_input",
+  "employment_equity_sectoral_target",
+  "underlying_data_tab",
+  "previous_target_table",
+  "employment_equity_table",
+  "sectoral_target_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_lfox",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employment Equity Target",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "target_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Target Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employment_equity_table",
+   "fieldtype": "Table",
+   "label": "Current Employment Equity Target",
+   "options": "Employment Equity Table",
+   "reqd": 1
+  },
+  {
+   "fieldname": "previous_target",
+   "fieldtype": "Link",
+   "label": "Previous Employment Equity Target",
+   "options": "Employment Equity Target"
+  },
+  {
+   "fieldname": "previous_target_table",
+   "fieldtype": "Table",
+   "label": "Previous Employment Equity Target",
+   "options": "Employment Equity Table",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employment_equity_input",
+   "fieldtype": "HTML",
+   "label": "Employment Equity Target"
+  },
+  {
+   "fieldname": "previous_employment_equity",
+   "fieldtype": "HTML",
+   "label": "Previous Employment Equity Target"
+  },
+  {
+   "fieldname": "underlying_data_tab",
+   "fieldtype": "Tab Break",
+   "label": "Underlying Data"
+  },
+  {
+   "fieldname": "sectoral_target",
+   "fieldtype": "Link",
+   "label": "Sectoral Target",
+   "options": "Employment Equity Sectoral Targets",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sectoral_target_table",
+   "fieldtype": "Table",
+   "label": "Sector Numerical Targets",
+   "options": "Employment Equity Sectoral Target Table"
+  },
+  {
+   "fieldname": "employment_equity_sectoral_target",
+   "fieldtype": "HTML",
+   "label": "Employment Equity Sectoral Target"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-08-27 15:52:35.132364",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employment Equity Target",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

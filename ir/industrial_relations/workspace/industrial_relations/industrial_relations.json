@@ -118,25 +118,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Employment Equity",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Employment Equity Report",
-   "link_count": 0,
-   "link_to": "Employment Equity Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Contracts of Employment",
    "link_count": 3,
    "link_type": "DocType",
@@ -378,9 +359,38 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employment Equity Report",
+   "link_count": 0,
+   "link_to": "Employment Equity Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Target",
+   "link_count": 0,
+   "link_to": "Employment Equity Target",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-08-27 12:22:41.772469",
+ "modified": "2025-08-27 15:06:20.843685",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
