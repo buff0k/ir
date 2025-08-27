@@ -211,7 +211,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Employment Equity",
-   "link_count": 3,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -245,9 +245,29 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Sectoral Targets",
+   "link_count": 0,
+   "link_to": "Employment Equity Sectoral Targets",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Sectors",
+   "link_count": 0,
+   "link_to": "Employment Equity Sectors",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-07-18 12:37:50.526983",
+ "modified": "2025-08-27 16:59:16.825726",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Setup",

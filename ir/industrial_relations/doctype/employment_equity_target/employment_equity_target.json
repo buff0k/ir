@@ -18,7 +18,9 @@
   "underlying_data_tab",
   "previous_target_table",
   "employment_equity_table",
-  "sectoral_target_table"
+  "sectoral_target_table",
+  "previous_numerical_target",
+  "attrition_per_category"
  ],
  "fields": [
   {
@@ -102,13 +104,26 @@
    "fieldname": "employment_equity_sectoral_target",
    "fieldtype": "HTML",
    "label": "Employment Equity Sectoral Target"
+  },
+  {
+   "fieldname": "previous_numerical_target",
+   "fieldtype": "Table",
+   "label": "Representativeness as per  Previous Target",
+   "options": "Employment Equity Sectoral Target Table",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attrition_per_category",
+   "fieldtype": "Table",
+   "label": "Attrition Per Occupational Category (Last 12 Months)",
+   "options": "Employment Equity Sectoral Target Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-27 15:52:35.132364",
+ "modified": "2025-08-27 17:17:52.286250",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Target",

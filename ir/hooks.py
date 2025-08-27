@@ -136,6 +136,27 @@ fixtures = [
         "Dismissal for Misconduct",
         "Resignation"
 	]]]},
+	{"dt": "Employment Equity Filters", "filters": [["name", "in", [
+		"Accomodation and Food Service Activities",
+		"Administrative and Support Activities",
+		"Agriculture, Forestry & Fishing",
+		"Arts, Entertainment and Recreation",
+		"Construction",
+        "Education",
+        "Electricity, Gas, Steam and Air Conditioning Supply",
+        "Financial and Insurance Activities",
+        "Human Health and Social Work Activities",
+        "Information and Communication",
+		"Manufacturing",
+		"Mining and Quarrying",
+		"Other Service Activities",
+		"Professional, Scientific and Technical Activities",
+		"Public Administration and Defence; Compulsory Social Security",
+		"Real Estate Activities",
+		"Transportation and Storage",
+		"Water Supply; Sewerage, Waste Management and Remediation Activities",
+		"Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles"
+	]]]},
 	{"dt": "Custom HTML Block", "filters": [["name", "in", [
 		"EEA2 Employment Equity Widget"
 	]]]}
