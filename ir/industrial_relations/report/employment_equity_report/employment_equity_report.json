@@ -22,13 +22,20 @@
    "mandatory": 1,
    "options": "Country",
    "wildcard_filter": 0
+  },
+  {
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled Only",
+   "mandatory": 0,
+   "wildcard_filter": 0
   }
  ],
  "idx": 10,
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-17 12:58:44.791695",
+ "modified": "2025-08-27 10:26:19.988232",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Report",
