@@ -14,13 +14,6 @@
   "name": "Coloured"
  },
  {
-  "designated_group": "White",
-  "docstatus": 0,
-  "doctype": "Designated Group",
-  "modified": "2025-07-08 15:36:58.936685",
-  "name": "White"
- },
- {
   "designated_group": "Indian",
   "docstatus": 0,
   "doctype": "Designated Group",
@@ -33,5 +26,12 @@
   "doctype": "Designated Group",
   "modified": "2025-07-08 15:37:10.518763",
   "name": "Unknown"
+ },
+ {
+  "designated_group": "White",
+  "docstatus": 0,
+  "doctype": "Designated Group",
+  "modified": "2025-07-08 15:36:58.936685",
+  "name": "White"
  }
 ]
