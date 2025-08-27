@@ -135,6 +135,9 @@ fixtures = [
         "Asbcondment / Desertion",
         "Dismissal for Misconduct",
         "Resignation"
+	]]]},
+	{"dt": "Custom HTML Block", "filters": [["name", "in", [
+		"EEA2 Employment Equity Widget"
 	]]]}
 ]
 scheduler_events = {

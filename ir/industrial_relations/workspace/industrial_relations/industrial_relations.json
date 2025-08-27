@@ -1,8 +1,13 @@
 {
  "charts": [],
- "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
+ "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"ItaC6U7-BD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"EEA2 Employment Equity Widget\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
  "creation": "2024-07-10 08:50:21.843775",
- "custom_blocks": [],
+ "custom_blocks": [
+  {
+   "custom_block_name": "EEA2 Employment Equity Widget",
+   "label": "EEA2 Employment Equity Widget"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -375,7 +380,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-08-27 11:15:28.038968",
+ "modified": "2025-08-27 12:22:41.772469",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
