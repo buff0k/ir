@@ -2,34 +2,10 @@
  {
   "docstatus": 0,
   "doctype": "Occupational Level",
-  "modified": "2025-07-08 15:39:15.150883",
-  "name": "Professionally qualified",
-  "occupational_level": "Professionally qualified",
-  "paterson_band": "D"
- },
- {
-  "docstatus": 0,
-  "doctype": "Occupational Level",
-  "modified": "2025-07-08 19:15:16.405736",
-  "name": "Semi-skilled",
-  "occupational_level": "Semi-skilled",
-  "paterson_band": "B"
- },
- {
-  "docstatus": 0,
-  "doctype": "Occupational Level",
   "modified": "2025-07-08 15:39:50.675514",
   "name": "Skilled technical",
   "occupational_level": "Skilled technical",
   "paterson_band": "C"
- },
- {
-  "docstatus": 0,
-  "doctype": "Occupational Level",
-  "modified": "2025-07-08 15:40:04.441421",
-  "name": "Unskilled",
-  "occupational_level": "Unskilled",
-  "paterson_band": "A"
  },
  {
   "docstatus": 0,
@@ -46,5 +22,29 @@
   "name": "Senior management",
   "occupational_level": "Senior management",
   "paterson_band": "E"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 19:15:16.405736",
+  "name": "Semi-skilled",
+  "occupational_level": "Semi-skilled",
+  "paterson_band": "B"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:40:04.441421",
+  "name": "Unskilled",
+  "occupational_level": "Unskilled",
+  "paterson_band": "A"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Occupational Level",
+  "modified": "2025-07-08 15:39:15.150883",
+  "name": "Professionally qualified",
+  "occupational_level": "Professionally qualified",
+  "paterson_band": "D"
  }
 ]

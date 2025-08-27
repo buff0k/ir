@@ -136,7 +136,7 @@ fixtures = [
         "Dismissal for Misconduct",
         "Resignation"
 	]]]},
-	{"dt": "Employment Equity Filters", "filters": [["name", "in", [
+	{"dt": "Employment Equity Sectors", "filters": [["name", "in", [
 		"Accomodation and Food Service Activities",
 		"Administrative and Support Activities",
 		"Agriculture, Forestry & Fishing",
