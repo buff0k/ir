@@ -8,10 +8,15 @@
  "field_order": [
   "section_break_lfox",
   "amended_from",
+  "section_break_uijd",
   "target_date",
   "company",
   "sectoral_target",
   "previous_target",
+  "column_break_uyxa",
+  "plan_duration",
+  "start_date",
+  "section_break_szzs",
   "previous_employment_equity",
   "employment_equity_input",
   "employment_equity_sectoral_target",
@@ -117,13 +122,40 @@
    "fieldtype": "Table",
    "label": "Attrition Per Occupational Category (Last 12 Months)",
    "options": "Employment Equity Sectoral Target Table"
+  },
+  {
+   "fieldname": "section_break_uijd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uyxa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "fieldname": "plan_duration",
+   "fieldtype": "Select",
+   "label": "Length of Plan (In Years)",
+   "non_negative": 1,
+   "options": "5\n4\n3\n2\n1",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date of Plan",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_szzs",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-27 17:17:52.286250",
+ "modified": "2025-08-27 18:03:19.309247",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Target",
