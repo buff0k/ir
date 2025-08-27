@@ -24,6 +24,14 @@ frappe.query_reports["Employment Equity Report"] = {
       label: "Disabled Only",
       fieldtype: "Check",
       reqd: 0
+    },
+    {
+      fieldname: "branch",
+      label: "Site",
+      fieldtype: "Link",
+      options: "Branch",
+      reqd: 0,
+      default: ""
     }
   ],
 
@@ -33,6 +41,7 @@ frappe.query_reports["Employment Equity Report"] = {
       const company  = filters.company;
       const country  = filters.country;
       const disabled = filters.disabled ? 1 : 0;
+      const branch = filters.branch || "";
       const url = `/api/method/ir.industrial_relations.report.employment_equity_report.employment_equity_report.download_eea2_xlsx?company=${encodeURIComponent(company)}&country=${encodeURIComponent(country)}&disabled=${disabled}`;
       window.open(url);
     });

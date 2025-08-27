@@ -24,6 +24,7 @@ def execute(filters=None):
     company      = filters["company"]
     rsa_country  = filters["country"]
     disabled_only = 1 if frappe.utils.cint(filters.get("disabled")) else 0
+    branch        = (filters.get("branch") or "").strip()  # NEW
 
     # ORDER BY Paterson Band descending (F to A)
     occupational_levels = frappe.get_all(
@@ -57,6 +58,8 @@ def execute(filters=None):
         }
         if disabled_only:
             f["custom_disabled_employee"] = 1
+        if branch:                      # NEW: only filter when provided
+            f["branch"] = branch
         return f
 
     def count_designated(ol_name, gender, dg, employment_type=None):
@@ -157,19 +160,21 @@ def row_sum(row):
 
 
 @frappe.whitelist()
-def download_eea2_xlsx(company, country, disabled=0):
-    # reuse execute with filters including disabled
-    columns, data = execute({"company": company, "country": country, "disabled": frappe.utils.cint(disabled)})
+def download_eea2_xlsx(company, country, disabled=0, branch=None):  # NEW arg
+    columns, data = execute({
+        "company": company,
+        "country": country,
+        "disabled": frappe.utils.cint(disabled),
+        "branch": (branch or "").strip()            # NEW: pass through
+    })
 
     xlsx_data = []
     headers = [col["label"] for col in columns]
     xlsx_data.append(headers)
-
     for row in data:
         xlsx_data.append([row.get(col["fieldname"], "") for col in columns])
 
     xlsx_file = make_xlsx(xlsx_data, "EEA2_Report")
-
     frappe.response["type"] = "binary"
     frappe.response["filename"] = "EEA2_Employment_Equity_Report.xlsx"
     frappe.response["filecontent"] = xlsx_file.getvalue()
