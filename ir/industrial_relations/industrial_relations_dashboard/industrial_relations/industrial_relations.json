@@ -1,0 +1,49 @@
+{
+ "cards": [
+  {
+   "card": "Outstanding Contracts"
+  },
+  {
+   "card": "Open External Disputes"
+  },
+  {
+   "card": "Incomplete Terminations"
+  },
+  {
+   "card": "Outstanding Disciplinary Actions"
+  },
+  {
+   "card": "Outstanding Incapacity Processes"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Contracts of Employment",
+   "width": "Half"
+  },
+  {
+   "chart": "Disciplinary Actions",
+   "width": "Half"
+  },
+  {
+   "chart": "Termination Forms",
+   "width": "Half"
+  },
+  {
+   "chart": "External Disputes",
+   "width": "Half"
+  }
+ ],
+ "creation": "2025-08-28 08:01:24.453596",
+ "dashboard_name": "Industrial Relations",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-08-28 08:33:44.763039",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Industrial Relations",
+ "owner": "Administrator"
+}

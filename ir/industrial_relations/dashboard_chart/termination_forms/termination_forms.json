@@ -1,0 +1,43 @@
+{
+ "based_on": "",
+ "chart_name": "Termination Forms",
+ "chart_type": "Custom",
+ "creation": "2025-08-28 08:05:37.655752",
+ "currency": "",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "",
+ "dynamic_filters_json": "[]",
+ "filters_json": "[]",
+ "group_by_type": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2025-08-28 08:05:43.048299",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Termination Forms",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "parent_document_type": "",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  }
+ ],
+ "show_values_over_chart": 0,
+ "source": "Termination Forms",
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Pie",
+ "use_report_chart": 0,
+ "value_based_on": "",
+ "y_axis": []
+}

@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"ItaC6U7-BD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"EEA2 Employment Equity Widget\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
+ "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"ZY17N8WgfJ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Industrial Relations Dashboard\",\"col\":3}},{\"id\":\"ItaC6U7-BD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"EEA2 Employment Equity Widget\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
  "creation": "2024-07-10 08:50:21.843775",
  "custom_blocks": [
   {
@@ -390,7 +390,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-08-27 15:06:20.843685",
+ "modified": "2025-08-28 08:18:13.723636",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
@@ -414,6 +414,14 @@
   }
  ],
  "sequence_id": 39.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Industrial Relations Dashboard",
+   "link_to": "Industrial Relations",
+   "type": "Dashboard"
+  }
+ ],
  "title": "Industrial Relations"
 }

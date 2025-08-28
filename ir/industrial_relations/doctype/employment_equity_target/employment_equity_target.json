@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{company} - {target_date}",
+ "autoname": "format:{company} - {start_date} to {target_date}",
  "creation": "2025-08-27 13:51:54.287992",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -155,7 +155,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-27 18:03:19.309247",
+ "modified": "2025-08-27 19:48:16.013457",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Target",

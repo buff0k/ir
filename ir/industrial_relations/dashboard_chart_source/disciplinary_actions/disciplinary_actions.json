@@ -1,0 +1,13 @@
+{
+ "creation": "2025-08-28 07:50:18.814271",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2025-08-28 07:50:18.814271",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Disciplinary Actions",
+ "owner": "Administrator",
+ "source_name": "Disciplinary Actions",
+ "timeseries": 0
+}
