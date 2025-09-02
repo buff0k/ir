@@ -104,16 +104,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "KPI Review",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "kpi_reviews",
    "fieldtype": "Table",
    "label": "KPI Reviews for Consideration",
