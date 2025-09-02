@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{area} - {date_of_review}",
+ "creation": "2025-09-02 14:06:35.221692",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "reviewers",
+  "employees",
+  "kpi_reviews",
+  "section_break_unwo",
+  "area",
+  "kpi_attach",
+  "column_break_kuda",
+  "kpi_template",
+  "date_of_review",
+  "date_under_review",
+  "section_break_orla",
+  "review_data",
+  "score",
+  "kpi_rendered",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "reviewers",
+   "fieldtype": "Table",
+   "label": "Review Committee",
+   "options": "KPI Review Reviewers",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employee(s) under Review",
+   "options": "KPI Review Employees",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_unwo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "kpi_attach",
+   "fieldtype": "Attach",
+   "label": "Upload Signed KPI Review"
+  },
+  {
+   "fieldname": "column_break_kuda",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kpi_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "KPI Template",
+   "options": "KPI Template",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_of_review",
+   "fieldtype": "Date",
+   "label": "Date of Review",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_under_review",
+   "fieldtype": "Date",
+   "label": "Month under Review",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_orla",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "review_data",
+   "fieldtype": "Table",
+   "options": "KPI Review Scoring",
+   "read_only": 1
+  },
+  {
+   "fieldname": "score",
+   "fieldtype": "Data",
+   "label": "Overall Score",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kpi_rendered",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KPI Review",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "KPI Review",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "kpi_reviews",
+   "fieldtype": "Table",
+   "label": "KPI Reviews for Consideration",
+   "options": "Area KPI Review Sites",
+   "reqd": 1
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Link",
+   "label": "Area",
+   "options": "Area Setup",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-09-02 15:13:17.773676",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Area KPI Review",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

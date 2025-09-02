@@ -176,35 +176,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "KPIs",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPI Review",
-   "link_count": 0,
-   "link_to": "KPI Review",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "KPI Review Year To Date",
-   "link_count": 0,
-   "link_to": "KPI Review Year To Date",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "IR Documents",
    "link_count": 12,
    "link_type": "DocType",
@@ -388,9 +359,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPIs",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Review",
+   "link_count": 0,
+   "link_to": "KPI Review",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "KPI Review Year To Date",
+   "link_count": 0,
+   "link_to": "KPI Review Year To Date",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Area KPI Review",
+   "link_count": 0,
+   "link_to": "Area KPI Review",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Area KPI Review Year To Date",
+   "link_count": 0,
+   "link_to": "Area KPI Review Year To Date",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-08-28 08:18:13.723636",
+ "modified": "2025-09-02 16:13:16.627804",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
