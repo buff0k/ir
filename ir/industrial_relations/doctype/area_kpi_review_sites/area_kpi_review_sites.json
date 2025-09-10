@@ -18,6 +18,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "KPI Review",
+   "link_filters": "[[\"KPI Review\",\"docstatus\",\"=\",\"1\"]]",
    "options": "KPI Review",
    "reqd": 1
   },
@@ -52,7 +53,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-02 14:15:51.325700",
+ "modified": "2025-09-10 11:45:45.481325",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Area KPI Review Sites",

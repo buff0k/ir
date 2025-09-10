@@ -46,7 +46,7 @@ function setup_buttons(frm) {
                 filters: {
                     branch: site,
                     date_under_review: ['between', [start, end]],
-                    docstatus: ['in', [0, 1]]
+                    docstatus: 1
                 },
                 fields: ['name', 'branch', 'kpi_template', 'score'],
                 limit: 1

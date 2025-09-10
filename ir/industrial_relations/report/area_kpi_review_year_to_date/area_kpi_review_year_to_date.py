@@ -8,26 +8,38 @@ def execute(filters=None):
     if not filters:
         filters = {}
 
-    conditions = []
     values = {}
 
+    # ---- shared conditions (no alias) for group & chart ----
+    base_conds = ["docstatus = 1"]  # only submitted Area KPI Reviews
+
     if filters.get("year"):
-        conditions.append("YEAR(date_under_review) = %(year)s")
+        base_conds.append("YEAR(date_under_review) = %(year)s")
         values["year"] = filters["year"]
 
     if filters.get("area"):
-        conditions.append("area = %(area)s")
+        base_conds.append("area = %(area)s")
         values["area"] = filters["area"]
 
     if filters.get("kpi_template"):
-        conditions.append("kpi_template = %(kpi_template)s")
+        base_conds.append("kpi_template = %(kpi_template)s")
         values["kpi_template"] = filters["kpi_template"]
 
-    where_clause = ""
-    if conditions:
-        where_clause = "WHERE " + " AND ".join(conditions)
+    where_clause = "WHERE " + " AND ".join(base_conds) if base_conds else ""
 
-    # Group query: show one row per area/template
+    # ---- alias-aware conditions for detail (prefix Area KPI Review fields with akpr.) ----
+    alias_conds = []
+    for cond in base_conds:
+        alias_conds.append(
+            cond
+            .replace("docstatus", "akpr.docstatus")
+            .replace("date_under_review", "akpr.date_under_review")
+            .replace("area", "akpr.area")
+            .replace("kpi_template", "akpr.kpi_template")
+        )
+    where_clause_akpr = "WHERE " + " AND ".join(alias_conds) if alias_conds else ""
+
+    # ---- queries ----
     group_query = f"""
         SELECT 
             area,
@@ -40,7 +52,6 @@ def execute(filters=None):
         ORDER BY area, kpi_template
     """
 
-    # Detail query: individual reviews
     detail_query = f"""
         SELECT
             akpr.area,
@@ -49,9 +60,7 @@ def execute(filters=None):
             akpr.score,
             IFNULL(
                 GROUP_CONCAT(
-                    CONCAT(s.kpi, ': ',
-                        FORMAT(s.score, 2), '/', s.max_score
-                    )
+                    CONCAT(s.kpi, ': ', FORMAT(s.score, 2), '/', s.max_score)
                     ORDER BY s.idx SEPARATOR ', '
                 ),
                 ''
@@ -59,11 +68,10 @@ def execute(filters=None):
         FROM `tabArea KPI Review` akpr
         LEFT JOIN `tabKPI Review Scoring` s 
             ON s.parent = akpr.name AND s.kpi IS NOT NULL
-        {where_clause}
+        {where_clause_akpr}
         GROUP BY akpr.name
     """
 
-    # Chart data (monthly trend)
     chart_query = f"""
         SELECT 
             area,
@@ -79,15 +87,13 @@ def execute(filters=None):
     details = frappe.db.sql(detail_query, values, as_dict=True)
     chart_rows = frappe.db.sql(chart_query, values, as_dict=True)
 
+    # ---- the rest of your function unchanged ----
     data = []
 
     for g in groups:
-        # Find matching children
         children = [d for d in details if d.area == g.area and d.kpi_template == g.kpi_template]
 
-        numerators = []
-        denominators = []
-
+        numerators, denominators = [], []
         for d in children:
             if d.score:
                 parts = d.score.split("/")
@@ -100,20 +106,9 @@ def execute(filters=None):
                     except:
                         pass
 
-        if numerators:
-            avg_numerator = sum(numerators) / len(numerators)
-        else:
-            avg_numerator = 0
-
-        if denominators:
-            avg_denominator = sum(denominators) / len(denominators)
-        else:
-            avg_denominator = 0
-
-        if avg_denominator:
-            avg_score = f"{round(avg_numerator, 2):.2f}/{round(avg_denominator, 2):.2f}"
-        else:
-            avg_score = "-"
+        avg_numerator = sum(numerators) / len(numerators) if numerators else 0
+        avg_denominator = sum(denominators) / len(denominators) if denominators else 0
+        avg_score = f"{round(avg_numerator, 2):.2f}/{round(avg_denominator, 2):.2f}" if avg_denominator else "-"
 
         data.append({
             "area": g.area or "(No Area)",
@@ -129,7 +124,6 @@ def execute(filters=None):
         for d in children:
             score_display = "-"
             avg_pct = 0
-
             if d.score:
                 parts = d.score.split("/")
                 if len(parts) == 2:
@@ -169,9 +163,7 @@ def execute(filters=None):
         {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 400},
     ]
 
-    # Chart rendering
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
     areas = {}
     for row in chart_rows:
@@ -181,19 +173,8 @@ def execute(filters=None):
             areas[area] = [None] * 12
         areas[area][month_idx] = row.avg_percentage
 
-    datasets = []
-    for area, values in areas.items():
-        datasets.append({
-            "name": area,
-            "values": values
-        })
+    datasets = [{"name": area, "values": values} for area, values in areas.items()]
 
-    chart = {
-        "data": {
-            "labels": months,
-            "datasets": datasets
-        },
-        "type": "line"
-    }
+    chart = {"data": {"labels": months, "datasets": datasets}, "type": "line"}
 
     return columns, data, None, chart

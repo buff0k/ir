@@ -8,43 +8,63 @@ def execute(filters=None):
     if not filters:
         filters = {}
 
-    conditions = []
+    # ---------- shared values ----------
     values = {}
 
+    # Base conditions (no alias) for group & chart queries
+    base_conds = ["docstatus = 1"]  # only submitted KPI Reviews
+
     if filters.get("year"):
-        conditions.append("YEAR(date_under_review) = %(year)s")
+        base_conds.append("YEAR(date_under_review) = %(year)s")
         values["year"] = filters["year"]
 
     if filters.get("site"):
-        conditions.append("branch = %(site)s")
+        base_conds.append("branch = %(site)s")
         values["site"] = filters["site"]
 
     if filters.get("kpi_template"):
-        conditions.append("kpi_template = %(kpi_template)s")
+        base_conds.append("kpi_template = %(kpi_template)s")
         values["kpi_template"] = filters["kpi_template"]
 
-    where_clause = ""
-    if conditions:
-        where_clause = "WHERE " + " AND ".join(conditions)
+    where_clause = "WHERE " + " AND ".join(base_conds) if base_conds else ""
+
+    # Alias-aware conditions for the detail query (prefix KPI Review fields with kpr.)
+    alias_conds = []
+    for cond in base_conds:
+        alias_conds.append(
+            cond
+            .replace("docstatus", "kpr.docstatus")
+            .replace("date_under_review", "kpr.date_under_review")
+            .replace("branch", "kpr.branch")
+            .replace("kpi_template", "kpr.kpi_template")
+        )
+    where_clause_kpr = "WHERE " + " AND ".join(alias_conds) if alias_conds else ""
 
     scoring_kpi_field = "kpi"
     scoring_score_field = "score"
     scoring_max_score_field = "max_score"
 
-    # Group query: only need avg percentage now
+    # -------- group query --------
     group_query = f"""
         SELECT 
             branch AS site,
             kpi_template,
             COUNT(name) AS total_reviews,
-            ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
+            ROUND(
+                AVG(
+                    CAST(
+                        TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1))
+                        AS DECIMAL(10,2)
+                    )
+                ), 2
+            ) AS avg_percentage
         FROM `tabKPI Review`
         {where_clause}
         GROUP BY branch, kpi_template
         ORDER BY branch, kpi_template
     """
 
-    # Detail rows (children)
+    # -------- detail query (uses alias-aware WHERE) --------
     detail_query = f"""
         SELECT
             kpr.branch AS site,
@@ -64,16 +84,23 @@ def execute(filters=None):
         FROM `tabKPI Review` kpr
         LEFT JOIN `tabKPI Review Scoring` s 
             ON s.parent = kpr.name AND s.{scoring_kpi_field} IS NOT NULL
-        {where_clause}
+        {where_clause_kpr}
         GROUP BY kpr.name
     """
 
-    # Chart rows
+    # -------- chart query --------
     chart_query = f"""
         SELECT 
             branch AS site,
             MONTH(date_under_review) AS review_month,
-            ROUND(AVG(CAST(TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1)) AS DECIMAL(10,2))), 2) AS avg_percentage
+            ROUND(
+                AVG(
+                    CAST(
+                        TRIM(TRAILING '%%' FROM SUBSTRING_INDEX(SUBSTRING_INDEX(score, '(', -1), '%%', 1))
+                        AS DECIMAL(10,2)
+                    )
+                ), 2
+            ) AS avg_percentage
         FROM `tabKPI Review`
         {where_clause}
         GROUP BY branch, MONTH(date_under_review)
@@ -84,15 +111,13 @@ def execute(filters=None):
     details = frappe.db.sql(detail_query, values, as_dict=True)
     chart_rows = frappe.db.sql(chart_query, values, as_dict=True)
 
+    # ---- remainder of your function unchanged ----
     data = []
 
     for g in groups:
-        # Find matching children
         children = [d for d in details if d.site == g.site and d.kpi_template == g.kpi_template]
 
-        numerators = []
-        denominators = []
-
+        numerators, denominators = [], []
         for d in children:
             if d.score:
                 parts = d.score.split("/")
@@ -105,20 +130,9 @@ def execute(filters=None):
                     except:
                         pass
 
-        if numerators:
-            avg_numerator = sum(numerators) / len(numerators)
-        else:
-            avg_numerator = 0
-
-        if denominators:
-            avg_denominator = sum(denominators) / len(denominators)
-        else:
-            avg_denominator = 0
-
-        if avg_denominator:
-            avg_score = f"{round(avg_numerator, 2):.2f}/{round(avg_denominator, 2):.2f}"
-        else:
-            avg_score = "-"
+        avg_numerator = sum(numerators) / len(numerators) if numerators else 0
+        avg_denominator = sum(denominators) / len(denominators) if denominators else 0
+        avg_score = f"{round(avg_numerator, 2):.2f}/{round(avg_denominator, 2):.2f}" if avg_denominator else "-"
 
         data.append({
             "site": g.site or "(No Site)",
@@ -134,7 +148,6 @@ def execute(filters=None):
         for d in children:
             score_display = "-"
             avg_pct = 0
-
             if d.score:
                 parts = d.score.split("/")
                 if len(parts) == 2:
@@ -174,8 +187,7 @@ def execute(filters=None):
         {"label": _("KPI Scores"), "fieldname": "parent_kpis", "fieldtype": "Data", "width": 400},
     ]
 
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
     sites = {}
     for row in chart_rows:
@@ -185,19 +197,8 @@ def execute(filters=None):
             sites[site] = [None] * 12
         sites[site][month_idx] = row.avg_percentage
 
-    datasets = []
-    for site, values in sites.items():
-        datasets.append({
-            "name": site,
-            "values": values
-        })
+    datasets = [{"name": site, "values": values} for site, values in sites.items()]
 
-    chart = {
-        "data": {
-            "labels": months,
-            "datasets": datasets
-        },
-        "type": "line"
-    }
+    chart = {"data": {"labels": months, "datasets": datasets}, "type": "line"}
 
     return columns, data, None, chart
