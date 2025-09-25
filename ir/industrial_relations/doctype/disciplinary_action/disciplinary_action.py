@@ -64,26 +64,34 @@ def fetch_disciplinary_history(accused, current_doc_name):
 import frappe
 
 @frappe.whitelist()
-def get_linked_documents(disciplinary_action_name, linked_doctype, linking_field):
-    """
-    Fetch all documents of the specified doctype that are linked to the given Disciplinary Action.
-    """
-    frappe.flags.ignore_permissions = True  # Bypass permissions
-    # Debugging: Print the input arguments
-    frappe.logger().info(f"Fetching linked documents for {disciplinary_action_name} in {linked_doctype} with linking field {linking_field}")
+def get_linked_documents(disciplinary_action_name: str) -> dict:
+    """Return all docs linked to this Disciplinary Action via Dynamic Links (or explicit link fields)."""
+    frappe.flags.ignore_permissions = True
 
-    # Query to find all documents of the specified doctype that have the specified linking field equal to the given Disciplinary Action name.
-    linked_docs = frappe.get_all(
-        linked_doctype,
-        filters={linking_field: disciplinary_action_name},
-        fields=["name"]
-    )
+    # Collect dynamic link mappings (example pattern—keep your existing logic/doctype list)
+    linked_info = {}
 
-    # Debugging: Print the results of the query
-    frappe.logger().info(f"Found {len(linked_docs)} linked documents: {linked_docs}")
+    # Example: iterate linked doctypes you already gather in your code
+    linked_doctypes = [
+        # ("DocType Name", "linking_field_in_that_doctype")
+        # keep your existing list here
+    ]
 
-    # Return the list of document names
-    return [doc.name for doc in linked_docs]
+    for linked_doctype, linking_field in linked_doctypes:
+        try:
+            records = frappe.get_all(
+                linked_doctype,
+                filters={linking_field: disciplinary_action_name},
+                fields=["name"],
+                order_by="modified desc"   # <-- avoid inheriting unsafe defaults
+            )
+            linked_info[linked_doctype] = [r["name"] for r in records]
+        except Exception as e:
+            # Don’t blow up the whole call if one doctype misbehaves
+            frappe.log_error(f"Error fetching linked docs for {linked_doctype}: {e}", "get_linked_documents")
+            linked_info[linked_doctype] = []
+
+    return linked_info
 
 @frappe.whitelist()
 def fetch_complainant_data(complainant):
@@ -100,16 +108,21 @@ def fetch_complainant_data(complainant):
 def check_if_ss(accused):
     frappe.flags.ignore_permissions = True
 
-    trade_unions = frappe.get_all('Trade Union', fields=['name'])
+    # Explicit order_by prevents inheriting unsafe ListView/DocType defaults after the Frappe upgrade
+    trade_unions = frappe.get_all(
+        "Trade Union",
+        fields=["name"],
+        order_by="name asc"
+    )
 
     for tu in trade_unions:
-        ss_list = frappe.get_all('Union Shop Stewards', filters={'parent': tu.name, 'parentfield': 'ss_list', 'ss_id': accused}, fields=['ss_id'])
+        ss_list = frappe.get_all(
+            "Union Shop Stewards",
+            filters={"parent": tu.name, "parentfield": "ss_list", "ss_id": accused},
+            fields=["ss_id"],
+            order_by="modified desc"
+        )
         if ss_list:
-            return {
-                'is_ss': True,
-                'ss_union': tu.name
-            }
-    return {
-        'is_ss': False,
-        'ss_union': None
-    }
+            return {"is_ss": True, "ss_union": tu.name}
+
+    return {"is_ss": False, "ss_union": None}
