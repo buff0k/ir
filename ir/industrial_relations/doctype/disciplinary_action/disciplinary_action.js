@@ -18,8 +18,8 @@ frappe.ui.form.on('Disciplinary Action', {
                 make_nta_hearing(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Write Outcome Report'), function() {
-                write_disciplinary_outcome_report(frm);
+            frm.page.add_inner_button(__('Write Outcome'), function() {
+                create_written_outcome(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Warning'), function() {

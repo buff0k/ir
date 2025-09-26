@@ -155,3 +155,46 @@ function fetch_linked_documents(frm) {
         });
     });
 }
+
+// === Added by ChatGPT: reliable Employee name syncing for complainant/chairperson/approver ===
+frappe.ui.form.on('Written Outcome', {
+    onload(frm) {
+        // auto-fetch from Employee.link to *_name
+        try {
+            frm.add_fetch('complainant', 'employee_name', 'complainant_name');
+            frm.add_fetch('chairperson', 'employee_name', 'chairperson_name');
+            frm.add_fetch('approver',   'employee_name', 'approver_name');
+        } catch (e) {
+            console && console.warn && console.warn('add_fetch not available on this form yet', e);
+        }
+    },
+    complainant(frm) { _wo_clear_if_empty(frm, 'complainant', 'complainant_name'); },
+    chairperson(frm) { _wo_clear_if_empty(frm, 'chairperson', 'chairperson_name'); },
+    approver(frm)    { _wo_clear_if_empty(frm, 'approver',    'approver_name'); },
+    refresh(frm) {
+        _wo_initial_sync_if_present(frm, [
+            ['complainant','complainant_name'],
+            ['chairperson','chairperson_name'],
+            ['approver','approver_name'],
+        ]);
+    },
+});
+
+function _wo_clear_if_empty(frm, link_field, name_field) {
+    if (!frm.doc[link_field]) {
+        frm.set_value(name_field, null);
+    }
+}
+
+function _wo_initial_sync_if_present(frm, pairs) {
+    pairs.forEach(([link_field, name_field]) => {
+        const val = frm.doc[link_field];
+        if (val && !frm.doc[name_field]) {
+            frappe.db.get_value('Employee', val, 'employee_name').then(r => {
+                if (r && r.message) {
+                    frm.set_value(name_field, r.message.employee_name || null);
+                }
+            });
+        }
+    });
+}

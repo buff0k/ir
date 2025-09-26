@@ -160,6 +160,7 @@
    "fieldname": "chairperson_name",
    "fieldtype": "Data",
    "label": "Chairperson Name",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -298,7 +299,7 @@
    "fieldname": "outcome",
    "fieldtype": "Link",
    "label": "Outcome",
-   "options": "Disciplinary Outcome"
+   "options": "Offence Outcome"
   },
   {
    "fieldname": "attach_record",
@@ -363,6 +364,7 @@
    "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [
@@ -371,7 +373,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2025-02-14 15:01:54.823418",
+ "modified": "2025-09-26 13:28:28.986608",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
@@ -415,6 +417,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

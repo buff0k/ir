@@ -34,6 +34,7 @@ def create_written_outcome(source_name, source_doctype, target_doc=None):
             "accused_name": "employee_name",
             "accused_pos": "employee_designation",
             "company": "company",
+            "letter_head": "letter_head",
             "linked_nta": "linked_nta",
             "previous_disciplinary_outcomes": "disciplinary_history",
             "final_charges": "nta_charges",
@@ -45,6 +46,7 @@ def create_written_outcome(source_name, source_doctype, target_doc=None):
             "accused_name": "employee_name",
             "accused_pos": "employee_designation",
             "company": "company",
+            "letter_head": "letter_head",
             "type_of_incapacity": "incap_type_nta",
             "details_of_incapacity": "incapacity_details_nta"
         },
@@ -52,6 +54,7 @@ def create_written_outcome(source_name, source_doctype, target_doc=None):
             "appellant": "employee",
             "appellant_name": "employee_name",
             "company": "company",
+            "letter_head": "letter_head",
             "rulings": "linked_rulings"
         }
     }
