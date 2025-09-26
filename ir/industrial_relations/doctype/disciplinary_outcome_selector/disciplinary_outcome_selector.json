@@ -1,31 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-02-03 08:59:50.529562",
+ "creation": "2025-09-26 09:39:21.662710",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "disc_action"
+  "linked_disc_outcome"
  ],
  "fields": [
   {
-   "fieldname": "disc_action",
+   "fieldname": "linked_disc_outcome",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Disciplinary Action",
-   "options": "Disciplinary Action",
-   "reqd": 1
+   "label": "Disciplinary Outcome",
+   "options": "Disciplinary Outcome Report"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-09-26 10:20:49.205003",
+ "modified": "2025-09-26 10:11:59.761599",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Disciplinary Action Selector",
+ "name": "Disciplinary Outcome Selector",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

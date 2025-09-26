@@ -50,6 +50,7 @@
   "final_charges",
   "linked_nta",
   "linked_outcome",
+  "linked_disc_outcome",
   "linked_warning",
   "linked_dismissal",
   "linked_demotion",
@@ -392,13 +393,20 @@
    "is_virtual": 1,
    "label": "Linked Appeal Against Outcome",
    "options": "Appeal Selector"
+  },
+  {
+   "fieldname": "linked_disc_outcome",
+   "fieldtype": "Table MultiSelect",
+   "is_virtual": 1,
+   "label": "Linked Disciplinary Outcome (Legacy)",
+   "options": "Disciplinary Outcome Selector"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-28 08:45:30.278733",
+ "modified": "2025-09-26 09:41:11.853461",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

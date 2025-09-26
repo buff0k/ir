@@ -191,6 +191,7 @@ function fetch_linked_documents(frm) {
     const linked_fields = [
         { fieldname: 'linked_nta', doctype: 'NTA Hearing', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_nta' },
         { fieldname: 'linked_outcome', doctype: 'Written Outcome', linking_field: 'linked_intervention', child_table_field: 'linked_outcome' },
+        { fieldname: 'linked_disc_outcome', doctype: 'Disciplinary Outcome Report', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_disc_outcome' },
         { fieldname: 'linked_warning', doctype: 'Warning Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_warning' },
         { fieldname: 'linked_dismissal', doctype: 'Dismissal Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_dismissal' },
         { fieldname: 'linked_demotion', doctype: 'Demotion Form', linking_field: 'linked_disciplinary_action', child_table_field: 'linked_demotion' },
