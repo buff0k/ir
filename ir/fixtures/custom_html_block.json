@@ -8,21 +8,12 @@
   "private": 0,
   "roles": [
    {
-    "parent": "EEA2 Employment Equity Widget",
-    "parentfield": "roles",
-    "parenttype": "Custom HTML Block",
     "role": "System Manager"
    },
    {
-    "parent": "EEA2 Employment Equity Widget",
-    "parentfield": "roles",
-    "parenttype": "Custom HTML Block",
     "role": "IR Manager"
    },
    {
-    "parent": "EEA2 Employment Equity Widget",
-    "parentfield": "roles",
-    "parenttype": "Custom HTML Block",
     "role": "IR Officer"
    }
   ],

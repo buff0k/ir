@@ -2,16 +2,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this demotion within five (5) days.",
-    "parent": "Demotion",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this demotion within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this demotion to the CCMA within ninety (90) days.",
-    "parent": "Demotion",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this demotion to the CCMA within ninety (90) days."
    }
   ],
   "docstatus": 0,
@@ -22,52 +16,28 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may consult your union.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may consult your union."
    },
    {
-    "individual_right": "You may be represented at the enquiry by a fellow employee of your choice. You are responsible for arranging for your representative to be present.  You may choose not to be represented at the enquiry.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may be represented at the enquiry by a fellow employee of your choice. You are responsible for arranging for your representative to be present.  You may choose not to be represented at the enquiry."
    },
    {
-    "individual_right": "You have been given a number of days to prepare your case and to contact any witness(es) and/or a representative.  Please ensure that you prepare sufficiently within the time given. The enquiry will not be delayed if you have not prepared your case.  In exceptional circumstances, extra time may be requested from your Manager, providing that you arrange this with him or her prior to the hearing.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You have been given a number of days to prepare your case and to contact any witness(es) and/or a representative.  Please ensure that you prepare sufficiently within the time given. The enquiry will not be delayed if you have not prepared your case.  In exceptional circumstances, extra time may be requested from your Manager, providing that you arrange this with him or her prior to the hearing."
    },
    {
-    "individual_right": "You will be given an opportunity to state your case by giving verbal evidence at the enquiry or by submitting a written response as well as evidence to the manager concerned, or both.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You will be given an opportunity to state your case by giving verbal evidence at the enquiry or by submitting a written response as well as evidence to the manager concerned, or both."
    },
    {
-    "individual_right": "You may call witnesses and question any witness called by the Company.  You are responsible for ensuring that your witnesses are present at the enquiry.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may call witnesses and question any witness called by the Company.  You are responsible for ensuring that your witnesses are present at the enquiry."
    },
    {
-    "individual_right": "You may submit any documentation or exhibits at the enquiry and inspect any documentation or exhibit submitted to the Presiding Officer.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may submit any documentation or exhibits at the enquiry and inspect any documentation or exhibit submitted to the Presiding Officer."
    },
    {
-    "individual_right": "You have the right to be assisted by an interpreter from the Company.  If you require the Company to arrange an interpreter for you, you should contact your manager at least one (1) working day prior to the enquiry to request an interpreter.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You have the right to be assisted by an interpreter from the Company.  If you require the Company to arrange an interpreter for you, you should contact your manager at least one (1) working day prior to the enquiry to request an interpreter."
    },
    {
-    "individual_right": "Please ensure that you arrive for the enquiry on time or immediately contact your Manager in the event of any delay. Should you fail to attend the enquiry, it may continue in your absence.",
-    "parent": "Incapacity",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "Please ensure that you arrive for the enquiry on time or immediately contact your Manager in the event of any delay. Should you fail to attend the enquiry, it may continue in your absence."
    }
   ],
   "docstatus": 0,
@@ -78,16 +48,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this suspension within five (5) days.",
-    "parent": "Suspension",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this suspension within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this suspension to the CCMA within ninety (90) days.",
-    "parent": "Suspension",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this suspension to the CCMA within ninety (90) days."
    }
   ],
   "docstatus": 0,
@@ -98,16 +62,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this pay deduction within five (5) days.",
-    "parent": "Pay Deduction",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this pay deduction within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this pay deduction to the CCMA within ninety (90) days.",
-    "parent": "Pay Deduction",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this pay deduction to the CCMA within ninety (90) days."
    }
   ],
   "docstatus": 0,
@@ -118,16 +76,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this pay reduction within five (5) days.",
-    "parent": "Pay Reduction",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this pay reduction within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this pay reduction to the CCMA within ninety (90) days.",
-    "parent": "Pay Reduction",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this pay reduction to the CCMA within ninety (90) days."
    }
   ],
   "docstatus": 0,
@@ -138,16 +90,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this dismissal within five (5) days.",
-    "parent": "Dismissal",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this dismissal within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this dismissal to the CCMA within thirty (30) days.",
-    "parent": "Dismissal",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this dismissal to the CCMA within thirty (30) days."
    }
   ],
   "docstatus": 0,
@@ -158,52 +104,28 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may consult your union.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may consult your union."
    },
    {
-    "individual_right": "You may be represented at the hearing by a fellow employee of your choice. You are responsible for arranging for your representative to be present.  You may choose not to be represented at the hearing.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may be represented at the hearing by a fellow employee of your choice. You are responsible for arranging for your representative to be present.  You may choose not to be represented at the hearing."
    },
    {
-    "individual_right": "You have been given a number of days to prepare your case and to contact any witness(es) and/or a representative.  Please ensure that you prepare sufficiently within the time given. The hearing will not be delayed if you have not prepared your case.  In exceptional circumstances, extra time may be requested from your Manager, providing that you arrange this with him or her prior to the hearing.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You have been given a number of days to prepare your case and to contact any witness(es) and/or a representative.  Please ensure that you prepare sufficiently within the time given. The hearing will not be delayed if you have not prepared your case.  In exceptional circumstances, extra time may be requested from your Manager, providing that you arrange this with him or her prior to the hearing."
    },
    {
-    "individual_right": "You will be given an opportunity to state your case by giving verbal evidence at the hearing or by submitting a written reply to the charge to the manager concerned, or both.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You will be given an opportunity to state your case by giving verbal evidence at the hearing or by submitting a written reply to the charge to the manager concerned, or both."
    },
    {
-    "individual_right": "You may call witnesses and question any witness called by the Complainant.  You are responsible for ensuring that your witnesses are present at the hearing.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may call witnesses and question any witness called by the Complainant.  You are responsible for ensuring that your witnesses are present at the hearing."
    },
    {
-    "individual_right": "You may submit any documentation or exhibits at the hearing and inspect any documentation or exhibit submitted to the Presiding Officer.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may submit any documentation or exhibits at the hearing and inspect any documentation or exhibit submitted to the Presiding Officer."
    },
    {
-    "individual_right": "You have the right to be assisted by an interpreter from the Company.  If you require the Company to arrange an interpreter for you, you should contact your manager at least one (1) working day prior to the hearing to request an interpreter.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You have the right to be assisted by an interpreter from the Company.  If you require the Company to arrange an interpreter for you, you should contact your manager at least one (1) working day prior to the hearing to request an interpreter."
    },
    {
-    "individual_right": "Please ensure that you arrive for the hearing on time or immediately contact your Manager in the event of any delay. Should you fail to attend the hearing, it may continue in your absence.",
-    "parent": "Disciplinary Hearing",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "Please ensure that you arrive for the hearing on time or immediately contact your Manager in the event of any delay. Should you fail to attend the hearing, it may continue in your absence."
    }
   ],
   "docstatus": 0,
@@ -214,16 +136,10 @@
  {
   "applicable_rights": [
    {
-    "individual_right": "You may appeal this warning within five (5) days.",
-    "parent": "Warning Form",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may appeal this warning within five (5) days."
    },
    {
-    "individual_right": "You may refer a dispute regarding this warning to the CCMA within ninety (90) days.",
-    "parent": "Warning Form",
-    "parentfield": "applicable_rights",
-    "parenttype": "Employee Rights"
+    "individual_right": "You may refer a dispute regarding this warning to the CCMA within ninety (90) days."
    }
   ],
   "docstatus": 0,

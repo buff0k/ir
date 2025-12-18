@@ -2,280 +2,142 @@
  {
   "block_modules": [
    {
-    "module": "Accounts",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Accounts"
    },
    {
-    "module": "Assets",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Assets"
    },
    {
-    "module": "Automation",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Automation"
    },
    {
-    "module": "Builder",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Builder"
    },
    {
-    "module": "Bulk Transaction",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Bulk Transaction"
    },
    {
-    "module": "Buying",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Buying"
    },
    {
-    "module": "Communication",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Communication"
    },
    {
-    "module": "Contacts",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Contacts"
    },
    {
-    "module": "Core",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Core"
    },
    {
-    "module": "CRM",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "CRM"
    },
    {
-    "module": "Custom",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Custom"
    },
    {
-    "module": "Desk",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Desk"
    },
    {
-    "module": "Drill",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Drill"
    },
    {
-    "module": "E-commerce",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "E-commerce"
    },
    {
-    "module": "EDI",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "EDI"
    },
    {
-    "module": "Email",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Email"
    },
    {
-    "module": "Engineering",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Engineering"
    },
    {
-    "module": "ERPNext Integrations",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "ERPNext Integrations"
    },
    {
-    "module": "Frappe IT",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Frappe IT"
    },
    {
-    "module": "Frappe Whatsapp",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Frappe Whatsapp"
    },
    {
-    "module": "Geo",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Geo"
    },
    {
-    "module": "HR",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "HR"
    },
    {
-    "module": "Integrations",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Integrations"
    },
    {
-    "module": "Maintenance",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Maintenance"
    },
    {
-    "module": "Manufacturing",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Manufacturing"
    },
    {
-    "module": "Mining",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Mining"
    },
    {
-    "module": "Payment Gateways",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Payment Gateways"
    },
    {
-    "module": "Payments",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Payments"
    },
    {
-    "module": "Payroll",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Payroll"
    },
    {
-    "module": "Portal",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Portal"
    },
    {
-    "module": "Printing",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Printing"
    },
    {
-    "module": "Procurement",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Procurement"
    },
    {
-    "module": "Production",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Production"
    },
    {
-    "module": "Projects",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Projects"
    },
    {
-    "module": "Quality Management",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Quality Management"
    },
    {
-    "module": "Regional",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Regional"
    },
    {
-    "module": "Selling",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Selling"
    },
    {
-    "module": "Setup",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Setup"
    },
    {
-    "module": "Social",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Social"
    },
    {
-    "module": "Stock",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Stock"
    },
    {
-    "module": "Subcontracting",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Subcontracting"
    },
    {
-    "module": "Support",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Support"
    },
    {
-    "module": "Telephony",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Telephony"
    },
    {
-    "module": "Utilities",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Utilities"
    },
    {
-    "module": "Website",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Website"
    },
    {
-    "module": "Workflow",
-    "parent": "Industrial Relations",
-    "parentfield": "block_modules",
-    "parenttype": "Module Profile"
+    "module": "Workflow"
    }
   ],
   "docstatus": 0,
