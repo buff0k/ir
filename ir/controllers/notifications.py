@@ -1,4 +1,4 @@
-# Copyright (c) 2025, buff0k and contributors
+# Copyright (c) 2026, buff0k and contributors
 # For license information, please see license.txt
 
 import frappe
@@ -33,9 +33,14 @@ def handle_doc_event_create(doc, method):
 
 
 def handle_doc_event_update(doc, method):
+    # Stop modification notifications for Termination Form only
+    if doc.doctype == "Termination Form":
+        return
+
     before = doc.get_doc_before_save()
     if not before:
         return
+
     changed_fields = _diff_changed_fields(doc, before)
     if changed_fields:
         return handle_doc_event(doc, method, "updated", changed_fields)
