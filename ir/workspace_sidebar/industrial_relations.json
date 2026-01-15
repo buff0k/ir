@@ -1,0 +1,39 @@
+{
+ "app": "ir",
+ "creation": "2026-01-14 08:06:58.374458",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "person-standing",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Industrial Relations",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setup",
+   "link_to": "Setup",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-15 19:44:15.052263",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Industrial Relations",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Industrial Relations"
+}
