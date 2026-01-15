@@ -1,4 +1,5 @@
 {
+ "app": "ir",
  "charts": [],
  "content": "[{\"id\":\"x9ie0oTb51\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"RicSW2VOz8\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"iPlCF3Xf08\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"iWK_V84VOS\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"ky4IRPhcJp\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"qGoJXr18-4\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"T9UPdzU0WP\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"UZAOw1C_2z\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination Form\",\"col\":4}}]",
  "creation": "2025-07-17 08:49:36.496342",
@@ -13,15 +14,6 @@
  "is_hidden": 0,
  "label": "Setup",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Code",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -55,15 +47,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Contract of Employment",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Contract Section",
    "link_count": 0,
    "link_to": "Contract Section",
@@ -80,15 +63,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "External Dispute Resolution",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -123,15 +97,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Employee Rights",
    "link_count": 0,
    "link_to": "Employee Rights",
@@ -152,15 +117,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Termination Form",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Reason for Termination",
    "link_count": 0,
    "link_to": "Reason for Termination",
@@ -177,15 +133,6 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -240,15 +187,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "KPIs",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "KPI Template",
    "link_count": 0,
    "link_to": "KPI Template",
@@ -277,7 +215,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-09-02 14:42:27.222046",
+ "modified": "2026-01-15 12:06:26.721396",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Setup",
@@ -289,9 +227,13 @@
  "roles": [
   {
    "role": "IR Manager"
+  },
+  {
+   "role": "System Manager"
   }
  ],
  "sequence_id": 47.0,
  "shortcuts": [],
- "title": "Setup"
+ "title": "Setup",
+ "type": "Workspace"
 }
