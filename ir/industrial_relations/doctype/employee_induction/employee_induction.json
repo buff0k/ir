@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:training_name",
+ "creation": "2026-01-21 07:50:54.978438",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "training_name",
+  "valid_for"
+ ],
+ "fields": [
+  {
+   "fieldname": "training_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Training / Induction Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "12",
+   "description": "In Months",
+   "fieldname": "valid_for",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Validity Period",
+   "options": "3\n6\n12\n24\n36",
+   "reqd": 1,
+   "search_index": 1,
+   "sort_options": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-21 09:11:09.177809",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employee Induction",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Administrator",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Facilitator",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "training_name",
+ "track_changes": 1
+}

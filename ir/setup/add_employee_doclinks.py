@@ -23,7 +23,8 @@ def ensure_employee_links():
         {"link_doctype": "Voluntary Seperation Agreement", "link_fieldname": "employee"},
         {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"},
         {"link_doctype": "KPI Review Employees", "link_fieldname": "employee", "parent_doctype": "KPI Review", "table_fieldname": "employees", "is_child_table": 1},
-        {"link_doctype": "Termination Form", "link_fieldname": "requested_for"}
+        {"link_doctype": "Termination Form", "link_fieldname": "requested_for"},
+        {"link_doctype": "Employee Induction Tracing", "link_fieldname": "employee"}
     ]
 
     existing_links = frappe.get_all(

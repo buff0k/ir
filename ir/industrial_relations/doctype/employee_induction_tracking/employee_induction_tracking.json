@@ -1,0 +1,152 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:employee",
+ "creation": "2026-01-21 07:59:28.583098",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee_section",
+  "employee",
+  "engagement_date",
+  "inductions_required",
+  "column_break_ymxd",
+  "employee_name",
+  "branch",
+  "employee_skills_matrix_section",
+  "skills_matrix",
+  "employee_induction_history_section",
+  "induction_history"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Employee Site",
+   "options": "Branch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "engagement_date",
+   "fieldtype": "Date",
+   "label": "Engagement Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_section",
+   "fieldtype": "Section Break",
+   "label": "Employee"
+  },
+  {
+   "fieldname": "column_break_ymxd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_induction_history_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Induction History"
+  },
+  {
+   "fieldname": "induction_history",
+   "fieldtype": "Table",
+   "label": "Employee Valid Inductions",
+   "options": "Employee Induction Child"
+  },
+  {
+   "fieldname": "inductions_required",
+   "fieldtype": "Table MultiSelect",
+   "label": "Required Inductions",
+   "options": "Employee Required Inductions",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee_skills_matrix_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Skills Matrix"
+  },
+  {
+   "fieldname": "skills_matrix",
+   "fieldtype": "HTML"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-21 09:12:33.673508",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employee Induction Tracking",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Administrator",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Facilitator",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Training Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee"
+}

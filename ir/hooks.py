@@ -24,13 +24,19 @@ fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",
         "IR Officer",
-		"IR User"
+		"IR User",
+		"Training Manager",
+		"Training Administrator",
+		"Training Faciliator"
 	]]]},
     {"dt": "Client Script", "filters": [["dt", "=", "Employee"]]},
 	{"dt": "Custom DocPerm", "filters": [["role", "in", [
 		"IR Manager",
         "IR Officer",
-		"IR User"
+		"IR User",
+		"Training Administrator",
+		"Training Facilitator",
+		"Training Manager"
 	]]]},
 	{"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
 	{"dt": "Contract Section", "filters": [["sec_head", "in", [
