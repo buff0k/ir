@@ -77,7 +77,10 @@ fixtures = [
 		"Suspension",
 		"Warning Form"
 	]]]},
-	{"dt": "Module Profile", "filters": [["name", "in", ["Industrial Relations"]]]},
+	{"dt": "Module Profile", "filters": [["name", "in", [
+        "Industrial Relations",
+        "IR Manager"
+    ]]]},
 	{"dt": "Grounds for Appeal", "filters": [["name", "in", [
 		"Procedural",
 		"Substantive",

@@ -1,0 +1,44 @@
+{
+ "based_on": "modified",
+ "chart_name": "Disciplinary Actions \u2013 Status",
+ "chart_type": "Count",
+ "creation": "2026-01-21 12:22:19.999168",
+ "currency": "",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "document_type": "Disciplinary Action",
+ "dynamic_filters_json": "[]",
+ "filters_json": "[[\"Disciplinary Action\",\"docstatus\",\"=\",\"1\"],[\"Disciplinary Action\",\"docstatus\",\"=\",\"0\"]]",
+ "group_by_type": "Count",
+ "idx": 0,
+ "is_public": 0,
+ "is_standard": 1,
+ "last_synced_on": "2026-01-21 12:22:52.982514",
+ "modified": "2026-01-21 12:24:39.743129",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Disciplinary Actions \u2013 Status",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "parent_document_type": "",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  }
+ ],
+ "show_values_over_chart": 0,
+ "source": "",
+ "time_interval": "Daily",
+ "timeseries": 1,
+ "timespan": "Last Month",
+ "type": "Pie",
+ "use_report_chart": 0,
+ "value_based_on": "",
+ "y_axis": []
+}

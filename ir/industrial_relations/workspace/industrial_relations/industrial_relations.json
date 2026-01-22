@@ -1,62 +1,20 @@
 {
+ "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"n27sy9IsQt\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"ZY17N8WgfJ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Industrial Relations Dashboard\",\"col\":3}},{\"id\":\"ItaC6U7-BD\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"EEA2 Employment Equity Widget\",\"col\":12}},{\"id\":\"liuucFYI1K\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"8JEQn-9yXl\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"jIoS5HJAM6\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"SsJD6OK3sv\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"aAb7NzX508\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"co_A3yB8PK\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"w5z4CQfbmI\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"jojTDtCHV4\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"Md3STmJXAf\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
- "creation": "2024-07-10 08:50:21.843775",
- "custom_blocks": [
-  {
-   "custom_block_name": "EEA2 Employment Equity Widget",
-   "label": "EEA2 Employment Equity Widget"
-  }
- ],
+ "content": "[{\"id\":\"3wiSP0KSeE\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"WRvn6KW24e\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Dashboard\",\"col\":12}},{\"id\":\"aQirkht7kI\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"XhD9lvgKSj\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"UFRFaJAVym\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"yyj40I0HIp\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"xvYVpb4A_g\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"HWp32aWVPN\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"xAMcTwJ5bR\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"Ao6LmLvmxx\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"9GnxeX37Ku\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}}]",
+ "creation": "2026-01-15 20:17:37.425820",
+ "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "share",
- "idx": 0,
- "indicator_color": "",
+ "icon": "person-standing",
+ "idx": 2,
+ "indicator_color": "green",
  "is_hidden": 0,
  "label": "Industrial Relations",
+ "link_type": "DocType",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incapacity Proceedings",
-   "link_count": 0,
-   "link_to": "Incapacity Proceedings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "IR Interventions",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incapacity Proceedings",
-   "link_count": 0,
-   "link_to": "Incapacity Proceedings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -92,25 +50,6 @@
    "label": "Display Site Organogram",
    "link_count": 0,
    "link_to": "Site Organogram",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Code",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Schedule of Offences",
-   "link_count": 0,
-   "link_to": "Schedule of Offences",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -157,8 +96,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "External Dispute Resolution",
-   "link_count": 1,
+   "label": "IR Interventions",
+   "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -166,10 +105,39 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "External Dispute Resolution",
+   "label": "Disciplinary Action",
    "link_count": 0,
-   "link_to": "External Dispute Resolution",
+   "link_to": "Disciplinary Action",
    "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incapacity Proceedings",
+   "link_count": 0,
+   "link_to": "Incapacity Proceedings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Code",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Schedule of Offences",
+   "link_count": 0,
+   "link_to": "Schedule of Offences",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },
@@ -305,6 +273,25 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Trade Unions",
    "link_count": 2,
    "link_type": "DocType",
@@ -314,7 +301,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Trade Union",
+   "label": "Trade Unions",
    "link_count": 0,
    "link_to": "Trade Union",
    "link_type": "DocType",
@@ -324,11 +311,62 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Trade Union",
+   "label": "Trade Union Membership",
    "link_count": 0,
    "link_to": "Trade Union Membership",
    "link_type": "Report",
    "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPIs",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Review",
+   "link_count": 0,
+   "link_to": "KPI Review",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Review Year To Date",
+   "link_count": 0,
+   "link_to": "KPI Review Year To Date",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "KPI Review",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Area KPI Review",
+   "link_count": 0,
+   "link_to": "Area KPI Review",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Area KPI Review Year To Date",
+   "link_count": 0,
+   "link_to": "Area KPI Review Year To Date",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Area KPI Review",
    "type": "Link"
   },
   {
@@ -359,64 +397,15 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPIs",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "KPI Review",
-   "link_count": 0,
-   "link_to": "KPI Review",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "KPI Review Year To Date",
-   "link_count": 0,
-   "link_to": "KPI Review Year To Date",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Area KPI Review",
-   "link_count": 0,
-   "link_to": "Area KPI Review",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Area KPI Review Year To Date",
-   "link_count": 0,
-   "link_to": "Area KPI Review Year To Date",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2025-09-02 16:13:16.627804",
+ "modified": "2026-01-22 08:02:27.093442",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "Industrial Relations",
  "public": 1,
  "quick_lists": [],
  "roles": [
@@ -424,24 +413,25 @@
    "role": "System Manager"
   },
   {
-   "role": "IR Officer"
+   "role": "IR Manager"
   },
   {
-   "role": "IR Manager"
+   "role": "IR Officer"
   },
   {
    "role": "IR User"
   }
  ],
- "sequence_id": 39.0,
+ "sequence_id": 47.0,
  "shortcuts": [
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Industrial Relations Dashboard",
+   "label": "Dashboard",
    "link_to": "Industrial Relations",
    "type": "Dashboard"
   }
  ],
- "title": "Industrial Relations"
+ "title": "Industrial Relations",
+ "type": "Workspace"
 }

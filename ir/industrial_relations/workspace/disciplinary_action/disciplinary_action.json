@@ -1,7 +1,12 @@
 {
  "app": "ir",
- "charts": [],
- "content": "[{\"id\":\"bodiLKBqu2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Disciplinary Action</span>\",\"col\":12}}]",
+ "charts": [
+  {
+   "chart_name": "Disciplinary Actions \u2013 Status",
+   "label": "Disciplinary Actions \u2013 Status"
+  }
+ ],
+ "content": "[{\"id\":\"bodiLKBqu2\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Disciplinary Action</span>\",\"col\":12}},{\"id\":\"dBRcm7ibZY\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Actions \u2013 Status\",\"col\":12}},{\"id\":\"D4_FHJLWR-\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"si52n27Dd6\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action Documents\",\"col\":4}},{\"id\":\"JlA3jGfE1y\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action\",\"col\":4}},{\"id\":\"n5hbO8Ctdy\",\"type\":\"card\",\"data\":{\"card_name\":\"General Documents\",\"col\":4}}]",
  "creation": "2026-01-15 12:00:29.644977",
  "custom_blocks": [],
  "docstatus": 0,
@@ -14,8 +19,195 @@
  "is_hidden": 0,
  "label": "Disciplinary Action",
  "link_type": "DocType",
- "links": [],
- "modified": "2026-01-15 12:06:37.342290",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Code",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Schedule of Offences",
+   "link_count": 0,
+   "link_to": "Schedule of Offences",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action Documents",
+   "link_count": 10,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Suspension Form",
+   "link_count": 0,
+   "link_to": "Suspension Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "NTA Hearing",
+   "link_count": 0,
+   "link_to": "NTA Hearing",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hearing Cancellation Form",
+   "link_count": 0,
+   "link_to": "Hearing Cancellation Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Warning Form",
+   "link_count": 0,
+   "link_to": "Warning Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Demotion Form",
+   "link_count": 0,
+   "link_to": "Demotion Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pay Deduction Form",
+   "link_count": 0,
+   "link_to": "Pay Deduction Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pay Reduction Form",
+   "link_count": 0,
+   "link_to": "Pay Reduction Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Not Guilty Form",
+   "link_count": 0,
+   "link_to": "Not Guilty Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dismissal Form",
+   "link_count": 0,
+   "link_to": "Dismissal Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Written Outcome",
+   "link_count": 0,
+   "link_to": "Written Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General Documents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Voluntary Seperation Agreement",
+   "link_count": 0,
+   "link_to": "Voluntary Seperation Agreement",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Union",
+   "link_count": 0,
+   "link_to": "Trade Union",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trade Union Membership",
+   "link_count": 0,
+   "link_to": "Trade Union Membership",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-21 12:43:41.196863",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",
