@@ -179,6 +179,9 @@ scheduler_events = {
 		"ir.controllers.outstanding_incapacities.outstanding_incapacities",
     	"ir.controllers.outstanding_external_disputes.outstanding_external_disputes",
         "ir.controllers.retirement_age.retirement_age"
+	],
+	"daily": [
+		"ir.controllers.attendance_sync.enqueue_daily_sync",
 	]
 }
 after_migrate = [
@@ -194,5 +197,13 @@ doc_events = {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+	},
+    "Employee Checkin": {
+		"after_insert": "ir.controllers.attendance_sync.on_employee_checkin",
+	},
+	"Leave Application": {
+		"on_submit": "ir.controllers.attendance_sync.on_leave_application_change",
+		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",
+		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 	}
 }
