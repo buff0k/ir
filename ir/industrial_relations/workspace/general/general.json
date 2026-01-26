@@ -1,0 +1,123 @@
+{
+ "app": "ir",
+ "charts": [],
+ "content": "[{\"id\":\"xrxN2OXyDl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">General</span>\",\"col\":12}},{\"id\":\"guJXOy5CJg\",\"type\":\"card\",\"data\":{\"card_name\":\"Managerial Instructions\",\"col\":4}},{\"id\":\"aYYILw--Q6\",\"type\":\"card\",\"data\":{\"card_name\":\"Sit Organograms\",\"col\":4}},{\"id\":\"kN_lKSsVmI\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Maintenance\",\"col\":4}}]",
+ "creation": "2026-01-26 13:04:55.907773",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "briefcase-business",
+ "idx": 1,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "General",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Managerial Instructions",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Managerial Instructions",
+   "link_count": 0,
+   "link_to": "Managerial Instructions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sit Organograms",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Display Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Maintenance",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee",
+   "link_count": 0,
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination Form",
+   "link_count": 0,
+   "link_to": "Termination Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-26 13:28:34.079441",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "General",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  }
+ ],
+ "sequence_id": 50.0,
+ "shortcuts": [],
+ "title": "General",
+ "type": "Workspace"
+}

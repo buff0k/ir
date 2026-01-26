@@ -108,7 +108,8 @@ fixtures = [
 	{"dt": "Custom Field", "filters": [["dt", "in", [
     	"Employee",
     	"Designation",
-		"Employee Checkin"
+		"Employee Checkin",
+        "Leave Application"
 	]]]},
 	{"dt": "Property Setter", "filters": [["doc_type", "in", [
     	"Employee",

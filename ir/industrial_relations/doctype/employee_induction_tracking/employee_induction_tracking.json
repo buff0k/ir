@@ -12,7 +12,12 @@
   "inductions_required",
   "column_break_ymxd",
   "employee_name",
+  "designation",
   "branch",
+  "id_number",
+  "designated_group",
+  "occupational_level",
+  "is_disabled",
   "employee_skills_matrix_section",
   "skills_matrix",
   "employee_induction_history_section",
@@ -65,7 +70,8 @@
    "fieldname": "induction_history",
    "fieldtype": "Table",
    "label": "Employee Valid Inductions",
-   "options": "Employee Induction Child"
+   "options": "Employee Induction Child",
+   "read_only": 1
   },
   {
    "fieldname": "inductions_required",
@@ -82,12 +88,46 @@
   {
    "fieldname": "skills_matrix",
    "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "label": "RSA ID Number / Passport",
+   "read_only": 1
+  },
+  {
+   "fieldname": "designated_group",
+   "fieldtype": "Link",
+   "label": "Designated Group",
+   "options": "Designated Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "occupational_level",
+   "fieldtype": "Link",
+   "label": "Occupational Level",
+   "options": "Occupational Level",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_disabled",
+   "fieldtype": "Check",
+   "label": "Is Disabled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-21 09:12:33.673508",
+ "modified": "2026-01-26 13:57:28.443290",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",

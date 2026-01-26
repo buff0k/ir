@@ -21,11 +21,35 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "briefcase-business",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "General",
+   "link_to": "General",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "person-standing",
    "indent": 0,
    "keep_closed": 0,
    "label": "Disciplinary Action",
    "link_to": "Disciplinary Action",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "book-open-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Training",
+   "link_to": "Training",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -43,7 +67,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-21 12:55:03.564055",
+ "modified": "2026-01-26 13:06:56.350233",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
