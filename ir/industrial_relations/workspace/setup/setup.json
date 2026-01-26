@@ -1,7 +1,7 @@
 {
  "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"x9ie0oTb51\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"Q6YOK_Ne--\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"GzhwzTqVAV\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"6X46BkydMQ\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"vXz5XRIBeE\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"SzShXPEI9e\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"oQhrMtdyhp\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"K5Ws8zcUm9\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination\",\"col\":4}}]",
+ "content": "[{\"id\":\"x9ie0oTb51\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"Q6YOK_Ne--\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"GzhwzTqVAV\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"6X46BkydMQ\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"vXz5XRIBeE\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"SzShXPEI9e\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"oQhrMtdyhp\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"K5Ws8zcUm9\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination\",\"col\":4}},{\"id\":\"y-vbI54hn1\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}}]",
  "creation": "2025-07-17 08:49:36.496342",
  "custom_blocks": [],
  "docstatus": 0,
@@ -476,9 +476,38 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Induction",
+   "link_count": 0,
+   "link_to": "Employee Induction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Facilitator",
+   "link_count": 0,
+   "link_to": "Facilitator",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-21 12:50:15.352247",
+ "modified": "2026-01-26 11:34:38.250911",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Setup",
