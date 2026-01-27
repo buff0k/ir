@@ -7,7 +7,7 @@ def check_app_permission():
         return True
 
     # Check if the user has any of the required roles
-    required_roles = ["System Manager", "IR Manager", "IR User"]
+    required_roles = ["System Manager", "IR Manager", "IR User", "Payroll Manager", "Payroll User", "HR Manager", "HR User", "IR Officer", "Training Manager", "Training Facilitator", "Training Administrator"]
     user_roles = frappe.get_roles(frappe.session.user)
 
     # Grant access if the user has at least one of the required roles
