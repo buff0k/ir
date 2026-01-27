@@ -93,13 +93,13 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-26 13:28:34.079441",
+ "modified": "2026-01-27 11:06:05.852984",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "General",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "Industrial Relations",
  "public": 1,
  "quick_lists": [],
  "roles": [

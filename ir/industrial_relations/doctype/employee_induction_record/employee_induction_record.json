@@ -13,11 +13,17 @@
   "employee_name",
   "designation",
   "branch",
-  "training_details_section",
+  "facilitator_details_section",
   "facilitator",
   "institution",
   "column_break_xgti",
-  "facilitator_names"
+  "facilitator_names",
+  "training_details_section",
+  "training",
+  "column_break_zxhl",
+  "training_date",
+  "valid_from",
+  "valid_to"
  ],
  "fields": [
   {
@@ -72,11 +78,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "training_details_section",
-   "fieldtype": "Section Break",
-   "label": "Training Details"
-  },
-  {
    "fieldname": "facilitator",
    "fieldtype": "Link",
    "label": "Facilitator",
@@ -98,13 +99,53 @@
    "fieldtype": "Data",
    "label": "Facilitator Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "facilitator_details_section",
+   "fieldtype": "Section Break",
+   "label": "Facilitator Details"
+  },
+  {
+   "fieldname": "training_details_section",
+   "fieldtype": "Section Break",
+   "label": "Training Details"
+  },
+  {
+   "fieldname": "training",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Training or Induction",
+   "options": "Employee Induction",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_zxhl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "training_date",
+   "fieldtype": "Date",
+   "label": "Training Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Training or Induction Valid From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Training or Induction Valid To",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-26 14:50:22.406167",
+ "modified": "2026-01-27 08:59:04.033608",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",

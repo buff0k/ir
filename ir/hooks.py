@@ -6,17 +6,17 @@ app_publisher = "BuFf0k"
 app_description = "Industrial Relations management Application for ERPNext and with HRMS"
 app_email = "buff0k@buff0k.co.za"
 app_license = "mit"
-app_version = "1.0.2"
+app_version = "1.0.8"
 required_apps = ["frappe/hrms"]
 source_link = "http://github.com/buff0k/ir"
 app_logo_url = "/assets/ir/images/ir-logo.svg"
-app_home = "/app/industrial-relations"
+app_home = "/desk/industrial-relations"
 add_to_apps_screen = [
 	{
-		"name": "ir",
+		"name": app_name,
 		"logo": "/assets/ir/images/ir-logo.svg",
-		"title": "Industrial Relations",
-		"route": "/app/industrial-relations",
+		"title": app_title,
+		"route": app_home,
 		"has_permission": "ir.industrial_relations.utils.check_app_permission",
 	}
 ]

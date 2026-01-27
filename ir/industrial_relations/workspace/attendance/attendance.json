@@ -12,7 +12,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "Attendance Tracking",
+ "label": "Attendance",
  "link_type": "DocType",
  "links": [
   {
@@ -65,13 +65,13 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-27 08:32:31.205541",
+ "modified": "2026-01-27 12:37:18.461160",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Attendance Tracking",
+ "name": "Attendance",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "Industrial Relations",
  "public": 1,
  "quick_lists": [],
  "roles": [
@@ -102,6 +102,6 @@
  ],
  "sequence_id": 51.0,
  "shortcuts": [],
- "title": "Attendance Tracking",
+ "title": "Attendance",
  "type": "Workspace"
 }
