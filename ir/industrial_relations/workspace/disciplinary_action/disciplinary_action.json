@@ -1,12 +1,7 @@
 {
  "app": "ir",
- "charts": [
-  {
-   "chart_name": "Disciplinary Actions \u2013 Status",
-   "label": "Disciplinary Actions \u2013 Status"
-  }
- ],
- "content": "[{\"id\":\"cV8ew0EcyA\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Disciplinary Action</span>\",\"col\":12}},{\"id\":\"Kla2IGCEkv\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Actions \u2013 Status\",\"col\":12}},{\"id\":\"VVDZlp25nr\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"gzhReXsL3T\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action Documents\",\"col\":4}},{\"id\":\"PM9nkJaJUW\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action\",\"col\":4}},{\"id\":\"qOVym342fE\",\"type\":\"card\",\"data\":{\"card_name\":\"General Documents\",\"col\":4}}]",
+ "charts": [],
+ "content": "[{\"id\":\"cV8ew0EcyA\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Disciplinary Action</span>\",\"col\":12}},{\"id\":\"VVDZlp25nr\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"gzhReXsL3T\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action Documents\",\"col\":4}},{\"id\":\"PM9nkJaJUW\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Action\",\"col\":4}},{\"id\":\"qOVym342fE\",\"type\":\"card\",\"data\":{\"card_name\":\"General Documents\",\"col\":4}}]",
  "creation": "2026-01-27 13:42:23.284929",
  "custom_blocks": [],
  "docstatus": 0,
@@ -208,7 +203,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-27 13:47:58.632546",
+ "modified": "2026-01-27 14:24:03.556882",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

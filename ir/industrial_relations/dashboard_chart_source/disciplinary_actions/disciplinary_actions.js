@@ -4,6 +4,7 @@
 frappe.dashboards.chart_sources["Disciplinary Actions"] = {
   method:
     "ir.industrial_relations.dashboard_chart_source.disciplinary_actions.disciplinary_actions.get",
+  no_cache: 1,
   filters: [
     {
       fieldname: "branch",
