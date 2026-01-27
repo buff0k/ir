@@ -57,6 +57,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "money-coins-1",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Attendance",
+   "link_to": "Attendance Tracking",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "setting-gear",
    "indent": 0,
    "keep_closed": 0,
@@ -67,7 +79,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-26 13:06:56.350233",
+ "modified": "2026-01-27 08:33:51.420459",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

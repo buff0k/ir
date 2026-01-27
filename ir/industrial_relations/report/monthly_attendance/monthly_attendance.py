@@ -16,13 +16,13 @@ ATTENDANCE_DEVICE_ID_FIELDNAME = "attendance_device_id"
 # Sites where ONLY Sunday is treated as weekend
 SUNDAY_ONLY_WEEKEND_SITES = {"klipfontein", "gwab"}
 
-# IR Leave Application fields (manual hours)
+# Leave Application fields (manual hours)
 IR_LEAVE_APP_DOCTYPE = "Leave Application"
-IR_LEAVE_EMP_FIELD = "employee_coco"
-IR_LEAVE_FROM_FIELD = "from_date_coco"
-IR_LEAVE_TO_FIELD = "to_date_coco"
+IR_LEAVE_EMP_FIELD = "employee"
+IR_LEAVE_FROM_FIELD = "from_date"
+IR_LEAVE_TO_FIELD = "to_date"
 IR_LEAVE_HOURS_FIELD = "custom_total_leave_hours"
-IR_LEAVE_HALF_DAY_FIELD = "half_day_coco"
+IR_LEAVE_HALF_DAY_FIELD = "half_day_date"
 
 # Fixed holiday dates to apply EVERY YEAR (month, day)
 FIXED_HOLIDAYS_MD: List[Tuple[int, int]] = [
@@ -261,7 +261,7 @@ def _load_leave_hours_by_emp_date_for_no_shift_device_emps(
 ) -> Dict[Tuple[str, date], float]:
     """
     Cross-month accurate:
-    - per-day = total_hours_coco / total_days(from_date..to_date)
+    - per-day = custom_total_leave_hours / total_days(from_date..to_date)
     - apply only days inside this report period (16..15)
     Only submitted leaves (docstatus=1) are counted.
     """

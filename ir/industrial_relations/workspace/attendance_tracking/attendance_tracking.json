@@ -1,0 +1,107 @@
+{
+ "app": "ir",
+ "charts": [],
+ "content": "[{\"id\":\"K6qZV56Cbb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Attendance Tracking</span>\",\"col\":12}},{\"id\":\"yfzGuj_r2z\",\"type\":\"card\",\"data\":{\"card_name\":\"Attendance\",\"col\":4}}]",
+ "creation": "2026-01-27 08:28:58.406788",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "money-coins-1",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Attendance Tracking",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance",
+   "link_count": 0,
+   "link_to": "Attendance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Checkin",
+   "link_count": 0,
+   "link_to": "Employee Checkin",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Leave Application",
+   "link_count": 0,
+   "link_to": "Leave Application",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Monthly Attendance",
+   "link_count": 0,
+   "link_to": "Monthly Attendance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-27 08:32:31.205541",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Attendance Tracking",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Payroll Manager"
+  },
+  {
+   "role": "Payroll User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  }
+ ],
+ "sequence_id": 51.0,
+ "shortcuts": [],
+ "title": "Attendance Tracking",
+ "type": "Workspace"
+}
