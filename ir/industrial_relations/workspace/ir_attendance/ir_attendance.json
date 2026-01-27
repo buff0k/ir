@@ -1,44 +1,25 @@
 {
  "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"xrxN2OXyDl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">General</span>\",\"col\":12}},{\"id\":\"guJXOy5CJg\",\"type\":\"card\",\"data\":{\"card_name\":\"Managerial Instructions\",\"col\":4}},{\"id\":\"aYYILw--Q6\",\"type\":\"card\",\"data\":{\"card_name\":\"Sit Organograms\",\"col\":4}},{\"id\":\"kN_lKSsVmI\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Maintenance\",\"col\":4}}]",
- "creation": "2026-01-26 13:04:55.907773",
+ "content": "[{\"id\":\"wECMhmTbNU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Attendance</span>\",\"col\":12}},{\"id\":\"KN6XMPzk6q\",\"type\":\"card\",\"data\":{\"card_name\":\"Attendance Tracking\",\"col\":4}}]",
+ "creation": "2026-01-27 13:49:25.261811",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "briefcase-business",
- "idx": 1,
+ "icon": "money-coins-1",
+ "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "General",
+ "label": "IR Attendance",
  "link_type": "DocType",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Managerial Instructions",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Managerial Instructions",
-   "link_count": 0,
-   "link_to": "Managerial Instructions",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sit Organograms",
-   "link_count": 2,
+   "label": "Attendance Tracking",
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -46,9 +27,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Display Site Organogram",
+   "label": "Monthly Attendance",
    "link_count": 0,
-   "link_to": "Site Organogram",
+   "link_to": "Monthly Attendance",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -56,9 +37,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Site Organogram",
+   "label": "Employee Checkin",
    "link_count": 0,
-   "link_to": "Site Organogram",
+   "link_to": "Employee Checkin",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -66,18 +47,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Employee Maintenance",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employee",
+   "label": "Attendance",
    "link_count": 0,
-   "link_to": "Employee",
+   "link_to": "Attendance",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -85,18 +57,38 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Termination Form",
+   "label": "Leave Application",
    "link_count": 0,
-   "link_to": "Termination Form",
+   "link_to": "Leave Application",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Assignment Tool",
+   "link_count": 0,
+   "link_to": "Shift Assignment Tool",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Type",
+   "link_count": 0,
+   "link_to": "Shift Type",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-01-27 11:06:05.852984",
+ "modified": "2026-01-27 13:51:29.209809",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "General",
+ "name": "IR Attendance",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "Industrial Relations",
@@ -105,6 +97,18 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Payroll Manager"
+  },
+  {
+   "role": "Payroll User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
   },
   {
    "role": "IR Manager"
@@ -118,6 +122,6 @@
  ],
  "sequence_id": 50.0,
  "shortcuts": [],
- "title": "General",
+ "title": "IR Attendance",
  "type": "Workspace"
 }

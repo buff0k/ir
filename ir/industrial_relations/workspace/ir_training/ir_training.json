@@ -1,8 +1,8 @@
 {
  "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"JJHj1axWlF\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Training</span>\",\"col\":12}},{\"id\":\"gqJ9xJ0aAx\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}}]",
- "creation": "2026-01-26 12:58:47.540243",
+ "content": "[{\"id\":\"yVrEivXhJ7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Training and Induction</span>\",\"col\":12}},{\"id\":\"pgUyCE2QEy\",\"type\":\"card\",\"data\":{\"card_name\":\"Training and Induction\",\"col\":4}}]",
+ "creation": "2026-01-27 13:52:36.324817",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -12,27 +12,17 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "Training",
+ "label": "IR Training",
  "link_type": "DocType",
  "links": [
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Training",
+   "label": "Training and Induction",
    "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employee Induction Tracking",
-   "link_count": 0,
-   "link_to": "Employee Induction Tracking",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -43,12 +33,22 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Induction Tracking",
+   "link_count": 0,
+   "link_to": "Employee Induction Tracking",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-27 11:06:51.206910",
+ "modified": "2026-01-27 13:54:33.149857",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Training",
+ "name": "IR Training",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "Industrial Relations",
@@ -56,23 +56,29 @@
  "quick_lists": [],
  "roles": [
   {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
    "role": "IR User"
-  },
-  {
-   "role": "Training Administrator"
-  },
-  {
-   "role": "Training Facilitator"
   },
   {
    "role": "Training Manager"
   },
   {
-   "role": "System Manager"
+   "role": "Training Facilitator"
+  },
+  {
+   "role": "Training Administrator"
   }
  ],
- "sequence_id": 49.0,
+ "sequence_id": 51.0,
  "shortcuts": [],
- "title": "Training",
+ "title": "IR Training",
  "type": "Workspace"
 }

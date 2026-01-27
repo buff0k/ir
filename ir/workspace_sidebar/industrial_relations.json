@@ -21,11 +21,23 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "alarm-clock-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Dashboard",
+   "link_to": "Industrial Relations",
+   "link_type": "Dashboard",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "briefcase-business",
    "indent": 0,
    "keep_closed": 0,
    "label": "General",
-   "link_to": "General",
+   "link_to": "IR General",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -45,11 +57,11 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "book-open-check",
+   "icon": "money-coins-1",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Training",
-   "link_to": "Training",
+   "label": "Attendance",
+   "link_to": "IR Attendance",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -57,11 +69,11 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "money-coins-1",
+   "icon": "book-open-check",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Attendance",
-   "link_to": "Attendance Tracking",
+   "label": "Training",
+   "link_to": "IR Training",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -73,13 +85,13 @@
    "indent": 0,
    "keep_closed": 0,
    "label": "Setup",
-   "link_to": "Setup",
+   "link_to": "IR Setup",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-01-27 08:33:51.420459",
+ "modified": "2026-01-27 14:02:31.806129",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
