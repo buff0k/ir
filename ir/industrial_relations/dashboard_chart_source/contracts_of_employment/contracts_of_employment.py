@@ -23,7 +23,7 @@ def get(chart_name=None, chart=None, no_cache=None, filters=None,
     saved = frappe.db.count("Contract of Employment", {"docstatus": 0, **cond})
 
     return {
-        "labels": [_("Submitted"), _("Saved")],
+        "labels": [_("Completed"), _("Outstanding")],
         "datasets": [{"name": _("Documents"), "values": [submitted, saved]}],
         "type": "pie",
     }

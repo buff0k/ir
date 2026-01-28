@@ -22,7 +22,7 @@ def get(chart_name=None, chart=None, no_cache=None, filters=None,
     saved = frappe.db.count("Disciplinary Action", {"docstatus": 0, **cond})
 
     return {
-        "labels": ["Submitted", "Saved"],
+        "labels": ["Concluded", "Pending"],
         "datasets": [
             {
                 "name": "Documents",
