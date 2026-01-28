@@ -19,7 +19,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Training and Induction",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -43,9 +43,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Training Matrix",
+   "link_count": 0,
+   "link_to": "Training Matrix",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-27 13:54:33.149857",
+ "modified": "2026-01-28 15:21:06.271526",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Training",
