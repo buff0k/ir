@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:{employee} - {training} - {training_date}",
  "creation": "2026-01-26 13:52:54.393610",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -20,10 +21,13 @@
   "facilitator_names",
   "training_details_section",
   "training",
+  "certificate",
   "column_break_zxhl",
   "training_date",
   "valid_from",
-  "valid_to"
+  "valid_to",
+  "proof_of_training_section",
+  "evidence"
  ],
  "fields": [
   {
@@ -131,24 +135,40 @@
   {
    "fieldname": "valid_from",
    "fieldtype": "Date",
-   "label": "Training or Induction Valid From",
-   "reqd": 1
+   "label": "Training or Induction Valid From"
   },
   {
    "fieldname": "valid_to",
    "fieldtype": "Date",
-   "label": "Training or Induction Valid To",
-   "reqd": 1
+   "label": "Training or Induction Valid To"
+  },
+  {
+   "description": "Attach all documents pertaining to the Portfolio of Evidence, except Certificates",
+   "fieldname": "proof_of_training_section",
+   "fieldtype": "Section Break",
+   "label": "Proof of Training"
+  },
+  {
+   "fieldname": "evidence",
+   "fieldtype": "Table",
+   "label": "Portfolio of Evidence",
+   "options": "Training Evidence List"
+  },
+  {
+   "fieldname": "certificate",
+   "fieldtype": "Attach",
+   "label": "Training Certificate"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-27 08:59:04.033608",
+ "modified": "2026-01-28 11:52:11.522293",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

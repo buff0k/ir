@@ -18,10 +18,8 @@
   "designated_group",
   "occupational_level",
   "is_disabled",
-  "employee_skills_matrix_section",
-  "skills_matrix",
   "employee_induction_history_section",
-  "induction_history"
+  "induction_history_html"
  ],
  "fields": [
   {
@@ -36,12 +34,16 @@
   {
    "fieldname": "employee_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee Name",
    "read_only": 1
   },
   {
    "fieldname": "branch",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee Site",
    "options": "Branch",
    "read_only": 1
@@ -63,15 +65,7 @@
   },
   {
    "fieldname": "employee_induction_history_section",
-   "fieldtype": "Section Break",
-   "label": "Employee Induction History"
-  },
-  {
-   "fieldname": "induction_history",
-   "fieldtype": "Table",
-   "label": "Employee Valid Inductions",
-   "options": "Employee Induction Child",
-   "read_only": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "inductions_required",
@@ -79,15 +73,6 @@
    "label": "Required Inductions",
    "options": "Employee Required Inductions",
    "reqd": 1
-  },
-  {
-   "fieldname": "employee_skills_matrix_section",
-   "fieldtype": "Section Break",
-   "label": "Employee Skills Matrix"
-  },
-  {
-   "fieldname": "skills_matrix",
-   "fieldtype": "HTML"
   },
   {
    "fieldname": "id_number",
@@ -119,15 +104,21 @@
   {
    "fieldname": "designation",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Designation",
    "options": "Designation",
    "read_only": 1
+  },
+  {
+   "fieldname": "induction_history_html",
+   "fieldtype": "HTML"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-26 13:57:28.443290",
+ "modified": "2026-01-28 11:51:39.341218",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",
@@ -188,5 +179,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "employee"
+ "title_field": "employee",
+ "track_changes": 1
 }

@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class EmployeeInductionChild(Document):
+class TrainingEvidence(Document):
 	pass

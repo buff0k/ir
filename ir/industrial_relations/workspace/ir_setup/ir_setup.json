@@ -292,7 +292,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Training",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -316,9 +316,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training Evidence",
+   "link_count": 0,
+   "link_to": "Training Evidence",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-27 14:00:33.750185",
+ "modified": "2026-01-28 09:50:06.778163",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",
