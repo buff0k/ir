@@ -12,3 +12,5 @@ ir.patches.update_outcome_linked_nta
 ir.patches.convert_richtext_to_markdown
 ir.patches.patch_clear_disc_action_child_table
 ir.patches.patch_clear_incap_child_table
+ir.patches.za_local_migrate_employee_fields
+

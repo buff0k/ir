@@ -19,7 +19,7 @@ frappe.ui.form.on('Contract of Employment', {
                 frm.set_value('date_of_joining', doc.date_of_joining || '');
                 frm.set_value('company', doc.company || '');
                 frm.set_value('designation', doc.designation || '');
-                frm.set_value('custom_id_number', doc.custom_id_number || '');
+                frm.set_value('custom_id_number', doc.za_id_number || '');
                 frm.set_value('branch', doc.branch || '');
             
                 const addressLines = (doc.current_address || '').split('\n').map(line => line.trim());

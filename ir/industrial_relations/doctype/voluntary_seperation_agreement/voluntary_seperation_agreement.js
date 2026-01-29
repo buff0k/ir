@@ -83,7 +83,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 frm.set_value('position', doc.designation || '');
                 frm.set_value('company', doc.company || '');
                 frm.set_value('engagement_date', doc.date_of_joining || '');
-                frm.set_value('custom_id_number', doc.custom_id_number || '');
+                frm.set_value('custom_id_number', doc.za_id_number || '');
             
                 // Combine the current address lines into a single line
                 const addressLines = (doc.current_address || '').split('\n').map(line => line.trim());

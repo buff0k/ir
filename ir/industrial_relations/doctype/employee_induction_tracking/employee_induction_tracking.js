@@ -84,7 +84,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
       frm.set_value("engagement_date", v.date_of_joining || null);
       frm.set_value("designation", v.designation || null);
       frm.set_value("branch", v.branch || null);
-      frm.set_value("id_number", v.custom_id_number || null);
+      frm.set_value("id_number", v.za_id_number || null);
       frm.set_value("designated_group", v.custom_designated_group || null);
       frm.set_value("occupational_level", v.custom_occupational_level || null);
       frm.set_value("is_disabled", v.custom_disabled_employee ? 1 : 0);

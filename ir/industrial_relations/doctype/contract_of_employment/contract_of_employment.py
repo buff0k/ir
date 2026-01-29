@@ -88,7 +88,7 @@ class ContractofEmployment(Document):
         if not self.date_of_joining:
             self.date_of_joining = frappe.db.get_value('Employee', self.employee, 'date_of_joining')
         if not self.custom_id_number:
-            self.custom_id_number = frappe.db.get_value('Employee', self.employee, 'custom_id_number')
+            self.custom_id_number = frappe.db.get_value('Employee', self.employee, 'za_id_number')
         if not self.branch:
             self.branch = frappe.db.get_value('Employee', self.employee, 'branch')
         if not self.retirement_age:

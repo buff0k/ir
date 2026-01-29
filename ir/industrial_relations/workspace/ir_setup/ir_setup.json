@@ -125,75 +125,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Employment Equity",
-   "link_count": 6,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Designated Group",
-   "link_count": 0,
-   "link_to": "Designated Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Occupational Level",
-   "link_count": 0,
-   "link_to": "Occupational Level",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Economically Active Population",
-   "link_count": 0,
-   "link_to": "Economically Active Population",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity Sectoral Targets",
-   "link_count": 0,
-   "link_to": "Employment Equity Sectoral Targets",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity Sectors",
-   "link_count": 0,
-   "link_to": "Employment Equity Sectors",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity Target",
-   "link_count": 0,
-   "link_to": "Employment Equity Target",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Contract of Employment",
    "link_count": 2,
    "link_type": "DocType",
@@ -326,9 +257,68 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Occupational Level",
+   "link_count": 0,
+   "link_to": "Occupational Level",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Economically Active Population",
+   "link_count": 0,
+   "link_to": "Economically Active Population",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Sectoral Targets",
+   "link_count": 0,
+   "link_to": "Employment Equity Sectoral Targets",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Sectors",
+   "link_count": 0,
+   "link_to": "Employment Equity Sectors",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Target",
+   "link_count": 0,
+   "link_to": "Employment Equity Target",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-28 09:50:06.778163",
+ "modified": "2026-01-29 11:06:43.667259",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",
