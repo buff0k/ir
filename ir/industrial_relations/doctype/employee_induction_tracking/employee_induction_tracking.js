@@ -71,10 +71,10 @@ frappe.ui.form.on("Employee Induction Tracking", {
       "date_of_joining",
       "designation",
       "branch",
-      "custom_id_number",
-      "custom_designated_group",
+      "za_id_number",
+      "za_race",
       "custom_occupational_level",
-      "custom_disabled_employee",
+      "za_is_disabled",
     ];
 
     try {
@@ -85,9 +85,9 @@ frappe.ui.form.on("Employee Induction Tracking", {
       frm.set_value("designation", v.designation || null);
       frm.set_value("branch", v.branch || null);
       frm.set_value("id_number", v.za_id_number || null);
-      frm.set_value("designated_group", v.custom_designated_group || null);
+      frm.set_value("designated_group", v.za_race || null);
       frm.set_value("occupational_level", v.custom_occupational_level || null);
-      frm.set_value("is_disabled", v.custom_disabled_employee ? 1 : 0);
+      frm.set_value("is_disabled", v.za_is_disabled ? 1 : 0);
     } catch (err) {
       console.error("Failed to fetch Employee details:", err);
       frappe.msgprint({
