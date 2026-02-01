@@ -24,7 +24,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
     const employee = frm.doc.employee;
     if (!employee) return;
 
-    const employee_fields = ["designation", "branch", "custom_occupational_level"];
+    const employee_fields = ["designation", "custom_occupational_level"];
 
     try {
       const r = await frappe.db.get_value("Employee", employee, employee_fields);
@@ -32,7 +32,6 @@ frappe.ui.form.on("Employee Induction Tracking", {
 
       const desired = {
         designation: v.designation || null,
-        branch: v.branch || null,
         occupational_level: v.custom_occupational_level || null,
       };
 

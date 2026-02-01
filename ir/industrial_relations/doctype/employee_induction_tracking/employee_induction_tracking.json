@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": "field:employee",
+ "autoname": "format:{employee} - {branch}",
  "creation": "2026-01-21 07:59:28.583098",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -29,7 +28,7 @@
    "label": "Employee",
    "options": "Employee",
    "reqd": 1,
-   "unique": 1
+   "set_only_once": 1
   },
   {
    "fieldname": "employee_name",
@@ -46,7 +45,8 @@
    "in_standard_filter": 1,
    "label": "Employee Site",
    "options": "Branch",
-   "read_only": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "engagement_date",
@@ -118,11 +118,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-28 11:51:39.341218",
+ "modified": "2026-01-30 06:51:51.127597",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",
- "naming_rule": "By fieldname",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
@@ -179,6 +179,5 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "employee",
  "track_changes": 1
 }

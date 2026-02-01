@@ -7,45 +7,58 @@
  "docstatus": 0,
  "doctype": "Report",
  "filters": [
-    {
-      "fieldname": "area_setup",
-      "label": "Area Setup",
-      "fieldtype": "Link",
-      "options": "Area",
-      "default": null
-    },
-    {
-      "fieldname": "branch",
-      "label": "Branch",
-      "fieldtype": "Link",
-      "options": "Branch",
-      "default": null
-    },
-    {
-      "fieldname": "employee",
-      "label": "Employee",
-      "fieldtype": "Link",
-      "options": "Employee",
-      "default": null
-    },
-    {
-      "fieldname": "employee_status",
-      "label": "Employee Status",
-      "fieldtype": "Select",
-      "options": "\nAll\nActive\nInactive\nSuspended\nLeft",
-      "default": "Active"
-    }
-  ],
+  {
+   "fieldname": "area_setup",
+   "fieldtype": "Link",
+   "label": "Area Setup",
+   "mandatory": 0,
+   "options": "Area Setup",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "mandatory": 0,
+   "options": "Branch",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "mandatory": 0,
+   "options": "Employee",
+   "wildcard_filter": 0
+  },
+  {
+   "default": "Active",
+   "fieldname": "employee_status",
+   "fieldtype": "Select",
+   "label": "Employee Status",
+   "mandatory": 0,
+   "options": "\nActive\nInactive\nSuspended\nLeft",
+   "wildcard_filter": 0
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "mandatory": 0,
+   "options": "Designation",
+   "wildcard_filter": 0
+  }
+ ],
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-01-28 15:45:33.313262",
+ "modified": "2026-02-01 11:08:22.192706",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Training Matrix",
  "owner": "Administrator",
  "prepared_report": 0,
- "ref_doctype": "Employee",
+ "ref_doctype": "Employee Induction Tracking",
  "report_name": "Training Matrix",
  "report_type": "Script Report",
  "roles": [

@@ -3,7 +3,7 @@
 
 frappe.query_reports["Training Matrix"] = {
   freeze: true,
-  freeze_columns: 3,
+  freeze_columns: 3, // Tracking, Employee, Employee Name
 
   filters: [
     {
@@ -23,6 +23,12 @@ frappe.query_reports["Training Matrix"] = {
       label: __("Employee"),
       fieldtype: "Link",
       options: "Employee",
+    },
+    {
+      fieldname: "designation",
+      label: __("Designation"),
+      fieldtype: "Link",
+      options: "Designation",
     },
     {
       fieldname: "employee_status",
@@ -70,12 +76,20 @@ frappe.query_reports["Training Matrix"] = {
   },
 
   formatter: function (value, row, column, data, default_formatter) {
+    // Make Tracking + Employee display just the ID (still clickable)
+    if (column.fieldname === "tracking" && value) {
+      const name_only = String(value).split(":")[0].trim();
+      const url = frappe.utils.get_form_link("Employee Induction Tracking", name_only);
+      return `<a href="${url}">${frappe.utils.escape_html(name_only)}</a>`;
+    }
+
     if (column.fieldname === "employee" && value) {
       const emp = String(value).split(":")[0].trim();
       const url = frappe.utils.get_form_link("Employee", emp);
       return `<a href="${url}">${frappe.utils.escape_html(emp)}</a>`;
     }
 
+    // Only format dynamic induction columns
     if (!column.fieldname || !column.fieldname.startsWith("ind_")) {
       return default_formatter(value, row, column, data);
     }
