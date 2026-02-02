@@ -5,7 +5,7 @@
 import frappe
 
 SIDEBARS_TO_DELETE = [
-    "Disciplinary Action",
+    "Disciplinary Matters",
     "IR General",
     "IR Setup",
     "IR Training",
@@ -13,7 +13,7 @@ SIDEBARS_TO_DELETE = [
 ]
 
 ICONS_TO_DELETE = [
-    "Disciplinary Action",
+    "Disciplinary Matters",
     "IR General",
     "IR Setup",
     "IR Training",

@@ -48,8 +48,8 @@
    "icon": "person-standing",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Disciplinary Action",
-   "link_to": "Disciplinary Action",
+   "label": "Disciplinary Matters",
+   "link_to": "Disciplinary Matters",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -93,7 +93,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "airplay",
+   "icon": "lamp-desk",
    "indent": 0,
    "keep_closed": 0,
    "label": "Desktop",
@@ -103,7 +103,7 @@
    "url": "/desk"
   }
  ],
- "modified": "2026-02-02 11:58:36.608921",
+ "modified": "2026-02-02 12:28:48.823816",
  "modified_by": "eben@isambane.co.za",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

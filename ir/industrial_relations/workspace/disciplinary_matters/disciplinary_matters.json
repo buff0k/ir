@@ -12,7 +12,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "Disciplinary Action",
+ "label": "Disciplinary Matters",
  "link_type": "DocType",
  "links": [
   {
@@ -203,10 +203,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-27 14:24:03.556882",
- "modified_by": "Administrator",
+ "modified": "2026-02-02 12:26:22.312118",
+ "modified_by": "eben@isambane.co.za",
  "module": "Industrial Relations",
- "name": "Disciplinary Action",
+ "name": "Disciplinary Matters",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "Industrial Relations",
@@ -228,6 +228,6 @@
  ],
  "sequence_id": 49.0,
  "shortcuts": [],
- "title": "Disciplinary Action",
+ "title": "Disciplinary Matters",
  "type": "Workspace"
 }
