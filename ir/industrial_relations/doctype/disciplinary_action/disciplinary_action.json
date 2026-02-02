@@ -48,19 +48,7 @@
   "outcome_end",
   "section_break_xdgl",
   "final_charges",
-  "linked_nta",
-  "linked_outcome",
-  "linked_disc_outcome",
-  "linked_warning",
-  "linked_dismissal",
-  "linked_demotion",
-  "linked_pay_deduction",
-  "linked_pay_reduction",
-  "linked_not_guilty",
-  "linked_suspension",
-  "linked_vsp",
-  "linked_cancellation",
-  "linked_appeal"
+  "linked_docs"
  ],
  "fields": [
   {
@@ -244,62 +232,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "linked_nta",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked NTA",
-   "options": "NTA Selector"
-  },
-  {
-   "fieldname": "linked_outcome",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Outcome Report",
-   "options": "Outcome Selector"
-  },
-  {
-   "fieldname": "linked_warning",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Warning",
-   "options": "Warning Selector"
-  },
-  {
-   "fieldname": "linked_dismissal",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Dismissal",
-   "options": "Dismissal Selector"
-  },
-  {
-   "fieldname": "linked_demotion",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Demotion",
-   "options": "Demotion Selector"
-  },
-  {
-   "fieldname": "linked_pay_deduction",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Pay Deduction",
-   "options": "Pay Deduction Selector"
-  },
-  {
-   "fieldname": "linked_not_guilty",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Not Guilty",
-   "options": "Not Guilty Selector"
-  },
-  {
-   "fieldname": "linked_suspension",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Suspension",
-   "options": "Suspension Selector"
-  },
-  {
    "fieldname": "engagement_date",
    "fieldtype": "Data",
    "label": "Date Engaged",
@@ -323,13 +255,6 @@
    "label": "Employee is a Shop Steward For"
   },
   {
-   "fieldname": "linked_vsp",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked VSP",
-   "options": "Voluntary Separation Selector"
-  },
-  {
    "fieldname": "column_break_mysc",
    "fieldtype": "Column Break"
   },
@@ -344,13 +269,6 @@
   {
    "fieldname": "outcome_end",
    "fieldtype": "Read Only"
-  },
-  {
-   "fieldname": "linked_cancellation",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Cancellation",
-   "options": "Cancellation Selector"
   },
   {
    "fieldname": "responsible_ir_section",
@@ -381,36 +299,21 @@
    "label": "Responsible IR Name"
   },
   {
-   "fieldname": "linked_pay_reduction",
-   "fieldtype": "Table MultiSelect",
+   "fieldname": "linked_docs",
+   "fieldtype": "HTML",
    "is_virtual": 1,
-   "label": "Linked Pay Reduction",
-   "options": "Pay Reduction Selector"
-  },
-  {
-   "fieldname": "linked_appeal",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Appeal Against Outcome",
-   "options": "Appeal Selector"
-  },
-  {
-   "fieldname": "linked_disc_outcome",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
-   "label": "Linked Disciplinary Outcome (Legacy)",
-   "options": "Disciplinary Outcome Selector"
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-09-26 09:41:11.853461",
- "modified_by": "Administrator",
+ "modified": "2026-02-02 13:25:56.749474",
+ "modified_by": "eben@isambane.co.za",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
