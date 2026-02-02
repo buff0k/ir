@@ -7,7 +7,7 @@ version = "16.0.0"
 description = "Industrial Relations management Application for ERPNext and with HRMS"
 requires-python = ">=3.14"
 readme = "README.md"
-dynamic = ["version"]
+#dynamic = ["version"]
 dependencies = [
     #"frappe~=16.0.0" # Installed and managed by bench.
 ]
