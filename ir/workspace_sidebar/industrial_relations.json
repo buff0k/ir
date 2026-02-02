@@ -89,10 +89,22 @@
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "airplay",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Desktop",
+   "link_type": "URL",
+   "show_arrow": 0,
+   "type": "Link",
+   "url": "/desk"
   }
  ],
- "modified": "2026-01-27 14:02:31.806129",
- "modified_by": "Administrator",
+ "modified": "2026-02-02 11:58:36.608921",
+ "modified_by": "eben@isambane.co.za",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
  "owner": "Administrator",
