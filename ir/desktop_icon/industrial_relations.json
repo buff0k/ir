@@ -1,0 +1,50 @@
+{
+ "app": "ir",
+ "creation": "2026-01-14 08:06:58.851753",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "App",
+ "idx": 0,
+ "label": "Industrial Relations",
+ "link": "/app/industrial-relations",
+ "link_to": "Industrial Relations",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-logo.svg",
+ "modified": "2026-02-02 11:50:23.483424",
+ "modified_by": "eben@isambane.co.za",
+ "name": "Industrial Relations",
+ "owner": "Administrator",
+ "restrict_removal": 1,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  },
+  {
+   "role": "Payroll Manager"
+  },
+  {
+   "role": "Payroll User"
+  },
+  {
+   "role": "Training Manager"
+  },
+  {
+   "role": "Training Administrator"
+  },
+  {
+   "role": "Training Facilitator"
+  }
+ ],
+ "sidebar": "Industrial Relations",
+ "standard": 1
+}
