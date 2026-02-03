@@ -1,0 +1,39 @@
+{
+ "app": "ir",
+ "creation": "2026-01-14 08:06:58.651262",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "unhide",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Safety",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Desktop",
+   "link_type": "URL",
+   "show_arrow": 0,
+   "type": "Link",
+   "url": "/desk"
+  }
+ ],
+ "modified": "2026-02-02 15:29:01.109980",
+ "modified_by": "Administrator",
+ "module": "Safety",
+ "name": "Safety",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Safety"
+}

@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "training_name",
-  "valid_for"
+  "valid_for",
+  "applicable_sites",
+  "applicable_designations"
  ],
  "fields": [
   {
@@ -29,12 +31,26 @@
    "reqd": 1,
    "search_index": 1,
    "sort_options": 1
+  },
+  {
+   "fieldname": "applicable_sites",
+   "fieldtype": "Table MultiSelect",
+   "label": "Applicable Site(s)",
+   "options": "Branch Selector",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicable_designations",
+   "fieldtype": "Table MultiSelect",
+   "label": "Applicable Designation(s)",
+   "options": "Designation Selector",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-21 09:11:09.177809",
+ "modified": "2026-02-03 06:16:37.733090",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction",
