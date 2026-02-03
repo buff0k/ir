@@ -144,10 +144,11 @@
   },
   {
    "fieldname": "linked_nta",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "HTML",
    "is_virtual": 1,
    "label": "Linked NTA(s)",
-   "options": "NTA Selector"
+   "options": "NTA Selector",
+   "read_only": 1
   },
   {
    "fieldname": "chairperson",
@@ -223,10 +224,11 @@
   },
   {
    "fieldname": "linked_rulings",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "HTML",
    "is_virtual": 1,
    "label": "Linked Ruling(s)",
-   "options": "Ruling Selector"
+   "options": "Ruling Selector",
+   "read_only": 1
   },
   {
    "fieldname": "section_summary",
@@ -373,7 +375,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2025-09-26 13:28:28.986608",
+ "modified": "2026-02-03 08:31:38.221693",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
