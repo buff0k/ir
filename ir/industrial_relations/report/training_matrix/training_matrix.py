@@ -15,46 +15,64 @@ def execute(filters=None):
     today = getdate(nowdate())
     warn_date = getdate(add_days(today, 90))
 
-    employees = _get_employees(filters)
+    # Resolve branch scope ONCE (supports direct Branch filter and Area Setup -> branches)
+    branches = _resolve_branch_set(filters)
+
+    # If a branch scope is provided, we must scope BOTH:
+    #  - Tracking docs (obvious)
+    #  - Employees list (otherwise we still show "all employees" with blank/mismatched rows)
+    employees, tracking_docs_all = _get_employees_and_tracking_scoped(filters, branches)
+
     if not employees:
         return _base_columns(), []
 
     emp_ids = [e["name"] for e in employees]
     emp_map = {e["name"]: e for e in employees}
 
-    tracking_docs_all = _get_tracking_docs(filters, emp_ids)
+    # Ensure tracking docs are limited to these employees (safety)
+    tracking_docs_all = [t for t in tracking_docs_all if t.get("employee") in emp_map]
 
+    # Apply designation filter:
+    # effective_designation = tracking.designation if set else employee.designation
     designation_filter = (filters.get("designation") or "").strip() or None
     tracking_docs = _filter_tracking_by_designation(tracking_docs_all, emp_map, designation_filter)
 
+    # Determine final included employees:
+    # - If no designation filter: employees already scoped by branch (if any)
+    # - If designation filter: include employee if employee.designation matches OR has a matching tracking doc
     included_employees = _filter_employees_by_designation_fallback(
         employees,
         tracking_docs,
         designation_filter,
-        emp_map,
     )
+
     if not included_employees:
         return _base_columns(), []
 
     included_emp_ids = [e["name"] for e in included_employees]
     included_emp_map = {e["name"]: e for e in included_employees}
 
+    # Re-filter tracking docs to included employees only
     tracking_docs = [t for t in tracking_docs if t["employee"] in included_emp_map]
 
+    # Build competency columns from union of required inductions across TRACKING docs in scope
     tracking_names = [t["name"] for t in tracking_docs]
     required_by_tracking, all_inductions = _get_required_inductions(tracking_names)
 
     induction_name_map = _get_induction_names(all_inductions) if all_inductions else {}
     if all_inductions:
         comp_columns, comp_field_map, ordered_inductions = _build_competency_columns(
-            all_inductions,
-            induction_name_map,
+            all_inductions, induction_name_map
         )
     else:
         comp_columns, comp_field_map, ordered_inductions = [], {}, []
 
+    # Index records for included employees
     record_index = _index_records(included_emp_ids, today)
 
+    # Output rows:
+    # - one row per tracking doc for that employee (if any)
+    # - else one blank employee row
     data = []
     tracking_by_employee = {}
     for t in tracking_docs:
@@ -95,6 +113,10 @@ def execute(filters=None):
     columns = _base_columns() + comp_columns
     return columns, data
 
+
+# -----------------------
+# Columns / Rows
+# -----------------------
 
 def _base_columns():
     return [
@@ -147,25 +169,9 @@ def _base_row_employee_only(emp_row):
     }
 
 
-def _get_employees(filters):
-    employee = (filters.get("employee") or "").strip() or None
-    employee_status = (filters.get("employee_status") or "Active").strip() or "Active"
-
-    emp_filters = {}
-    if employee:
-        emp_filters["name"] = employee
-
-    if employee_status != "All":
-        emp_filters["status"] = employee_status
-
-    return frappe.get_all(
-        "Employee",
-        filters=emp_filters,
-        fields=["name", "employee_name", "designation", "branch", "status"],
-        order_by="employee_name asc",
-        limit_page_length=2000,
-    )
-
+# -----------------------
+# Branch scope helpers
+# -----------------------
 
 def _resolve_branch_set(filters):
     branch = (filters.get("branch") or "").strip() or None
@@ -190,12 +196,130 @@ def _resolve_branch_set(filters):
     return sorted(branches)
 
 
-def _get_tracking_docs(filters, employee_ids):
-    branches = _resolve_branch_set(filters)
+def _get_employees_and_tracking_scoped(filters, branches):
+    """
+    If branches are provided, ensure BOTH employees and tracking docs are scoped to those branches.
 
-    t_filters = {"employee": ["in", employee_ids]}
+    Employee scope (when branches provided):
+      - employees whose Employee.branch in branches
+      - OR employees who have at least one tracking doc in branches
+
+    Also applies employee_status + explicit employee filter.
+    """
+    employee = (filters.get("employee") or "").strip() or None
+    employee_status = (filters.get("employee_status") or "Active").strip() or "Active"
+
+    emp_filters_base = {}
+    if employee_status != "All":
+        emp_filters_base["status"] = employee_status
+
+    # If no branch scope -> behave like before: employees first, then tracking docs scoped by branch (none)
+    if not branches:
+        employees = _get_employees(filters)
+        if not employees:
+            return [], []
+        emp_ids = [e["name"] for e in employees]
+        tracking_docs_all = _get_tracking_docs(emp_ids, branches=None)
+        return employees, tracking_docs_all
+
+    # Branch scope exists:
+    # 1) Pull tracking docs in those branches (and employee if explicitly selected)
+    tracking_filters = {}
+    if employee:
+        tracking_filters["employee"] = employee
+
+    tracking_docs_all = _get_tracking_docs(employee_ids=None, branches=branches, extra_filters=tracking_filters)
+
+    emp_ids_from_tracking = {t["employee"] for t in tracking_docs_all if t.get("employee")}
+
+    # 2) Pull employees whose Employee.branch is in branches
+    emp_filters_branch = dict(emp_filters_base)
+    emp_filters_branch["branch"] = ["in", branches]
+    if employee:
+        emp_filters_branch["name"] = employee
+
+    employees_branch = frappe.get_all(
+        "Employee",
+        filters=emp_filters_branch,
+        fields=["name", "employee_name", "designation", "branch", "status"],
+        order_by="employee_name asc",
+        limit_page_length=5000,
+    )
+
+    # 3) Pull employees that appear in tracking docs (even if their Employee.branch doesn't match)
+    employees_tracking = []
+    if emp_ids_from_tracking:
+        emp_filters_tracking = dict(emp_filters_base)
+        emp_filters_tracking["name"] = ["in", sorted(emp_ids_from_tracking)]
+        if employee:
+            emp_filters_tracking["name"] = employee  # explicit employee overrides
+
+        employees_tracking = frappe.get_all(
+            "Employee",
+            filters=emp_filters_tracking,
+            fields=["name", "employee_name", "designation", "branch", "status"],
+            order_by="employee_name asc",
+            limit_page_length=5000,
+        )
+
+    # Merge unique by name
+    merged = {}
+    for e in employees_branch:
+        merged[e["name"]] = e
+    for e in employees_tracking:
+        merged[e["name"]] = e
+
+    employees = sorted(merged.values(), key=lambda x: (x.get("employee_name") or "").lower())
+
+    # If explicit employee filter, also ensure tracking docs are limited to it (already filtered above)
+    return employees, tracking_docs_all
+
+
+# -----------------------
+# Employees (no branch scope)
+# -----------------------
+
+def _get_employees(filters):
+    employee = (filters.get("employee") or "").strip() or None
+    employee_status = (filters.get("employee_status") or "Active").strip() or "Active"
+
+    emp_filters = {}
+    if employee:
+        emp_filters["name"] = employee
+
+    if employee_status != "All":
+        emp_filters["status"] = employee_status
+
+    return frappe.get_all(
+        "Employee",
+        filters=emp_filters,
+        fields=["name", "employee_name", "designation", "branch", "status"],
+        order_by="employee_name asc",
+        limit_page_length=2000,
+    )
+
+
+# -----------------------
+# Tracking Docs
+# -----------------------
+
+def _get_tracking_docs(employee_ids=None, branches=None, extra_filters=None):
+    """
+    Flexible tracking getter:
+      - If employee_ids is provided: restrict employee in employee_ids
+      - If branches is provided: restrict branch in branches
+      - extra_filters: dict merged in (e.g. {"employee": "EMP-0001"})
+    """
+    t_filters = {}
+
+    if employee_ids:
+        t_filters["employee"] = ["in", employee_ids]
+
     if branches:
         t_filters["branch"] = ["in", branches]
+
+    if extra_filters:
+        t_filters.update(extra_filters)
 
     return frappe.get_all(
         "Employee Induction Tracking",
@@ -220,7 +344,7 @@ def _filter_tracking_by_designation(tracking_docs, emp_map, designation_filter):
     return out
 
 
-def _filter_employees_by_designation_fallback(employees, tracking_docs, designation_filter, emp_map):
+def _filter_employees_by_designation_fallback(employees, tracking_docs, designation_filter):
     if not designation_filter:
         return employees
 
@@ -233,6 +357,10 @@ def _filter_employees_by_designation_fallback(employees, tracking_docs, designat
 
     return out
 
+
+# -----------------------
+# Required inductions per tracking doc
+# -----------------------
 
 def _get_required_inductions(tracking_names):
     tracking_names = [t for t in tracking_names if t]
@@ -283,6 +411,8 @@ def _build_competency_columns(induction_ids, induction_name_map):
     columns = []
     field_map = {}
 
+    CARD_COL_WIDTH = 260
+
     for ind in ordered:
         fieldname = f"ind_{frappe.scrub(ind)}"
         field_map[ind] = fieldname
@@ -291,12 +421,16 @@ def _build_competency_columns(induction_ids, induction_name_map):
                 "fieldname": fieldname,
                 "label": induction_name_map.get(ind) or ind,
                 "fieldtype": "Data",
-                "width": 260,
+                "width": CARD_COL_WIDTH,
             }
         )
 
     return columns, field_map, ordered
 
+
+# -----------------------
+# Records index (employee + training)
+# -----------------------
 
 def _index_records(employee_ids, today):
     rows = frappe.get_all(
