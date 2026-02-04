@@ -11,6 +11,8 @@
   "middle_name",
   "last_name",
   "full_name",
+  "column_break_vkct",
+  "id_number",
   "employer_details",
   "supplier"
  ],
@@ -56,12 +58,21 @@
    "label": "Employer Name",
    "options": "Supplier",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vkct",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "label": "ID Number "
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-26 13:42:26.998370",
+ "modified": "2026-02-04 14:52:24.236724",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Facilitator",
