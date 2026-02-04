@@ -13,6 +13,7 @@
   "full_name",
   "column_break_vkct",
   "id_number",
+  "contact",
   "employer_details",
   "supplier"
  ],
@@ -67,12 +68,18 @@
    "fieldname": "id_number",
    "fieldtype": "Data",
    "label": "ID Number "
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Link",
+   "label": "Contact",
+   "options": "Contact"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-04 14:52:24.236724",
+ "modified": "2026-02-04 14:53:26.461556",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Facilitator",
