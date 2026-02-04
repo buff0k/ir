@@ -79,7 +79,7 @@
    "fieldtype": "Link",
    "label": "Employee Site",
    "options": "Branch",
-   "read_only": 1
+   "set_only_once": 1
   },
   {
    "fieldname": "facilitator",
@@ -164,7 +164,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-28 11:52:11.522293",
+ "modified": "2026-02-04 10:14:52.323531",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",
