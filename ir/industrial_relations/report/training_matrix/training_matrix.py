@@ -1,12 +1,12 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
-
 from __future__ import annotations
 
 import json
+
 import frappe
-from frappe.utils import nowdate, add_days, getdate
+from frappe.utils import add_days, getdate, nowdate
 
 
 def execute(filters=None):
@@ -15,7 +15,6 @@ def execute(filters=None):
     today = getdate(nowdate())
     warn_date = getdate(add_days(today, 90))
 
-    # 1) Employees based on employee-level filters
     employees = _get_employees(filters)
     if not employees:
         return _base_columns(), []
@@ -23,48 +22,39 @@ def execute(filters=None):
     emp_ids = [e["name"] for e in employees]
     emp_map = {e["name"]: e for e in employees}
 
-    # 2) Tracking docs (multiple per employee, optionally filtered by branch/area)
     tracking_docs_all = _get_tracking_docs(filters, emp_ids)
 
-    # 3) Apply designation filter with rule:
-    #    effective_designation = tracking.designation if set else employee.designation
     designation_filter = (filters.get("designation") or "").strip() or None
     tracking_docs = _filter_tracking_by_designation(tracking_docs_all, emp_map, designation_filter)
 
-    # 4) Determine final included employees:
-    #    - If no designation filter: all employees from step 1
-    #    - If designation filter:
-    #         include employee if employee.designation matches OR has at least one matching tracking doc
     included_employees = _filter_employees_by_designation_fallback(
         employees,
         tracking_docs,
         designation_filter,
         emp_map,
     )
-
     if not included_employees:
         return _base_columns(), []
 
     included_emp_ids = [e["name"] for e in included_employees]
     included_emp_map = {e["name"]: e for e in included_employees}
 
-    # Re-filter tracking docs to included employees only (safety)
     tracking_docs = [t for t in tracking_docs if t["employee"] in included_emp_map]
 
-    # 5) Build competency columns from union of required inductions across TRACKING docs in scope
     tracking_names = [t["name"] for t in tracking_docs]
     required_by_tracking, all_inductions = _get_required_inductions(tracking_names)
 
     induction_name_map = _get_induction_names(all_inductions) if all_inductions else {}
-    comp_columns, comp_field_map, ordered_inductions = _build_competency_columns(all_inductions, induction_name_map) if all_inductions else ([], {}, [])
+    if all_inductions:
+        comp_columns, comp_field_map, ordered_inductions = _build_competency_columns(
+            all_inductions,
+            induction_name_map,
+        )
+    else:
+        comp_columns, comp_field_map, ordered_inductions = [], {}, []
 
-    # 6) Index records for all included employees (employee + training)
     record_index = _index_records(included_emp_ids, today)
 
-    # 7) Output rows:
-    #    - For each employee:
-    #         * one row per tracking doc (if any)
-    #         * else one blank row
     data = []
     tracking_by_employee = {}
     for t in tracking_docs:
@@ -75,14 +65,13 @@ def execute(filters=None):
         t_list = tracking_by_employee.get(emp_id, [])
 
         if t_list:
-            # one row per tracking doc
-            for t in sorted(t_list, key=lambda x: (x.get("branch") or "", x.get("name") or "")):
+            for t in sorted(t_list, key=lambda x: ((x.get("branch") or ""), (x.get("name") or ""))):
                 row = _base_row_tracking(t, included_emp_map)
-
                 required = set(required_by_tracking.get(t["name"], []))
 
                 for induction_id in ordered_inductions:
                     fieldname = comp_field_map[induction_id]
+
                     if induction_id not in required:
                         row[fieldname] = ""
                         continue
@@ -98,7 +87,6 @@ def execute(filters=None):
 
                 data.append(row)
         else:
-            # blank row (employee exists but has no tracking docs)
             row = _base_row_employee_only(emp)
             for induction_id in ordered_inductions:
                 row[comp_field_map[induction_id]] = ""
@@ -108,24 +96,38 @@ def execute(filters=None):
     return columns, data
 
 
-# -----------------------
-# Columns / Rows
-# -----------------------
-
 def _base_columns():
     return [
-        {"fieldname": "tracking", "label": "Tracking", "fieldtype": "Link", "options": "Employee Induction Tracking", "width": 170},
-        {"fieldname": "employee", "label": "Employee", "fieldtype": "Link", "options": "Employee", "width": 120},
+        {
+            "fieldname": "tracking",
+            "label": "Tracking",
+            "fieldtype": "Link",
+            "options": "Employee Induction Tracking",
+            "width": 170,
+        },
+        {
+            "fieldname": "employee",
+            "label": "Employee",
+            "fieldtype": "Link",
+            "options": "Employee",
+            "width": 120,
+        },
         {"fieldname": "employee_name", "label": "Employee Name", "fieldtype": "Data", "width": 220},
         {"fieldname": "branch", "label": "Branch", "fieldtype": "Link", "options": "Branch", "width": 140},
-        {"fieldname": "designation", "label": "Designation", "fieldtype": "Link", "options": "Designation", "width": 160},
+        {
+            "fieldname": "designation",
+            "label": "Designation",
+            "fieldtype": "Link",
+            "options": "Designation",
+            "width": 160,
+        },
     ]
 
 
 def _base_row_tracking(tracking_row, emp_map):
     emp = emp_map.get(tracking_row["employee"]) or {}
-    # designation display: prefer tracking.designation if set else employee.designation
     effective_designation = tracking_row.get("designation") or emp.get("designation")
+
     return {
         "tracking": tracking_row["name"],
         "employee": tracking_row["employee"],
@@ -136,7 +138,6 @@ def _base_row_tracking(tracking_row, emp_map):
 
 
 def _base_row_employee_only(emp_row):
-    # No tracking doc exists; branch/designation are employee-based (branch can be blank if you prefer)
     return {
         "tracking": None,
         "employee": emp_row["name"],
@@ -146,14 +147,8 @@ def _base_row_employee_only(emp_row):
     }
 
 
-# -----------------------
-# Employees
-# -----------------------
-
 def _get_employees(filters):
     employee = (filters.get("employee") or "").strip() or None
-
-    # Synthetic report filter
     employee_status = (filters.get("employee_status") or "Active").strip() or "Active"
 
     emp_filters = {}
@@ -171,10 +166,6 @@ def _get_employees(filters):
         limit_page_length=2000,
     )
 
-
-# -----------------------
-# Tracking Docs (multiple per employee)
-# -----------------------
 
 def _resolve_branch_set(filters):
     branch = (filters.get("branch") or "").strip() or None
@@ -225,6 +216,7 @@ def _filter_tracking_by_designation(tracking_docs, emp_map, designation_filter):
         effective_designation = t.get("designation") or emp.get("designation")
         if effective_designation == designation_filter:
             out.append(t)
+
     return out
 
 
@@ -238,12 +230,9 @@ def _filter_employees_by_designation_fallback(employees, tracking_docs, designat
     for e in employees:
         if e.get("designation") == designation_filter or e["name"] in emp_with_matching_tracking:
             out.append(e)
+
     return out
 
-
-# -----------------------
-# Required inductions per tracking doc
-# -----------------------
 
 def _get_required_inductions(tracking_names):
     tracking_names = [t for t in tracking_names if t]
@@ -265,6 +254,7 @@ def _get_required_inductions(tracking_names):
         ind = c.get("induction")
         if not parent or not ind:
             continue
+
         required_by_tracking.setdefault(parent, []).append(ind)
         all_inductions.add(ind)
 
@@ -274,6 +264,7 @@ def _get_required_inductions(tracking_names):
 def _get_induction_names(induction_ids):
     if not induction_ids:
         return {}
+
     rows = frappe.get_all(
         "Employee Induction",
         filters={"name": ["in", induction_ids]},
@@ -295,19 +286,17 @@ def _build_competency_columns(induction_ids, induction_name_map):
     for ind in ordered:
         fieldname = f"ind_{frappe.scrub(ind)}"
         field_map[ind] = fieldname
-        columns.append({
-            "fieldname": fieldname,
-            "label": induction_name_map.get(ind) or ind,
-            "fieldtype": "Data",
-            "width": 150,
-        })
+        columns.append(
+            {
+                "fieldname": fieldname,
+                "label": induction_name_map.get(ind) or ind,
+                "fieldtype": "Data",
+                "width": 260,
+            }
+        )
 
     return columns, field_map, ordered
 
-
-# -----------------------
-# Records index (employee + training)
-# -----------------------
 
 def _index_records(employee_ids, today):
     rows = frappe.get_all(
@@ -360,18 +349,22 @@ def _build_cell_payload(emp, induction, idx, today, warn_date):
         "days": None,
         "last": None,
         "scheduled": None,
+        "submitted_record": None,
+        "scheduled_record": None,
     }
 
     if sch and sch.get("training_date"):
         payload["scheduled"] = sch["training_date"].isoformat()
+        payload["scheduled_record"] = sch.get("name")
 
     if not sub:
         return payload
 
+    payload["submitted_record"] = sub.get("name")
+
     if sub.get("training_date"):
         payload["last"] = sub["training_date"].isoformat()
 
-    # No expiry => red
     if not sub.get("valid_to"):
         payload["status"] = "red"
         return payload

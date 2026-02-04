@@ -97,14 +97,15 @@
    "indent": 0,
    "keep_closed": 0,
    "label": "Desktop",
-   "link_type": "URL",
+   "link_to": "desktop",
+   "link_type": "Page",
    "show_arrow": 0,
    "type": "Link",
    "url": "/desk"
   }
  ],
- "modified": "2026-02-02 12:28:48.823816",
- "modified_by": "eben@isambane.co.za",
+ "modified": "2026-02-04 13:09:06.999519",
+ "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
  "owner": "Administrator",
