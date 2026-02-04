@@ -19,13 +19,19 @@ frappe.ui.form.on('Contract of Employment', {
                 frm.set_value('date_of_joining', doc.date_of_joining || '');
                 frm.set_value('company', doc.company || '');
                 frm.set_value('designation', doc.designation || '');
-                frm.set_value('custom_id_number', doc.za_id_number || '');
                 frm.set_value('branch', doc.branch || '');
-            
                 const addressLines = (doc.current_address || '').split('\n').map(line => line.trim());
                 const combinedAddress = addressLines.join(', ');
                 frm.set_value('current_address', combinedAddress);
-
+                const zaId = (doc.za_id_number || '').trim();
+                const passport = (doc.passport_number || '').trim();
+                let idValue = "With ID: ________________________";
+                if (zaId) {
+                    idValue = `With RSA ID: ${zaId}`;
+                } else if (passport) {
+                    idValue = `With Passport No: ${passport}`;
+                }
+                frm.set_value('custom_id_number', idValue);
                 if (doc.company) {
                     frappe.db.get_value('Company', doc.company, 'default_letter_head', (r) => {
                         frm.set_value('letter_head', r.default_letter_head || '');
