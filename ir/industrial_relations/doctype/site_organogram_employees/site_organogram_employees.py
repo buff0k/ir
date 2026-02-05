@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class SiteOrganogramAssets(Document):
+class SiteOrganogramEmployees(Document):
 	pass

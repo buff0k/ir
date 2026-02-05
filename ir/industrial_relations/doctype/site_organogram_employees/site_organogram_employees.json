@@ -1,40 +1,40 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2026-02-04 19:14:32.439322",
+ "creation": "2026-02-04 19:04:37.333500",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "asset",
-  "asset_name",
-  "asset_category"
+  "employee",
+  "employee_name",
+  "designation"
  ],
  "fields": [
   {
-   "fieldname": "asset",
+   "fieldname": "employee",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Asset",
-   "options": "Asset",
+   "label": "Employee",
+   "options": "Employee",
    "reqd": 1
   },
   {
-   "fieldname": "asset_name",
+   "fieldname": "employee_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Asset Name",
+   "label": "Full Name",
    "read_only": 1
   },
   {
-   "fieldname": "asset_category",
+   "fieldname": "designation",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Asset Category",
-   "options": "Asset Category",
+   "label": "Designation",
+   "options": "Designation",
    "read_only": 1
   }
  ],
@@ -42,10 +42,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-04 19:16:19.064701",
+ "modified": "2026-02-04 19:14:53.407543",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Site Organogram Assets",
+ "name": "Site Organogram Employees",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

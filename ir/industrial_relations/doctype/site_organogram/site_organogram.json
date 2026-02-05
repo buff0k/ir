@@ -6,13 +6,22 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "site_organogram_tab",
   "branch",
   "asset_categories",
   "column_break_qkkw",
   "location",
+  "shifts",
+  "group_headings",
   "section_break_ruaa",
-  "employee_list",
-  "html"
+  "html",
+  "employees_tab",
+  "employees",
+  "equipment_tab",
+  "assets",
+  "shift_mapping_tab",
+  "shift_mappings",
+  "amended_from"
  ],
  "fields": [
   {
@@ -21,8 +30,7 @@
    "in_list_view": 1,
    "label": "Site",
    "options": "Branch",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "column_break_qkkw",
@@ -33,41 +41,97 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "employee_list",
-   "fieldtype": "Table",
-   "label": "Employee List",
-   "options": "Site Organogram Details"
-  },
-  {
    "fieldname": "location",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Location",
    "options": "Location",
-   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "html",
-   "fieldtype": "HTML",
-   "label": "Drag and Drop"
+   "fieldtype": "HTML"
   },
   {
    "fieldname": "asset_categories",
    "fieldtype": "Table MultiSelect",
    "label": "Applicable Asset Categories",
-   "options": "Site Organogram Assets",
+   "options": "Site Organogram Asset Categories",
    "reqd": 1
+  },
+  {
+   "fieldname": "shifts",
+   "fieldtype": "Select",
+   "label": "Shift Teams",
+   "non_negative": 1,
+   "options": "\n1\n2\n3\n4\n5",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employees",
+   "options": "Site Organogram Employees"
+  },
+  {
+   "fieldname": "assets",
+   "fieldtype": "Table",
+   "label": "Assets",
+   "options": "Site Organogram Assets"
+  },
+  {
+   "fieldname": "site_organogram_tab",
+   "fieldtype": "Tab Break",
+   "label": "Site Organogram"
+  },
+  {
+   "fieldname": "employees_tab",
+   "fieldtype": "Tab Break",
+   "label": "Employees"
+  },
+  {
+   "fieldname": "equipment_tab",
+   "fieldtype": "Tab Break",
+   "label": "Equipment"
+  },
+  {
+   "fieldname": "group_headings",
+   "fieldtype": "Table",
+   "label": "Group Headings",
+   "options": "Site Organogram Groups",
+   "reqd": 1
+  },
+  {
+   "fieldname": "shift_mapping_tab",
+   "fieldtype": "Tab Break",
+   "label": "Shift Mapping"
+  },
+  {
+   "fieldname": "shift_mappings",
+   "fieldtype": "Table",
+   "label": "Shift Mappings",
+   "options": "Site Organogram Mappings"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Site Organogram",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-07-18 12:08:47.321114",
+ "modified": "2026-02-05 15:55:13.078524",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",
- "naming_rule": "Expression",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

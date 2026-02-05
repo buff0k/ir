@@ -5,48 +5,54 @@ import frappe
 from frappe.utils import getdate, nowdate
 
 
+MIN_VALID_DATE = getdate("2000-01-01")  # adjust if your org legitimately has earlier relieving dates
+
+
 def run_daily():
     """
-    Daily job:
-      - Find Employees with relieving_date in the past AND status == Active:
-          - clear manager chains pointing to them (reports_to), then set to Left
-          - disable linked user (user_id) if present
-      - Extra precaution:
-          - Find Employees already Left but with user_id still enabled -> disable those users too
+    Daily job (SAFE VERSION):
+      - Only act on Employees where relieving_date is set AND is a sane date
+      - relieving_date strictly < today AND status == Active => set to Left (after clearing reports_to chains)
+      - Disable linked users for:
+          a) those just set to Left
+          b) any Employees already Left who still have enabled user accounts
     """
     today = getdate(nowdate())
 
-    # 1) Active employees whose relieving_date is in the past
-    overdue = frappe.get_all(
+    # Pull Active employees with a relieving_date that is set (avoids NULL/empty)
+    candidates = frappe.get_all(
         "Employee",
         fields=["name", "relieving_date", "status", "user_id"],
         filters={
             "status": "Active",
-            "relieving_date": ["<", today],
+            "relieving_date": ["is", "set"],
         },
         limit_page_length=0,
     )
 
-    for emp in overdue:
-        emp_name = emp["name"]
+    overdue = []
+    for emp in candidates:
+        rd = _safe_get_date(emp.get("relieving_date"))
+        if not rd:
+            continue
+        if rd < MIN_VALID_DATE:
+            # Guard against placeholder ancient/zero dates
+            continue
+        if rd < today:
+            overdue.append((emp["name"], emp.get("user_id")))
 
+    for emp_name, user_id in overdue:
         _clear_reports_to_chain_for_terminated_employee(emp_name)
-
-        # set employee to Left
         frappe.db.set_value("Employee", emp_name, "status", "Left", update_modified=False)
 
-        # disable linked user if any
-        if emp.get("user_id"):
-            _disable_user(emp["user_id"])
+        if user_id:
+            _disable_user(user_id)
 
-    # 2) Extra precaution: Left employees with enabled users
+    # Extra precaution: Left employees with enabled users
     left_with_users = frappe.get_all(
         "Employee",
         fields=["name", "user_id"],
-        filters={
-            "status": "Left",
-            "user_id": ["!=", ""],
-        },
+        filters={"status": "Left", "user_id": ["!=", ""]},
         limit_page_length=0,
     )
 
@@ -57,17 +63,32 @@ def run_daily():
     frappe.db.commit()
 
 
+def _safe_get_date(value):
+    """Return a real date or None. Filters out MariaDB 'zero date' cases."""
+    if not value:
+        return None
+
+    # Handle MariaDB zero-date strings if they exist in your DB
+    if isinstance(value, str) and value.strip() in ("0000-00-00", "0000-00-00 00:00:00"):
+        return None
+
+    try:
+        d = getdate(value)
+        # Some edge cases still parse to None
+        return d
+    except Exception:
+        return None
+
+
 def _disable_user(user_id: str):
     if not user_id:
         return
 
-    # In Frappe/ERPNext, User.enabled is the standard checkbox field
     try:
         enabled = frappe.db.get_value("User", user_id, "enabled")
         if enabled:
             frappe.db.set_value("User", user_id, "enabled", 0, update_modified=False)
     except Exception:
-        # If the user record doesn't exist or permissions are odd, skip hard failure
         frappe.log_error(
             title="IR Termination Sync: Failed disabling user",
             message=f"Could not disable user {user_id}",
@@ -76,8 +97,8 @@ def _disable_user(user_id: str):
 
 def _clear_reports_to_chain_for_terminated_employee(terminated_employee: str):
     """
-    Same precaution as TerminationForm step (3):
-    If any employee's reports_to chain leads to terminated_employee, clear their reports_to.
+    Clears reports_to for any employees whose manager chain leads back to terminated_employee.
+    (Cycle-safe)
     """
     if not terminated_employee:
         return

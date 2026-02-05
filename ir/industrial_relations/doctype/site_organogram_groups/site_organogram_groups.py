@@ -1,9 +1,9 @@
-# Copyright (c) 2025, BuFf0k and contributors
+# Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
 # import frappe
 from frappe.model.document import Document
 
 
-class SiteOrganogramDetails(Document):
+class SiteOrganogramGroups(Document):
 	pass
