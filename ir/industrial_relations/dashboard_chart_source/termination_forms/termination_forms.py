@@ -25,7 +25,7 @@ def get(chart_name=None, chart=None, no_cache=None, filters=None,
     saved = frappe.db.count("Termination Form", {"docstatus": 0, **cond})
 
     return {
-        "labels": [_("Submitted"), _("Saved")],
+        "labels": [_("Concluded"), _("Pending Submission")],
         "datasets": [{"name": _("Documents"), "values": [submitted, saved]}],
         "type": "pie",
     }
