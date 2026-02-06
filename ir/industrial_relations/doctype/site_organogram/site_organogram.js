@@ -366,7 +366,7 @@ frappe.ui.form.on("Site Organogram Assets", {
       args: { asset: row.asset },
     }).then((r) => {
       const d = r.message || {};
-      frappe.model.set_value(cdt, cdn, "asset_name", d.asset_name || "");
+      frappe.model.set_value(cdt, cdn, "item_name", d.item_name || "");
       frappe.model.set_value(cdt, cdn, "asset_category", d.asset_category || "");
       render_site_organogram(frm);
     });
@@ -617,7 +617,7 @@ async function sync_assets(frm) {
   for (const row of plan.to_add || []) {
     const child = frm.add_child("assets");
     child.asset = row.asset;
-    child.asset_name = row.asset_name || "";
+    child.item_name = row.item_name || "";
     child.asset_category = row.asset_category || "";
     frm._auto.assets.add(row.asset);
   }
@@ -824,7 +824,7 @@ function designation_card_html(desig) {
 
 function asset_card_html(a, status) {
   const title = a.asset || "";
-  const meta = a.asset_name || "";
+  const meta = a.item_name || "";
 
   let badge = "";
   if (status) {
@@ -949,7 +949,7 @@ function render_site_organogram(frm) {
 
   const pool_assets = assets.filter((a) => {
     if (!q) return true;
-    const hay = `${a.asset} ${a.asset_name || ""} ${a.asset_category || ""}`.toLowerCase();
+    const hay = `${a.asset} ${a.item_name || ""} ${a.asset_category || ""}`.toLowerCase();
     return hay.includes(q.toLowerCase());
   });
 

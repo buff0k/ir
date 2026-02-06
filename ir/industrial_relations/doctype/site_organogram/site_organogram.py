@@ -94,8 +94,8 @@ def sync_assets(location, asset_categories=None, current_assets=None, auto_asset
     rows = frappe.get_all(
         "Asset",
         filters=filters,
-        fields=["name", "asset_name", "asset_category"],
-        order_by="asset_name asc",
+        fields=["name", "item_name", "asset_category"],
+        order_by="item_name asc",
     )
 
     should_auto = {r.name: r for r in rows}
@@ -109,7 +109,7 @@ def sync_assets(location, asset_categories=None, current_assets=None, auto_asset
     for asset_id, r in should_auto.items():
         if asset_id not in current_set:
             to_add.append(
-                {"asset": asset_id, "asset_name": r.asset_name or "", "asset_category": r.asset_category or ""}
+                {"asset": asset_id, "item_name": r.item_name or "", "asset_category": r.asset_category or ""}
             )
 
     return {"to_add": to_add, "to_remove": to_remove}
@@ -120,7 +120,7 @@ def get_asset_details(asset):
     if not asset:
         return {}
     doc = frappe.get_doc("Asset", asset)
-    return {"asset_name": doc.asset_name, "asset_category": doc.asset_category}
+    return {"item_name": doc.item_name, "asset_category": doc.asset_category}
 
 
 @frappe.whitelist()
@@ -141,7 +141,7 @@ def debug_assets_query(location, asset_categories=None):
     sample = frappe.get_all(
         "Asset",
         filters=filters,
-        fields=["name", "asset_name", "asset_category", "location", "docstatus"],
+        fields=["name", "item_name", "asset_category", "location", "docstatus"],
         limit_page_length=10,
         order_by="modified desc",
     )
