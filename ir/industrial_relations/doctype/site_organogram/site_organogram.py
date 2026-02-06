@@ -24,6 +24,57 @@ def _as_list(value):
             return []
     return []
 
+def _ensure_row_order(doc):
+    """
+    Ensure each unique row_key within a (shift, group) gets a stable, sequential row_order.
+    - Doesn’t change your actual mapping rows, just normalizes the stored row_order values.
+    - Defensive: if shift_mappings is missing/empty, does nothing.
+    """
+
+    rows = getattr(doc, "shift_mappings", None) or []
+    if not rows:
+        return
+
+    # Group by (shift, group)
+    buckets = {}
+    for r in rows:
+        shift = (getattr(r, "shift", None) or "").strip()
+        group = (getattr(r, "group", None) or "").strip()
+
+        # row_key should already be present from your UI; if not, fall back gracefully
+        row_key = (getattr(r, "row_key", None) or "").strip()
+        if not row_key:
+            asset = (getattr(r, "asset", None) or "").strip()
+            employee = (getattr(r, "employee", None) or "").strip()
+            if asset:
+                row_key = f"ASSET::{asset}"
+            elif employee:
+                row_key = f"EMP::{employee}"
+            else:
+                # last-resort, stable enough for saving
+                row_key = f"IDX::{getattr(r, 'idx', 0)}"
+
+        buckets.setdefault((shift, group), []).append((row_key, r))
+
+    # For each bucket, assign row_order based on the first time we see each row_key
+    for (_shift, _group), pairs in buckets.items():
+        seen = {}
+        ordered_keys = []
+
+        # 1) build stable key order from appearance
+        for row_key, _r in pairs:
+            if row_key not in seen:
+                seen[row_key] = True
+                ordered_keys.append(row_key)
+
+        # 2) assign sequential row_order (1..n) per unique key
+        key_to_order = {k: i + 1 for i, k in enumerate(ordered_keys)}
+
+        # 3) apply to every mapping row
+        for row_key, r in pairs:
+            r.row_key = row_key
+            r.row_order = key_to_order.get(row_key) or 1
+
 
 @frappe.whitelist()
 def get_matching_location_for_branch(branch):

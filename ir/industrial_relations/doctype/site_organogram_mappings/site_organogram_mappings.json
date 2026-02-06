@@ -10,7 +10,8 @@
   "asset",
   "shift",
   "group",
-  "row_key"
+  "row_key",
+  "row_order"
  ],
  "fields": [
   {
@@ -47,16 +48,20 @@
   {
    "fieldname": "row_key",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Key",
    "read_only": 1
+  },
+  {
+   "fieldname": "row_order",
+   "fieldtype": "Int",
+   "label": "Row Order"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-05 13:01:42.124172",
+ "modified": "2026-02-06 18:13:11.154223",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Mappings",

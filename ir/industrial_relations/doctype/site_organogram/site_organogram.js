@@ -282,6 +282,11 @@ frappe.ui.form.on("Site Organogram", {
     maybe_sync_assets_after_categories_change(frm);
   },
 
+  before_save(frm) {
+    // Persist current row ordering into shift_mappings.row_order so print formats can sort.
+    sync_all_row_orders(frm);
+  },
+
   onhide(frm) {
     stop_category_poll(frm);
   },
@@ -762,19 +767,103 @@ function rows_store_key(frm, group) {
 }
 
 function load_group_rows(frm, group) {
+  // Prefer localStorage (user-controlled ordering). If absent/empty, fall back to
+  // persisted ordering from shift_mappings.row_order, then to the child-table idx order.
   try {
     const raw = localStorage.getItem(rows_store_key(frm, group));
     const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
+    if (Array.isArray(arr) && arr.length) return arr;
+  } catch {}
+
+  const by_key = new Map();
+  const mappings = frm.doc.shift_mappings || [];
+
+  for (const m of mappings) {
+    if ((m.group || "") !== (group || "")) continue;
+    if (!m.row_key) continue;
+
+    const cur = by_key.get(m.row_key);
+    const ro = Number.isFinite(Number(m.row_order)) ? Number(m.row_order) : null;
+
+    if (!cur) {
+      by_key.set(m.row_key, {
+        row_key: m.row_key,
+        row_order: ro,
+        first_idx: Number.isFinite(Number(m.idx)) ? Number(m.idx) : 999999,
+      });
+    } else {
+      // Keep the smallest row_order (if any) and earliest idx as a stable fallback.
+      if (ro != null && (cur.row_order == null || ro < cur.row_order)) cur.row_order = ro;
+      const idx = Number.isFinite(Number(m.idx)) ? Number(m.idx) : 999999;
+      if (idx < cur.first_idx) cur.first_idx = idx;
+    }
   }
+
+  const rows = Array.from(by_key.values())
+    .sort((a, b) => {
+      const ao = a.row_order == null ? 999999 : a.row_order;
+      const bo = b.row_order == null ? 999999 : b.row_order;
+      if (ao !== bo) return ao - bo;
+      return a.first_idx - b.first_idx;
+    })
+    .map((x) => x.row_key);
+
+  // Seed localStorage so UI ordering is consistent across refresh for this browser.
+  if (rows.length) save_group_rows(frm, group, rows);
+  return rows;
 }
 
 function save_group_rows(frm, group, rows) {
   try {
     localStorage.setItem(rows_store_key(frm, group), JSON.stringify(rows || []));
   } catch {}
+}
+
+
+// ------------ persisted row ordering (shift_mappings.row_order) ------------
+// We still keep localStorage ordering for UX, but we ALSO persist row order into
+// the child table so Print Formats (Jinja) can sort deterministically.
+function sync_row_order_for_group(frm, group) {
+  const mappings = frm.doc.shift_mappings || [];
+  // Build canonical row list: localStorage (if any) + include any missing row_keys from state.
+  let rows = ensure_group_rows_from_state(frm, group, mappings);
+
+  // De-duplicate defensively while preserving order.
+  const seen = new Set();
+  rows = (rows || []).filter((rk) => {
+    if (!rk) return false;
+    if (seen.has(rk)) return false;
+    seen.add(rk);
+    return true;
+  });
+
+  // Apply row_order to ALL mapping rows that belong to this group + row_key.
+  let changed = false;
+  rows.forEach((rk, i) => {
+    const order = i + 1;
+    for (const m of mappings) {
+      if ((m.group || "") !== (group || "")) continue;
+      if ((m.row_key || "") !== rk) continue;
+      const cur = Number(m.row_order);
+      if (!Number.isFinite(cur) || cur !== order) {
+        m.row_order = order;
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) frm.dirty();
+}
+
+function sync_all_row_orders(frm) {
+  const groups = (frm.doc.group_headings || []).map((g) => g.group).filter(Boolean);
+  for (const g of groups) sync_row_order_for_group(frm, g);
+
+  // Also handle rows that might exist in mappings but the group_headings row is missing (defensive).
+  const extra_groups = new Set((frm.doc.shift_mappings || []).map((m) => m.group).filter(Boolean));
+  for (const g of extra_groups) {
+    if (!groups.includes(g)) sync_row_order_for_group(frm, g);
+  }
 }
 
 function remove_asset_from_all_group_orders(frm, asset) {
