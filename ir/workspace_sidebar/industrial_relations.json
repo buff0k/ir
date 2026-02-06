@@ -21,18 +21,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "alarm-clock-check",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Dashboard",
-   "link_to": "Industrial Relations",
-   "link_type": "Dashboard",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
    "icon": "briefcase-business",
    "indent": 0,
    "keep_closed": 0,
@@ -104,7 +92,7 @@
    "url": "/desk"
   }
  ],
- "modified": "2026-02-04 13:09:06.999519",
+ "modified": "2026-02-06 06:09:35.229507",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
