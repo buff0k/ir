@@ -5,6 +5,24 @@ const PY = "ir.industrial_relations.doctype.site_organogram.site_organogram";
 
 
 
+
+
+// --------------------------
+// Full-width helper (prod can be centered by theme/container constraints)
+// --------------------------
+function so_force_full_width(frm) {
+  try {
+    const $main = frm && frm.page && frm.page.main ? $(frm.page.main) : null;
+    if ($main && $main.length) {
+      $main.css({ "max-width": "100%", width: "100%", margin: "0" });
+    }
+    // also relax common wrappers
+    const $layout = $main ? $main.closest(".layout-main-section") : null;
+    if ($layout && $layout.length) $layout.css({ "max-width": "100%", width: "100%" });
+    const $container = $main ? $main.closest(".container") : null;
+    if ($container && $container.length) $container.css({ "max-width": "100%", width: "100%" });
+  } catch (e) {}
+}
 // --------------------------
 // Promise-safe Select Dialog (replacement for frappe.prompt)
 // --------------------------
@@ -174,13 +192,23 @@ function row_key_asset(asset) {
 }
 
 function row_key_desig(desig) {
+  // legacy (single row per designation)
   return `DESIG::${desig}`;
+}
+
+function row_key_desig_with_token(desig, token) {
+  const t = token || frappe.utils.get_random(6);
+  return `DESIG::${desig}::${t}`;
 }
 
 function parse_row_key(rk) {
   if (!rk) return { kind: "unknown" };
   if (rk.startsWith("ASSET::")) return { kind: "asset", asset: rk.slice("ASSET::".length) };
-  if (rk.startsWith("DESIG::")) return { kind: "desig", desig: rk.slice("DESIG::".length) };
+  if (rk.startsWith("DESIG::")) {
+    const rest = rk.slice("DESIG::".length);
+    const parts = rest.split("::");
+    return { kind: "desig", desig: parts[0] || "", token: parts[1] || "" };
+  }
   return { kind: "unknown" };
 }
 
@@ -912,6 +940,8 @@ function render_slot_cell(frm, { group, shift, row_key, asset, emp_by_id }) {
 }
 
 function render_site_organogram(frm) {
+  so_force_full_width(frm);
+
   const field = frm.get_field("html");
   if (!field || !field.$wrapper) return;
 
@@ -947,7 +977,15 @@ function render_site_organogram(frm) {
       return hay.includes(q.toLowerCase());
     });
 
+  const assigned_assets = new Set();
+  (frm.doc.shift_mappings || []).forEach((m) => {
+    if (m.row_key && m.row_key.startsWith("ASSET::")) {
+      if (m.asset) assigned_assets.add(m.asset);
+    }
+  });
+
   const pool_assets = assets.filter((a) => {
+    if (assigned_assets.has(a.asset)) return false;
     if (!q) return true;
     const hay = `${a.asset} ${a.item_name || ""} ${a.asset_category || ""}`.toLowerCase();
     return hay.includes(q.toLowerCase());
@@ -1190,7 +1228,8 @@ function bind_events(frm, $w) {
 
       if (!d) return;
 
-      const new_rk = row_key_desig(d.choice);
+      const info = parse_row_key(old_rk);
+      const new_rk = row_key_desig_with_token(d.choice, info && info.kind === "desig" ? info.token : "");
 
       const rows = load_group_rows(frm, group);
       save_group_rows(
@@ -1350,7 +1389,8 @@ async function add_asset_row(frm, group, asset) {
 async function add_designation_row(frm, group, designation) {
   if (!group || !designation) return;
 
-  const rk = row_key_desig(designation);
+  // allow multiple rows with same designation label by using a tokenized row_key
+  const rk = row_key_desig_with_token(designation);
 
   const rows = load_group_rows(frm, group);
   if (!rows.includes(rk)) {
