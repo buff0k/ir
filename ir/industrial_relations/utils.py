@@ -10,7 +10,11 @@ def check_app_permission():
         return True
 
     # Check if the user has any of the required roles
-    required_roles = ["System Manager", "IR Manager", "IR User", "Payroll Manager", "Payroll User", "HR Manager", "HR User", "IR Officer", "Training Manager", "Training Facilitator", "Training Administrator"]
+    required_roles = [
+        "System Manager", "IR Manager", "IR User", "Payroll Manager", "Payroll User",
+        "HR Manager", "HR User", "IR Officer", "Training Manager",
+        "Training Facilitator", "Training Administrator"
+    ]
     user_roles = frappe.get_roles(frappe.session.user)
 
     # Grant access if the user has at least one of the required roles
@@ -19,6 +23,10 @@ def check_app_permission():
 
     return False
 
+
+# --------------------------------------------------------------------
+# IR Role Restrictions (Designation-based)
+# --------------------------------------------------------------------
 
 _IR_ROLE_ORDER = ["IR Manager", "IR Officer", "IR User"]
 
@@ -116,6 +124,61 @@ def disciplinary_action_permission_query_conditions(user: str) -> str:
 
 
 # --------------------------------------------------------------------
+# has_permission enforcement (blocks direct open by URL/name/API)
+#
+# Why needed:
+# - permission_query_conditions filters list/report queries
+# - but a user may still open a record directly if they know the name
+# --------------------------------------------------------------------
+
+def _is_designation_restricted_for_user(designation: str | None, user: str | None = None) -> bool:
+    user = user or frappe.session.user
+    if not designation:
+        return False
+    return designation in set(_restricted_designations_for_user(user))
+
+def contract_of_employment_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
+    """
+    DocType: Contract of Employment
+    Restriction field: designation
+
+    This blocks opening/reading the document directly if designation is restricted.
+    """
+    user = user or frappe.session.user
+
+    # Only enforce for your IR roles
+    if not _effective_ir_role(user):
+        return True
+
+    # Enforce for read + other common operations (print/export/email etc.)
+    # If you ONLY want to block opening, change this to: if ptype in (None, "read"):
+    if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+        return not _is_designation_restricted_for_user(getattr(doc, "designation", None), user)
+
+    return True
+
+def disciplinary_action_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
+    """
+    DocType: Disciplinary Action
+    Restriction field: accused_pos
+
+    This blocks opening/reading the document directly if accused_pos is restricted.
+    """
+    user = user or frappe.session.user
+
+    # Only enforce for your IR roles
+    if not _effective_ir_role(user):
+        return True
+
+    # Enforce for read + other common operations (print/export/email etc.)
+    # If you ONLY want to block opening, change this to: if ptype in (None, "read"):
+    if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+        return not _is_designation_restricted_for_user(getattr(doc, "accused_pos", None), user)
+
+    return True
+
+
+# --------------------------------------------------------------------
 # TEMPLATE for future doctypes:
 #
 # def my_doctype_permission_query_conditions(user: str) -> str:
@@ -123,4 +186,12 @@ def disciplinary_action_permission_query_conditions(user: str) -> str:
 #     if not restricted:
 #         return ""
 #     return _sql_not_in_designations("`tabMy DocType`.`my_designation_field`", restricted)
+#
+# def my_doctype_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
+#     user = user or frappe.session.user
+#     if not _effective_ir_role(user):
+#         return True
+#     if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+#         return not _is_designation_restricted_for_user(getattr(doc, "my_designation_field", None), user)
+#     return True
 # --------------------------------------------------------------------

@@ -171,10 +171,7 @@ fixtures = [
 		"Real Estate Activities",
 		"Transportation and Storage",
 		"Water Supply; Sewerage, Waste Management and Remediation Activities",
-		"Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles"
-	]]]},
-	{"dt": "Custom HTML Block", "filters": [["name", "in", [
-		"EEA2 Employment Equity Widget"
+		"Wholesale and Retail Trade; Repair of Motor Vehicles and Motorcycles",
 	]]]}
 ]
 scheduler_events = {
@@ -218,4 +215,9 @@ permission_query_conditions = {
 	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",
 	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions",
 	# Add future doctypes here
+}
+has_permission = {
+    "Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_has_permission",
+    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission",
+    # Add future doctypes here
 }
