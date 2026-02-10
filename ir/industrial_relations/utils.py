@@ -45,35 +45,39 @@ def _effective_ir_role(user: str | None = None) -> str | None:
 def _restricted_designations_for_user(user: str | None = None) -> list[str]:
     """
     Returns a list of Designation names the user's effective IR role must NOT see.
-    Reads from the singleton 'IR Role Restrictions'.
-
-    Single fields (child tables) expected on the singleton:
-      - ir_manager_restrictions
-      - ir_officer_restrictions
-      - ir_user_restrictions
-    Each child row has: designation (Link to Designation)
+    Reads from the singleton 'IR Role Restrictions' child tables using direct DB queries
+    (avoids singleton doc caching in long-running processes).
     """
     user = user or frappe.session.user
 
-    # Only apply to your three IR roles. Everyone else unaffected.
     role = _effective_ir_role(user)
     if not role:
         return []
 
-    # Fail open if the singleton doesn't exist yet (avoid breaking system).
-    try:
-        doc = frappe.get_single("IR Role Restrictions")
-    except Exception:
-        return []
+    parent = "IR Role Restrictions"  # Single DocType name is also the docname
+    parenttype = "IR Role Restrictions"
 
-    table_field = {
+    parentfield_by_role = {
         "IR Manager": "ir_manager_restrictions",
         "IR Officer": "ir_officer_restrictions",
         "IR User": "ir_user_restrictions",
-    }[role]
+    }
+    parentfield = parentfield_by_role[role]
 
-    rows = doc.get(table_field) or []
-    return [r.designation for r in rows if getattr(r, "designation", None)]
+    # If the singleton hasn't been created/saved yet, these rows won't exist (fail open).
+    rows = frappe.get_all(
+        "IR Role Restriction Table",
+        filters={
+            "parenttype": parenttype,
+            "parent": parent,
+            "parentfield": parentfield,
+        },
+        fields=["designation"],
+        order_by="idx asc",
+    )
+
+    return [r.designation for r in rows if r.get("designation")]
+
 
 def _sql_not_in_designations(field_sql: str, designations: list[str]) -> str:
     """
@@ -160,6 +164,69 @@ def _raise_if_restricted_designation(doc, designation_field: str, user: str | No
         )
 
 
+def get_ir_notification_recipients(include_owner: str | None = None):
+    """
+    Returns (recipient_emails_sorted, name_by_email) from IR Role Restrictions.report_recipients.
+
+    Reads child rows directly from the DB to avoid singleton caching issues (bench console, workers).
+
+    - Only uses enabled users.
+    - Uses child row.email_address if present; otherwise falls back to User.email.
+    - If include_owner is provided (e.g. doc.owner), it will be added too (if enabled).
+    """
+    recipient_emails = set()
+    name_by_email = {}
+
+    parent = "IR Role Restrictions"      # Single DocType name = docname
+    parenttype = "IR Role Restrictions"
+    parentfield = "report_recipients"
+
+    # Pull child rows directly (fail-open: returns [] if singleton not saved yet)
+    rows = frappe.get_all(
+        "IR User Restriction Table",
+        filters={
+            "parenttype": parenttype,
+            "parent": parent,
+            "parentfield": parentfield,
+        },
+        fields=["user", "email_address"],
+        order_by="idx asc",
+    )
+
+    for row in rows:
+        user = row.get("user")
+        email = row.get("email_address")
+
+        if user:
+            enabled, user_email, full_name = frappe.db.get_value(
+                "User", user, ["enabled", "email", "full_name"]
+            ) or (0, None, None)
+
+            if not enabled:
+                continue
+
+            email = email or user_email
+            if email:
+                recipient_emails.add(email)
+                name_by_email[email] = full_name or user
+
+        elif email:
+            # Optional: allow “email only” rows (if you ever support that)
+            recipient_emails.add(email)
+            name_by_email[email] = "IR Team"
+
+    # Optionally include the doc owner
+    if include_owner:
+        enabled, owner_email, owner_full_name = frappe.db.get_value(
+            "User", include_owner, ["enabled", "email", "full_name"]
+        ) or (0, None, None)
+        if enabled and owner_email:
+            recipient_emails.add(owner_email)
+            name_by_email[owner_email] = owner_full_name or include_owner
+
+    return sorted(recipient_emails), name_by_email
+
+
 def validate_contract_of_employment(doc, method=None):
     # Restriction field is 'designation'
     _raise_if_restricted_designation(doc, "designation")
@@ -184,7 +251,6 @@ def contract_of_employment_has_permission(doc, user: str | None = None, ptype: s
         return True
 
     # Enforce for read + other common operations (print/export/email etc.)
-    # If you ONLY want to block opening, change this to: if ptype in (None, "read"):
     if ptype in (None, "read", "create", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
         return not _is_designation_restricted_for_user(getattr(doc, "designation", None), user)
 
@@ -224,7 +290,7 @@ def disciplinary_action_has_permission(doc, user: str | None = None, ptype: str 
 #     user = user or frappe.session.user
 #     if not _effective_ir_role(user):
 #         return True
-#     if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+#     if ptype in (None, "read", "create", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
 #         return not _is_designation_restricted_for_user(getattr(doc, "my_designation_field", None), user)
 #     return True
 # --------------------------------------------------------------------

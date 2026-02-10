@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.meta import get_meta
+from ir.industrial_relations.utils import get_ir_notification_recipients
 
 IR_ROLES = ("IR Manager", "IR Officer")
 IGNORE_FIELDS = {
@@ -98,31 +99,7 @@ def handle_notification(doc, action, subject_template, body_template, changed_fi
 
 
 def _collect_recipients(doc):
-    users = set()
-
-    for role in IR_ROLES:
-        rows = frappe.get_all(
-            "Has Role",
-            filters={"role": role, "parenttype": "User"},
-            fields=["parent"]
-        )
-        users.update(r["parent"] for r in rows)
-
-    if doc.owner:
-        users.add(doc.owner)
-
-    recipient_emails = set()
-    name_by_email = {}
-
-    for user in users:
-        enabled, email, full_name = frappe.db.get_value(
-            "User", user, ["enabled", "email", "full_name"]
-        ) or (0, None, None)
-        if enabled and email:
-            recipient_emails.add(email)
-            name_by_email[email] = full_name or user
-
-    return sorted(recipient_emails), name_by_email
+    return get_ir_notification_recipients(include_owner=doc.owner if doc.owner else None)
 
 
 def _diff_changed_fields(curr_doc, prev_doc):

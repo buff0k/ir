@@ -4,6 +4,9 @@
 import frappe
 from frappe.utils import get_url
 
+from ir.industrial_relations.utils import get_ir_notification_recipients
+
+
 def fixed_term_expiry():
     # Fetch contracts expiring within the next four weeks with additional filters
     expiring_contracts = frappe.get_all(
@@ -32,7 +35,7 @@ def fixed_term_expiry():
             fields=["name"]
         )
         return bool(later_contracts)
-    
+
     filtered_contracts = [
         contract for contract in filtered_contracts
         if not has_later_contract(contract["employee"], contract["end_date"])
@@ -42,21 +45,10 @@ def fixed_term_expiry():
         frappe.logger().info("No expiring contracts found after applying filters.")
         return
 
-    # Fetch recipients (IR Managers)
-    recipients = frappe.get_all(
-        'Has Role',
-        filters={'role': 'IR Manager'},
-        fields=['parent']
-    )
-
-    valid_recipients = [
-        recipient['parent']
-        for recipient in recipients
-        if frappe.db.exists('User', recipient['parent']) and frappe.get_value('User', recipient['parent'], 'enabled')
-    ]
-
-    if not valid_recipients:
-        frappe.logger().info("No valid IR Managers found.")
+    # Fetch recipients (from IR Role Restrictions -> report_recipients)
+    recipient_emails, name_by_email = get_ir_notification_recipients()
+    if not recipient_emails:
+        frappe.logger().info("No valid IR report recipients found.")
         return
 
     # Prepare the email content
@@ -96,14 +88,15 @@ def fixed_term_expiry():
     """
 
     # Send email to each recipient
-    for recipient in valid_recipients:
-        user_name = frappe.get_value('User', recipient, 'first_name') or "Valued IR Manager"
-        personalized_email_body = email_body.format(name=user_name)
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "Valued IR Team"
+        first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
+        personalized_email_body = email_body.format(name=first_name)
 
         frappe.sendmail(
-            recipients=[recipient],
+            recipients=[email],
             subject=email_subject,
             message=personalized_email_body
         )
 
-    frappe.logger().info(f"Weekly HR report sent to {len(valid_recipients)} recipients.")
+    frappe.logger().info(f"Weekly HR report sent to {len(recipient_emails)} recipients.")

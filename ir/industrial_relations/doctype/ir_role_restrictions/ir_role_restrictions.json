@@ -5,9 +5,12 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "desingation_limits_tab",
   "ir_manager_restrictions",
   "ir_officer_restrictions",
-  "ir_user_restrictions"
+  "ir_user_restrictions",
+  "notification_emails_tab",
+  "report_recipients"
  ],
  "fields": [
   {
@@ -30,13 +33,30 @@
    "fieldtype": "Table",
    "label": "IR User",
    "options": "IR Role Restriction Table"
+  },
+  {
+   "fieldname": "desingation_limits_tab",
+   "fieldtype": "Tab Break",
+   "label": "Desingation Limits"
+  },
+  {
+   "fieldname": "notification_emails_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notification Emails"
+  },
+  {
+   "description": "Users who should receive the weekly HR Reports",
+   "fieldname": "report_recipients",
+   "fieldtype": "Table",
+   "label": "Report Recipients",
+   "options": "IR User Restriction Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-09 09:31:33.911370",
+ "modified": "2026-02-10 12:44:03.754474",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Role Restrictions",
