@@ -177,10 +177,12 @@ fixtures = [
 scheduler_events = {
 	"weekly": [
     	"ir.controllers.fixed_term_expiry.fixed_term_expiry",
+		"ir.controllers.fixed_term_expiry_lapsed.fixed_term_expiry_lapsed",
 		"ir.controllers.outstanding_disciplinaries.outstanding_disciplinaries",
 		"ir.controllers.outstanding_incapacities.outstanding_incapacities",
     	"ir.controllers.outstanding_external_disputes.outstanding_external_disputes",
-        "ir.controllers.retirement_age.retirement_age"
+        "ir.controllers.retirement_age.retirement_age",
+		"ir.controllers.retirement_age_lapsed.retirement_age_lapsed",
 	],
 	"daily": [
 		"ir.controllers.attendance_sync.enqueue_daily_sync",
