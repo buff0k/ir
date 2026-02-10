@@ -209,7 +209,13 @@ doc_events = {
 		"on_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
-	}
+	},
+	"Contract of Employment": {
+		"validate": "ir.industrial_relations.utils.validate_contract_of_employment",
+	},
+	"Disciplinary Action": {
+		"validate": "ir.industrial_relations.utils.validate_disciplinary_action",
+	},
 }
 permission_query_conditions = {
 	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",

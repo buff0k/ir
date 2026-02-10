@@ -137,6 +137,39 @@ def _is_designation_restricted_for_user(designation: str | None, user: str | Non
         return False
     return designation in set(_restricted_designations_for_user(user))
 
+
+def _raise_if_restricted_designation(doc, designation_field: str, user: str | None = None):
+    """
+    Server-side guard to prevent creating/updating a document with a restricted designation.
+    Use this via doc_events validate/before_insert so the record is never created.
+    """
+    user = user or frappe.session.user
+
+    # Only enforce for your IR roles
+    if not _effective_ir_role(user):
+        return
+
+    designation = getattr(doc, designation_field, None)
+    if not designation:
+        return
+
+    if designation in set(_restricted_designations_for_user(user)):
+        frappe.throw(
+            f"You are not permitted to create or edit this document for designation: {designation}",
+            frappe.PermissionError,
+        )
+
+
+def validate_contract_of_employment(doc, method=None):
+    # Restriction field is 'designation'
+    _raise_if_restricted_designation(doc, "designation")
+
+
+def validate_disciplinary_action(doc, method=None):
+    # Restriction field is 'accused_pos'
+    _raise_if_restricted_designation(doc, "accused_pos")
+
+
 def contract_of_employment_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
     """
     DocType: Contract of Employment
@@ -152,7 +185,7 @@ def contract_of_employment_has_permission(doc, user: str | None = None, ptype: s
 
     # Enforce for read + other common operations (print/export/email etc.)
     # If you ONLY want to block opening, change this to: if ptype in (None, "read"):
-    if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+    if ptype in (None, "read", "create", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
         return not _is_designation_restricted_for_user(getattr(doc, "designation", None), user)
 
     return True
@@ -172,7 +205,7 @@ def disciplinary_action_has_permission(doc, user: str | None = None, ptype: str 
 
     # Enforce for read + other common operations (print/export/email etc.)
     # If you ONLY want to block opening, change this to: if ptype in (None, "read"):
-    if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
+    if ptype in (None, "read", "create", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
         return not _is_designation_restricted_for_user(getattr(doc, "accused_pos", None), user)
 
     return True
