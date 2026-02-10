@@ -1,3 +1,6 @@
+# Copyright (c) 2026, BuFf0k and contributors
+# For license information, please see license.txt
+
 from frappe import _
 from . import __version__ as app_version
 app_name = "ir"
@@ -210,4 +213,9 @@ doc_events = {
 		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 	}
+}
+permission_query_conditions = {
+	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",
+	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions",
+	# Add future doctypes here
 }
