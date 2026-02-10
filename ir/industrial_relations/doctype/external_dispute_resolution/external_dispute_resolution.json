@@ -182,8 +182,7 @@
   },
   {
    "fieldname": "linked_outcome",
-   "fieldtype": "Table MultiSelect",
-   "is_virtual": 1,
+   "fieldtype": "HTML",
    "label": "Linked Outcome",
    "options": "Outcome Selector",
    "read_only": 1
@@ -193,7 +192,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-17 12:27:35.200497",
+ "modified": "2026-02-10 08:58:04.756412",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "External Dispute Resolution",

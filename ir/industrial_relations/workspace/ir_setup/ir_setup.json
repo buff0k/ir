@@ -96,35 +96,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employee Rights",
-   "link_count": 0,
-   "link_to": "Employee Rights",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reason for Termination",
-   "link_count": 0,
-   "link_to": "Reason for Termination",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Contract of Employment",
    "link_count": 2,
    "link_type": "DocType",
@@ -316,9 +287,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Rights",
+   "link_count": 0,
+   "link_to": "Employee Rights",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reason for Termination",
+   "link_count": 0,
+   "link_to": "Reason for Termination",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Role Restrictions",
+   "link_count": 0,
+   "link_to": "IR Role Restrictions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-01-29 11:06:43.667259",
+ "modified": "2026-02-09 09:32:14.236192",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

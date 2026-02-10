@@ -1,0 +1,89 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-09 09:27:24.456950",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "ir_manager_restrictions",
+  "ir_officer_restrictions",
+  "ir_user_restrictions"
+ ],
+ "fields": [
+  {
+   "description": "Set Designations which the IR Manager Role is not permitted to access.",
+   "fieldname": "ir_manager_restrictions",
+   "fieldtype": "Table",
+   "label": "IR Manager",
+   "options": "IR Role Restriction Table"
+  },
+  {
+   "description": "Set Designations which the IR Officer Role is not permitted to access.",
+   "fieldname": "ir_officer_restrictions",
+   "fieldtype": "Table",
+   "label": "IR Officer",
+   "options": "IR Role Restriction Table"
+  },
+  {
+   "description": "Set Designations which the IR User Role is not permitted to access.",
+   "fieldname": "ir_user_restrictions",
+   "fieldtype": "Table",
+   "label": "IR User",
+   "options": "IR Role Restriction Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-02-09 09:31:33.911370",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "IR Role Restrictions",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
