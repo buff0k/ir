@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{employee} - {training} - {training_date}",
  "creation": "2026-01-26 13:52:54.393610",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -164,11 +163,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-10 13:54:27.056788",
+ "modified": "2026-02-11 12:24:01.011206",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

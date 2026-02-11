@@ -1,0 +1,347 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-11 13:38:39.167615",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_f7rr",
+  "amended_from",
+  "person_requesting_status_change_section",
+  "requested_by",
+  "column_break_kgzd",
+  "requested_by_name",
+  "requested_by_designation",
+  "employee_for_status_change_section",
+  "employee",
+  "attach",
+  "column_break_sgpr",
+  "employee_name",
+  "effective_date",
+  "details_of_status_change_section",
+  "description",
+  "current_designation",
+  "current_conditions",
+  "current_rate",
+  "current_travel",
+  "current_housing",
+  "current_safety",
+  "current_shift",
+  "current_phone",
+  "column_break_lpby",
+  "current",
+  "new_designation",
+  "new_conditions",
+  "new_rate",
+  "new_travel",
+  "new_housing",
+  "new_safety",
+  "new_shift",
+  "new_phone",
+  "section_break_igdf",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_f7rr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Status Change Form",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "person_requesting_status_change_section",
+   "fieldtype": "Section Break",
+   "label": "Person Requesting Status Change"
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee Requesting Status Change",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_kgzd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requested_by_name",
+   "fieldtype": "Data",
+   "label": "Full Names",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_by_designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_for_status_change_section",
+   "fieldtype": "Section Break",
+   "label": "Employee for Status Change"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_sgpr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Full Names",
+   "read_only": 1
+  },
+  {
+   "fieldname": "details_of_status_change_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Status Change"
+  },
+  {
+   "fieldname": "current",
+   "fieldtype": "Heading",
+   "label": "Current"
+  },
+  {
+   "fieldname": "current_designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_lpby",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "new_designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_conditions",
+   "fieldtype": "Select",
+   "label": "Conditions of Employement",
+   "options": "\nFixed Term\nIndefinite",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_conditions",
+   "fieldtype": "Select",
+   "label": "Conditions of Employment",
+   "options": "\nFixed Term\nIndefinite",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly / Basic Rate",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly / Basic Rate",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_travel",
+   "fieldtype": "Currency",
+   "label": "Travelling Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_housing",
+   "fieldtype": "Currency",
+   "label": "Housing Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_travel",
+   "fieldtype": "Currency",
+   "label": "Travelling Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_housing",
+   "fieldtype": "Currency",
+   "label": "Housing Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Heading",
+   "label": "Description"
+  },
+  {
+   "fieldname": "current_safety",
+   "fieldtype": "Currency",
+   "label": "Safety Bonus",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_safety",
+   "fieldtype": "Currency",
+   "label": "Safety Bonus",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "current_shift",
+   "fieldtype": "Currency",
+   "label": "Shift Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_shift",
+   "fieldtype": "Currency",
+   "label": "Shift Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "effective_date",
+   "fieldtype": "Date",
+   "label": "Effective Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach Signed Status Change"
+  },
+  {
+   "fieldname": "current_phone",
+   "fieldtype": "Currency",
+   "label": "Cellphone Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_phone",
+   "fieldtype": "Currency",
+   "label": "Cellphone Allowance",
+   "non_negative": 1,
+   "precision": "4",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_igdf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason for Transfer",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-02-11 14:02:39.287715",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Status Change Form",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

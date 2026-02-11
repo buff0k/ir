@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "format:{employee} - {branch}",
  "creation": "2026-01-21 07:59:28.583098",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -118,11 +117,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-30 06:51:51.127597",
+ "modified": "2026-02-11 12:23:45.570905",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

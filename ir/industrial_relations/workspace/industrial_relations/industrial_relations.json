@@ -122,135 +122,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "IR Documents",
-   "link_count": 12,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "NTA Hearing",
-   "link_count": 0,
-   "link_to": "NTA Hearing",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Not Guilty Form",
-   "link_count": 0,
-   "link_to": "Not Guilty Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Warning Form",
-   "link_count": 0,
-   "link_to": "Warning Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Suspension Form",
-   "link_count": 0,
-   "link_to": "Suspension Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Demotion Form",
-   "link_count": 0,
-   "link_to": "Demotion Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Pay Deduction Form",
-   "link_count": 0,
-   "link_to": "Pay Deduction Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dismissal Form",
-   "link_count": 0,
-   "link_to": "Dismissal Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Voluntary Seperation Agreement",
-   "link_count": 0,
-   "link_to": "Voluntary Seperation Agreement",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Hearing Cancellation Form",
-   "link_count": 0,
-   "link_to": "Hearing Cancellation Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Pay Reduction Form",
-   "link_count": 0,
-   "link_to": "Pay Reduction Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Written Outcome",
-   "link_count": 0,
-   "link_to": "Written Outcome",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Termination Form",
-   "link_count": 0,
-   "link_to": "Termination Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "External Dispute Resolution",
    "link_count": 1,
    "link_type": "DocType",
@@ -404,9 +275,158 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Documents",
+   "link_count": 14,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "NTA Hearing",
+   "link_count": 0,
+   "link_to": "NTA Hearing",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Not Guilty Form",
+   "link_count": 0,
+   "link_to": "Not Guilty Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Warning Form",
+   "link_count": 0,
+   "link_to": "Warning Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Suspension Form",
+   "link_count": 0,
+   "link_to": "Suspension Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Demotion Form",
+   "link_count": 0,
+   "link_to": "Demotion Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pay Deduction Form",
+   "link_count": 0,
+   "link_to": "Pay Deduction Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dismissal Form",
+   "link_count": 0,
+   "link_to": "Dismissal Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Voluntary Seperation Agreement",
+   "link_count": 0,
+   "link_to": "Voluntary Seperation Agreement",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hearing Cancellation Form",
+   "link_count": 0,
+   "link_to": "Hearing Cancellation Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pay Reduction Form",
+   "link_count": 0,
+   "link_to": "Pay Reduction Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Written Outcome",
+   "link_count": 0,
+   "link_to": "Written Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination Form",
+   "link_count": 0,
+   "link_to": "Termination Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Transfer Form",
+   "link_count": 0,
+   "link_to": "Site Transfer Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Status Change Form",
+   "link_count": 0,
+   "link_to": "Status Change Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-06 05:58:03.536946",
+ "modified": "2026-02-11 13:47:38.394633",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
