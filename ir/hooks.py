@@ -204,6 +204,16 @@ doc_events = {
 		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
+	"Status Change Form": {
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"on_update": "ir.controllers.notifications.handle_doc_event_update",
+		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+	},
+	"Site Transfer Form": {
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"on_update": "ir.controllers.notifications.handle_doc_event_update",
+		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+	},
     "Employee Checkin": {
 		"after_insert": "ir.controllers.attendance_sync.on_employee_checkin",
 	},

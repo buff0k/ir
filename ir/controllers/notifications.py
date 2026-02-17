@@ -5,7 +5,6 @@ import frappe
 from frappe.model.meta import get_meta
 from ir.industrial_relations.utils import get_ir_notification_recipients
 
-IR_ROLES = ("IR Manager", "IR Officer")
 IGNORE_FIELDS = {
     "name", "owner", "creation", "modified", "modified_by", "idx",
     "docstatus", "parent", "parenttype", "parentfield", "amended_from", "version"
@@ -25,6 +24,20 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             doc, action,
             subject_template="A Notice to Attend for {names} ({coy}) {action}",
             body_template="A Notice to Attend for {names} ({coy}) at {venue} has been {action} by {actor}.",
+            changed_fields=changed_fields
+        )
+    elif doc.doctype == "Status Change Form":
+        return handle_notification(
+            doc, action,
+            subject_template="A Status Change for {employee_name} ({employee}) {action}",
+            body_template="A Status Change for {employee_name} ({employee}) has been {action} by {actor}.",
+            changed_fields=changed_fields
+        )
+    elif doc.doctype == "Site Transfer Form":
+        return handle_notification(
+            doc, action,
+            subject_template="A Site Transfer for {employee_name} ({employee}) {action}",
+            body_template="A Site Transfer for {employee_name} ({employee}) has been {action} by {actor}.",
             changed_fields=changed_fields
         )
 
