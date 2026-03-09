@@ -2,56 +2,75 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import get_url
+from frappe.utils import get_url, today
 
 from ir.industrial_relations.utils import get_ir_notification_recipients
 
 
 def fixed_term_expiry_lapsed():
-    # Fetch contracts already expired (end_date < today) with additional filters
+    # Fetch expired fixed-term contracts that are not project-based
     lapsed_contracts = frappe.get_all(
         "Contract of Employment",
         filters={
-            "end_date": ["<", frappe.utils.today()],
+            "end_date": ["<", today()],
             "has_expiry": 1,
+            "has_project": 0,
         },
         fields=["name", "employee", "employee_name", "end_date", "branch"]
     )
 
-    # Exclude contracts where the linked Employee's status is "Left"
+    if not lapsed_contracts:
+        frappe.logger().info("No lapsed contracts found.")
+        return
+
+    # Exclude contracts where the linked Employee status is "Left"
+    employee_ids = list({d.employee for d in lapsed_contracts if d.employee})
+    active_employees = set(
+        frappe.get_all(
+            "Employee",
+            filters={
+                "name": ["in", employee_ids],
+                "status": ["!=", "Left"],
+            },
+            pluck="name"
+        )
+    )
+
     filtered_contracts = [
         contract for contract in lapsed_contracts
-        if frappe.get_value("Employee", contract["employee"], "status") != "Left"
+        if contract.employee in active_employees
     ]
 
-    # Further filter contracts to exclude those with a later contract for the same employee
+    # Further exclude contracts where the employee has a later contract
     def has_later_contract(employee, current_end_date):
-        later_contracts = frappe.get_all(
-            "Contract of Employment",
-            filters={
-                "employee": employee,
-                "start_date": [">", current_end_date],
-            },
-            fields=["name"]
+        return bool(
+            frappe.get_all(
+                "Contract of Employment",
+                filters={
+                    "employee": employee,
+                    "start_date": [">", current_end_date],
+                },
+                fields=["name"],
+                limit=1
+            )
         )
-        return bool(later_contracts)
 
     filtered_contracts = [
         contract for contract in filtered_contracts
-        if not has_later_contract(contract["employee"], contract["end_date"])
+        if not has_later_contract(contract.employee, contract.end_date)
     ]
 
     if not filtered_contracts:
         frappe.logger().info("No lapsed contracts found after applying filters.")
         return
 
-    # Fetch recipients (from IR Role Restrictions -> report_recipients)
+    # Fetch recipients
     recipient_emails, name_by_email = get_ir_notification_recipients()
     if not recipient_emails:
         frappe.logger().info("No valid IR report recipients found.")
         return
 
-    # Prepare the email content
+    # Prepare email content
     email_subject = "Weekly HR Report: Fixed-Term Contracts Already Expired"
     email_body = """
         <p>Dear {name},</p>
@@ -70,14 +89,14 @@ def fixed_term_expiry_lapsed():
     """
 
     for contract in filtered_contracts:
-        contract_url = get_url(f"/app/contract-of-employment/{contract['name']}")
+        contract_url = get_url(f"/app/contract-of-employment/{contract.name}")
         email_body += f"""
             <tr>
-                <td><a href="{contract_url}">{contract['name']}</a></td>
-                <td>{contract['employee_name']}</td>
-                <td>{contract['employee']}</td>
-                <td>{contract['end_date']}</td>
-                <td>{contract['branch']}</td>
+                <td><a href="{contract_url}">{contract.name}</a></td>
+                <td>{contract.employee_name}</td>
+                <td>{contract.employee}</td>
+                <td>{contract.end_date}</td>
+                <td>{contract.branch}</td>
             </tr>
         """
 
@@ -90,7 +109,7 @@ def fixed_term_expiry_lapsed():
     # Send email to each recipient
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "Valued IR Team"
-        first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
+        first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
         personalized_email_body = email_body.format(name=first_name)
 
         frappe.sendmail(
@@ -99,4 +118,6 @@ def fixed_term_expiry_lapsed():
             message=personalized_email_body
         )
 
-    frappe.logger().info(f"Weekly HR report (lapsed contracts) sent to {len(recipient_emails)} recipients.")
+    frappe.logger().info(
+        f"Weekly HR report (lapsed contracts) sent to {len(recipient_emails)} recipients."
+    )
