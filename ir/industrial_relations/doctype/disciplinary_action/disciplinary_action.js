@@ -236,7 +236,10 @@ function create_written_outcome(frm) {
     frappe.model.open_mapped_doc({
         method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
         frm: frm,
-        args: { linked_intervention: frm.doc.name }
+        args: {
+            linked_intervention: frm.doc.name,
+            source_doctype: frm.doctype
+        }
     });
 }
 
