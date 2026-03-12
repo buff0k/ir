@@ -44,6 +44,99 @@ class WrittenOutcome(Document):
         next_rev = (max(revs) + 1) if revs else 1
         self.name = f"{base}-{next_rev}"
 
+@frappe.whitelist()
+def create_written_outcome(source_name, source_doctype, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.ir_intervention = source_doctype  # ✅ Store source document type
+        target.linked_intervention = source_name  # ✅ Store source document reference
+
+    field_maps = {
+        "Disciplinary Action": {
+            "accused": "employee",
+            "accused_name": "employee_name",
+            "accused_pos": "employee_designation",
+            "company": "company",
+            "letter_head": "letter_head",
+            "linked_nta": "linked_nta",
+            "previous_disciplinary_outcomes": "disciplinary_history",
+            "final_charges": "nta_charges",
+            "compl_name": "complainant_name",
+            "branch": "employee_branch"
+        },
+        "Incapacity Proceedings": {
+            "accused": "employee",
+            "accused_name": "employee_name",
+            "accused_pos": "employee_designation",
+            "company": "company",
+            "letter_head": "letter_head",
+            "type_of_incapacity": "incap_type_nta",
+            "details_of_incapacity": "incapacity_details_nta"
+        },
+        "Appeal": {
+            "appellant": "employee",
+            "appellant_name": "employee_name",
+            "company": "company",
+            "letter_head": "letter_head",
+            "rulings": "linked_rulings"
+        }
+    }
+
+    # ✅ Check if the source DocType exists in our mapping
+    if source_doctype not in field_maps:
+        frappe.throw(f"Unsupported source DocType: {source_doctype}")
+
+    # ✅ Fetch the correct field mapping
+    field_map = field_maps[source_doctype]
+
+    # ✅ Perform the document mapping with field transformations
+    doclist = get_mapped_doc(
+        source_doctype, source_name, {
+            source_doctype: {
+                "doctype": "Written Outcome",
+                "field_map": field_map
+            }
+        }, target_doc, set_missing_values
+    )
+
+    return doclist
+
+@frappe.whitelist()
+def fetch_intervention_data(intervention, intervention_type):
+    # ✅ Define the field mappings for different intervention types
+    field_maps = {
+        "Disciplinary Action": {
+            "source_fields": ["accused", "accused_name", "accused_pos", "company", "complainant", "branch", "compl_name"],
+            "target_fields": ["employee", "employee_name", "employee_designation", "company", "complainant", "employee_branch", "complainant_name"]
+        },
+        "Incapacity Proceedings": {
+            "source_fields": ["accused", "accused_name", "accused_pos", "company", "type_of_incapacity", "details_of_incapacity"],
+            "target_fields": ["employee", "employee_name", "employee_designation", "company", "incap_type_nta", "incapacity_details_nta"]
+        },
+        "Appeal": {
+            "source_fields": ["appellant", "appellant_name", "company"],
+            "target_fields": ["employee", "employee_name", "company"]
+        }
+    }
+
+    # ✅ Validate the intervention type
+    if intervention_type not in field_maps:
+        frappe.throw(f"Unsupported intervention type: {intervention_type}")
+
+    # ✅ Get the correct field mapping
+    mapping = field_maps[intervention_type]
+    
+    # ✅ Fetch data dynamically based on the mapping
+    data = frappe.db.get_value(intervention_type, intervention, mapping["source_fields"], as_dict=True)
+    
+    if not data:
+        return {}
+
+    # ✅ Transform the data to match Written Outcome fields
+    transformed_data = {target: data[source] for source, target in zip(mapping["source_fields"], mapping["target_fields"])}
+
+    return transformed_data
 
 # ---------------------------------------------------------------------
 # Compile outcome
