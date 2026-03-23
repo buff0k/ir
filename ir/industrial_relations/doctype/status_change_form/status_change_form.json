@@ -28,6 +28,7 @@
   "current_safety",
   "current_shift",
   "current_phone",
+  "current_opencast",
   "column_break_lpby",
   "current",
   "new_designation",
@@ -38,6 +39,7 @@
   "new_safety",
   "new_shift",
   "new_phone",
+  "new_opencast",
   "section_break_igdf",
   "reason"
  ],
@@ -64,7 +66,6 @@
   {
    "fieldname": "requested_by",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Employee Requesting Status Change",
    "options": "Employee",
    "reqd": 1
@@ -94,9 +95,12 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_sgpr",
@@ -105,6 +109,8 @@
   {
    "fieldname": "employee_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Full Names",
    "read_only": 1
   },
@@ -116,7 +122,7 @@
   {
    "fieldname": "current",
    "fieldtype": "Heading",
-   "label": "Current"
+   "label": "New"
   },
   {
    "fieldname": "current_designation",
@@ -132,6 +138,8 @@
   {
    "fieldname": "new_designation",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Designation",
    "options": "Designation",
    "reqd": 1
@@ -140,14 +148,14 @@
    "fieldname": "current_conditions",
    "fieldtype": "Select",
    "label": "Conditions of Employement",
-   "options": "\nFixed Term\nIndefinite",
+   "options": "\nFixed Term\nProject\nIndefinite",
    "reqd": 1
   },
   {
    "fieldname": "new_conditions",
    "fieldtype": "Select",
    "label": "Conditions of Employment",
-   "options": "\nFixed Term\nIndefinite",
+   "options": "\nFixed Term\nProject\nIndefinite",
    "reqd": 1
   },
   {
@@ -201,7 +209,7 @@
   {
    "fieldname": "description",
    "fieldtype": "Heading",
-   "label": "Description"
+   "label": "Current (Old)"
   },
   {
    "fieldname": "current_safety",
@@ -271,13 +279,27 @@
    "fieldtype": "Small Text",
    "label": "Reason for Transfer",
    "reqd": 1
+  },
+  {
+   "fieldname": "current_opencast",
+   "fieldtype": "Currency",
+   "label": "Opencast Allowance",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "new_opencast",
+   "fieldtype": "Currency",
+   "label": "Opencast Allowance",
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-11 14:02:39.287715",
+ "modified": "2026-03-23 08:46:05.994617",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",
@@ -343,5 +365,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
