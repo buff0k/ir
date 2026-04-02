@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "ANON-.######",
+ "creation": "2026-04-02 13:04:51.920705",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_otll",
+  "amended_from",
+  "date",
+  "reported_by_name",
+  "reported_by_telno",
+  "reported_by_email",
+  "check_here_if_you_do_not_want_to_be_contacted",
+  "report_type",
+  "description",
+  "detailed_description_of_report__incident__concern",
+  "attach_evidence"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_otll",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Anonymous Report",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date of Report",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reported_by_name",
+   "fieldtype": "Data",
+   "label": "Name of Person Filing Report (Optional)"
+  },
+  {
+   "fieldname": "reported_by_telno",
+   "fieldtype": "Data",
+   "label": "Contact Number of Person Making Report (Optional)"
+  },
+  {
+   "fieldname": "reported_by_email",
+   "fieldtype": "Data",
+   "label": "Email Address of Person Making Report (Optional)"
+  },
+  {
+   "fieldname": "report_type",
+   "fieldtype": "Select",
+   "label": "What is the Nature of the Report?",
+   "options": "Fraud / Theft\nBribery / Corruption\nConflict of Interest\nFinancial Misconduct / Misstatement\nHarassment / Discrimination\nLabour / Human-Rights Abuse\nHealth and Safety Breach\nEnvironmental Harm\nData Privacy / POPIA Breach\nCybersecurity / System Abuse\nRetaliation Against Whistleblower\nOther",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Summary of Report / Incident (Optional)"
+  },
+  {
+   "description": "Please provide as much information as you can, feel free to attach evidence in the below table. Provide dates, names and any other information that you can which will enable us to action your concern.",
+   "fieldname": "detailed_description_of_report__incident__concern",
+   "fieldtype": "Text Editor",
+   "label": "Detailed Description of Report / Incident / Concern",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach_evidence",
+   "fieldtype": "Table",
+   "label": "Attach Evidence (If Applicable)",
+   "options": "Attach Evidence"
+  },
+  {
+   "default": "0",
+   "fieldname": "check_here_if_you_do_not_want_to_be_contacted",
+   "fieldtype": "Check",
+   "label": "Check here if you do not want to be Contacted"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-04-02 13:42:18.243284",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Anonymous Report",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "role": "Guest",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

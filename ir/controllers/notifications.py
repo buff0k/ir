@@ -10,6 +10,7 @@ IGNORE_FIELDS = {
     "docstatus", "parent", "parenttype", "parentfield", "amended_from", "version"
 }
 
+ANON_REPORT_SETTINGS_DOCTYPE = "Anonymous Report Recipients"
 
 def handle_doc_event(doc, method, action, changed_fields=None):
     if doc.doctype == "Termination Form":
@@ -43,12 +44,20 @@ def handle_doc_event(doc, method, action, changed_fields=None):
 
 
 def handle_doc_event_create(doc, method):
+    # Special handling for Anonymous Report
+    if doc.doctype == "Anonymous Report":
+        return handle_anonymous_report_create(doc, method)
+
     return handle_doc_event(doc, method, "created")
 
 
 def handle_doc_event_update(doc, method):
     # Stop modification notifications for Termination Form only
     if doc.doctype == "Termination Form":
+        return
+
+    # Do not send update notifications for Anonymous Report
+    if doc.doctype == "Anonymous Report":
         return
 
     before = doc.get_doc_before_save()
@@ -61,10 +70,99 @@ def handle_doc_event_update(doc, method):
 
 
 def handle_doc_event_submit(doc, method):
+    # No submit notification for Anonymous Report unless you explicitly want one
+    if doc.doctype == "Anonymous Report":
+        return
+
     return handle_doc_event(doc, method, "submitted")
 
 
-# ---------- helpers ----------
+# ---------- Anonymous Report ----------
+
+def handle_anonymous_report_create(doc, method=None):
+    recipient_emails, name_by_email = _collect_anonymous_report_recipients()
+    if not recipient_emails:
+        return
+
+    subject = "New Anonymous Report Submitted"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "Colleague"
+
+        lines = [
+            f"Dear {full_name}",
+            "",
+            "A new Anonymous Report has been submitted.",
+            f"Reference: {doc.name}",
+        ]
+
+        # Optional: include category if the field exists
+        if hasattr(doc, "report_category") and doc.report_category:
+            lines.append(f"Category: {doc.report_category}")
+
+        # Optional: include submission timestamp
+        if getattr(doc, "creation", None):
+            lines.append(f"Submitted On: {doc.creation}")
+
+        lines.extend([
+            "",
+            "Please review it in the system.",
+            f'<a href="{url}">Click here to view</a>'
+        ])
+
+        message = "<br>".join(lines)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def _collect_anonymous_report_recipients():
+    recipients = []
+    name_by_email = {}
+
+    try:
+        settings = frappe.get_single(ANON_REPORT_SETTINGS_DOCTYPE)
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            f"Unable to load {ANON_REPORT_SETTINGS_DOCTYPE}"
+        )
+        return [], {}
+
+    for row in settings.userlist or []:
+        if not row.user:
+            continue
+
+        user_doc = frappe.db.get_value(
+            "User",
+            row.user,
+            ["email", "full_name", "enabled"],
+            as_dict=True
+        )
+
+        if not user_doc:
+            continue
+
+        if not user_doc.enabled:
+            continue
+
+        if not user_doc.email:
+            continue
+
+        if user_doc.email not in recipients:
+            recipients.append(user_doc.email)
+            name_by_email[user_doc.email] = user_doc.full_name or row.user
+
+    return recipients, name_by_email
+
+
+# ---------- Existing helpers ----------
 
 def handle_notification(doc, action, subject_template, body_template, changed_fields=None):
     recipient_emails, name_by_email = _collect_recipients(doc)

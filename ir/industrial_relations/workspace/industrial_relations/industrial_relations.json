@@ -26,7 +26,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "person-standing",
- "idx": 5,
+ "idx": 6,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Industrial Relations",
@@ -68,35 +68,6 @@
    "link_count": 0,
    "link_to": "Employees Approaching Retirement",
    "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "IR Interventions",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incapacity Proceedings",
-   "link_count": 0,
-   "link_to": "Incapacity Proceedings",
-   "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
@@ -424,9 +395,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Interventions",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incapacity Proceedings",
+   "link_count": 0,
+   "link_to": "Incapacity Proceedings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Anonymous Report",
+   "link_count": 0,
+   "link_to": "Anonymous Report",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-11 13:47:38.394633",
+ "modified": "2026-04-02 13:48:27.623033",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

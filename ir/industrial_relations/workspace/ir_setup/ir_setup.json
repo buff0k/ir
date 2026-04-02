@@ -1,7 +1,7 @@
 {
  "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"PO8X5ucXs1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"r05iE0vQnT\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"Am4X2Lc3sa\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"gHXTKTYoRu\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"_-VnJFdMGA\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"vcT_JKBPhf\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"Z5DfkyDX8P\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"SfeHMIz1Ru\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination\",\"col\":4}},{\"id\":\"bsfav3h06v\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}}]",
+ "content": "[{\"id\":\"PO8X5ucXs1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"r05iE0vQnT\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"Am4X2Lc3sa\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"gHXTKTYoRu\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"_-VnJFdMGA\",\"type\":\"card\",\"data\":{\"card_name\":\"Employment Equity\",\"col\":4}},{\"id\":\"vcT_JKBPhf\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"Z5DfkyDX8P\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"SfeHMIz1Ru\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination\",\"col\":4}},{\"id\":\"bsfav3h06v\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}},{\"id\":\"RoYsct5nLd\",\"type\":\"card\",\"data\":{\"card_name\":\"Anonymous Reports and Whistleblowers\",\"col\":4}}]",
  "creation": "2026-01-27 13:55:32.314678",
  "custom_blocks": [],
  "docstatus": 0,
@@ -326,9 +326,28 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Anonymous Reports and Whistleblowers",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Anonymous Report Recipients",
+   "link_count": 0,
+   "link_to": "Anonymous Report Recipients",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-09 09:32:14.236192",
+ "modified": "2026-04-02 13:47:57.917532",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

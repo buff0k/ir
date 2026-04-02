@@ -224,14 +224,17 @@ doc_events = {
 	"Disciplinary Action": {
 		"validate": "ir.industrial_relations.utils.validate_disciplinary_action",
 	},
+	"Anonymous Report": {
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"on_update": "ir.controllers.notifications.handle_doc_event_update",
+		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+	}
 }
 permission_query_conditions = {
 	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",
-	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions",
-	# Add future doctypes here
+	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions"
 }
 has_permission = {
     "Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_has_permission",
-    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission",
-    # Add future doctypes here
+    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission"
 }
