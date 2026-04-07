@@ -232,9 +232,11 @@ doc_events = {
 }
 permission_query_conditions = {
 	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",
-	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions"
+	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions",
+	"Anonymous Report": "ir.industrial_relations.utils.anonymous_report_permission_query_conditions"
 }
 has_permission = {
     "Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_has_permission",
-    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission"
+    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission",
+	"Anonymous Report": "ir.industrial_relations.utils.anonymous_report_has_permission"
 }

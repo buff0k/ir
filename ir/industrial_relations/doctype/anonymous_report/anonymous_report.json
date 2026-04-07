@@ -16,7 +16,11 @@
   "report_type",
   "description",
   "detailed_description_of_report__incident__concern",
-  "attach_evidence"
+  "attach_evidence",
+  "investigation_tab",
+  "investigator",
+  "investigator_name",
+  "investigator_designation"
  ],
  "fields": [
   {
@@ -47,13 +51,14 @@
   },
   {
    "fieldname": "reported_by_telno",
-   "fieldtype": "Data",
+   "fieldtype": "Phone",
    "label": "Contact Number of Person Making Report (Optional)"
   },
   {
    "fieldname": "reported_by_email",
    "fieldtype": "Data",
-   "label": "Email Address of Person Making Report (Optional)"
+   "label": "Email Address of Person Making Report (Optional)",
+   "options": "Email"
   },
   {
    "fieldname": "report_type",
@@ -85,13 +90,37 @@
    "fieldname": "check_here_if_you_do_not_want_to_be_contacted",
    "fieldtype": "Check",
    "label": "Check here if you do not want to be Contacted"
+  },
+  {
+   "fieldname": "investigation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Investigation"
+  },
+  {
+   "fieldname": "investigator",
+   "fieldtype": "Link",
+   "label": "Investigator",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "investigator_name",
+   "fieldtype": "Data",
+   "label": "Investigator Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "investigator_designation",
+   "fieldtype": "Link",
+   "label": "Investigator Designation",
+   "options": "Designation",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-02 13:42:18.243284",
+ "modified": "2026-04-07 10:12:23.824947",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Anonymous Report",
@@ -113,13 +142,7 @@
   },
   {
    "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "report": 1,
-   "role": "Guest",
-   "share": 1,
-   "write": 1
+   "role": "Guest"
   },
   {
    "create": 1,
@@ -139,5 +162,8 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
 }

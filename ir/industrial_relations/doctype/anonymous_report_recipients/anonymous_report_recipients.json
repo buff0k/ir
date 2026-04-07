@@ -11,7 +11,7 @@
   {
    "fieldname": "userlist",
    "fieldtype": "Table",
-   "label": "Users who should receive notifications about new Anonymous Reports",
+   "label": "Users who should have access to- and receive Anonymous Reports",
    "options": "User List"
   }
  ],
@@ -19,7 +19,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-02 13:47:31.646353",
+ "modified": "2026-04-07 10:13:15.981787",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Anonymous Report Recipients",
