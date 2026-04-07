@@ -276,63 +276,6 @@ def disciplinary_action_has_permission(doc, user: str | None = None, ptype: str 
 
     return True
 
-def _anonymous_report_recipient_users() -> set[str]:
-    """
-    Read allowed users from the singleton:
-    Anonymous Report Recipients.userlist
-    """
-    rows = frappe.get_all(
-        "User List",
-        filters={
-            "parenttype": "Anonymous Report Recipients",
-            "parent": "Anonymous Report Recipients",
-            "parentfield": "userlist",
-        },
-        fields=["user"],
-        order_by="idx asc",
-    )
-    return {r.user for r in rows if r.get("user")}
-
-
-def _can_access_anonymous_report(user: str | None = None) -> bool:
-    user = user or frappe.session.user
-
-    if not user or user == "Guest":
-        return False
-
-    if user == "Administrator":
-        return True
-
-    roles = set(frappe.get_roles(user))
-    if "System Manager" in roles or "IR Manager" in roles:
-        return True
-
-    return user in _anonymous_report_recipient_users()
-
-
-def anonymous_report_permission_query_conditions(user: str) -> str:
-    """
-    Hide all Anonymous Report records from list/report views unless the user
-    is explicitly allowed.
-    """
-    if _can_access_anonymous_report(user):
-        return ""
-
-    # show nothing
-    return "1=0"
-
-
-def anonymous_report_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
-    """
-    Block direct opening/reading/writing/exporting/etc. unless allowed.
-    """
-    user = user or frappe.session.user
-
-    if ptype in (None, "read", "write", "submit", "cancel", "delete", "print", "email", "report", "export"):
-        return _can_access_anonymous_report(user)
-
-    return _can_access_anonymous_report(user)
-
 
 # --------------------------------------------------------------------
 # TEMPLATE for future doctypes:

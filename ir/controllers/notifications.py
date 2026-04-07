@@ -10,7 +10,8 @@ IGNORE_FIELDS = {
     "docstatus", "parent", "parenttype", "parentfield", "amended_from", "version"
 }
 
-ANON_REPORT_SETTINGS_DOCTYPE = "Anonymous Report Recipients"
+ANON_REPORT_INVESTIGATOR_ROLE = "Anonymous Report Investigator"
+
 
 def handle_doc_event(doc, method, action, changed_fields=None):
     if doc.doctype == "Termination Form":
@@ -127,37 +128,41 @@ def _collect_anonymous_report_recipients():
     name_by_email = {}
 
     try:
-        settings = frappe.get_single(ANON_REPORT_SETTINGS_DOCTYPE)
+        user_names = frappe.get_all(
+            "Has Role",
+            filters={
+                "role": ANON_REPORT_INVESTIGATOR_ROLE,
+                "parenttype": "User",
+            },
+            pluck="parent"
+        )
     except Exception:
         frappe.log_error(
             frappe.get_traceback(),
-            f"Unable to load {ANON_REPORT_SETTINGS_DOCTYPE}"
+            f"Unable to fetch users for role {ANON_REPORT_INVESTIGATOR_ROLE}"
         )
         return [], {}
 
-    for row in settings.userlist or []:
-        if not row.user:
+    if not user_names:
+        return [], {}
+
+    user_docs = frappe.get_all(
+        "User",
+        filters={
+            "name": ["in", user_names],
+            "enabled": 1,
+        },
+        fields=["name", "email", "full_name"]
+    )
+
+    for user_doc in user_docs:
+        email = user_doc.get("email")
+        if not email:
             continue
 
-        user_doc = frappe.db.get_value(
-            "User",
-            row.user,
-            ["email", "full_name", "enabled"],
-            as_dict=True
-        )
-
-        if not user_doc:
-            continue
-
-        if not user_doc.enabled:
-            continue
-
-        if not user_doc.email:
-            continue
-
-        if user_doc.email not in recipients:
-            recipients.append(user_doc.email)
-            name_by_email[user_doc.email] = user_doc.full_name or row.user
+        if email not in recipients:
+            recipients.append(email)
+            name_by_email[email] = user_doc.get("full_name") or user_doc.get("name")
 
     return recipients, name_by_email
 
