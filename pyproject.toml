@@ -3,7 +3,7 @@ name = "ir"
 authors = [
     { name = "BuFf0k", email = "buff0k@buff0k.co.za"}
 ]
-version = "16.0.0"
+version = "16.0.1"
 description = "Industrial Relations management Application for ERPNext and with HRMS"
 requires-python = ">=3.14"
 readme = "README.md"

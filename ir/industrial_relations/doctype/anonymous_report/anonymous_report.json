@@ -16,11 +16,16 @@
   "report_type",
   "description",
   "detailed_description_of_report__incident__concern",
-  "attach_evidence",
   "investigation_tab",
+  "investigator_details_section",
   "investigator",
+  "column_break_ovvk",
   "investigator_name",
-  "investigator_designation"
+  "investigator_designation",
+  "investigation_notes_section",
+  "outcome",
+  "notes",
+  "attach_evidence"
  ],
  "fields": [
   {
@@ -82,7 +87,7 @@
   {
    "fieldname": "attach_evidence",
    "fieldtype": "Table",
-   "label": "Attach Evidence (If Applicable)",
+   "label": "Evidence",
    "options": "Attach Evidence"
   },
   {
@@ -114,13 +119,37 @@
    "label": "Investigator Designation",
    "options": "Designation",
    "read_only": 1
+  },
+  {
+   "fieldname": "investigator_details_section",
+   "fieldtype": "Section Break",
+   "label": "Investigator Details"
+  },
+  {
+   "fieldname": "column_break_ovvk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "investigation_notes_section",
+   "fieldtype": "Section Break",
+   "label": "Investigation Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor"
+  },
+  {
+   "fieldname": "outcome",
+   "fieldtype": "Select",
+   "label": "Outcome",
+   "options": "\nNo Merits\nWithdrawn\nEscalated for Action\nConcluded"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-07 14:00:51.200546",
+ "modified": "2026-04-08 08:39:12.671827",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Anonymous Report",
