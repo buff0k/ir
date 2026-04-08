@@ -144,11 +144,9 @@
   },
   {
    "fieldname": "linked_nta",
-   "fieldtype": "HTML",
-   "is_virtual": 1,
-   "label": "Linked NTA(s)",
-   "options": "NTA Selector",
-   "read_only": 1
+   "fieldtype": "Link",
+   "label": "Linked NTA",
+   "options": "NTA Hearing"
   },
   {
    "fieldname": "chairperson",
@@ -375,7 +373,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-02-03 08:31:38.221693",
+ "modified": "2026-04-08 10:00:16.690676",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",

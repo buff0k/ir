@@ -44,104 +44,221 @@ class WrittenOutcome(Document):
         next_rev = (max(revs) + 1) if revs else 1
         self.name = f"{base}-{next_rev}"
 
-@frappe.whitelist()
-def create_written_outcome(source_name, target_doc=None):
-    from frappe.model.mapper import get_mapped_doc
 
-    source_doctype = frappe.flags.args.get("source_doctype")
+def _get_request_arg(key, default=None):
+    args = getattr(frappe.flags, "args", None) or {}
+    if isinstance(args, dict):
+        return args.get(key, default)
+    return default
 
-    def set_missing_values(source, target):
-        target.ir_intervention = source_doctype
-        target.linked_intervention = source_name
 
-    field_maps = {
-        "Disciplinary Action": {
-            "accused": "employee",
-            "accused_name": "employee_name",
-            "accused_pos": "employee_designation",
-            "company": "company",
-            "letter_head": "letter_head",
-            "previous_disciplinary_outcomes": "disciplinary_history",
-            "final_charges": "nta_charges",
-            "compl_name": "complainant_name",
-            "complainant": "complainant",
-            "branch": "employee_branch"
-        },
-        "Incapacity Proceedings": {
-            "accused": "employee",
-            "accused_name": "employee_name",
-            "accused_pos": "employee_designation",
-            "company": "company",
-            "letter_head": "letter_head",
-            "type_of_incapacity": "incap_type_nta",
-            "details_of_incapacity": "incapacity_details_nta"
-        },
-        "Appeal Against Outcome": {
-            "appellant": "employee",
-            "appellant_name": "employee_name",
-            "company": "company",
-            "letter_head": "letter_head"
-        }
+def _get_nta_link_field(intervention_type: str | None) -> str | None:
+    return {
+        "Disciplinary Action": "linked_disciplinary_action",
+        "Incapacity Proceedings": "linked_incapacity_proceeding",
+    }.get(intervention_type)
+
+
+def _get_latest_linked_nta(intervention: str | None, intervention_type: str | None) -> str | None:
+    link_field = _get_nta_link_field(intervention_type)
+    if not intervention or not link_field:
+        return None
+
+    rows = frappe.get_all(
+        "NTA Hearing",
+        filters={link_field: intervention},
+        fields=["name", "creation"],
+        order_by="creation desc, modified desc",
+        limit_page_length=1,
+    )
+    return rows[0].name if rows else None
+
+
+def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dict:
+    out = {
+        "nta_charges": [],
+        "incap_type_nta": None,
+        "incapacity_details_nta": "",
     }
+
+    if not nta_name:
+        return out
+
+    nta = frappe.get_doc("NTA Hearing", nta_name)
+
+    if intervention_type == "Disciplinary Action":
+        out["nta_charges"] = []
+        for row in (nta.get("nta_charges") or []):
+            value = (row.indiv_charge or "").strip()
+            if value:
+                out["nta_charges"].append({"indiv_charge": value})
+
+    elif intervention_type == "Incapacity Proceedings":
+        out["incap_type_nta"] = nta.get("type_of_incapacity")
+        out["incapacity_details_nta"] = nta.get("details_of_incapacity") or ""
+
+    return out
+
+@frappe.whitelist()
+def create_written_outcome(source_name=None, source_doctype=None):
+    source_name = source_name or frappe.form_dict.get("source_name")
+    source_doctype = source_doctype or frappe.form_dict.get("source_doctype")
 
     if not source_doctype:
         frappe.throw("source_doctype is required")
 
-    if source_doctype not in field_maps:
+    if not source_name:
+        frappe.throw("source_name is required")
+
+    if not frappe.db.exists(source_doctype, source_name):
+        frappe.throw(f"{source_doctype} {source_name} not found")
+
+    source = frappe.get_doc(source_doctype, source_name)
+    doc = frappe.new_doc("Written Outcome")
+
+    # Core linkage only
+    doc.ir_intervention = source_doctype
+    doc.linked_intervention = source.name
+
+    # Map only stable base fields
+    if source_doctype == "Disciplinary Action":
+        doc.employee = source.accused
+        doc.employee_name = source.accused_name
+        doc.employee_designation = source.accused_pos
+        doc.company = source.company
+        doc.letter_head = source.letter_head
+        doc.complainant = source.complainant
+        doc.complainant_name = source.compl_name
+        doc.employee_branch = source.branch
+
+    elif source_doctype == "Incapacity Proceedings":
+        doc.employee = source.accused
+        doc.employee_name = source.accused_name
+        doc.employee_designation = source.accused_pos
+        doc.company = source.company
+        doc.letter_head = source.letter_head
+        doc.complainant = source.complainant
+        doc.complainant_name = source.compl_name
+        doc.employee_branch = source.branch
+
+    elif source_doctype == "Appeal Against Outcome":
+        doc.employee = getattr(source, "appellant", None)
+        doc.employee_name = getattr(source, "appellant_name", None)
+        doc.company = getattr(source, "company", None)
+        doc.letter_head = getattr(source, "letter_head", None)
+
+    elif source_doctype == "External Dispute Resolution":
+        doc.employee = getattr(source, "employee", None)
+        doc.employee_name = getattr(source, "employee_name", None)
+        doc.company = getattr(source, "company", None)
+        doc.letter_head = getattr(source, "letter_head", None)
+
+    else:
         frappe.throw(f"Unsupported source DocType: {source_doctype}")
 
-    return get_mapped_doc(
-        source_doctype,
-        source_name,
-        {
-            source_doctype: {
-                "doctype": "Written Outcome",
-                "field_map": field_maps[source_doctype]
-            }
-        },
-        target_doc,
-        set_missing_values
-    )
+    # Do NOT populate linked_nta or NTA-derived fields here.
+    # The form refresh already calls fetch_intervention_data(),
+    # which will resolve the latest NTA and populate those fields.
+
+    return doc.as_dict()
 
 @frappe.whitelist()
 def fetch_intervention_data(intervention, intervention_type):
-    # ✅ Define the field mappings for different intervention types
     field_maps = {
         "Disciplinary Action": {
-            "source_fields": ["accused", "accused_name", "accused_pos", "company", "complainant", "branch", "compl_name"],
-            "target_fields": ["employee", "employee_name", "employee_designation", "company", "complainant", "employee_branch", "complainant_name"]
+            "source_fields": [
+                "accused",
+                "accused_name",
+                "accused_pos",
+                "company",
+                "complainant",
+                "branch",
+                "compl_name",
+            ],
+            "target_fields": [
+                "employee",
+                "employee_name",
+                "employee_designation",
+                "company",
+                "complainant",
+                "employee_branch",
+                "complainant_name",
+            ],
         },
         "Incapacity Proceedings": {
-            "source_fields": ["accused", "accused_name", "accused_pos", "company", "type_of_incapacity", "details_of_incapacity"],
-            "target_fields": ["employee", "employee_name", "employee_designation", "company", "incap_type_nta", "incapacity_details_nta"]
+            "source_fields": [
+                "accused",
+                "accused_name",
+                "accused_pos",
+                "company",
+                "complainant",
+                "compl_name",
+                "branch",
+            ],
+            "target_fields": [
+                "employee",
+                "employee_name",
+                "employee_designation",
+                "company",
+                "complainant",
+                "complainant_name",
+                "employee_branch",
+            ],
         },
-        "Appeal": {
+        "Appeal Against Outcome": {
             "source_fields": ["appellant", "appellant_name", "company"],
-            "target_fields": ["employee", "employee_name", "company"]
-        }
+            "target_fields": ["employee", "employee_name", "company"],
+        },
+        "External Dispute Resolution": {
+            "source_fields": ["employee", "employee_name", "company"],
+            "target_fields": ["employee", "employee_name", "company"],
+        },
     }
 
-    # ✅ Validate the intervention type
     if intervention_type not in field_maps:
         frappe.throw(f"Unsupported intervention type: {intervention_type}")
 
-    # ✅ Get the correct field mapping
     mapping = field_maps[intervention_type]
-    
-    # ✅ Fetch data dynamically based on the mapping
-    data = frappe.db.get_value(intervention_type, intervention, mapping["source_fields"], as_dict=True)
-    
-    if not data:
-        return {}
 
-    # ✅ Transform the data to match Written Outcome fields
-    transformed_data = {target: data[source] for source, target in zip(mapping["source_fields"], mapping["target_fields"])}
+    data = frappe.db.get_value(
+        intervention_type,
+        intervention,
+        mapping["source_fields"],
+        as_dict=True,
+    ) or {}
 
-    return transformed_data
+    transformed = {
+        target: data.get(source)
+        for source, target in zip(mapping["source_fields"], mapping["target_fields"])
+    }
 
-# ---------------------------------------------------------------------
-# Compile outcome
-# ---------------------------------------------------------------------
+    latest_nta = _get_latest_linked_nta(intervention, intervention_type)
+    transformed["linked_nta"] = latest_nta
+    transformed.update(_get_nta_payload(latest_nta, intervention_type))
+
+    return transformed
+
+
+@frappe.whitelist()
+def get_nta_details(nta_name, intervention_type=None, linked_intervention=None):
+    if not nta_name:
+        return {
+            "nta_charges": [],
+            "incap_type_nta": None,
+            "incapacity_details_nta": "",
+        }
+
+    if intervention_type and linked_intervention:
+        link_field = _get_nta_link_field(intervention_type)
+        if link_field:
+            actual_link = frappe.db.get_value("NTA Hearing", nta_name, link_field)
+            if actual_link != linked_intervention:
+                frappe.throw(
+                    f"NTA Hearing {nta_name} is not linked to {intervention_type} {linked_intervention}"
+                )
+
+    return _get_nta_payload(nta_name, intervention_type)
+
 
 @frappe.whitelist()
 def normalize_headings(content):
@@ -186,10 +303,6 @@ def compile_outcome(docname):
     return {"ok": True}
 
 
-# ---------------------------------------------------------------------
-# Linked docs HTML (for HTML fields linked_nta + linked_rulings)
-# ---------------------------------------------------------------------
-
 def _empty_block(msg: str) -> str:
     return f"""
     <div class="ir-linked-docs">
@@ -232,33 +345,11 @@ def _chips_block(label: str, doctype: str, names: list[str]) -> str:
 
 @frappe.whitelist()
 def get_linked_sections_html(linked_intervention: str | None):
-    """
-    Returns HTML for:
-      - linked_nta (NTA Hearing docs linked to a Disciplinary Action)
-      - linked_rulings (Ruling docs linked to the intervention)
-
-    Intended to be rendered into HTML fields with the SAME fieldnames:
-      linked_nta, linked_rulings
-    """
     if not linked_intervention or linked_intervention.startswith("new-"):
         return {
-            "linked_nta": _empty_block("Linked documents will appear here once the record is saved."),
             "linked_rulings": _empty_block("Linked documents will appear here once the record is saved."),
         }
 
-    # NTA hearings (only exist when linked_intervention is a Disciplinary Action name)
-    try:
-        nta_names = frappe.get_all(
-            "NTA Hearing",
-            filters={"linked_disciplinary_action": linked_intervention},
-            pluck="name",
-            order_by="modified desc",
-        )
-    except Exception:
-        frappe.log_error(title="WrittenOutcome: NTA query failed", message=frappe.get_traceback())
-        nta_names = []
-
-    # Rulings
     try:
         ruling_names = frappe.get_all(
             "Ruling",
@@ -270,12 +361,6 @@ def get_linked_sections_html(linked_intervention: str | None):
         frappe.log_error(title="WrittenOutcome: Ruling query failed", message=frappe.get_traceback())
         ruling_names = []
 
-    linked_nta_html = (
-        _chips_block("NTA Hearings", "NTA Hearing", nta_names)
-        if nta_names
-        else _empty_block("No linked NTA Hearings yet.")
-    )
-
     linked_rulings_html = (
         _chips_block("Rulings", "Ruling", ruling_names)
         if ruling_names
@@ -283,14 +368,9 @@ def get_linked_sections_html(linked_intervention: str | None):
     )
 
     return {
-        "linked_nta": linked_nta_html,
         "linked_rulings": linked_rulings_html,
     }
 
-
-# ---------------------------------------------------------------------
-# Keep this helper for any existing callers (do not break other usage)
-# ---------------------------------------------------------------------
 
 @frappe.whitelist()
 def get_linked_documents(reference_name, linked_doctype, linking_field):

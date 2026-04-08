@@ -233,12 +233,19 @@ function make_nta_hearing(frm) {
 }
 
 function create_written_outcome(frm) {
-    frappe.model.open_mapped_doc({
+    frappe.call({
         method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
-        frm: frm,
         args: {
-            linked_intervention: frm.doc.name,
+            source_name: frm.doc.name,
             source_doctype: frm.doctype
+        },
+        freeze: true,
+        freeze_message: __("Creating Written Outcome ..."),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "Written Outcome", r.message.name);
+            }
         }
     });
 }

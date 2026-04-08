@@ -24,9 +24,9 @@ frappe.ui.form.on("Incapacity Proceedings", {
       );
 
       frm.page.add_inner_button(
-        __("Write Outcome Report"),
+        __("Write Outcome"),
         function () {
-          write_incapacity_outcome_report(frm);
+          create_written_outcome(frm);
         },
         "Actions"
       );
@@ -258,17 +258,6 @@ function make_nta_incap(frm) {
   });
 }
 
-function write_incapacity_outcome_report(frm) {
-  frappe.model.open_mapped_doc({
-    method:
-      "ir.industrial_relations.doctype.disciplinary_outcome_report.disciplinary_outcome_report.write_incapacity_outcome_report",
-    frm: frm,
-    args: { linked_incapacity_proceeding: frm.doc.name },
-    freeze_message: __("Creating Disciplinary Outcome Report ..."),
-  });
-}
-
-// (left here intentionally if you still use it elsewhere)
 function create_written_outcome(frm) {
   frappe.call({
     method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
