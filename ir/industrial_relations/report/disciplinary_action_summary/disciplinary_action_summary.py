@@ -21,7 +21,7 @@ def get_columns():
 			"fieldname": "name",
 			"fieldtype": "Link",
 			"options": "Disciplinary Action",
-			"width": 160,
+			"width": 170,
 		},
 		{
 			"label": _("Request Date"),
@@ -62,6 +62,12 @@ def get_columns():
 			"width": 220,
 		},
 		{
+			"label": _("Final Charges"),
+			"fieldname": "final_charges_display",
+			"fieldtype": "Small Text",
+			"width": 360,
+		},
+		{
 			"label": _("Outcome"),
 			"fieldname": "display_outcome",
 			"fieldtype": "Data",
@@ -82,28 +88,27 @@ def get_data(filters):
 
 	if filters.get("company"):
 		conditions.append("da.company = %(company)s")
-		values["company"] = filters.company
+		values["company"] = filters.get("company")
 
 	if filters.get("branch"):
 		conditions.append("da.branch = %(branch)s")
-		values["branch"] = filters.branch
+		values["branch"] = filters.get("branch")
 
 	if filters.get("from_date"):
 		conditions.append("DATE(da.request_date) >= %(from_date)s")
-		values["from_date"] = filters.from_date
+		values["from_date"] = filters.get("from_date")
 
 	if filters.get("to_date"):
 		conditions.append("DATE(da.request_date) <= %(to_date)s")
-		values["to_date"] = filters.to_date
+		values["to_date"] = filters.get("to_date")
 
 	if filters.get("outcome"):
 		conditions.append("da.outcome = %(outcome)s")
-		values["outcome"] = filters.outcome
+		values["outcome"] = filters.get("outcome")
 
 	where_clause = " AND ".join(conditions)
 
-	return frappe.db.sql(
-		f"""
+	query = f"""
 		SELECT
 			da.name,
 			da.request_date,
@@ -116,25 +121,55 @@ def get_data(filters):
 			da.company,
 			da.branch,
 			CASE
-				WHEN IFNULL(da.accused_coy, '') != ''
-				THEN CONCAT(IFNULL(da.accused_name, ''), ' (', da.accused_coy, ')')
-				ELSE IFNULL(da.accused_name, '')
+				WHEN IFNULL(TRIM(da.accused_name), '') != '' AND IFNULL(TRIM(da.accused_coy), '') != ''
+				THEN CONCAT(TRIM(da.accused_name), ' (', TRIM(da.accused_coy), ')')
+				WHEN IFNULL(TRIM(da.accused_name), '') != ''
+				THEN TRIM(da.accused_name)
+				WHEN IFNULL(TRIM(da.accused_coy), '') != ''
+				THEN CONCAT('(', TRIM(da.accused_coy), ')')
+				ELSE ''
 			END AS accused_display,
+			IFNULL(fc.final_charges_display, '') AS final_charges_display,
 			CASE
 				WHEN IFNULL(oo.disc_offence_out, '') = '' THEN 'Pending'
 				ELSE oo.disc_offence_out
 			END AS display_outcome,
 			CASE
-				WHEN IFNULL(da.responsible_ir_no, '') != ''
-				THEN CONCAT(IFNULL(da.responsible_ir_name, ''), ' (', da.responsible_ir_no, ')')
-				ELSE IFNULL(da.responsible_ir_name, '')
+				WHEN IFNULL(TRIM(da.responsible_ir_name), '') != '' AND IFNULL(TRIM(da.responsible_ir_no), '') != ''
+				THEN CONCAT(TRIM(da.responsible_ir_name), ' (', TRIM(da.responsible_ir_no), ')')
+				WHEN IFNULL(TRIM(da.responsible_ir_name), '') != ''
+				THEN TRIM(da.responsible_ir_name)
+				WHEN IFNULL(TRIM(da.responsible_ir_no), '') != ''
+				THEN CONCAT('(', TRIM(da.responsible_ir_no), ')')
+				ELSE ''
 			END AS responsible_ir_display
 		FROM `tabDisciplinary Action` da
 		LEFT JOIN `tabOffence Outcome` oo
 			ON oo.name = da.outcome
+		LEFT JOIN (
+			SELECT
+				dc.parent,
+				GROUP_CONCAT(
+					CASE
+						WHEN IFNULL(TRIM(dc.code_item), '') != '' AND IFNULL(TRIM(dc.charge), '') != ''
+						THEN CONCAT(TRIM(dc.code_item), ': ', TRIM(dc.charge))
+						WHEN IFNULL(TRIM(dc.charge), '') != ''
+						THEN TRIM(dc.charge)
+						WHEN IFNULL(TRIM(dc.code_item), '') != ''
+						THEN TRIM(dc.code_item)
+						ELSE NULL
+					END
+					ORDER BY dc.idx ASC
+					SEPARATOR '\\n'
+				) AS final_charges_display
+			FROM `tabDisciplinary Charges` dc
+			WHERE dc.parenttype = 'Disciplinary Action'
+			  AND dc.parentfield = 'final_charges'
+			GROUP BY dc.parent
+		) fc
+			ON fc.parent = da.name
 		WHERE {where_clause}
 		ORDER BY da.request_date DESC, da.name DESC
-		""",
-		values,
-		as_dict=True,
-	)
+	"""
+
+	return frappe.db.sql(query, values, as_dict=True)
