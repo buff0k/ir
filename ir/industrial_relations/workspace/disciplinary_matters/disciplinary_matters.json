@@ -146,25 +146,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "General Documents",
    "link_count": 3,
    "link_type": "DocType",
@@ -201,10 +182,39 @@
    "onboard": 0,
    "report_ref_doctype": "Employee",
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Disciplinary Action Summary",
+   "link_count": 0,
+   "link_to": "Disciplinary Action Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-02 12:26:22.312118",
- "modified_by": "eben@isambane.co.za",
+ "modified": "2026-04-13 15:19:40.368822",
+ "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",
  "number_cards": [],
