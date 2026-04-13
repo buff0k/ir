@@ -192,35 +192,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Employment Equity",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Employment Equity Report",
-   "link_count": 0,
-   "link_to": "Employment Equity Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employment Equity Target",
-   "link_count": 0,
-   "link_to": "Employment Equity Target",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "General IR Documents",
    "link_count": 2,
    "link_type": "DocType",
@@ -434,9 +405,38 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Employment Equity Workforce Profile",
+   "link_count": 0,
+   "link_to": "Employment Equity Workforce Profile",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employment Equity Target",
+   "link_count": 0,
+   "link_to": "Employment Equity Target",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-02 13:48:27.623033",
+ "modified": "2026-04-13 08:46:48.737794",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
