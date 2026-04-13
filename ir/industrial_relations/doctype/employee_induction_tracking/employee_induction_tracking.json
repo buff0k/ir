@@ -81,9 +81,9 @@
   },
   {
    "fieldname": "designated_group",
-   "fieldtype": "Link",
+   "fieldtype": "Select",
    "label": "Designated Group",
-   "options": "Designated Group",
+   "options": "\nAfrican\nColoured\nIndian\nWhite\nOther",
    "read_only": 1
   },
   {
@@ -117,7 +117,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-02-11 12:23:45.570905",
+ "modified": "2026-04-13 10:02:07.614984",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",
