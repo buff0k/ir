@@ -60,7 +60,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-04-13 08:43:04.603704",
+ "modified": "2026-04-13 10:31:19.161308",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Workforce Profile",
@@ -69,6 +69,16 @@
  "ref_doctype": "Employee",
  "report_name": "Employment Equity Workforce Profile",
  "report_type": "Script Report",
- "roles": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  }
+ ],
  "timeout": 0
 }
