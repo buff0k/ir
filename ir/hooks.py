@@ -111,6 +111,7 @@ fixtures = [
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
 		"Employee-custom_ir_section",
+        "Employee-custom_employee_audit_trail",
 		"Employee-custom_ir_column_break",
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
@@ -122,6 +123,7 @@ fixtures = [
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
 		"Employee-custom_ir_section",
+        "Employee-custom_employee_audit_trail",
 		"Employee-custom_ir_column_break",
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
@@ -132,13 +134,6 @@ fixtures = [
 		"General Incapacity",
 		"Medical Incapacity",
 		"Incompatibility"
-	]]]},
-	{"dt": "Designated Group", "filters": [["name", "in", [
-		"African",
-		"Coloured",
-		"Indian",
-		"White",
-		"Unknown"
 	]]]},
 	{"dt": "Occupational Level", "filters": [["name", "in", [
 		"Unskilled",
