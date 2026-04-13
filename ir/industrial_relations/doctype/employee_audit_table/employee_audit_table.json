@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-13 07:03:04.801391",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "auditor",
+  "date",
+  "attach_audit_form_signed",
+  "attach_employee_photo",
+  "attach_id_document"
+ ],
+ "fields": [
+  {
+   "fieldname": "auditor",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Auditor",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Audit Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach_audit_form_signed",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Attach Audit Form (Signed)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach_employee_photo",
+   "fieldtype": "Attach Image",
+   "label": "Attach Employee Photo",
+   "reqd": 1
+  },
+  {
+   "fieldname": "attach_id_document",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Attach ID Document",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-13 07:04:45.427506",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Employee Audit Table",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -106,18 +106,28 @@ fixtures = [
 		"Labour Appeal Court",
 		"Constitutional Court"
 	]]]},
-	{"dt": "Custom Field", "filters": [["dt", "in", [
-    	"Employee",
-    	"Designation",
-		"Employee Checkin",
-        "Leave Application"
+	{"dt": "Custom Field", "filters": [["name", "in", [
+		"Designation-custom_occupational_level",
+		"Employee Checkin-custom_site",
+		"Leave Application-custom_total_leave_hours",
+		"Employee-custom_ir_section",
+		"Employee-custom_ir_column_break",
+		"Employee-custom_trade_union",
+		"Employee-custom_trade_union_membership_start",
+		"Employee-custom_occupational_level",
+		"Employee-ir_employee_audit"
 	]]]},
-	{"dt": "Property Setter", "filters": [["doc_type", "in", [
-    	"Employee",
-        "Designation",
-        "Employee Checkin",
-        "Leave Application"
-    ]]]},
+	{"dt": "Property Setter", "filters": [["name", "in", [
+		"Designation-custom_occupational_level",
+		"Employee Checkin-custom_site",
+		"Leave Application-custom_total_leave_hours",
+		"Employee-custom_ir_section",
+		"Employee-custom_ir_column_break",
+		"Employee-custom_trade_union",
+		"Employee-custom_trade_union_membership_start",
+		"Employee-custom_occupational_level",
+		"Employee-ir_employee_audit"
+	]]]},
 	{"dt": "Type of Incapacity", "filters": [["name", "in", [
 		"General Incapacity",
 		"Medical Incapacity",
