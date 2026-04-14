@@ -55,12 +55,20 @@
    "label": "Show Detailed Rows",
    "mandatory": 0,
    "wildcard_filter": 0
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "mandatory": 0,
+   "options": "Branch",
+   "wildcard_filter": 0
   }
  ],
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-04-13 10:31:19.161308",
+ "modified": "2026-04-14 17:36:15.052099",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employment Equity Workforce Profile",

@@ -25,6 +25,8 @@ RACE_GENDER_COLUMNS = [
     ("Female", "White", "female_white"),
 ]
 
+EMPLOYMENT_CATEGORIES = ["Permanent", "Temporary"]
+
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
@@ -32,7 +34,6 @@ def execute(filters=None):
     columns = get_columns(filters)
     employees = get_employees(filters)
     data = build_data(employees, filters)
-
     chart = get_chart(data)
     summary = get_report_summary(data)
 
@@ -69,7 +70,7 @@ def get_columns(filters):
             "label": _("Male Indian"),
             "fieldname": "male_indian",
             "fieldtype": "Int",
-            "width": 110,
+            "width": 100,
         },
         {
             "label": _("Male White"),
@@ -93,7 +94,7 @@ def get_columns(filters):
             "label": _("Female Indian"),
             "fieldname": "female_indian",
             "fieldtype": "Int",
-            "width": 120,
+            "width": 110,
         },
         {
             "label": _("Female White"),
@@ -153,6 +154,12 @@ def get_columns(filters):
                 "fieldtype": "Int",
                 "width": 110,
             },
+            {
+                "label": _("Branch"),
+                "fieldname": "branch",
+                "fieldtype": "Data",
+                "width": 140,
+            },
         ])
 
     return columns
@@ -170,6 +177,9 @@ def get_employees(filters):
     else:
         conditions.append("status = 'Active'")
 
+    if filters.get("branch"):
+        conditions.append("branch = %(branch)s")
+
     if filters.get("occupational_level"):
         conditions.append("custom_occupational_level = %(occupational_level)s")
 
@@ -184,6 +194,7 @@ def get_employees(filters):
         SELECT
             name,
             company,
+            branch,
             employment_type,
             custom_occupational_level,
             gender,
@@ -195,7 +206,7 @@ def get_employees(filters):
             relieving_date
         FROM `tabEmployee`
         WHERE {" AND ".join(conditions)}
-        ORDER BY custom_occupational_level, employment_type, name
+        ORDER BY custom_occupational_level, employment_type, branch, name
         """,
         filters,
         as_dict=True,
@@ -206,71 +217,24 @@ def build_data(employees, filters):
     rows = []
 
     for level in OCCUPATIONAL_LEVELS:
-        for employment_category in ["Permanent", "Temporary"]:
-            row = {
-                "occupational_level": level,
-                "employment_category": employment_category,
-                "male_african": 0,
-                "male_coloured": 0,
-                "male_indian": 0,
-                "male_white": 0,
-                "female_african": 0,
-                "female_coloured": 0,
-                "female_indian": 0,
-                "female_white": 0,
-                "foreign_male": 0,
-                "foreign_female": 0,
-                "disabled_male": 0,
-                "disabled_female": 0,
-                "sa_total": 0,
-                "foreign_total": 0,
-                "disabled_total": 0,
-                "total_employees": 0,
-            }
+        for employment_category in EMPLOYMENT_CATEGORIES:
+            row = make_empty_row(level, employment_category, filters.get("branch"))
 
             matching_employees = [
-                emp for emp in employees
-                if (emp.custom_occupational_level == level and map_employment_category(emp.employment_type) == employment_category)
+                emp
+                for emp in employees
+                if emp.custom_occupational_level == level
+                and map_employment_category(emp.employment_type) == employment_category
             ]
 
             for emp in matching_employees:
-                gender = (emp.gender or "").strip()
-                nationality = (emp.za_nationality or "").strip()
-                race = (emp.za_race or "").strip()
-
-                is_foreign = nationality and nationality != "South Africa"
-                is_disabled = cint_safe(emp.za_is_disabled)
-
-                if is_foreign:
-                    if gender == "Male":
-                        row["foreign_male"] += 1
-                    elif gender == "Female":
-                        row["foreign_female"] += 1
-                    row["foreign_total"] += 1
-                else:
-                    matched = False
-                    for col_gender, col_race, col_field in RACE_GENDER_COLUMNS:
-                        if gender == col_gender and race == col_race:
-                            row[col_field] += 1
-                            matched = True
-                            break
-
-                    if matched:
-                        row["sa_total"] += 1
-
-                if is_disabled:
-                    if gender == "Male":
-                        row["disabled_male"] += 1
-                    elif gender == "Female":
-                        row["disabled_female"] += 1
-                    row["disabled_total"] += 1
-
-                row["total_employees"] += 1
+                apply_employee_to_row(row, emp)
 
             if row["total_employees"] > 0:
                 rows.append(row)
 
-    total_row = get_total_row(rows)
+    total_row = get_total_row(rows, filters)
+
     if total_row["total_employees"] > 0:
         rows.append({})
         rows.append(total_row)
@@ -278,10 +242,11 @@ def build_data(employees, filters):
     return rows
 
 
-def get_total_row(rows):
-    total_row = {
-        "occupational_level": "TOTAL",
-        "employment_category": "",
+def make_empty_row(level, employment_category, branch=None):
+    return {
+        "occupational_level": level,
+        "employment_category": employment_category,
+        "branch": branch or "",
         "male_african": 0,
         "male_coloured": 0,
         "male_indian": 0,
@@ -299,6 +264,45 @@ def get_total_row(rows):
         "disabled_total": 0,
         "total_employees": 0,
     }
+
+
+def apply_employee_to_row(row, employee):
+    gender = clean_value(employee.gender)
+    nationality = clean_value(employee.za_nationality)
+    race = clean_value(employee.za_race)
+
+    is_foreign = nationality and nationality != "South Africa"
+    is_disabled = cint_safe(employee.za_is_disabled)
+
+    if is_foreign:
+        if gender == "Male":
+            row["foreign_male"] += 1
+        elif gender == "Female":
+            row["foreign_female"] += 1
+        row["foreign_total"] += 1
+    else:
+        matched = False
+        for col_gender, col_race, col_field in RACE_GENDER_COLUMNS:
+            if gender == col_gender and race == col_race:
+                row[col_field] += 1
+                matched = True
+                break
+
+        if matched:
+            row["sa_total"] += 1
+
+    if is_disabled:
+        if gender == "Male":
+            row["disabled_male"] += 1
+        elif gender == "Female":
+            row["disabled_female"] += 1
+        row["disabled_total"] += 1
+
+    row["total_employees"] += 1
+
+
+def get_total_row(rows, filters):
+    total_row = make_empty_row("TOTAL", "", filters.get("branch"))
 
     summable_fields = [
         "male_african",
@@ -322,6 +326,7 @@ def get_total_row(rows):
     for row in rows:
         if not row:
             continue
+
         for field in summable_fields:
             total_row[field] += row.get(field, 0)
 
@@ -329,11 +334,18 @@ def get_total_row(rows):
 
 
 def map_employment_category(employment_type):
+    employment_type = clean_value(employment_type)
+
     if employment_type == "Full-time":
         return "Permanent"
     if employment_type == "Contract":
         return "Temporary"
+
     return "Other"
+
+
+def clean_value(value):
+    return (value or "").strip()
 
 
 def cint_safe(value):
@@ -341,9 +353,18 @@ def cint_safe(value):
 
 
 def get_chart(data):
-    chart_rows = [row for row in data if row and row.get("occupational_level") not in ("TOTAL",)]
+    chart_rows = [
+        row
+        for row in data
+        if row
+        and row.get("occupational_level")
+        and row.get("occupational_level") != "TOTAL"
+    ]
 
-    labels = [row["occupational_level"] for row in chart_rows]
+    labels = [
+        f"{row['occupational_level']} ({row['employment_category']})"
+        for row in chart_rows
+    ]
     values = [row["total_employees"] for row in chart_rows]
 
     if not labels:
@@ -354,22 +375,27 @@ def get_chart(data):
             "labels": labels,
             "datasets": [
                 {
-                    "name": "Employees",
-                    "values": values
+                    "name": _("Employees"),
+                    "values": values,
                 }
-            ]
+            ],
         },
         "type": "bar",
-        "height": 300
+        "height": 320,
     }
 
 
 def get_report_summary(data):
-    actual_rows = [row for row in data if row and row.get("occupational_level") != "TOTAL"]
+    actual_rows = [
+        row
+        for row in data
+        if row and row.get("occupational_level") not in ("TOTAL", "")
+    ]
 
     total_employees = sum(row.get("total_employees", 0) for row in actual_rows)
     total_disabled = sum(row.get("disabled_total", 0) for row in actual_rows)
     total_foreign = sum(row.get("foreign_total", 0) for row in actual_rows)
+    total_sa = sum(row.get("sa_total", 0) for row in actual_rows)
 
     return [
         {
@@ -378,13 +404,18 @@ def get_report_summary(data):
             "datatype": "Int",
         },
         {
-            "value": total_disabled,
-            "label": _("Employees with Disabilities"),
+            "value": total_sa,
+            "label": _("South African Employees"),
             "datatype": "Int",
         },
         {
             "value": total_foreign,
             "label": _("Foreign Nationals"),
+            "datatype": "Int",
+        },
+        {
+            "value": total_disabled,
+            "label": _("Employees with Disabilities"),
             "datatype": "Int",
         },
     ]

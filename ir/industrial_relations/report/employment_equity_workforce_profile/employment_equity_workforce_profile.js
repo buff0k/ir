@@ -12,6 +12,13 @@ frappe.query_reports["Employment Equity Workforce Profile"] = {
 			default: frappe.defaults.get_user_default("Company")
 		},
 		{
+			fieldname: "branch",
+			label: __("Branch"),
+			fieldtype: "Link",
+			options: "Branch",
+			default: ""
+		},
+		{
 			fieldname: "as_at_date",
 			label: __("As At Date"),
 			fieldtype: "Date",
