@@ -32,6 +32,10 @@
   {
    "chart": "External Disputes",
    "width": "Half"
+  },
+  {
+   "chart": "Disciplinary Action Opened vs Closed",
+   "width": "Full"
   }
  ],
  "creation": "2025-08-28 08:01:24.453596",
@@ -41,7 +45,7 @@
  "idx": 0,
  "is_default": 0,
  "is_standard": 1,
- "modified": "2025-08-28 08:33:44.763039",
+ "modified": "2026-04-14 10:43:16.375358",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",

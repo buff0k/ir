@@ -1,0 +1,14 @@
+{
+ "creation": "2026-04-14 10:35:08.547931",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart Source",
+ "idx": 0,
+ "modified": "2026-04-14 10:51:20.470466",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Disciplinary Action Trend",
+ "owner": "Administrator",
+ "source": "custom",
+ "source_name": "Disciplinary Action Trend",
+ "timeseries": 1
+}
