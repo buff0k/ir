@@ -116,7 +116,9 @@ fixtures = [
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
 		"Employee-custom_occupational_level",
-		"Employee-ir_employee_audit"
+		"Employee-ir_employee_audit",
+        "Employee-ir_section_break_records",
+        "Employee-ir_employee_records"
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
 		"Designation-custom_occupational_level",
@@ -128,7 +130,9 @@ fixtures = [
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
 		"Employee-custom_occupational_level",
-		"Employee-ir_employee_audit"
+		"Employee-ir_employee_audit",
+        "Employee-ir_section_break_records",
+        "Employee-ir_employee_records"
 	]]]},
 	{"dt": "Type of Incapacity", "filters": [["name", "in", [
 		"General Incapacity",

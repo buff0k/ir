@@ -292,7 +292,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -326,9 +326,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee File Record",
+   "link_count": 0,
+   "link_to": "Employee File Record",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-07 14:10:21.583273",
+ "modified": "2026-04-15 12:53:01.443041",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",
