@@ -118,7 +118,18 @@ fixtures = [
 		"Employee-custom_occupational_level",
 		"Employee-ir_employee_audit",
         "Employee-ir_section_break_records",
-        "Employee-ir_employee_records"
+        "Employee-ir_employee_records",
+        "Job Requisition-ir_employment_type",
+        "Job Requisition-ir_site",
+        "Job Requisition-ir_advertisement_type",
+        "Job Requisition-ir_urgency",
+        "Job Requisition-ir_vacancy_type",
+        "Job Requisition-ir_enddate",
+        "Job Requisition-ir_qualifications__skills_required",
+        "Job Requisition-ir_experience_required",
+        "Job Requisition-ir_main_duties_and_responsibilities",
+        "Job Requisition-ir_acceptable_disabilities",
+        "Job Requisition-ir_remarks"
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
 		"Designation-custom_occupational_level",
@@ -132,7 +143,18 @@ fixtures = [
 		"Employee-custom_occupational_level",
 		"Employee-ir_employee_audit",
         "Employee-ir_section_break_records",
-        "Employee-ir_employee_records"
+        "Employee-ir_employee_records",
+        "Job Requisition-ir_employment_type",
+        "Job Requisition-ir_site",
+        "Job Requisition-ir_advertisement_type",
+        "Job Requisition-ir_urgency",
+        "Job Requisition-ir_vacancy_type",
+        "Job Requisition-ir_enddate",
+        "Job Requisition-ir_qualifications__skills_required",
+        "Job Requisition-ir_experience_required",
+        "Job Requisition-ir_main_duties_and_responsibilities",
+        "Job Requisition-ir_acceptable_disabilities",
+        "Job Requisition-ir_remarks"
 	]]]},
 	{"dt": "Type of Incapacity", "filters": [["name", "in", [
 		"General Incapacity",
