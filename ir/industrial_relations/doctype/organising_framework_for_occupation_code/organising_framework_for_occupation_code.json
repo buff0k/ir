@@ -28,7 +28,8 @@
    "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
-   "label": "Seta Job Role"
+   "label": "Seta Job Role",
+   "search_index": 1
   },
   {
    "fieldname": "table_ufyo",
@@ -47,7 +48,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-30 13:58:39.694044",
+ "modified": "2026-04-30 14:21:33.843487",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Organising Framework for Occupation Code",
@@ -108,5 +109,7 @@
  "sort_order": "DESC",
  "states": [],
  "title_field": "ofo_code",
- "track_changes": 1
+ "track_changes": 1,
+ "track_seen": 1,
+ "search_fields": "ofo_code,seta_job_role"
 }
