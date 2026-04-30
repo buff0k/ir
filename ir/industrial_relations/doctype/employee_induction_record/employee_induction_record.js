@@ -56,6 +56,7 @@ frappe.ui.form.on("Employee Induction Record", {
 
       const months = cint(valid_for_raw);
       if (!months) return;
+
       const computed_valid_to = frm.events.add_months_minus_one_day(valid_from, months);
       const current_vt = frm.doc.valid_to || null;
 
@@ -64,6 +65,7 @@ frappe.ui.form.on("Employee Induction Record", {
         await frm.set_value("valid_to", computed_valid_to);
         return;
       }
+
       if (frm._auto_valid_to && current_vt === frm._auto_valid_to) {
         frm._auto_valid_to = computed_valid_to;
         await frm.set_value("valid_to", computed_valid_to);
@@ -88,9 +90,12 @@ frappe.ui.form.on("Employee Induction Record", {
     const employee = frm.doc.employee;
 
     if (!employee) {
-      frm.set_value("employee_name", null);
-      frm.set_value("designation", null);
-      frm.set_value("branch", null);
+      await frm.set_value({
+        employee_name: null,
+        designation: null,
+        branch: null,
+        ofo_code: null,
+      });
       return;
     }
 
@@ -99,9 +104,14 @@ frappe.ui.form.on("Employee Induction Record", {
     try {
       const r = await frappe.db.get_value("Employee", employee, employee_fields);
       const v = (r && r.message) ? r.message : {};
-      frm.set_value("employee_name", v.employee_name || null);
-      frm.set_value("designation", v.designation || null);
-      frm.set_value("branch", v.branch || null);
+
+      await frm.set_value({
+        employee_name: v.employee_name || null,
+        designation: v.designation || null,
+        branch: v.branch || null,
+      });
+
+      await frm.events.populate_ofo_code_from_designation(frm);
     } catch (err) {
       console.error("Failed to fetch Employee details:", err);
       frappe.msgprint({
@@ -112,12 +122,69 @@ frappe.ui.form.on("Employee Induction Record", {
     }
   },
 
+  populate_ofo_code_from_designation: async function (frm) {
+    const designation = frm.doc.designation;
+
+    if (!designation) {
+      await frm.set_value("ofo_code", null);
+      return;
+    }
+
+    try {
+      const matches = await frappe.db.get_list("Designation Selector", {
+        filters: {
+          designation: designation,
+          parenttype: "Organising Framework for Occupation Code",
+        },
+        fields: ["parent"],
+        limit: 50,
+      });
+
+      const unique_ofo_codes = [
+        ...new Set((matches || []).map((row) => row.parent).filter(Boolean)),
+      ];
+
+      if (unique_ofo_codes.length === 1) {
+        await frm.set_value("ofo_code", unique_ofo_codes[0]);
+        return;
+      }
+
+      await frm.set_value("ofo_code", null);
+
+      if (unique_ofo_codes.length > 1) {
+        frappe.msgprint({
+          title: __("Multiple OFO Codes Found"),
+          message: __(
+            "The designation {0} is linked to multiple OFO Codes: {1}. Please select the correct OFO Code manually.",
+            [designation, unique_ofo_codes.join(", ")]
+          ),
+          indicator: "orange",
+        });
+        return;
+      }
+
+      frappe.show_alert({
+        message: __("No OFO Code found for designation {0}.", [designation]),
+        indicator: "orange",
+      });
+    } catch (err) {
+      console.error("Failed to fetch OFO Code:", err);
+      await frm.set_value("ofo_code", null);
+
+      frappe.msgprint({
+        title: __("OFO Code lookup failed"),
+        message: __("Could not find the OFO Code for designation {0}. Please try again.", [designation]),
+        indicator: "red",
+      });
+    }
+  },
+
   populate_facilitator_details: async function (frm) {
     const facilitator = frm.doc.facilitator;
 
     if (!facilitator) {
-      frm.set_value("facilitator_names", null);
-      frm.set_value("institution", null);
+      await frm.set_value("facilitator_names", null);
+      await frm.set_value("institution", null);
       return;
     }
 
@@ -126,8 +193,9 @@ frappe.ui.form.on("Employee Induction Record", {
     try {
       const r = await frappe.db.get_value("Facilitator", facilitator, facilitator_fields);
       const v = (r && r.message) ? r.message : {};
-      frm.set_value("facilitator_names", v.full_name || null);
-      frm.set_value("institution", v.supplier || null);
+
+      await frm.set_value("facilitator_names", v.full_name || null);
+      await frm.set_value("institution", v.supplier || null);
     } catch (err) {
       console.error("Failed to fetch Facilitator details:", err);
       frappe.msgprint({

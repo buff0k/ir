@@ -1,59 +1,56 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:training_name",
- "creation": "2026-01-21 07:50:54.978438",
+ "autoname": "field:ofo_code",
+ "creation": "2026-04-30 13:40:29.039958",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "training_name",
-  "valid_for",
-  "applicable_sites",
-  "applicable_designations"
+  "ofo_code",
+  "seta_job_role",
+  "seta_descriptor",
+  "table_ufyo"
  ],
  "fields": [
   {
-   "fieldname": "training_name",
+   "fieldname": "ofo_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Training / Induction Name",
+   "in_standard_filter": 1,
+   "label": "OFO Code",
    "reqd": 1,
    "unique": 1
   },
   {
-   "default": "12",
-   "description": "In Months",
-   "fieldname": "valid_for",
-   "fieldtype": "Select",
+   "fieldname": "seta_job_role",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Validity Period",
-   "options": "3\n6\n12\n24\n36",
-   "reqd": 1,
-   "search_index": 1,
-   "sort_options": 1
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Seta Job Role"
   },
   {
-   "fieldname": "applicable_sites",
-   "fieldtype": "Table MultiSelect",
-   "label": "Applicable Site(s)",
-   "options": "Branch Selector",
-   "reqd": 1
+   "fieldname": "table_ufyo",
+   "fieldtype": "Table",
+   "options": "Designation Selector"
   },
   {
-   "fieldname": "applicable_designations",
-   "fieldtype": "Table MultiSelect",
-   "label": "Applicable Designation(s)",
-   "options": "Designation Selector",
-   "reqd": 1
+   "fieldname": "seta_descriptor",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Seta Descriptor"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-30 13:50:34.840977",
+ "modified": "2026-04-30 13:58:39.694044",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Employee Induction",
+ "name": "Organising Framework for Occupation Code",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -66,18 +63,9 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Training Administrator",
-   "select": 1,
-   "share": 1
   },
   {
    "create": 1,
@@ -92,14 +80,16 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Employee",
+   "role": "Training Facilitator",
    "select": 1,
-   "share": 1
+   "share": 1,
+   "write": 1
   },
   {
    "email": 1,
@@ -107,7 +97,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Training Facilitator",
+   "role": "Training Administrator",
    "select": 1,
    "share": 1
   }
@@ -117,6 +107,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "training_name",
+ "title_field": "ofo_code",
  "track_changes": 1
 }

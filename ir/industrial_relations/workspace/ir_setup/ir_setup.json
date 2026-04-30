@@ -193,45 +193,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Training",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Employee Induction",
-   "link_count": 0,
-   "link_to": "Employee Induction",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Facilitator",
-   "link_count": 0,
-   "link_to": "Facilitator",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Training Evidence",
-   "link_count": 0,
-   "link_to": "Training Evidence",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Employment Equity",
    "link_count": 5,
    "link_type": "DocType",
@@ -336,9 +297,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Induction",
+   "link_count": 0,
+   "link_to": "Employee Induction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Facilitator",
+   "link_count": 0,
+   "link_to": "Facilitator",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training Evidence",
+   "link_count": 0,
+   "link_to": "Training Evidence",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "OFO Codes",
+   "link_count": 0,
+   "link_to": "Organising Framework for Occupation Code",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-15 12:53:01.443041",
+ "modified": "2026-04-30 13:45:37.512931",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

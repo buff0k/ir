@@ -20,6 +20,7 @@
   "facilitator_names",
   "training_details_section",
   "training",
+  "ofo_code",
   "certificate",
   "column_break_zxhl",
   "training_date",
@@ -157,13 +158,20 @@
    "fieldname": "certificate",
    "fieldtype": "Attach",
    "label": "Training Certificate"
+  },
+  {
+   "fieldname": "ofo_code",
+   "fieldtype": "Link",
+   "label": "OFO Code",
+   "options": "Organising Framework for Occupation Code",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-11 12:24:01.011206",
+ "modified": "2026-04-30 13:46:37.202242",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",
