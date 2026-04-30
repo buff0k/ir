@@ -48,7 +48,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-30 14:21:33.843487",
+ "modified": "2026-04-30 14:39:00.120792",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Organising Framework for Occupation Code",
@@ -72,6 +72,7 @@
    "create": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -108,8 +109,8 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
+ "search_fields": "ofo_code,seta_job_role",
  "title_field": "ofo_code",
  "track_changes": 1,
- "track_seen": 1,
- "search_fields": "ofo_code,seta_job_role"
+ "track_seen": 1
 }
