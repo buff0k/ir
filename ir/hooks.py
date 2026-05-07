@@ -107,7 +107,6 @@ fixtures = [
 		"Constitutional Court"
 	]]]},
 	{"dt": "Custom Field", "filters": [["name", "in", [
-		"Designation-custom_occupational_level",
         "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
@@ -132,7 +131,6 @@ fixtures = [
         "Job Requisition-ir_remarks"
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
-		"Designation-custom_occupational_level",
         "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
