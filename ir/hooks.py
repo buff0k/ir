@@ -108,6 +108,7 @@ fixtures = [
 	]]]},
 	{"dt": "Custom Field", "filters": [["name", "in", [
 		"Designation-custom_occupational_level",
+        "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
 		"Employee-custom_ir_section",
@@ -132,6 +133,7 @@ fixtures = [
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
 		"Designation-custom_occupational_level",
+        "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
 		"Leave Application-custom_total_leave_hours",
 		"Employee-custom_ir_section",
