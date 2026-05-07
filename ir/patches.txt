@@ -14,3 +14,4 @@ ir.patches.patch_clear_disc_action_child_table
 ir.patches.patch_clear_incap_child_table
 ir.patches.za_local_migrate_employee_fields
 ir.patches.migrate_employee_za_fields
+ir.patches.migrate_designation_occupational_level
