@@ -115,7 +115,6 @@ fixtures = [
 		"Employee-custom_ir_column_break",
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
-		"Employee-custom_occupational_level",
 		"Employee-ir_employee_audit",
         "Employee-ir_section_break_records",
         "Employee-ir_employee_records",
@@ -140,7 +139,6 @@ fixtures = [
 		"Employee-custom_ir_column_break",
 		"Employee-custom_trade_union",
 		"Employee-custom_trade_union_membership_start",
-		"Employee-custom_occupational_level",
 		"Employee-ir_employee_audit",
         "Employee-ir_section_break_records",
         "Employee-ir_employee_records",
@@ -160,14 +158,6 @@ fixtures = [
 		"General Incapacity",
 		"Medical Incapacity",
 		"Incompatibility"
-	]]]},
-	{"dt": "Occupational Level", "filters": [["name", "in", [
-		"Unskilled",
-		"Semi-skilled",
-		"Skilled technical",
-		"Professionally qualified",
-		"Senior management",
-        "Top management"
 	]]]},
     {"dt": "Reason for Termination", "filters": [["name", "in", [
 		"Employee Deceased",
