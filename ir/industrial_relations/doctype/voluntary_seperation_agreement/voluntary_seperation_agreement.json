@@ -11,10 +11,12 @@
   "letter_head",
   "linked_disciplinary_action_processed",
   "linked_incapacity_proceeding_processed",
+  "linked_poor_performance_processed",
   "employee_details_section",
   "employee",
   "linked_disciplinary_action",
   "linked_incapacity_proceeding",
+  "linked_poor_performance",
   "engagement_date",
   "outcome_date",
   "signed_vsp",
@@ -273,12 +275,27 @@
    "fieldtype": "Date",
    "label": "Starting Date",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_poor_performance_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Poor Performance Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_poor_performance",
+   "fieldtype": "Link",
+   "label": "Linked Poor Performance",
+   "options": "Poor Performance"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-02 12:19:29.136247",
+ "modified": "2026-05-18 15:21:15.556499",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Voluntary Seperation Agreement",
@@ -322,6 +339,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

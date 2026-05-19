@@ -8,6 +8,8 @@ frappe.ui.form.on('Suspension Form', {
             frm.trigger('linked_disciplinary_action');
         } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
             frm.trigger('linked_incapacity_proceeding');
+        } else if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
+            frm.trigger('linked_poor_performance');
         }
     },
     
@@ -116,6 +118,52 @@ frappe.ui.form.on('Suspension Form', {
         }
     },
 
+
+    linked_poor_performance: function(frm) {
+        if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.fetch_poor_performance_data',
+                args: {
+                    poor_performance: frm.doc.linked_poor_performance
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        const data = r.message;
+
+                        frm.doc.employee = data.employee || '';
+                        frm.doc.names = data.employee_name || '';
+                        frm.doc.coy = data.employee || '';
+                        frm.doc.position = data.employee_designation || '';
+                        frm.doc.company = data.company || '';
+                        frm.set_value('performance_details', data.performance_details || '');
+
+                        frm.refresh_field('employee');
+                        frm.refresh_field('names');
+                        frm.refresh_field('coy');
+                        frm.refresh_field('position');
+                        frm.refresh_field('company');
+                        frm.refresh_field('performance_details');
+
+                        frm.clear_table('previous_performance_outcomes');
+                        $.each(data.previous_performance_outcomes || [], function(_, row) {
+                            let child = frm.add_child('previous_performance_outcomes');
+                            child.performance_action = row.performance_action;
+                            child.date = row.date;
+                            child.charges = row.charges;
+                            child.sanction = row.sanction;
+                        });
+                        frm.refresh_field('previous_performance_outcomes');
+
+                        frm.set_value('applied_rights', 'Suspension');
+                        frm.trigger('applied_rights');
+
+                        frm.set_value('linked_poor_performance_processed', true);
+                    }
+                }
+            });
+        }
+    },
+
     company: function(frm) {
         if (frm.doc.company) {
             frappe.call({
@@ -170,8 +218,12 @@ frappe.ui.form.on('Suspension Form', {
         }
 
         // Determine linked document
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding;
-        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Incapacity Proceedings';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action
+            ? 'Disciplinary Action'
+            : frm.doc.linked_incapacity_proceeding
+                ? 'Incapacity Proceedings'
+                : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -237,8 +289,12 @@ frappe.ui.form.on('Suspension Form', {
             return;
         }
 
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding;
-        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Incapacity Proceedings';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action
+            ? 'Disciplinary Action'
+            : frm.doc.linked_incapacity_proceeding
+                ? 'Incapacity Proceedings'
+                : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -263,7 +319,7 @@ frappe.ui.form.on('Suspension Form', {
                             return;
                         }
 
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with demotion type: ${frm.doc.demotion_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
+                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with suspension type: ${frm.doc.suspension_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
 
                         frappe.confirm(
                             msg,

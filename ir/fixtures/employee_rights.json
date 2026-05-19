@@ -146,5 +146,37 @@
   "doctype": "Employee Rights",
   "modified": "2024-08-06 15:59:55.266718",
   "name": "Warning Form"
+ },
+ {
+  "applicable_rights": [
+   {
+    "individual_right": "You may consult your union."
+   },
+   {
+    "individual_right": "You may be represented at the enquiry by a fellow employee of your choice. You are responsible for arranging for your representative to be present.  You may choose not to be represented at the enquiry."
+   },
+   {
+    "individual_right": "You have been given a number of days to prepare your case and to contact any witness(es) and/or a representative.  Please ensure that you prepare sufficiently within the time given. The enquiry will not be delayed if you have not prepared your case.  In exceptional circumstances, extra time may be requested from your Manager, providing that you arrange this with him or her prior to the hearing."
+   },
+   {
+    "individual_right": "You will be given an opportunity to state your case by giving verbal evidence at the enquiry or by submitting a written reply to the complaint to the manager concerned, or both."
+   },
+   {
+    "individual_right": "You may call witnesses and question any witness called by the Complainant.  You are responsible for ensuring that your witnesses are present at the enquiry."
+   },
+   {
+    "individual_right": "You may submit any documentation or exhibits at the enquiry and inspect any documentation or exhibit submitted to the Presiding Officer."
+   },
+   {
+    "individual_right": "You have the right to be assisted by an interpreter from the Company.  If you require the Company to arrange an interpreter for you, you should contact your manager at least one (1) working day prior to the enquiry to request an interpreter."
+   },
+   {
+    "individual_right": "Please ensure that you arrive for the enquiry on time or immediately contact your Manager in the event of any delay. Should you fail to attend the enquiry, it may continue in your absence."
+   }
+  ],
+  "docstatus": 0,
+  "doctype": "Employee Rights",
+  "modified": "2026-05-19 11:56:39.984412",
+  "name": "Poor Performance"
  }
 ]

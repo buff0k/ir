@@ -8,6 +8,8 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
             frm.trigger('linked_disciplinary_action');
         } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
             frm.trigger('linked_incapacity_proceeding');
+        } else if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
+            frm.trigger('linked_poor_performance');
         }
     },
 
@@ -75,6 +77,38 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
         }
     },
 
+
+    linked_poor_performance: function(frm) {
+        if (frm.doc.linked_poor_performance) {
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.fetch_poor_performance_data',
+                args: {
+                    poor_performance: frm.doc.linked_poor_performance
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        const data = r.message;
+
+                        frm.doc.employee = data.employee || '';
+                        frm.doc.names = data.employee_name || '';
+                        frm.doc.coy = data.employee || '';
+                        frm.doc.position = data.employee_designation || '';
+                        frm.doc.company = data.company || '';
+
+                        frm.refresh_field('employee');
+                        frm.trigger('employee');
+                        frm.refresh_field('names');
+                        frm.refresh_field('coy');
+                        frm.refresh_field('position');
+                        frm.refresh_field('company');
+
+                        frm.set_value('linked_poor_performance_processed', true);
+                    }
+                }
+            });
+        }
+    },
+
     employee: function(frm) {
         if (frm.doc.employee) {
             frappe.db.get_doc('Employee', frm.doc.employee).then(doc => {
@@ -136,8 +170,12 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
         }
 
         // Determine linked document
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding;
-        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Incapacity Proceedings';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action
+            ? 'Disciplinary Action'
+            : frm.doc.linked_incapacity_proceeding
+                ? 'Incapacity Proceedings'
+                : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -203,8 +241,12 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
             return;
         }
 
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding;
-        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Incapacity Proceedings';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action
+            ? 'Disciplinary Action'
+            : frm.doc.linked_incapacity_proceeding
+                ? 'Incapacity Proceedings'
+                : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -229,7 +271,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                             return;
                         }
 
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with demotion type: ${frm.doc.demotion_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
+                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with VSP type: ${frm.doc.vsp_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
 
                         frappe.confirm(
                             msg,

@@ -35,6 +35,7 @@
   "nta_charges",
   "incap_type_nta",
   "incapacity_details_nta",
+  "performance_details_nta",
   "section_summary",
   "outcome_date",
   "summary_introduction",
@@ -46,9 +47,11 @@
   "summary_finding",
   "final_charges",
   "final_incapacity_details",
+  "final_performance_details",
   "summary_mitigation",
   "disciplinary_history",
   "previous_incapacity_outcomes",
+  "previous_performance_outcomes",
   "summary_aggravation",
   "summary_outcome",
   "outcome",
@@ -91,7 +94,7 @@
    "fieldname": "ir_intervention",
    "fieldtype": "Link",
    "label": "IR Intervention",
-   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Appeal Against Outcome\",\"External Dispute Resolution\"]]]",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Appeal Against Outcome\",\"External Dispute Resolution\",\"Poor Performance\"]]]",
    "options": "DocType",
    "reqd": 1
   },
@@ -362,6 +365,24 @@
    "fieldtype": "Check",
    "label": "Linked IR Intervention Processed",
    "read_only": 1
+  },
+  {
+   "fieldname": "performance_details_nta",
+   "fieldtype": "Small Text",
+   "label": "Details of Poor Performance as per NTA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "final_performance_details",
+   "fieldtype": "Small Text",
+   "label": "Final Poor Performance Details"
+  },
+  {
+   "fieldname": "previous_performance_outcomes",
+   "fieldtype": "Table",
+   "label": "Performance History",
+   "options": "Performance History",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -373,7 +394,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-04-08 10:00:16.690676",
+ "modified": "2026-05-18 15:13:27.504461",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",

@@ -56,6 +56,7 @@ def _get_nta_link_field(intervention_type: str | None) -> str | None:
     return {
         "Disciplinary Action": "linked_disciplinary_action",
         "Incapacity Proceedings": "linked_incapacity_proceeding",
+        "Poor Performance": "linked_poor_performance",
     }.get(intervention_type)
 
 
@@ -79,6 +80,7 @@ def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dic
         "nta_charges": [],
         "incap_type_nta": None,
         "incapacity_details_nta": "",
+        "performance_details_nta": "",
     }
 
     if not nta_name:
@@ -96,6 +98,9 @@ def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dic
     elif intervention_type == "Incapacity Proceedings":
         out["incap_type_nta"] = nta.get("type_of_incapacity")
         out["incapacity_details_nta"] = nta.get("details_of_incapacity") or ""
+
+    elif intervention_type == "Poor Performance":
+        out["performance_details_nta"] = nta.get("performance_details_nta") or ""
 
     return out
 
@@ -139,6 +144,16 @@ def create_written_outcome(source_name=None, source_doctype=None):
         doc.letter_head = source.letter_head
         doc.complainant = source.complainant
         doc.complainant_name = source.compl_name
+        doc.employee_branch = source.branch
+
+    elif source_doctype == "Poor Performance":
+        doc.employee = source.employee
+        doc.employee_name = source.employee_name
+        doc.employee_designation = source.employee_designation
+        doc.company = source.company
+        doc.letter_head = source.letter_head
+        doc.complainant = source.complainant
+        doc.complainant_name = source.complainant_name
         doc.employee_branch = source.branch
 
     elif source_doctype == "Appeal Against Outcome":
@@ -205,6 +220,28 @@ def fetch_intervention_data(intervention, intervention_type):
                 "employee_branch",
             ],
         },
+        "Poor Performance": {
+            "source_fields": [
+                "employee",
+                "employee_name",
+                "employee_designation",
+                "company",
+                "complainant",
+                "complainant_name",
+                "branch",
+                "details_of_poor_performance",
+            ],
+            "target_fields": [
+                "employee",
+                "employee_name",
+                "employee_designation",
+                "company",
+                "complainant",
+                "complainant_name",
+                "employee_branch",
+                "final_performance_details",
+            ],
+        },
         "Appeal Against Outcome": {
             "source_fields": ["appellant", "appellant_name", "company"],
             "target_fields": ["employee", "employee_name", "company"],
@@ -246,6 +283,7 @@ def get_nta_details(nta_name, intervention_type=None, linked_intervention=None):
             "nta_charges": [],
             "incap_type_nta": None,
             "incapacity_details_nta": "",
+            "performance_details_nta": "",
         }
 
     if intervention_type and linked_intervention:

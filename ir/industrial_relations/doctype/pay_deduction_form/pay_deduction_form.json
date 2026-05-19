@@ -11,8 +11,10 @@
   "company",
   "letter_head",
   "linked_disciplinary_action_processed",
+  "linked_poor_performance_processed",
   "employee_section",
   "linked_disciplinary_action",
+  "linked_poor_performance",
   "column_break_okqk",
   "names",
   "coy",
@@ -30,6 +32,10 @@
   "ded_charges",
   "previous_disciplinary_offences_section",
   "disciplinary_history",
+  "performance_details_section",
+  "performance_details",
+  "performance_history_section",
+  "previous_performance_outcomes",
   "rights_section",
   "employee_rights"
  ],
@@ -59,8 +65,7 @@
    "in_list_view": 1,
    "label": "Linked Disciplinary Action",
    "options": "Disciplinary Action",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "pay_deduction_type",
@@ -202,12 +207,49 @@
    "label": "Monetary Value of Deduction",
    "precision": "2",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_poor_performance_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Performance Counselling Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_poor_performance",
+   "fieldtype": "Link",
+   "label": "Linked Poor Performance",
+   "options": "Poor Performance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "performance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Performance Details"
+  },
+  {
+   "fieldname": "performance_details",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "performance_history_section",
+   "fieldtype": "Section Break",
+   "label": "Performance History"
+  },
+  {
+   "fieldname": "previous_performance_outcomes",
+   "fieldtype": "Table",
+   "options": "Performance History",
+   "read_only": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-15 11:24:54.128998",
+ "modified": "2026-05-18 15:43:19.964087",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Pay Deduction Form",
@@ -251,6 +293,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

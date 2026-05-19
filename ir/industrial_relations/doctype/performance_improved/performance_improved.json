@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-18 14:46:52.224443",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_kdka",
+  "amended_from",
+  "company",
+  "letter_head",
+  "linked_poor_performance_processed",
+  "linked_poor_performance",
+  "employee",
+  "names",
+  "coy",
+  "position",
+  "outcome_date",
+  "performance_improved_outcome",
+  "signed_confirmation",
+  "performance_details",
+  "improvement_summary",
+  "previous_performance_outcomes"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_kdka",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Performance Improved",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Letter Head",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_poor_performance_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_poor_performance",
+   "fieldtype": "Link",
+   "label": "Poor Performance",
+   "options": "Poor Performance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "names",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "coy",
+   "fieldtype": "Data",
+   "label": "Coy",
+   "read_only": 1
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "outcome_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Outcome Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "performance_improved_outcome",
+   "fieldtype": "Link",
+   "label": "Performance Improved Outcome",
+   "link_filters": "[[\"Offence Outcome\",\"is_a_performance_improvement\",\"=\",1]]",
+   "options": "Offence Outcome",
+   "reqd": 1
+  },
+  {
+   "fieldname": "signed_confirmation",
+   "fieldtype": "Attach",
+   "label": "Attach Signed"
+  },
+  {
+   "fieldname": "performance_details",
+   "fieldtype": "Small Text",
+   "label": "Performance Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "improvement_summary",
+   "fieldtype": "Small Text",
+   "label": "Improvement Details"
+  },
+  {
+   "fieldname": "previous_performance_outcomes",
+   "fieldtype": "Table",
+   "label": "Performance History",
+   "options": "Performance History"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-05-18 14:57:33.760609",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Performance Improved",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -73,6 +73,10 @@ frappe.ui.form.on("Written Outcome", {
           );
         }
 
+        if (frm.fields_dict.performance_details_nta) {
+          frm.set_value("performance_details_nta", data.performance_details_nta || "");
+        }
+
         frm.set_value("linked_intervention_processed", true);
       },
     });
@@ -114,6 +118,10 @@ frappe.ui.form.on("Written Outcome", {
             data.incapacity_details_nta || ""
           );
         }
+
+        if (frm.fields_dict.performance_details_nta) {
+          frm.set_value("performance_details_nta", data.performance_details_nta || "");
+        }
       },
     });
   },
@@ -130,6 +138,10 @@ frappe.ui.form.on("Written Outcome", {
 
     if (frm.fields_dict.incapacity_details_nta) {
       frm.set_value("incapacity_details_nta", "");
+    }
+
+    if (frm.fields_dict.performance_details_nta) {
+      frm.set_value("performance_details_nta", "");
     }
   },
 

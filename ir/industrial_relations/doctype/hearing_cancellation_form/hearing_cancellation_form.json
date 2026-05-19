@@ -12,9 +12,11 @@
   "letter_head",
   "linked_disciplinary_action_processed",
   "linked_incapacity_proceeding_processed",
+  "linked_poor_performance_processed",
   "employee_section",
   "linked_disciplinary_action",
   "linked_incapacity_proceeding",
+  "linked_poor_performance",
   "column_break_erf1",
   "names",
   "coy",
@@ -35,7 +37,11 @@
   "type_of_incapacity",
   "details_of_incapacity",
   "previous_incapacity_outcomes_section",
-  "previous_incapacity_outcomes"
+  "previous_incapacity_outcomes",
+  "performance_details_section",
+  "performance_details",
+  "performance_history_section",
+  "previous_performance_outcomes"
  ],
  "fields": [
   {
@@ -237,12 +243,48 @@
    "label": "Type of Incapacity",
    "options": "Type of Incapacity",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_poor_performance_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Poor Performance Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_poor_performance",
+   "fieldtype": "Link",
+   "label": "Linked Poor Performance",
+   "options": "Poor Performance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "performance_details_section",
+   "fieldtype": "Section Break",
+   "label": "Performance Details"
+  },
+  {
+   "fieldname": "performance_details",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "fieldname": "performance_history_section",
+   "fieldtype": "Section Break",
+   "label": "Performance History"
+  },
+  {
+   "fieldname": "previous_performance_outcomes",
+   "fieldtype": "Table",
+   "options": "Performance History"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-05 09:26:32.435732",
+ "modified": "2026-05-18 15:25:37.341514",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Hearing Cancellation Form",
@@ -286,6 +328,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

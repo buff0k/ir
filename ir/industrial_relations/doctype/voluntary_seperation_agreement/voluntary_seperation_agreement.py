@@ -1,4 +1,4 @@
-# Copyright (c) 2025, BuFf0k and contributors
+# Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
 import frappe
@@ -18,6 +18,9 @@ class VoluntarySeperationAgreement(Document):
         elif self.linked_incapacity_proceeding:
             linked_field = self.linked_incapacity_proceeding
             linked_field_name = 'linked_incapacity_proceeding'
+        elif self.linked_poor_performance:
+            linked_field = self.linked_poor_performance
+            linked_field_name = 'linked_poor_performance'
 
         # If neither linked field is populated, return None (default naming)
         if not linked_field:
@@ -149,6 +152,8 @@ class VoluntarySeperationAgreement(Document):
             return self.linked_disciplinary_action, "Disciplinary Action"
         elif self.linked_incapacity_proceeding:
             return self.linked_incapacity_proceeding, "Incapacity Proceedings"
+        elif self.linked_poor_performance:
+            return self.linked_poor_performance, "Poor Performance"
         return None, None
 
 def create_manual_version(doc, fieldname, old_value, new_value):
@@ -198,6 +203,25 @@ def make_vsp_incap(source_name, target_doc=None):
 
     return doclist
 
+
+@frappe.whitelist()
+def make_vsp_performance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.linked_poor_performance = source_name
+
+    doclist = get_mapped_doc("Poor Performance", source_name, {
+        "Poor Performance": {
+            "doctype": "Voluntary Seperation Agreement",
+            "field_map": {
+                "name": "linked_poor_performance"
+            }
+        }
+    }, target_doc, set_missing_values)
+
+    return doclist
+
 @frappe.whitelist()
 def fetch_disciplinary_action_data(disciplinary_action):
     data = frappe.db.get_value('Disciplinary Action', disciplinary_action, 
@@ -212,6 +236,17 @@ def fetch_disciplinary_action_data(disciplinary_action):
 def fetch_incapacity_proceeding_data(incapacity_proceeding):
     data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceeding, 
         ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company'], as_dict=True)
+
+    if not data:
+        return {}
+
+    return data
+
+
+@frappe.whitelist()
+def fetch_poor_performance_data(poor_performance):
+    data = frappe.db.get_value('Poor Performance', poor_performance,
+        ['employee', 'employee_name', 'employee_designation', 'company'], as_dict=True)
 
     if not data:
         return {}

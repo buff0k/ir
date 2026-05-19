@@ -1,10 +1,11 @@
-# Copyright (c) 2025, BuFf0k and contributors
+# Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
 import frappe
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 from frappe import _, get_doc
+from ir.industrial_relations.utils import fetch_performance_data
 
 class DismissalForm(Document):
     def autoname(self):
@@ -17,6 +18,9 @@ class DismissalForm(Document):
         elif self.linked_incapacity_proceeding:
             linked_field = self.linked_incapacity_proceeding
             linked_field_name = 'linked_incapacity_proceeding'
+        elif self.linked_poor_performance:
+            linked_field = self.linked_poor_performance
+            linked_field_name = 'linked_poor_performance'
 
         if not linked_field:
             return
@@ -130,6 +134,8 @@ class DismissalForm(Document):
             return self.linked_disciplinary_action, "Disciplinary Action"
         elif self.linked_incapacity_proceeding:
             return self.linked_incapacity_proceeding, "Incapacity Proceedings"
+        elif self.linked_poor_performance:
+            return self.linked_poor_performance, "Poor Performance"
         return None, None
 
 def create_manual_version(doc, fieldname, old_value, new_value):
@@ -174,6 +180,25 @@ def make_dismissal_form_incap(source_name, target_doc=None):
     }, target_doc, set_missing_values)
 
     return doclist
+
+@frappe.whitelist()
+def make_dismissal_form_poor_performance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.linked_poor_performance = source_name
+
+    doclist = get_mapped_doc("Poor Performance", source_name, {
+        "Poor Performance": {
+            "doctype": "Dismissal Form",
+            "field_map": {
+                "name": "linked_poor_performance"
+            }
+        }
+    }, target_doc, set_missing_values)
+
+    return doclist
+
 
 @frappe.whitelist()
 def fetch_disciplinary_action_data(disciplinary_action):
@@ -234,6 +259,11 @@ def fetch_incpacity_proceeding_data(incapacity_proceeding):
     })
     
     return data
+
+@frappe.whitelist()
+def fetch_poor_performance_data(poor_performance):
+    return fetch_performance_data(poor_performance)
+
 
 @frappe.whitelist()
 def fetch_company_letter_head(company):

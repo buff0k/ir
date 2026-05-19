@@ -1,10 +1,11 @@
-# Copyright (c) 2025, BuFf0k and contributors
+# Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
 import frappe
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.document import Document
 from frappe import _, get_doc
+from ir.industrial_relations.utils import fetch_performance_data
 
 class WarningForm(Document):
     def autoname(self):
@@ -14,6 +15,9 @@ class WarningForm(Document):
         if self.linked_disciplinary_action:
             linked_field = self.linked_disciplinary_action
             linked_field_name = 'linked_disciplinary_action'
+        elif self.linked_poor_performance:
+            linked_field = self.linked_poor_performance
+            linked_field_name = 'linked_poor_performance'
 
         if not linked_field:
             return
@@ -122,6 +126,8 @@ class WarningForm(Document):
     def get_linked_document(self):
         if self.linked_disciplinary_action:
             return self.linked_disciplinary_action, "Disciplinary Action"
+        elif self.linked_poor_performance:
+            return self.linked_poor_performance, "Poor Performance"
         return None, None
 
 def create_manual_version(doc, fieldname, old_value, new_value):
@@ -152,6 +158,21 @@ def make_warning_form(source_name, target_doc=None):
     }, target_doc, set_missing_values)
 
     return doclist
+
+@frappe.whitelist()
+def make_warning_form_poor_performance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.linked_poor_performance = source_name
+
+    return get_mapped_doc("Poor Performance", source_name, {
+        "Poor Performance": {
+            "doctype": "Warning Form",
+            "field_map": {"name": "linked_poor_performance"}
+        }
+    }, target_doc, set_missing_values)
+
 
 @frappe.whitelist()
 def fetch_disciplinary_action_data(disciplinary_action):
@@ -185,6 +206,11 @@ def fetch_disciplinary_action_data(disciplinary_action):
     })
     
     return data
+
+@frappe.whitelist()
+def fetch_poor_performance_data(poor_performance):
+    return fetch_performance_data(poor_performance)
+
 
 @frappe.whitelist()
 def fetch_company_letter_head(company):

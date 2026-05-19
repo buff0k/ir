@@ -80,7 +80,9 @@ fixtures = [
 		"Pay Deduction",
 		"Pay Reduction",
 		"Suspension",
-		"Warning Form"
+		"Warning Form",
+        "Poor Performance",
+        "Performance Improved"
 	]]]},
 	{"dt": "Grounds for Appeal", "filters": [["name", "in", [
 		"Procedural",

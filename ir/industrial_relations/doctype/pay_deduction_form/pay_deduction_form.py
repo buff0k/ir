@@ -1,4 +1,4 @@
-# Copyright (c) 2025, BuFf0k and contributors
+# Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
 import frappe
@@ -15,6 +15,9 @@ class PayDeductionForm(Document):
         if self.linked_disciplinary_action:
             linked_field = self.linked_disciplinary_action
             linked_field_name = 'linked_disciplinary_action'
+        elif self.linked_poor_performance:
+            linked_field = self.linked_poor_performance
+            linked_field_name = 'linked_poor_performance'
 
         # If neither linked field is populated, return None (default naming)
         if not linked_field:
@@ -141,6 +144,8 @@ class PayDeductionForm(Document):
     def get_linked_document(self):
         if self.linked_disciplinary_action:
             return self.linked_disciplinary_action, "Disciplinary Action"
+        elif self.linked_poor_performance:
+            return self.linked_poor_performance, "Poor Performance"
         return None, None
 
 def create_manual_version(doc, fieldname, old_value, new_value):
@@ -166,6 +171,25 @@ def make_pay_deduction_form(source_name, target_doc=None):
             "doctype": "Pay Deduction Form",
             "field_map": {
                 "name": "linked_disciplinary_action"
+            }
+        }
+    }, target_doc, set_missing_values)
+
+    return doclist
+
+
+@frappe.whitelist()
+def make_pay_deduction_form_performance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.linked_poor_performance = source_name
+
+    doclist = get_mapped_doc("Poor Performance", source_name, {
+        "Poor Performance": {
+            "doctype": "Pay Deduction Form",
+            "field_map": {
+                "name": "linked_poor_performance"
             }
         }
     }, target_doc, set_missing_values)
@@ -203,6 +227,41 @@ def fetch_disciplinary_action_data(disciplinary_action):
         'final_charges': final_charges
     })
     
+    return data
+
+
+@frappe.whitelist()
+def fetch_poor_performance_data(poor_performance):
+    if not frappe.db.exists('Poor Performance', poor_performance):
+        frappe.throw(_("Poor Performance {0} not found").format(poor_performance))
+
+    data = frappe.db.get_value(
+        'Poor Performance',
+        poor_performance,
+        ['employee', 'employee_name', 'employee_designation', 'company', 'details_of_poor_performance'],
+        as_dict=True,
+    )
+
+    if not data:
+        return {}
+
+    poor_performance_doc = frappe.get_doc('Poor Performance', poor_performance)
+
+    previous_performance_outcomes = [
+        {
+            'performance_action': row.performance_action,
+            'date': row.date,
+            'charges': row.charges,
+            'sanction': row.sanction,
+        }
+        for row in (poor_performance_doc.previous_disciplinary_outcomes or [])
+    ]
+
+    data.update({
+        'performance_details': data.get('details_of_poor_performance') or '',
+        'previous_performance_outcomes': previous_performance_outcomes,
+    })
+
     return data
 
 @frappe.whitelist()

@@ -8,6 +8,8 @@ frappe.ui.form.on('Warning Form', {
         // Check the flag before triggering the handler
         if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
             frm.trigger('linked_disciplinary_action');
+        } else if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
+            frm.trigger('linked_poor_performance');
         }
     },
 
@@ -65,6 +67,47 @@ frappe.ui.form.on('Warning Form', {
         }
     },
 
+
+    linked_poor_performance: function(frm) {
+        if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
+            frappe.call({
+                method: 'ir.industrial_relations.doctype.warning_form.warning_form.fetch_poor_performance_data',
+                args: { poor_performance: frm.doc.linked_poor_performance },
+                callback: function(r) {
+                    if (r.message) {
+                        const data = r.message;
+                        frm.doc.employee = data.employee || '';
+                        frm.doc.names = data.employee_name || '';
+                        frm.doc.coy = data.employee || '';
+                        frm.doc.position = data.employee_designation || '';
+                        frm.doc.company = data.company || '';
+                        frm.set_value('performance_details', data.details_of_poor_performance || '');
+                        ['employee', 'names', 'coy', 'position', 'company', 'performance_details'].forEach(f => frm.refresh_field(f));
+
+                        if (frm.fields_dict.previous_performance_outcomes) {
+                            frm.clear_table('previous_performance_outcomes');
+                            (data.previous_performance_outcomes || []).forEach(row => {
+                                let child = frm.add_child('previous_performance_outcomes');
+                                child.performance_action = row.performance_action;
+                                child.date = row.date;
+                                child.charges = row.charges;
+                                child.sanction = row.sanction;
+                            });
+                            frm.refresh_field('previous_performance_outcomes');
+                        }
+
+                        if (frm.fields_dict.applied_rights) {
+                            frm.set_value('applied_rights', 'Warning Form');
+                            frm.trigger('applied_rights');
+                        }
+
+                        frm.set_value('linked_poor_performance_processed', true);
+                    }
+                }
+            });
+        }
+    },
+
     company: function(frm) {
         if (frm.doc.company) {
             frappe.call({
@@ -106,8 +149,8 @@ frappe.ui.form.on('Warning Form', {
         }
 
         // Determine linked document
-        let linked_doc_name = frm.doc.linked_disciplinary_action;
-        let linked_doctype = 'Disciplinary Action';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -173,8 +216,8 @@ frappe.ui.form.on('Warning Form', {
             return;
         }
 
-        let linked_doc_name = frm.doc.linked_disciplinary_action;
-        let linked_doctype = 'Disciplinary Action';
+        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_poor_performance;
+        let linked_doctype = frm.doc.linked_disciplinary_action ? 'Disciplinary Action' : 'Poor Performance';
 
         if (linked_doc_name) {
             console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
@@ -199,7 +242,7 @@ frappe.ui.form.on('Warning Form', {
                             return;
                         }
 
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with dismissal type: ${frm.doc.dismissal_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
+                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with warning type: ${frm.doc.warning_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
 
                         frappe.confirm(
                             msg,

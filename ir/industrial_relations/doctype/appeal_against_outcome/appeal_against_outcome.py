@@ -19,6 +19,9 @@ class AppealAgainstOutcome(Document):
         elif self.linked_incapacity_proceeding:
             linked_field = self.linked_incapacity_proceeding
             linked_field_name = 'linked_incapacity_proceeding'
+        elif self.linked_poor_performance:
+            linked_field = self.linked_poor_performance
+            linked_field_name = 'linked_poor_performance'
 
         # If neither linked field is populated, return None (default naming)
         if not linked_field:
@@ -86,6 +89,25 @@ def appeal_incapacity(source_name, target_doc=None):
     return doclist
 
 @frappe.whitelist()
+def appeal_poor_performance(source_name, target_doc=None):
+    from frappe.model.mapper import get_mapped_doc
+
+    def set_missing_values(source, target):
+        target.linked_poor_performance = source_name
+
+    doclist = get_mapped_doc("Poor Performance", source_name, {
+        "Poor Performance": {
+            "doctype": "Appeal Against Outcome",
+            "field_map": {
+                "name": "linked_poor_performance"
+            }
+        }
+    }, target_doc, set_missing_values)
+
+    return doclist
+
+
+@frappe.whitelist()
 def fetch_disciplinary_action_data(disciplinary_action):
     data = frappe.db.get_value('Disciplinary Action', disciplinary_action, 
         ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company'], as_dict=True)
@@ -147,6 +169,11 @@ def fetch_incpacity_proceeding_data(incapacity_proceeding):
     })
     
     return data
+
+@frappe.whitelist()
+def fetch_poor_performance_data(poor_performance):
+    return fetch_performance_data(poor_performance)
+
 
 @frappe.whitelist()
 def fetch_company_letter_head(company):
