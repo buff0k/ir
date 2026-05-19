@@ -183,6 +183,7 @@ scheduler_events = {
     	"ir.controllers.outstanding_external_disputes.outstanding_external_disputes",
         "ir.controllers.retirement_age.retirement_age",
 		"ir.controllers.retirement_age_lapsed.retirement_age_lapsed",
+        "ir.controllers.outstanding_poor_performance.outstanding_poor_performance",
 	],
 	"daily": [
 		"ir.controllers.attendance_sync.enqueue_daily_sync",
