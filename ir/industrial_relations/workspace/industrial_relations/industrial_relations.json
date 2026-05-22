@@ -192,35 +192,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General IR Documents",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Managerial Instructions",
-   "link_count": 0,
-   "link_to": "Managerial Instructions",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Edit Site Organogram",
-   "link_count": 0,
-   "link_to": "Site Organogram",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "IR Documents",
    "link_count": 14,
    "link_type": "DocType",
@@ -434,9 +405,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General IR Documents",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Managerial Instructions",
+   "link_count": 0,
+   "link_to": "Managerial Instructions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Edit Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Leave Application",
+   "link_count": 0,
+   "link_to": "Leave Application",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "IR Leave Application Report",
+   "link_count": 0,
+   "link_to": "IR Leave Application Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-05-18 13:38:15.942963",
+ "modified": "2026-05-22 10:20:53.141465",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
