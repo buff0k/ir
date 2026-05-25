@@ -111,7 +111,8 @@ fixtures = [
 	{"dt": "Custom Field", "filters": [["name", "in", [
         "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
-		"Leave Application-custom_total_leave_hours",
+		"Leave Application-ir_total_leave_hours",
+        "Leave Application-ir_attach_signed_leave_form",
 		"Employee-custom_ir_section",
         "Employee-custom_employee_audit_trail",
 		"Employee-custom_ir_column_break",
@@ -135,7 +136,8 @@ fixtures = [
 	{"dt": "Property Setter", "filters": [["name", "in", [
         "Designation-ir_occupational_level",
 		"Employee Checkin-custom_site",
-		"Leave Application-custom_total_leave_hours",
+		"Leave Application-ir_total_leave_hours",
+        "Leave Application-ir_attach_signed_leave_form",
 		"Employee-custom_ir_section",
         "Employee-custom_employee_audit_trail",
 		"Employee-custom_ir_column_break",
@@ -219,6 +221,7 @@ doc_events = {
 		"after_insert": "ir.controllers.attendance_sync.on_employee_checkin",
 	},
 	"Leave Application": {
+        "before_submit": "ir.overrides.leave_application.validate_signed_leave_form_attached",
 		"on_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
