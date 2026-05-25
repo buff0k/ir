@@ -129,3 +129,48 @@ def get_data(filters):
     """
 
     return frappe.db.sql(query, values, as_dict=True)
+
+
+@frappe.whitelist()
+def export_vip_leave_file(filters=None):
+    import json
+
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+
+    filters = frappe._dict(filters or {})
+    rows = get_data(filters)
+
+    if not rows:
+        return {
+            "filename": "vip_leave_export.txt",
+            "content": "",
+        }
+
+    lines = []
+
+    for row in rows:
+        employee_code = row.employee or ""
+        leave_type = row.leave_type or ""
+        from_date = frappe.utils.getdate(row.from_date).strftime("%Y%m%d") if row.from_date else ""
+        to_date = frappe.utils.getdate(row.to_date).strftime("%Y%m%d") if row.to_date else ""
+        leave_days = row.total_leave_days or 0
+        leave_hours = row.custom_total_leave_hours or 0
+
+        line = "\t".join([
+            employee_code,
+            leave_type,
+            from_date,
+            to_date,
+            str(leave_days),
+            str(leave_hours),
+        ])
+
+        lines.append(line)
+
+    content = "\n".join(lines)
+
+    return {
+        "filename": "vip_leave_export.txt",
+        "content": content,
+    }

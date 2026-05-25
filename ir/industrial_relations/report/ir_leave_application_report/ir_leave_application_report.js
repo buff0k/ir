@@ -38,5 +38,33 @@ frappe.query_reports["IR Leave Application Report"] = {
             fieldtype: "Link",
             options: "Leave Type"
         }
-    ]
+    ],
+
+    onload: function(report) {
+        report.page.add_inner_button(__("Export VIP Leave File"), function() {
+            frappe.call({
+                method: "ir.industrial_relations.report.ir_leave_application_report.ir_leave_application_report.export_vip_leave_file",
+                args: {
+                    filters: report.get_values()
+                },
+                callback: function(r) {
+                    if (!r.message) {
+                        frappe.msgprint(__("No export data returned."));
+                        return;
+                    }
+
+                    const blob = new Blob([r.message.content], { type: "text/plain;charset=utf-8" });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+
+                    a.href = url;
+                    a.download = r.message.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+            });
+        });
+    }
 };
