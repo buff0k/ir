@@ -30,6 +30,14 @@
    "wildcard_filter": 0
   },
   {
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "label": "Leave Type",
+   "mandatory": 0,
+   "options": "Leave Type",
+   "wildcard_filter": 0
+  },
+  {
    "default": "Approved",
    "fieldname": "application_status",
    "fieldtype": "Select",
@@ -47,10 +55,10 @@
    "wildcard_filter": 0
   }
  ],
- "idx": 0,
+ "idx": 1,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-05-22 10:18:53.550934",
+ "modified": "2026-05-26 06:06:27.711599",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Leave Application Report",

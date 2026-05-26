@@ -1,6 +1,10 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
+import csv
+import json
+from io import StringIO
+
 import frappe
 from frappe import _
 
@@ -16,6 +20,13 @@ def execute(filters=None):
 
 def get_columns():
     return [
+        {
+            "label": _("Leave Application"),
+            "fieldname": "leave_application",
+            "fieldtype": "Link",
+            "options": "Leave Application",
+            "width": 170,
+        },
         {
             "label": _("Employee"),
             "fieldname": "employee",
@@ -63,16 +74,22 @@ def get_columns():
             "width": 110,
         },
         {
-            "label": _("Total Leave Days"),
-            "fieldname": "total_leave_days",
+            "label": _("Working Days Leave"),
+            "fieldname": "ir_working_days_leave",
             "fieldtype": "Float",
-            "width": 130,
+            "width": 150,
         },
         {
             "label": _("Total Leave Hours"),
-            "fieldname": "custom_total_leave_hours",
+            "fieldname": "ir_total_leave_hours",
             "fieldtype": "Float",
             "width": 140,
+        },
+        {
+            "label": _("Leave as per Payroll"),
+            "fieldname": "ir_leave_as_per_payroll",
+            "fieldtype": "Float",
+            "width": 160,
         },
     ]
 
@@ -107,6 +124,7 @@ def get_data(filters):
 
     query = f"""
         SELECT
+            la.name AS leave_application,
             la.employee,
             la.employee_name,
             la.company,
@@ -114,8 +132,9 @@ def get_data(filters):
             la.leave_type,
             la.from_date,
             la.to_date,
-            la.total_leave_days,
-            la.custom_total_leave_hours
+            la.ir_working_days_leave,
+            la.ir_total_leave_hours,
+            la.ir_leave_as_per_payroll
         FROM
             `tabLeave Application` la
         LEFT JOIN
@@ -133,44 +152,49 @@ def get_data(filters):
 
 @frappe.whitelist()
 def export_vip_leave_file(filters=None):
-    import json
-
     if isinstance(filters, str):
         filters = json.loads(filters)
 
     filters = frappe._dict(filters or {})
     rows = get_data(filters)
 
-    if not rows:
-        return {
-            "filename": "vip_leave_export.txt",
-            "content": "",
-        }
+    output = StringIO()
+    writer = csv.writer(output)
 
-    lines = []
+    writer.writerow(
+        [
+            "Leave Application",
+            "Employee",
+            "Employee Name",
+            "Company",
+            "Branch",
+            "Leave Type",
+            "From Date",
+            "To Date",
+            "Working Days Leave",
+            "Total Leave Hours",
+            "Leave as per Payroll",
+        ]
+    )
 
     for row in rows:
-        employee_code = row.employee or ""
-        leave_type = row.leave_type or ""
-        from_date = frappe.utils.getdate(row.from_date).strftime("%Y%m%d") if row.from_date else ""
-        to_date = frappe.utils.getdate(row.to_date).strftime("%Y%m%d") if row.to_date else ""
-        leave_days = row.total_leave_days or 0
-        leave_hours = row.custom_total_leave_hours or 0
-
-        line = "\t".join([
-            employee_code,
-            leave_type,
-            from_date,
-            to_date,
-            str(leave_days),
-            str(leave_hours),
-        ])
-
-        lines.append(line)
-
-    content = "\n".join(lines)
+        writer.writerow(
+            [
+                row.leave_application or "",
+                row.employee or "",
+                row.employee_name or "",
+                row.company or "",
+                row.branch or "",
+                row.leave_type or "",
+                row.from_date or "",
+                row.to_date or "",
+                row.ir_working_days_leave or 0,
+                row.ir_total_leave_hours or 0,
+                row.ir_leave_as_per_payroll or 0,
+            ]
+        )
 
     return {
-        "filename": "vip_leave_export.txt",
-        "content": content,
+        "filename": "vip_leave_export.csv",
+        "content": output.getvalue(),
     }

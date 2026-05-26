@@ -20,6 +20,12 @@ frappe.query_reports["IR Leave Application Report"] = {
             fieldtype: "Date"
         },
         {
+            fieldname: "leave_type",
+            label: __("Leave Type"),
+            fieldtype: "Link",
+            options: "Leave Type"
+        },
+        {
             fieldname: "application_status",
             label: __("Application Status"),
             fieldtype: "Select",
@@ -31,12 +37,6 @@ frappe.query_reports["IR Leave Application Report"] = {
             label: __("Branch"),
             fieldtype: "Link",
             options: "Branch"
-        },
-        {
-            fieldname: "leave_type",
-            label: __("Leave Type"),
-            fieldtype: "Link",
-            options: "Leave Type"
         }
     ],
 
@@ -53,12 +53,12 @@ frappe.query_reports["IR Leave Application Report"] = {
                         return;
                     }
 
-                    const blob = new Blob([r.message.content], { type: "text/plain;charset=utf-8" });
+                    const blob = new Blob([r.message.content], { type: "text/csv;charset=utf-8" });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement("a");
 
                     a.href = url;
-                    a.download = r.message.filename;
+                    a.download = r.message.filename || "vip_leave_export.csv";
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
