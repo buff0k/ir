@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "creation": "2026-01-21 07:59:28.583098",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -88,9 +89,9 @@
   },
   {
    "fieldname": "occupational_level",
-   "fieldtype": "Link",
+   "fieldtype": "Select",
    "label": "Occupational Level",
-   "options": "Occupational Level",
+   "options": "\nTop Management\nSenior Management\nProfessionally Qualified\nSkilled Technical\nSemi-Skilled\nUnskilled\nTemporary Employees\nNon-Permanent",
    "read_only": 1
   },
   {
@@ -117,7 +118,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-13 10:02:07.614984",
+ "modified": "2026-06-09 12:42:40.761314",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",

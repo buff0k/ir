@@ -24,7 +24,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
     const employee = frm.doc.employee;
     if (!employee) return;
 
-    const employee_fields = ["designation", "custom_occupational_level"];
+    const employee_fields = ["designation", "za_occupational_level"];
 
     try {
       const r = await frappe.db.get_value("Employee", employee, employee_fields);
@@ -32,7 +32,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
 
       const desired = {
         designation: v.designation || null,
-        occupational_level: v.custom_occupational_level || null,
+        occupational_level: v.za_occupational_level || null,
       };
 
       const changes = {};
@@ -72,7 +72,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
       "branch",
       "za_id_number",
       "za_race",
-      "custom_occupational_level",
+      "za_occupational_level",
       "za_is_disabled",
     ];
 
@@ -85,7 +85,7 @@ frappe.ui.form.on("Employee Induction Tracking", {
       frm.set_value("branch", v.branch || null);
       frm.set_value("id_number", v.za_id_number || null);
       frm.set_value("designated_group", v.za_race || null);
-      frm.set_value("occupational_level", v.custom_occupational_level || null);
+      frm.set_value("occupational_level", v.za_occupational_level || null);
       frm.set_value("is_disabled", v.za_is_disabled ? 1 : 0);
     } catch (err) {
       console.error("Failed to fetch Employee details:", err);
