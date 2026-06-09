@@ -52,17 +52,23 @@ def fetch_disciplinary_history(accused, current_doc_name):
     history = []
 
     for action in disciplinary_actions:
+        # Exclude pending records from disciplinary history. A previous action is
+        # pending until it has a linked Offence Outcome.
+        if not action.outcome:
+            continue
+
+        offence_outcome = frappe.get_doc("Offence Outcome", action.outcome)
+        sanction = offence_outcome.disc_offence_out if offence_outcome else ""
+
+        # Exclude cancelled outcomes from disciplinary history. Check both the
+        # linked outcome name and display value so existing outcome naming stays supported.
+        if (action.outcome or "").strip().lower() == "cancelled" or (sanction or "").strip().lower() == "cancelled":
+            continue
+
         action_doc = frappe.get_doc("Disciplinary Action", action.name)
         charges = "\n".join(
             [f"({row.code_item}) {row.charge}" for row in (action_doc.final_charges or [])]
         )
-
-        # Check if the outcome is linked to an "Offence Outcome" document
-        if action_doc.outcome:
-            offence_outcome = frappe.get_doc("Offence Outcome", action_doc.outcome)
-            sanction = offence_outcome.disc_offence_out if offence_outcome else f"Pending {action_doc.name}"
-        else:
-            sanction = f"Pending {action_doc.name}"
 
         history.append(
             {

@@ -47,12 +47,20 @@
    "mandatory": 0,
    "options": "Designation",
    "wildcard_filter": 0
+  },
+  {
+   "fieldname": "induction_type",
+   "fieldtype": "Select",
+   "label": "Induction Type",
+   "mandatory": 0,
+   "options": "\nTraining\nLicence\nQualification\nAuthorisation",
+   "wildcard_filter": 0
   }
  ],
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-02-01 11:08:22.192706",
+ "modified": "2026-06-09 14:11:57.546968",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Training Matrix",
