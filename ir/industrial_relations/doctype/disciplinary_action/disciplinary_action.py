@@ -36,50 +36,160 @@ def fetch_default_letter_head(company):
     return letter_head if letter_head else ""
 
 
+def _get_action_sanction_status(action) -> tuple[str, str]:
+    """
+    Returns (sanction, status) for a Disciplinary Action row.
+
+    status is one of:
+    - pending
+    - cancelled
+    - tracked
+    """
+    if not action.outcome:
+        return "Pending", "pending"
+
+    offence_outcome = frappe.get_doc("Offence Outcome", action.outcome)
+    sanction = offence_outcome.disc_offence_out if offence_outcome else ""
+
+    # Check both the linked outcome name and the displayed sanction value so existing
+    # outcome naming/configuration stays supported.
+    if (action.outcome or "").strip().lower() == "cancelled" or (sanction or "").strip().lower() == "cancelled":
+        return sanction or "Cancelled", "cancelled"
+
+    return sanction, "tracked"
+
+
+def _get_action_charges(action_doc) -> str:
+    return "\n".join(
+        [f"({row.code_item}) {row.charge}" for row in (action_doc.final_charges or [])]
+    )
+
+
+def _get_disciplinary_actions_for_employee(accused, current_doc_name):
+    filters = {"accused": accused}
+
+    if current_doc_name:
+        filters["name"] = ["!=", current_doc_name]
+
+    return frappe.get_all(
+        "Disciplinary Action",
+        filters=filters,
+        fields=["name", "outcome_date", "outcome"],
+        order_by="outcome_date desc, modified desc",
+    )
+
+
 @frappe.whitelist()
 def fetch_disciplinary_history(accused, current_doc_name):
     """
     IMPORTANT: Must match existing JS signature + output format.
+
+    Only returns tracked/completed disciplinary outcomes.
+    Pending and Cancelled actions are rendered separately in untracked_disciplinary_actions.
     """
     frappe.flags.ignore_permissions = True
 
-    disciplinary_actions = frappe.get_all(
-        "Disciplinary Action",
-        filters={"accused": accused, "name": ["!=", current_doc_name]},
-        fields=["name", "outcome_date", "outcome"],
-    )
-
     history = []
 
-    for action in disciplinary_actions:
-        # Exclude pending records from disciplinary history. A previous action is
-        # pending until it has a linked Offence Outcome.
-        if not action.outcome:
-            continue
+    for action in _get_disciplinary_actions_for_employee(accused, current_doc_name):
+        sanction, status = _get_action_sanction_status(action)
 
-        offence_outcome = frappe.get_doc("Offence Outcome", action.outcome)
-        sanction = offence_outcome.disc_offence_out if offence_outcome else ""
-
-        # Exclude cancelled outcomes from disciplinary history. Check both the
-        # linked outcome name and display value so existing outcome naming stays supported.
-        if (action.outcome or "").strip().lower() == "cancelled" or (sanction or "").strip().lower() == "cancelled":
+        if status in ("pending", "cancelled"):
             continue
 
         action_doc = frappe.get_doc("Disciplinary Action", action.name)
-        charges = "\n".join(
-            [f"({row.code_item}) {row.charge}" for row in (action_doc.final_charges or [])]
-        )
 
         history.append(
             {
                 "disc_action": action_doc.name,
                 "date": action_doc.outcome_date,
                 "sanction": sanction,
-                "charges": charges,
+                "charges": _get_action_charges(action_doc),
             }
         )
 
     return history
+
+
+@frappe.whitelist()
+def get_untracked_disciplinary_actions_html(accused, current_doc_name=None) -> str:
+    """
+    Renders Pending and Cancelled disciplinary actions into the read-only HTML field
+    `untracked_disciplinary_actions`.
+
+    This keeps them visible for accounting/audit purposes without treating them as
+    previous disciplinary outcomes.
+    """
+    frappe.flags.ignore_permissions = True
+
+    if not accused:
+        return ""
+
+    rows = []
+
+    for action in _get_disciplinary_actions_for_employee(accused, current_doc_name):
+        sanction, status = _get_action_sanction_status(action)
+
+        if status not in ("pending", "cancelled"):
+            continue
+
+        action_doc = frappe.get_doc("Disciplinary Action", action.name)
+        action_url = get_url_to_form("Disciplinary Action", action_doc.name)
+        charges = escape_html(_get_action_charges(action_doc)).replace("\n", "<br>")
+        status_label = "Pending" if status == "pending" else "Cancelled"
+        indicator_colour = "orange" if status == "pending" else "gray"
+        date_value = action_doc.outcome_date or ""
+
+        rows.append(
+            f"""
+            <tr>
+              <td style="width: 15%;">
+                <span class="indicator-pill {escape_html(indicator_colour)}">
+                  {escape_html(status_label)}
+                </span>
+              </td>
+              <td style="width: 18%;">
+                <a href="{escape_html(action_url)}" target="_blank" rel="noopener">
+                  {escape_html(action_doc.name)}
+                </a>
+              </td>
+              <td style="width: 17%;">{escape_html(str(date_value))}</td>
+              <td style="width: 20%;">{escape_html(sanction or status_label)}</td>
+              <td style="width: 30%;">{charges}</td>
+            </tr>
+            """
+        )
+
+    if not rows:
+        return ""
+
+    return f"""
+    <div class="form-grid">
+      <div class="grid-heading-row">
+        <div class="grid-row">
+          <div class="data-row row">
+            <div class="col grid-static-col bold">Pending and Cancelled Disciplinary Actions</div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-body">
+        <table class="table table-bordered" style="margin: 0; background: var(--fg-color);">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Disciplinary Action</th>
+              <th>Outcome Date</th>
+              <th>Outcome</th>
+              <th>Charges</th>
+            </tr>
+          </thead>
+          <tbody>
+            {''.join(rows)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    """
 
 
 @frappe.whitelist()

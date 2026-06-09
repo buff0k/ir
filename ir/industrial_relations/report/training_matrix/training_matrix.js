@@ -52,7 +52,7 @@ frappe.query_reports["Training Matrix"] = {
     if (wrapper) wrapper.addClass("tm-report");
 
     if (report && report.page) {
-      report.page.add_inner_button(__("Download Excel"), function () {
+      report.page.add_inner_button(__("Download in .xlsx Format"), function () {
         download_training_matrix_excel();
       });
     }

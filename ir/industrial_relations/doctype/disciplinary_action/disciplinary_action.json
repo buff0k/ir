@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "DISC-.######",
@@ -39,6 +40,7 @@
   "attach",
   "disciplinary_history_section",
   "previous_disciplinary_outcomes",
+  "untracked_disciplinary_actions",
   "disciplinary_record",
   "action_taken_section",
   "outcome",
@@ -303,14 +305,20 @@
    "fieldtype": "HTML",
    "is_virtual": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "untracked_disciplinary_actions",
+   "fieldtype": "HTML",
+   "label": "Pending and Cancelled Disciplinary Actions",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-02 13:25:56.749474",
- "modified_by": "eben@isambane.co.za",
+ "modified": "2026-06-09 15:05:16.267382",
+ "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",
  "naming_rule": "Expression",

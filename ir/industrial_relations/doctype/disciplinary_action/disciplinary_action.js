@@ -4,6 +4,7 @@
 frappe.ui.form.on('Disciplinary Action', {
     refresh: function(frm) {
         render_linked_docs(frm);
+        render_untracked_disciplinary_actions(frm);
 
         frm.toggle_display(
             ['make_warning_form', 'make_nta_hearing', 'write_disciplinary_outcome_report'],
@@ -67,6 +68,7 @@ frappe.ui.form.on('Disciplinary Action', {
 
     after_save: function(frm) {
         render_linked_docs(frm);
+        render_untracked_disciplinary_actions(frm);
     },
 
     accused: function(frm) {
@@ -83,6 +85,7 @@ frappe.ui.form.on('Disciplinary Action', {
             });
 
             fetch_disciplinary_history(frm, frm.doc.accused);
+            render_untracked_disciplinary_actions(frm);
             check_if_ss(frm, frm.doc.accused);
         }
     },
@@ -123,6 +126,31 @@ function render_linked_docs(frm) {
         },
         callback: function(r) {
             frm.fields_dict.linked_docs.$wrapper.html(r.message || '');
+        }
+    });
+}
+
+
+// -----------------------------------------
+// Untracked disciplinary actions HTML table
+// -----------------------------------------
+
+function render_untracked_disciplinary_actions(frm) {
+    if (!frm.fields_dict.untracked_disciplinary_actions) return;
+
+    if (!frm.doc.accused) {
+        frm.fields_dict.untracked_disciplinary_actions.$wrapper.html('');
+        return;
+    }
+
+    frappe.call({
+        method: 'ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.get_untracked_disciplinary_actions_html',
+        args: {
+            accused: frm.doc.accused,
+            current_doc_name: frm.doc.name || ''
+        },
+        callback: function(r) {
+            frm.fields_dict.untracked_disciplinary_actions.$wrapper.html(r.message || '');
         }
     });
 }
@@ -324,7 +352,7 @@ function cancel_disciplinary(frm) {
 
 function appeal_disciplinary(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.appeal_disciplinary",
+        method: "ir.industrial_relations.doctype.appeal_against_outcome.appeal_disciplinary",
         frm: frm,
         args: { linked_disciplinary_action: frm.doc.name }
     });

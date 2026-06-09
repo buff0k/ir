@@ -26,14 +26,24 @@ def download_training_matrix_excel(filters=None):
     The report itself keeps the full JSON payload used by the card formatter.
     This export intentionally writes only the expiry date for each dynamic
     induction column.
+
+    Important Excel behaviour:
+    - Induction/date columns are stored as real Excel date values.
+    - Induction/date columns use Excel's built-in date format, not a custom
+      yyyy-mm-dd/yyyy/mm/dd number format.
+    - Blank cells in induction/date columns are also formatted as dates.
+    - Red/yellow highlighting is applied using real Excel conditional-formatting
+      rules, so if the user manually changes a date in Excel, the formatting
+      recalculates.
     """
     filters = _coerce_filters(filters)
     columns, data = execute(filters)
 
     try:
         from openpyxl import Workbook
-        from openpyxl.formatting.rule import FormulaRule
-        from openpyxl.styles import Font, PatternFill
+        from openpyxl.formatting.rule import Rule
+        from openpyxl.styles import Font, PatternFill, numbers
+        from openpyxl.styles.differential import DifferentialStyle
         from openpyxl.utils import get_column_letter
     except Exception:
         frappe.throw(
@@ -44,9 +54,33 @@ def download_training_matrix_excel(filters=None):
     ws = wb.active
     ws.title = "Training Matrix"
 
-    header_fill = PatternFill("solid", fgColor="D9EAF7")
-    expired_fill = PatternFill("solid", fgColor="F4CCCC")
-    expiring_fill = PatternFill("solid", fgColor="FFF2CC")
+    # NOTE:
+    # openpyxl colours should be full ARGB values.
+    # FF = fully opaque.
+    # Without FF, Excel can receive 00F4CCCC / 00FFF2CC, which means transparent.
+    header_fill = PatternFill(
+        fill_type="solid",
+        fgColor="FFD9EAF7",
+        bgColor="FFD9EAF7",
+    )
+    expired_fill = PatternFill(
+        fill_type="solid",
+        fgColor="FFFF0000",
+        bgColor="FFFF0000",
+    )
+    expiring_fill = PatternFill(
+        fill_type="solid",
+        fgColor="FFFFA500",
+        bgColor="FFFFA500",
+    )
+
+    expired_dxf = DifferentialStyle(fill=expired_fill)
+    expiring_dxf = DifferentialStyle(fill=expiring_fill)
+
+    # Built-in Excel date format ID 14.
+    # Excel localizes this according to the user's regional settings.
+    # This keeps cells in Excel's Date category rather than Custom.
+    date_number_format = numbers.FORMAT_DATE_XLSX14
 
     export_columns = [c for c in columns if c.get("fieldname")]
 
@@ -70,18 +104,21 @@ def download_training_matrix_excel(filters=None):
                 if col_idx not in induction_col_indexes:
                     induction_col_indexes.append(col_idx)
 
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.number_format = date_number_format
+
                 expiry = _extract_expiry(value)
+
                 if expiry:
-                    cell = ws.cell(row=row_idx, column=col_idx, value=getdate(expiry))
-                    cell.number_format = "yyyy-mm-dd"
+                    cell.value = getdate(expiry)
                 else:
-                    ws.cell(row=row_idx, column=col_idx, value=None)
+                    cell.value = None
 
                 continue
 
             ws.cell(row=row_idx, column=col_idx, value=value)
 
-    # Freeze header + Tracking, Employee, Employee Name, Employee ID Number
+    # Freeze header + Tracking, Employee, Employee Name, Employee ID Number.
     ws.freeze_panes = "E2"
     ws.auto_filter.ref = ws.dimensions
 
@@ -91,28 +128,46 @@ def download_training_matrix_excel(filters=None):
 
     last_row = max(ws.max_row, 2)
 
+    # Ensure every induction cell in the exported data range is formatted
+    # as an Excel Date cell, including blank cells.
+    for col_idx in induction_col_indexes:
+        for row_idx in range(2, last_row + 1):
+            ws.cell(row=row_idx, column=col_idx).number_format = date_number_format
+
+    # Formulaic Excel conditional formatting.
+    #
+    # Rules:
+    # - expired dates: red
+    # - dates from today through the next 30 days: yellow
+    # - blanks ignored
+    #
+    # The formula is written relative to the top-left cell in the range.
+    # Excel applies it relatively to the rest of the range.
     for col_idx in induction_col_indexes:
         col_letter = get_column_letter(col_idx)
-        cell_ref = f"{col_letter}2"
+        top_cell = f"{col_letter}2"
         range_ref = f"{col_letter}2:{col_letter}{last_row}"
 
-        ws.conditional_formatting.add(
-            range_ref,
-            FormulaRule(
-                formula=[f"AND(ISNUMBER({cell_ref}),{cell_ref}<TODAY())"],
-                fill=expired_fill,
-            ),
+        expired_rule = Rule(
+            type="expression",
+            dxf=expired_dxf,
+            stopIfTrue=True,
+            formula=[
+                f"AND(ISNUMBER({top_cell}),{top_cell}<TODAY())",
+            ],
         )
 
-        ws.conditional_formatting.add(
-            range_ref,
-            FormulaRule(
-                formula=[
-                    f"AND(ISNUMBER({cell_ref}),{cell_ref}>=TODAY(),{cell_ref}<=TODAY()+30)"
-                ],
-                fill=expiring_fill,
-            ),
+        expiring_rule = Rule(
+            type="expression",
+            dxf=expiring_dxf,
+            stopIfTrue=False,
+            formula=[
+                f"AND(ISNUMBER({top_cell}),{top_cell}>=TODAY(),{top_cell}<=TODAY()+30)",
+            ],
         )
+
+        ws.conditional_formatting.add(range_ref, expired_rule)
+        ws.conditional_formatting.add(range_ref, expiring_rule)
 
     out = BytesIO()
     wb.save(out)
@@ -133,7 +188,7 @@ def execute(filters=None):
     today = getdate(nowdate())
     warn_date = getdate(add_days(today, 90))
 
-    # Resolve branch scope ONCE (supports direct Branch filter and Area Setup -> branches)
+    # Resolve branch scope ONCE (supports direct Branch filter and Area Setup -> branches).
     branches = _resolve_branch_set(filters)
 
     # If a branch scope is provided, we must scope BOTH:
@@ -147,11 +202,11 @@ def execute(filters=None):
     emp_ids = [e["name"] for e in employees]
     emp_map = {e["name"]: e for e in employees}
 
-    # Ensure tracking docs are limited to these employees
+    # Ensure tracking docs are limited to these employees.
     tracking_docs_all = [t for t in tracking_docs_all if t.get("employee") in emp_map]
 
     # Apply designation filter:
-    # effective_designation = tracking.designation if set else employee.designation
+    # effective_designation = tracking.designation if set else employee.designation.
     designation_filter = (filters.get("designation") or "").strip() or None
     tracking_docs = _filter_tracking_by_designation(
         tracking_docs_all,
@@ -160,9 +215,9 @@ def execute(filters=None):
     )
 
     # Determine final included employees:
-    # - If no designation filter: employees already scoped by branch
+    # - If no designation filter: employees already scoped by branch.
     # - If designation filter: include employee if employee.designation matches
-    #   OR has a matching tracking doc
+    #   OR has a matching tracking doc.
     included_employees = _filter_employees_by_designation_fallback(
         employees,
         tracking_docs,
@@ -175,10 +230,10 @@ def execute(filters=None):
     included_emp_ids = [e["name"] for e in included_employees]
     included_emp_map = {e["name"]: e for e in included_employees}
 
-    # Re-filter tracking docs to included employees only
+    # Re-filter tracking docs to included employees only.
     tracking_docs = [t for t in tracking_docs if t["employee"] in included_emp_map]
 
-    # Build competency columns from union of required inductions across tracking docs in scope
+    # Build competency columns from union of required inductions across tracking docs in scope.
     tracking_names = [t["name"] for t in tracking_docs]
     required_by_tracking, all_inductions = _get_required_inductions(tracking_names)
 
@@ -208,12 +263,12 @@ def execute(filters=None):
     else:
         comp_columns, comp_field_map, ordered_inductions = [], {}, []
 
-    # Index records for included employees
+    # Index records for included employees.
     record_index = _index_records(included_emp_ids, today)
 
     # Output rows:
     # - one row per tracking doc for that employee
-    # - else one blank employee row
+    # - else one blank employee row.
     data = []
     tracking_by_employee = {}
 
@@ -498,7 +553,7 @@ def _get_employees_and_tracking_scoped(filters, branches):
             limit_page_length=5000,
         )
 
-    # Merge unique by Employee.name
+    # Merge unique by Employee.name.
     merged = {}
 
     for e in employees_branch:
