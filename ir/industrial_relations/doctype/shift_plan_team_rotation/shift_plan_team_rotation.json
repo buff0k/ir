@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-10 18:25:08.213809",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_36o5"
+ ],
+ "fields": [
+  {
+    "fieldname": "date",
+    "fieldtype": "Date",
+    "label": "Date",
+    "in_list_view": 1,
+    "in_standard_filter": 1,
+    "reqd": 1
+  },
+  {
+    "fieldname": "day_of_week",
+    "fieldtype": "Data",
+    "label": "Day of Week",
+    "in_list_view": 1,
+    "read_only": 1
+  },
+  {
+    "fieldname": "day_type",
+    "fieldtype": "Select",
+    "label": "Day Type",
+    "options": "\nNormal\nSaturday\nSunday\nPublic Holiday\nShutdown",
+    "in_list_view": 1,
+    "read_only": 1
+  },
+  {
+    "fieldname": "day_team",
+    "fieldtype": "Data",
+    "label": "Day Team",
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "night_team",
+    "fieldtype": "Data",
+    "label": "Night Team",
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "off_teams",
+    "fieldtype": "Small Text",
+    "label": "Off Teams"
+  },
+  {
+    "fieldname": "notes",
+    "fieldtype": "Small Text",
+    "label": "Notes"
+  }
+],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-10 18:23:08.213809",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Plan Team Rotation",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

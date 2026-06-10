@@ -9,7 +9,6 @@ app_publisher = "BuFf0k"
 app_description = "Industrial Relations management Application for ERPNext and with HRMS"
 app_email = "buff0k@buff0k.co.za"
 app_license = "mit"
-app_version = "16.0.1"
 required_apps = ["frappe/hrms", "https://github.com/EPIUSECX/cohenix_local_za"]
 source_link = "http://github.com/buff0k/ir"
 app_logo_url = "/assets/ir/images/ir-logo.svg"

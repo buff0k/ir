@@ -54,6 +54,10 @@ Internal Training Tracking (Functionally Complete)
 Anomymous Whistleblowing Reports (Functionally Complete - For Use on Public Website)
 
 KPI Tracking (Functionally Complete)
+
+Employee Organogram
+
+Shift Plan
    
 ### Currently Working On
 

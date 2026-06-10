@@ -1,0 +1,493 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-10 15:02:23.783766",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "setup_tab",
+  "section_break_nnnj",
+  "amended_from",
+  "branch",
+  "location",
+  "company",
+  "calendar_start_date",
+  "calendar_end_date",
+  "calendar_days",
+  "pay_period_type",
+  "hourly_pay_period_start_day",
+  "hourly_pay_period_end_day",
+  "salaried_pay_period_start_day",
+  "salaried_pay_period_end_day",
+  "use_separate_pay_periods",
+  "normal_hours_limit",
+  "normal_hours_limit_basis",
+  "normal_ot_multiplier",
+  "sunday_ot_multiplier",
+  "public_holiday_ot_multiplier",
+  "treat_sundays_as_overtime",
+  "treat_public_holidays_as_overtime",
+  "include_sunday_work_in_baseline",
+  "include_public_holiday_work_in_baseline",
+  "operating_model",
+  "default_operating_hours",
+  "default_shift_hours",
+  "default_day_shift_hours",
+  "number_of_shift_teams",
+  "shift_team_labels",
+  "include_mondays",
+  "include_tuesdays",
+  "include_wednesdays",
+  "include_thursdays",
+  "include_fridays",
+  "include_saturdays",
+  "include_sundays",
+  "saturday_work_model",
+  "sunday_work_model",
+  "employees",
+  "rotation_pattern_days",
+  "rotation_anchor_date",
+  "sunday_rotation_rule",
+  "rotation_editor_html",
+  "rotation_pattern",
+  "revenue_tab",
+  "revenue_basis",
+  "period_revenue",
+  "costing_basis",
+  "include_benefits_in_cost",
+  "calendars_tab",
+  "full_calendar",
+  "shift_calendar",
+  "team_rotation",
+  "output_tab",
+  "team_summary",
+  "output_summary",
+  "output",
+  "team_output"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_nnnj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Shift Plan",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Branch",
+   "options": "Branch",
+   "reqd": 1
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Location",
+   "options": "Location",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "calendar_start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Calendar Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "calendar_end_date",
+   "fieldtype": "Date",
+   "label": "Calendar End Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "calendar_days",
+   "fieldtype": "Int",
+   "label": "Number of Calendar Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pay_period_type",
+   "fieldtype": "Select",
+   "label": "Pay Period Type",
+   "options": "\nHourly\nSalaried\nMixed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "hourly_pay_period_start_day",
+   "fieldtype": "Int",
+   "label": "Hourly Pay Period Start Day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "hourly_pay_period_end_day",
+   "fieldtype": "Int",
+   "label": "Hourly Pay Period End Day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "salaried_pay_period_start_day",
+   "fieldtype": "Int",
+   "label": "Salaried Pay Period Start Day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "salaried_pay_period_end_day",
+   "fieldtype": "Int",
+   "label": "Salaried Pay Period End Day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "use_separate_pay_periods",
+   "fieldtype": "Check",
+   "label": "Use Separate Pay Periods by Employee Type"
+  },
+  {
+   "default": "195",
+   "fieldname": "normal_hours_limit",
+   "fieldtype": "Int",
+   "label": "Normal Hours Limit",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Monthly",
+   "fieldname": "normal_hours_limit_basis",
+   "fieldtype": "Select",
+   "label": "Normal Hours Limit Basis",
+   "options": "Per Calendar Period\nPer Pay Period\nMonthly",
+   "reqd": 1
+  },
+  {
+   "default": "1.5",
+   "fieldname": "normal_ot_multiplier",
+   "fieldtype": "Float",
+   "label": "Normal Overtime Multiplier",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "2",
+   "fieldname": "sunday_ot_multiplier",
+   "fieldtype": "Float",
+   "label": "Sunday Overtime Multiplier",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "2",
+   "fieldname": "public_holiday_ot_multiplier",
+   "fieldtype": "Float",
+   "label": "Public Holiday Overtime Multiplier",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "treat_sundays_as_overtime",
+   "fieldtype": "Check",
+   "label": "Treat Sundays as Overtime"
+  },
+  {
+   "default": "1",
+   "fieldname": "treat_public_holidays_as_overtime",
+   "fieldtype": "Check",
+   "label": "Treat Public Holidays as Overtime"
+  },
+  {
+   "default": "0",
+   "description": "Are Sundays part of the required work schedule or not?",
+   "fieldname": "include_sunday_work_in_baseline",
+   "fieldtype": "Check",
+   "label": "Include Sunday Work in Baseline"
+  },
+  {
+   "default": "0",
+   "description": "Are Public Holidays part of the required work schedule or not?",
+   "fieldname": "include_public_holiday_work_in_baseline",
+   "fieldtype": "Check",
+   "label": "Include Public Holiday Work in Baseline"
+  },
+  {
+   "fieldname": "operating_model",
+   "fieldtype": "Select",
+   "label": "Operating Model",
+   "options": "24h Mon-Sat\n24h Mon-Sun\nDay Shift Only\nCustom",
+   "reqd": 1
+  },
+  {
+   "default": "12",
+   "fieldname": "default_shift_hours",
+   "fieldtype": "Float",
+   "label": "Default Shift Hours",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "number_of_shift_teams",
+   "fieldtype": "Int",
+   "label": "Number of Shift Teams",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "shift_team_labels",
+   "fieldtype": "Table",
+   "label": "Shift Team Labels",
+   "options": "Shift Plan Team Labels"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_mondays",
+   "fieldtype": "Check",
+   "label": "Include Mondays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_tuesdays",
+   "fieldtype": "Check",
+   "label": "Include Tuesdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_wednesdays",
+   "fieldtype": "Check",
+   "label": "Include Wednesdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_thursdays",
+   "fieldtype": "Check",
+   "label": "Include Thursdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_fridays",
+   "fieldtype": "Check",
+   "label": "Include Fridays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_saturdays",
+   "fieldtype": "Check",
+   "label": "Include Saturdays"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_sundays",
+   "fieldtype": "Check",
+   "label": "Include Sundays"
+  },
+  {
+   "fieldname": "saturday_work_model",
+   "fieldtype": "Select",
+   "label": "Saturday Work Model",
+   "options": "\nNo Work\n8h Day Only\n12h Day Only\n24h\nCustom"
+  },
+  {
+   "fieldname": "sunday_work_model",
+   "fieldtype": "Select",
+   "label": "Sunday Work Model",
+   "options": "\nNo Work\n8h Day Only\n12h Day Only\n24h\nCustom"
+  },
+  {
+   "fieldname": "revenue_tab",
+   "fieldtype": "Tab Break",
+   "label": "Revenue"
+  },
+  {
+   "fieldname": "revenue_basis",
+   "fieldtype": "Select",
+   "label": "Revenue Basis",
+   "options": "Actual\nBudget\nForecast\nManual"
+  },
+  {
+   "fieldname": "period_revenue",
+   "fieldtype": "Currency",
+   "label": "Period Revenue",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "costing_basis",
+   "fieldtype": "Select",
+   "label": "Costing Basis",
+   "options": "Actual Employee Rate\nDesignation Average Rate\nManual Rate"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_benefits_in_cost",
+   "fieldtype": "Check",
+   "label": "Include Benefits in Cost"
+  },
+  {
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employees",
+   "options": "Shift Plan Staffing"
+  },
+  {
+   "fieldname": "shift_calendar",
+   "fieldtype": "Table",
+   "label": "Shift Calendar",
+   "options": "Shift Plan Calendar"
+  },
+  {
+   "fieldname": "output_tab",
+   "fieldtype": "Tab Break",
+   "label": "Output"
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Table",
+   "label": "Output",
+   "options": "Shift Plan Output",
+   "read_only": 1
+  },
+  {
+   "fieldname": "setup_tab",
+   "fieldtype": "Tab Break",
+   "label": "Setup"
+  },
+  {
+   "default": "24",
+   "fieldname": "default_operating_hours",
+   "fieldtype": "Float",
+   "label": "Default Operating Hours",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "team_output",
+   "fieldtype": "Table",
+   "label": "Per Team Output",
+   "options": "Shift Plan Team Output",
+   "read_only": 1
+  },
+  {
+   "default": "9",
+   "fieldname": "default_day_shift_hours",
+   "fieldtype": "Int",
+   "label": "Default Day Shift Hours",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "calendars_tab",
+   "fieldtype": "Tab Break",
+   "label": "Calendars"
+  },
+  {
+   "fieldname": "team_rotation",
+   "fieldtype": "Table",
+   "label": "Team Rotation",
+   "options": "Shift Plan Team Rotation"
+  },
+  {
+   "fieldname": "rotation_pattern",
+   "fieldtype": "Table",
+   "label": "Shift Pattern",
+   "options": "Shift Plan Rotation Pattern"
+  },
+  {
+   "fieldname": "rotation_pattern_days",
+   "fieldtype": "Int",
+   "label": "Rotation Pattern Days",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "rotation_anchor_date",
+   "fieldtype": "Date",
+   "label": "Rotation Anchor Date",
+   "reqd": 1
+  },
+  {
+   "default": "Extend Saturday Day Team",
+   "fieldname": "sunday_rotation_rule",
+   "fieldtype": "Select",
+   "label": "Sunday Rotation Rule",
+   "options": "\nFollow Pattern\nExtend Saturday Day Team\nManual Rotation Only",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rotation_editor_html",
+   "fieldtype": "HTML",
+   "label": "Rotation Editor"
+  },
+  {
+   "fieldname": "full_calendar",
+   "fieldtype": "HTML",
+   "label": "Full Calendar",
+   "read_only": 1
+  },
+  {
+   "fieldname": "team_summary",
+   "fieldtype": "HTML",
+   "label": "Overtime Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "output_summary",
+   "fieldtype": "HTML",
+   "label": "Output Summary",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-06-10 21:45:08.276030",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Plan",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-10 19:22:00.456300",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_sadj"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_sadj",
+   "fieldtype": "Section Break"
+  },
+  {
+    "fieldname": "cost_group",
+    "fieldtype": "Select",
+    "label": "Cost Group",
+    "options": "\nMining\nEngineering\nAdmin\nSupport",
+    "reqd": 1,
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "pattern_day",
+    "fieldtype": "Int",
+    "label": "Pattern Day",
+    "reqd": 1,
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "team_label",
+    "fieldtype": "Data",
+    "label": "Team Label",
+    "reqd": 1,
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "shift_assignment",
+    "fieldtype": "Select",
+    "label": "Shift Assignment",
+    "options": "\nDay\nNight\nOff",
+    "reqd": 1,
+    "in_list_view": 1
+  },
+  {
+    "fieldname": "working_hours",
+    "fieldtype": "Select",
+    "label": "Working Hours",
+    "options": "\nShift Pattern\nDay Shift Only\nNight Shift Only",
+    "default": "Shift Pattern",
+    "reqd": 1
+  },
+  {
+    "fieldname": "is_sunday_extension",
+    "fieldtype": "Check",
+    "label": "Sunday Extension"
+  },
+  {
+    "fieldname": "notes",
+    "fieldtype": "Small Text",
+    "label": "Notes"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-10 19:21:20.456300",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Plan Rotation Pattern",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

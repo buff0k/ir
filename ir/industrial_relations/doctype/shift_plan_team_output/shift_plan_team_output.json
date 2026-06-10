@@ -1,0 +1,162 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-10 18:22:32.085830",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "period_label",
+  "period_start_date",
+  "period_end_date",
+  "cost_group",
+  "pay_basis",
+  "team_label",
+  "working_hours",
+  "working_days",
+  "ordinary_hours",
+  "normal_overtime_hours",
+  "sunday_hours",
+  "public_holiday_hours",
+  "total_overtime_hours",
+  "total_hours",
+  "overtime_percent_of_normal_time",
+  "comments"
+ ],
+ "fields": [
+  {
+   "fieldname": "period_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Period",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_start_date",
+   "fieldtype": "Date",
+   "label": "Period Start Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_end_date",
+   "fieldtype": "Date",
+   "label": "Period End Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "team_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Team Label",
+   "read_only": 1
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "options": "\nShift Pattern\nDay Shift Only\nNight Shift Only",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ordinary_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Ordinary Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normal_overtime_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Normal Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sunday_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Sunday Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "public_holiday_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Public Holiday Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_overtime_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_hours",
+   "fieldtype": "Float",
+   "label": "Total Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overtime_percent_of_normal_time",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Overtime % of Normal Time",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Small Text",
+   "label": "Comments",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cost_group",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cost Group",
+   "options": "\nMining\nEngineering\nAdmin\nSupport\nTotal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pay_basis",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Pay Basis",
+   "options": "\nHourly\nSalaried"
+  },
+  {
+   "fieldname": "working_days",
+   "fieldtype": "Select",
+   "label": "Working Days",
+   "options": "\nFollow Shift Plan Calendar\nMonday to Friday\nMonday to Saturday\nMonday to Sunday"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-10 19:00:34.851145",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Plan Team Output",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

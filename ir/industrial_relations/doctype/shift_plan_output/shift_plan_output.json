@@ -1,0 +1,282 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-06-10 17:03:30.017710",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "output_type",
+  "cost_group",
+  "designation",
+  "pay_basis",
+  "working_hours",
+  "employees_per_shift",
+  "number_of_shift_teams",
+  "total_employees",
+  "required_shifts",
+  "required_hours",
+  "normal_hours",
+  "normal_overtime_hours",
+  "sunday_hours",
+  "public_holiday_hours",
+  "total_overtime_hours",
+  "overtime_percent_of_normal_time",
+  "hourly_rate",
+  "normal_cost",
+  "normal_overtime_cost",
+  "sunday_overtime_cost",
+  "public_holiday_overtime_cost",
+  "fixed_costs",
+  "total_cost",
+  "period_revenue",
+  "overtime_percent_of_revenue",
+  "baseline_overtime_hours",
+  "baseline_overtime_cost",
+  "baseline_overtime_percent_of_revenue",
+  "excluded_overtime_hours",
+  "excluded_overtime_cost",
+  "comments"
+ ],
+ "fields": [
+  {
+   "fieldname": "output_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Output Type",
+   "options": "\nDetail\nCost Group Total\nSite Total",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "cost_group",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Cost Group",
+   "options": "\nMining\nEngineering\nAdmin\nSupport\nTotal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pay_basis",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Pay Basis",
+   "options": "\nHourly\nSalaried",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employees_per_shift",
+   "fieldtype": "Float",
+   "label": "Employees per Shift",
+   "read_only": 1
+  },
+  {
+   "fieldname": "number_of_shift_teams",
+   "fieldtype": "Int",
+   "label": "Number of Shift Teams",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_employees",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Employees",
+   "read_only": 1
+  },
+  {
+   "fieldname": "required_shifts",
+   "fieldtype": "Float",
+   "label": "Required Shifts",
+   "read_only": 1
+  },
+  {
+   "fieldname": "required_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Required Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normal_hours",
+   "fieldtype": "Float",
+   "label": "Normal Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normal_overtime_hours",
+   "fieldtype": "Float",
+   "label": "Normal Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sunday_hours",
+   "fieldtype": "Float",
+   "label": "Sunday Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "public_holiday_hours",
+   "fieldtype": "Float",
+   "label": "Public Holiday Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_overtime_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "hourly_rate",
+   "fieldtype": "Currency",
+   "label": "Hourly Rate",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normal_cost",
+   "fieldtype": "Currency",
+   "label": "Normal Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "normal_overtime_cost",
+   "fieldtype": "Currency",
+   "label": "Normal Overtime Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sunday_overtime_cost",
+   "fieldtype": "Currency",
+   "label": "Sunday Overtime Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "public_holiday_overtime_cost",
+   "fieldtype": "Currency",
+   "label": "Public Holiday Overtime Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fixed_costs",
+   "fieldtype": "Currency",
+   "label": "Fixed Costs",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_revenue",
+   "fieldtype": "Currency",
+   "label": "Period Revenue",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overtime_percent_of_revenue",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Overtime % of Revenue",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "baseline_overtime_hours",
+   "fieldtype": "Float",
+   "label": "Baseline Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "baseline_overtime_cost",
+   "fieldtype": "Currency",
+   "label": "Baseline Overtime Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "baseline_overtime_percent_of_revenue",
+   "fieldtype": "Percent",
+   "label": "Baseline Overtime % of Revenue",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "excluded_overtime_hours",
+   "fieldtype": "Float",
+   "label": "Excluded Overtime Hours",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "excluded_overtime_cost",
+   "fieldtype": "Currency",
+   "label": "Excluded Overtime Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "comments",
+   "fieldtype": "Small Text",
+   "label": "Comments",
+   "read_only": 1
+  },
+  {
+   "fieldname": "working_hours",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Working Hours",
+   "options": "\nShift Pattern\nDay Shift Only\nNight Shift Only",
+   "read_only": 1
+  },
+  {
+   "fieldname": "overtime_percent_of_normal_time",
+   "fieldtype": "Percent",
+   "label": "Overtime % of Normal Time",
+   "precision": "2",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-06-10 17:56:27.882229",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Plan Output",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

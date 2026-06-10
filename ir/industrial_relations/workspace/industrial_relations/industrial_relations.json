@@ -410,7 +410,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General IR Documents",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -454,9 +454,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Edit Shift Plan",
+   "link_count": 0,
+   "link_to": "Shift Plan",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-05-22 10:20:53.141465",
+ "modified": "2026-06-10 17:19:27.780897",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Industrial Relations",
