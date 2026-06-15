@@ -70,7 +70,7 @@ def _is_later_contract(candidate, current_contract):
     current_creation = current_contract.get("creation")
 
     if candidate_start_date and current_start_date:
-        if getdate(candidate_start_date) >= getdate(current_start_date):
+        if getdate(candidate_start_date) > getdate(current_start_date):
             return True
 
     if candidate_creation and current_creation:
@@ -80,19 +80,16 @@ def _is_later_contract(candidate, current_contract):
     return False
 
 
-def _has_later_blocking_contract(current_contract, report_date):
+def _get_later_submitted_contracts(current_contract):
     """
-    Check whether the employee has a later submitted contract that is:
-    - project-based,
-    - indefinite/no-expiry, or
-    - fixed-term and not yet expired.
+    Fetch later submitted contracts for the same employee.
 
-    Draft and cancelled contracts do not block the lapsed-contract report.
+    Draft and cancelled contracts are intentionally ignored.
     """
     employee = current_contract.get("employee")
 
     if not employee:
-        return False
+        return []
 
     candidate_contracts = frappe.get_all(
         CONTRACT_DOCTYPE,
@@ -113,10 +110,36 @@ def _has_later_blocking_contract(current_contract, report_date):
         order_by="creation asc, start_date asc",
     )
 
-    for candidate in candidate_contracts:
-        if not _is_later_contract(candidate, current_contract):
-            continue
+    return [
+        candidate
+        for candidate in candidate_contracts
+        if _is_later_contract(candidate, current_contract)
+    ]
 
+
+def _has_later_submitted_contract(current_contract):
+    """
+    Return True if this contract has any later submitted replacement contract.
+
+    This is separate from the blocking-contract check because even a later
+    fixed-term contract that has also expired still supersedes the older
+    fixed-term contract. The report should only show the latest expired
+    fixed-term contract that still requires action, not every expired contract
+    in the employee's contract history.
+    """
+    return bool(_get_later_submitted_contracts(current_contract))
+
+
+def _has_later_blocking_contract(current_contract, report_date):
+    """
+    Check whether the employee has a later submitted contract that is:
+    - project-based,
+    - indefinite/no-expiry, or
+    - fixed-term and not yet expired.
+
+    Draft and cancelled contracts do not block the lapsed-contract report.
+    """
+    for candidate in _get_later_submitted_contracts(current_contract):
         if _contract_blocks_lapsed_notice(candidate, report_date):
             return True
 
@@ -126,7 +149,7 @@ def _has_later_blocking_contract(current_contract, report_date):
 def fixed_term_expiry_lapsed():
     """
     Weekly HR report: fixed-term contracts that have already expired and are
-    not superseded by a later/current valid contract.
+    not superseded by a later submitted contract.
 
     Include only contracts where:
     - The contract itself is submitted.
@@ -135,8 +158,13 @@ def fixed_term_expiry_lapsed():
     - The contract end_date is before today.
     - The linked Employee is not marked as Left. Suspended employees are still
       included because they remain employed.
-    - There is no later submitted contract for the same employee that is
-      currently valid, indefinite/no-expiry, or project-based.
+    - There is no later submitted contract for the same employee.
+
+    The last condition is important:
+    If an employee had expired fixed-term contract A, then expired fixed-term
+    contract B, then expired fixed-term contract C, only C matters for the
+    report. A and B were superseded by later submitted contracts and should not
+    be reported.
     """
     report_date = getdate(today())
 
@@ -157,7 +185,7 @@ def fixed_term_expiry_lapsed():
             "branch",
             "creation",
         ],
-        order_by="end_date asc, employee_name asc",
+        order_by="employee asc, end_date asc, creation asc",
     )
 
     if not lapsed_contracts:
@@ -183,6 +211,15 @@ def fixed_term_expiry_lapsed():
         if contract.employee not in employed_employee_ids:
             continue
 
+        # Exclude historical expired contracts that were superseded by any
+        # later submitted contract, even if the later contract has also expired.
+        if _has_later_submitted_contract(contract):
+            continue
+
+        # Defensive secondary check. This will normally be covered by the
+        # previous condition, but keeping it makes the business rule explicit:
+        # later project-based, indefinite, and still-valid fixed-term contracts
+        # must never result in an expired-contract notice.
         if _has_later_blocking_contract(contract, report_date):
             continue
 
@@ -203,7 +240,7 @@ def fixed_term_expiry_lapsed():
 
     email_body = """
         <p>Dear {name},</p>
-        <p>Please find below the list of fixed-term contracts that have already expired and do not appear to have been superseded by a later submitted valid, indefinite, or project-based contract:</p>
+        <p>Please find below the list of latest fixed-term contracts that have already expired and do not appear to have been superseded by a later submitted contract:</p>
         <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
             <thead>
                 <tr>
