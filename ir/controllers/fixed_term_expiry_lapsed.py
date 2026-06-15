@@ -18,13 +18,21 @@ def _as_bool(value):
 
 def _contract_blocks_lapsed_notice(contract, report_date):
     """
-    Return True if this later contract means the employee should NOT be
-    reported as having no valid current contract.
+    Return True if this later submitted contract means the employee should NOT
+    be reported as having no valid current contract.
 
-    Blocking contracts are:
-    - Project-based contracts, because their end_date is only indicative.
-    - Indefinite/no-expiry contracts.
-    - Fixed-term contracts that have not yet expired as at report_date.
+    Blocking contracts are determined by actual setup fields only:
+    - has_project = 1:
+        Project-based contracts do not actually expire on their indicative
+        end_date.
+    - has_expiry = 0:
+        No-expiry contracts are treated as indefinite.
+    - has_expiry = 1 and end_date >= report_date:
+        Fixed-term contract is still within its fixed-term period.
+
+    Important:
+    Do not infer contract type from the Contract of Employment document name.
+    The document name can be renamed or become inconsistent with setup fields.
     """
     has_expiry = _as_bool(contract.get("has_expiry"))
     has_project = _as_bool(contract.get("has_project"))
@@ -42,24 +50,56 @@ def _contract_blocks_lapsed_notice(contract, report_date):
     return False
 
 
-def _has_later_blocking_contract(employee, current_contract_name, current_start_date, report_date):
+def _is_later_contract(candidate, current_contract):
     """
-    Check whether the employee has a later contract that is still valid,
-    indefinite, or project-based.
+    Return True if candidate should be treated as a later/replacement contract
+    for the same employee.
 
-    We compare against current_start_date, not current_end_date, because a
-    replacement contract may start before or on the old contract's expiry date.
+    We do not rely only on start_date because replacement/project contracts can
+    be backdated or overlap the previous fixed-term contract. A submitted
+    contract created after the current contract can therefore be a later
+    contract even if its start_date is earlier than the old contract's
+    start_date.
+
+    We use actual document metadata and dates only; never the document name.
     """
-    if not employee or not current_start_date:
+    candidate_start_date = candidate.get("start_date")
+    current_start_date = current_contract.get("start_date")
+
+    candidate_creation = candidate.get("creation")
+    current_creation = current_contract.get("creation")
+
+    if candidate_start_date and current_start_date:
+        if getdate(candidate_start_date) >= getdate(current_start_date):
+            return True
+
+    if candidate_creation and current_creation:
+        if candidate_creation > current_creation:
+            return True
+
+    return False
+
+
+def _has_later_blocking_contract(current_contract, report_date):
+    """
+    Check whether the employee has a later submitted contract that is:
+    - project-based,
+    - indefinite/no-expiry, or
+    - fixed-term and not yet expired.
+
+    Draft and cancelled contracts do not block the lapsed-contract report.
+    """
+    employee = current_contract.get("employee")
+
+    if not employee:
         return False
 
-    contracts = frappe.get_all(
+    candidate_contracts = frappe.get_all(
         CONTRACT_DOCTYPE,
         filters={
             "employee": employee,
-            "name": ["!=", current_contract_name],
+            "name": ["!=", current_contract.name],
             "docstatus": 1,
-            "start_date": [">=", current_start_date],
         },
         fields=[
             "name",
@@ -69,13 +109,15 @@ def _has_later_blocking_contract(employee, current_contract_name, current_start_
             "has_expiry",
             "has_project",
             "creation",
-            "modified",
         ],
-        order_by="start_date asc, creation asc",
+        order_by="creation asc, start_date asc",
     )
 
-    for contract in contracts:
-        if _contract_blocks_lapsed_notice(contract, report_date):
+    for candidate in candidate_contracts:
+        if not _is_later_contract(candidate, current_contract):
+            continue
+
+        if _contract_blocks_lapsed_notice(candidate, report_date):
             return True
 
     return False
@@ -93,8 +135,8 @@ def fixed_term_expiry_lapsed():
     - The contract end_date is before today.
     - The linked Employee is not marked as Left. Suspended employees are still
       included because they remain employed.
-    - There is no later contract for the same employee that is currently valid,
-      indefinite/no-expiry, or project-based.
+    - There is no later submitted contract for the same employee that is
+      currently valid, indefinite/no-expiry, or project-based.
     """
     report_date = getdate(today())
 
@@ -113,6 +155,7 @@ def fixed_term_expiry_lapsed():
             "start_date",
             "end_date",
             "branch",
+            "creation",
         ],
         order_by="end_date asc, employee_name asc",
     )
@@ -140,18 +183,15 @@ def fixed_term_expiry_lapsed():
         if contract.employee not in employed_employee_ids:
             continue
 
-        if _has_later_blocking_contract(
-            employee=contract.employee,
-            current_contract_name=contract.name,
-            current_start_date=contract.start_date,
-            report_date=report_date,
-        ):
+        if _has_later_blocking_contract(contract, report_date):
             continue
 
         filtered_contracts.append(contract)
 
     if not filtered_contracts:
-        frappe.logger().info("No lapsed contracts found after applying employee and later-contract filters.")
+        frappe.logger().info(
+            "No lapsed contracts found after applying employee and later-contract filters."
+        )
         return
 
     recipient_emails, name_by_email = get_ir_notification_recipients()
@@ -163,7 +203,7 @@ def fixed_term_expiry_lapsed():
 
     email_body = """
         <p>Dear {name},</p>
-        <p>Please find below the list of fixed-term contracts that have already expired and do not appear to have been superseded by a later valid, indefinite, or project-based contract:</p>
+        <p>Please find below the list of fixed-term contracts that have already expired and do not appear to have been superseded by a later submitted valid, indefinite, or project-based contract:</p>
         <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
             <thead>
                 <tr>
