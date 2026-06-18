@@ -198,7 +198,8 @@ scheduler_events = {
 }
 after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links",
-	"ir.setup.desk_cleanup.cleanup_autogen_workspaces_sidebars_and_icons"
+	#"ir.setup.desk_cleanup.cleanup_autogen_workspaces_sidebars_and_icons"
+    #testing, if this is no longer required, remove
 ]
 doc_events = {
 	"Termination Form": {
