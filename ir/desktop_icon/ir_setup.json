@@ -1,0 +1,39 @@
+{
+ "app": "ir",
+ "bg_color": "gray",
+ "creation": "2026-06-18 08:56:53.818738",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "IR Setup",
+ "link_to": "IR Setup",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-setup-icon.png",
+ "modified": "2026-06-18 09:20:48.909015",
+ "modified_by": "Administrator",
+ "name": "IR Setup",
+ "owner": "Administrator",
+ "parent_icon": "Industrial Relations",
+ "restrict_removal": 1,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "Training Manager"
+  },
+  {
+   "role": "Payroll Manager"
+  }
+ ],
+ "sidebar": "IR Setup",
+ "standard": 1
+}

@@ -1,0 +1,27 @@
+{
+ "app": "ir",
+ "creation": "2026-06-18 08:54:34.432459",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "education",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Training",
+   "link_to": "IR Training",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-06-18 08:54:34.432459",
+ "modified_by": "Administrator",
+ "name": "IR Training",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "IR Training"
+}

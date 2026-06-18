@@ -1,0 +1,52 @@
+{
+ "app": "ir",
+ "bg_color": "gray",
+ "creation": "2026-06-15 19:10:07.452849",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "briefcase-business",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "IR General",
+ "link_to": "IR General",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-general-icon.png",
+ "modified": "2026-06-18 09:19:52.936735",
+ "modified_by": "Administrator",
+ "name": "IR General",
+ "owner": "Administrator",
+ "parent_icon": "Industrial Relations",
+ "restrict_removal": 1,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  },
+  {
+   "role": "Training Manager"
+  },
+  {
+   "role": "Training Facilitator"
+  },
+  {
+   "role": "Training Administrator"
+  },
+  {
+   "role": "Payroll Manager"
+  },
+  {
+   "role": "Payroll User"
+  }
+ ],
+ "sidebar": "IR General",
+ "standard": 1
+}

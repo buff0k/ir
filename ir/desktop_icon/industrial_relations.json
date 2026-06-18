@@ -1,5 +1,6 @@
 {
  "app": "ir",
+ "bg_color": "gray",
  "creation": "2026-01-14 08:06:58.851753",
  "docstatus": 0,
  "doctype": "Desktop Icon",
@@ -7,12 +8,12 @@
  "icon_type": "App",
  "idx": 0,
  "label": "Industrial Relations",
- "link": "/app/industrial-relations",
- "link_to": "Industrial Relations",
- "link_type": "Workspace Sidebar",
+ "link": "",
+ "link_to": "",
+ "link_type": "External",
  "logo_url": "/assets/ir/images/ir-logo.svg",
- "modified": "2026-02-02 11:50:23.483424",
- "modified_by": "eben@isambane.co.za",
+ "modified": "2026-06-18 08:36:24.468640",
+ "modified_by": "Administrator",
  "name": "Industrial Relations",
  "owner": "Administrator",
  "restrict_removal": 1,
@@ -45,6 +46,6 @@
    "role": "Training Facilitator"
   }
  ],
- "sidebar": "Industrial Relations",
+ "sidebar": "",
  "standard": 1
 }

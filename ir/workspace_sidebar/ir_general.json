@@ -9,19 +9,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "home",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Home",
-   "link_to": "Industrial Relations",
-   "link_type": "Workspace",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "briefcase-business",
+   "icon": "anchor",
    "indent": 0,
    "keep_closed": 0,
    "label": "General",
@@ -77,26 +65,13 @@
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "icon": "lamp-desk",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Desktop",
-   "link_to": "desktop",
-   "link_type": "Page",
-   "show_arrow": 0,
-   "type": "Link",
-   "url": "/desk"
   }
  ],
- "modified": "2026-02-06 06:09:35.229507",
+ "modified": "2026-06-18 09:09:42.602687",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "Industrial Relations",
+ "name": "IR General",
  "owner": "Administrator",
  "standard": 1,
- "title": "Industrial Relations"
+ "title": "IR General"
 }

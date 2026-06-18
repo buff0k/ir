@@ -1,0 +1,36 @@
+{
+ "app": "ir",
+ "bg_color": "gray",
+ "creation": "2026-06-18 08:42:36.741050",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "Disciplinary Matters",
+ "link_to": "Disciplinary Matters",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-disciplinary-matters-icon.png",
+ "modified": "2026-06-18 09:20:08.621811",
+ "modified_by": "Administrator",
+ "name": "Disciplinary Matters",
+ "owner": "Administrator",
+ "parent_icon": "Industrial Relations",
+ "restrict_removal": 0,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  }
+ ],
+ "sidebar": "Disciplinary Matters",
+ "standard": 1
+}

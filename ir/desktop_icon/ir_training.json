@@ -1,0 +1,45 @@
+{
+ "app": "ir",
+ "bg_color": "gray",
+ "creation": "2026-06-18 08:55:32.315277",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "IR Training",
+ "link_to": "IR Training",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-training-icon.png",
+ "modified": "2026-06-18 09:20:34.540661",
+ "modified_by": "Administrator",
+ "name": "IR Training",
+ "owner": "Administrator",
+ "parent_icon": "Industrial Relations",
+ "restrict_removal": 1,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  },
+  {
+   "role": "Training Manager"
+  },
+  {
+   "role": "Training Facilitator"
+  },
+  {
+   "role": "Training Administrator"
+  }
+ ],
+ "sidebar": "IR Training",
+ "standard": 1
+}

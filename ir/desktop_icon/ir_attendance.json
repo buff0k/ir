@@ -1,0 +1,48 @@
+{
+ "app": "ir",
+ "bg_color": "gray",
+ "creation": "2026-06-18 08:51:53.809938",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "IR Attendance",
+ "link_to": "IR Attendance",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/ir/images/ir-attendance-icon.png",
+ "modified": "2026-06-18 09:20:22.279883",
+ "modified_by": "Administrator",
+ "name": "IR Attendance",
+ "owner": "Administrator",
+ "parent_icon": "Industrial Relations",
+ "restrict_removal": 1,
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Payroll Manager"
+  },
+  {
+   "role": "Payroll User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
+  }
+ ],
+ "sidebar": "IR Attendance",
+ "standard": 1
+}

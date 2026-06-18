@@ -1,0 +1,29 @@
+{
+ "app": "ir",
+ "creation": "2026-06-18 08:51:14.623120",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "timer-reset",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "timer-reset",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "IR Attendance",
+   "link_to": "IR Attendance",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-06-18 08:52:40.292101",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "IR Attendance",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "IR Attendance"
+}

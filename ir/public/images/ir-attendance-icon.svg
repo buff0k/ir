@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 117 117" role="img" aria-label="Attendance">
+  <rect width="117" height="117" rx="23.6" fill="#2F88C5"/>
+  
+  <g fill="none" stroke="#fff" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="30" width="77" height="61" rx="7"/>
+    <path d="M20 45h77"/>
+    <path d="M37 23v14M80 23v14"/>
+    <circle cx="40" cy="65" r="7" fill="#fff" stroke="none"/>
+    <circle cx="59" cy="65" r="7" fill="#fff" stroke="none"/>
+    <circle cx="78" cy="65" r="7" fill="#fff" stroke="none"/>
+    <path d="M34 82h13M53 82h13"/>
+    <circle cx="82" cy="80" r="14" fill="#2F88C5"/>
+    <circle cx="82" cy="80" r="14"/>
+    <path d="M82 72v9l7 4"/>
+  </g>
+</svg>
