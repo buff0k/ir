@@ -12,7 +12,7 @@ app_license = "mit"
 required_apps = ["frappe/hrms", "https://github.com/EPIUSECX/cohenix_local_za"]
 source_link = "http://github.com/buff0k/ir"
 app_logo_url = "/assets/ir/images/ir-logo.svg"
-app_home = "/desk/industrial-relations"
+app_home = "/desk/ir-general"
 add_to_apps_screen = [
 	{
 		"name": app_name,
@@ -22,6 +22,7 @@ add_to_apps_screen = [
 		"has_permission": "ir.industrial_relations.utils.check_app_permission",
 	}
 ]
+app_include_icons = "/assets/ir/images/ir-logo.svg"
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",

@@ -29,7 +29,7 @@
  "idx": 6,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "General Industrial Relations",
+ "label": "IR General",
  "link_type": "DocType",
  "links": [
   {
@@ -466,10 +466,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-18 09:08:45.139864",
+ "modified": "2026-06-18 09:41:59.357877",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
- "name": "General Industrial Relations",
+ "name": "IR General",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
@@ -506,6 +506,6 @@
  ],
  "sequence_id": 47.0,
  "shortcuts": [],
- "title": "General Industrial Relations",
+ "title": "IR General",
  "type": "Workspace"
 }
