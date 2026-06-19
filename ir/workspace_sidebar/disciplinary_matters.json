@@ -8,6 +8,7 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "person-standing",
    "indent": 0,
    "keep_closed": 0,
    "label": "Disciplinary Matters",
@@ -15,10 +16,59 @@
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "anchor",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "General",
+   "link_to": "IR General",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "timer-reset",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Attendance",
+   "link_to": "IR Attendance",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "book-open-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Training",
+   "link_to": "IR Training",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "setting-gear",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setup",
+   "link_to": "IR Setup",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-06-18 08:42:29.663571",
+ "modified": "2026-06-19 13:39:33.353761",
  "modified_by": "Administrator",
+ "module": "Industrial Relations",
  "name": "Disciplinary Matters",
  "owner": "Administrator",
  "standard": 1,

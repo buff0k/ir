@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Workspace Sidebar",
  "header_icon": "timer-reset",
- "idx": 0,
+ "idx": 1,
  "items": [
   {
    "child": 0,
@@ -12,14 +12,62 @@
    "icon": "timer-reset",
    "indent": 0,
    "keep_closed": 0,
-   "label": "IR Attendance",
+   "label": "Attendance",
    "link_to": "IR Attendance",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "anchor",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "General",
+   "link_to": "IR General",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "person-standing",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Disciplinary Matters",
+   "link_to": "Disciplinary Matters",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "book-open-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Training",
+   "link_to": "IR Training",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "setting-gear",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setup",
+   "link_to": "IR Setup",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-06-18 08:52:40.292101",
+ "modified": "2026-06-19 13:41:59.965678",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Attendance",

@@ -410,7 +410,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General IR Documents",
-   "link_count": 5,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -464,9 +464,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee",
+   "link_count": 0,
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-06-18 09:41:59.357877",
+ "modified": "2026-06-19 13:33:45.994386",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
