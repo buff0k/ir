@@ -8,7 +8,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "book-open-check",
+   "icon": "ir-training",
    "indent": 0,
    "keep_closed": 0,
    "label": "Training",
@@ -20,7 +20,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "anchor",
+   "icon": "ir-general",
    "indent": 0,
    "keep_closed": 0,
    "label": "General",
@@ -32,7 +32,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "person-standing",
+   "icon": "ir-disciplinary",
    "indent": 0,
    "keep_closed": 0,
    "label": "Disciplinary Matters",
@@ -44,7 +44,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "timer-reset",
+   "icon": "ir-attendance",
    "indent": 0,
    "keep_closed": 0,
    "label": "Attendance",
@@ -56,7 +56,7 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "setting-gear",
+   "icon": "ir-setup",
    "indent": 0,
    "keep_closed": 0,
    "label": "Setup",
@@ -66,7 +66,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-19 13:45:10.406328",
+ "modified": "2026-06-19 17:25:41.543683",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Training",
