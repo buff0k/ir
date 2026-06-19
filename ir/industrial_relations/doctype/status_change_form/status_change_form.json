@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "creation": "2026-02-11 13:38:39.167615",
  "doctype": "DocType",
@@ -147,7 +148,7 @@
   {
    "fieldname": "current_conditions",
    "fieldtype": "Select",
-   "label": "Conditions of Employement",
+   "label": "Conditions of Employment",
    "options": "\nFixed Term\nProject\nIndefinite",
    "reqd": 1
   },
@@ -299,7 +300,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-23 08:46:05.994617",
+ "modified": "2026-06-19 14:03:40.155149",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",
