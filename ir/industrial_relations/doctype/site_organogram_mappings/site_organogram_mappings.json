@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "creation": "2026-02-05 10:41:08.442681",
  "doctype": "DocType",
@@ -11,7 +12,11 @@
   "shift",
   "group",
   "row_key",
-  "row_order"
+  "row_order",
+  "row_label",
+  "row_type",
+  "missing_asset",
+  "missing_employee"
  ],
  "fields": [
   {
@@ -55,13 +60,36 @@
    "fieldname": "row_order",
    "fieldtype": "Int",
    "label": "Row Order"
+  },
+  {
+   "fieldname": "row_label",
+   "fieldtype": "Data",
+   "label": "Row Label"
+  },
+  {
+   "fieldname": "row_type",
+   "fieldtype": "Select",
+   "label": "Row Type",
+   "options": "Vacant Asset\nAsset\nDesignation"
+  },
+  {
+   "default": "0",
+   "fieldname": "missing_asset",
+   "fieldtype": "Check",
+   "label": "Missing Asset"
+  },
+  {
+   "default": "0",
+   "fieldname": "missing_employee",
+   "fieldtype": "Check",
+   "label": "Missing Employee"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-06 18:13:11.154223",
+ "modified": "2026-07-01 14:40:46.022399",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Mappings",

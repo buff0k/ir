@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "autoname": "prompt",
  "creation": "2024-08-06 21:52:01.648138",
@@ -71,7 +72,7 @@
    "link_fieldname": "company_name"
   }
  ],
- "modified": "2025-05-16 12:02:12.512460",
+ "modified": "2026-07-01 13:17:53.142581",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Trade Union",
@@ -104,6 +105,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -111,7 +113,8 @@
    "report": 1,
    "role": "IR Officer",
    "select": 1,
-   "share": 1
+   "share": 1,
+   "write": 1
   },
   {
    "email": 1,

@@ -110,9 +110,20 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Termination Form",
+   "link_to": "Termination Form",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-06-19 17:23:00.647812",
+ "modified": "2026-07-01 11:26:00.356119",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
