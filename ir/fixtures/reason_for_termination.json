@@ -29,15 +29,6 @@
  {
   "docstatus": 0,
   "doctype": "Reason for Termination",
-  "modified": "2025-07-17 09:28:58.317773",
-  "name": "Employee Deceased",
-  "notice": 0,
-  "reason": "Employee Deceased",
-  "uif_termination_reason": "2 - Deceased"
- },
- {
-  "docstatus": 0,
-  "doctype": "Reason for Termination",
   "modified": "2025-07-17 09:25:13.504556",
   "name": "Resignation",
   "notice": 1,
@@ -79,5 +70,14 @@
   "notice": 1,
   "reason": "Dismissal for Operational Requirements (Retrenchment)",
   "uif_termination_reason": "11 - Retrenchment / Staff Reduction"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Reason for Termination",
+  "modified": "2025-07-17 09:28:58.317773",
+  "name": "Employee Deceased",
+  "notice": 0,
+  "reason": "Employee Deceased",
+  "uif_termination_reason": "2 - Deceased"
  }
 ]
