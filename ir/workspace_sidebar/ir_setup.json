@@ -64,9 +64,20 @@
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Role Restrictions",
+   "link_to": "IR Role Restrictions",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-06-19 17:26:23.664542",
+ "modified": "2026-07-02 11:12:02.994415",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

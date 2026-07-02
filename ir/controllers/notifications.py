@@ -45,9 +45,11 @@ def handle_doc_event(doc, method, action, changed_fields=None):
 
 
 def handle_doc_event_create(doc, method):
-    # Special handling for Anonymous Report
     if doc.doctype == "Anonymous Report":
         return handle_anonymous_report_create(doc, method)
+
+    if doc.doctype == "Disciplinary Action":
+        return handle_disciplinary_action_create(doc, method)
 
     return handle_doc_event(doc, method, "created")
 
@@ -277,3 +279,113 @@ def _diff_child_table_rows(curr_rows, prev_rows):
             changes.append(f"Row {prev_idx}: removed")
 
     return changes
+
+
+def handle_disciplinary_action_create(doc, method=None):
+    recipient_emails, name_by_email = _collect_disciplinary_action_recipients()
+    if not recipient_emails:
+        return
+
+    accused_name = doc.get("accused_name") or doc.get("employee_name") or doc.get("accused") or "Unknown Employee"
+    accused_coy = doc.get("accused_coy") or doc.get("accused") or "Unknown Coy No."
+    branch = doc.get("branch") or "Unknown Branch"
+
+    is_shop_steward = bool(doc.get("is_ss"))
+    ss_union = doc.get("ss_union") or ""
+
+    if is_shop_steward:
+        if ss_union:
+            shop_steward_line = f"The employee is a Shop Steward for {ss_union}."
+        else:
+            shop_steward_line = "The employee is a Shop Steward."
+    else:
+        shop_steward_line = "The employee is not a Shop Steward."
+
+    subject = f"New Disciplinary Action Created: {accused_name} ({accused_coy})"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        lines = [
+            f"Dear {full_name}",
+            "",
+            f"A new Disciplinary Action has been created for {accused_name} ({accused_coy}) at {branch}.",
+            "",
+            shop_steward_line,
+            "",
+            "Please attend to this matter urgently.",
+            "",
+            f'<a href="{url}">Click here to view</a>',
+        ]
+
+        message = "<br>".join(lines)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def _collect_disciplinary_action_recipients():
+    recipients = []
+    name_by_email = {}
+
+    try:
+        rows = frappe.get_all(
+            "IR User Restriction Table",
+            filters={
+                "parent": "IR Role Restrictions",
+                "parenttype": "IR Role Restrictions",
+                "parentfield": "disciplinary_recipients",
+            },
+            fields=["user", "email_address"],
+            order_by="idx asc",
+        )
+    except Exception:
+        frappe.log_error(
+            frappe.get_traceback(),
+            "Unable to fetch Disciplinary Action recipients from IR Role Restrictions"
+        )
+        return [], {}
+
+    if not rows:
+        return [], {}
+
+    user_names = [row.user for row in rows if row.get("user")]
+
+    user_map = {}
+    if user_names:
+        users = frappe.get_all(
+            "User",
+            filters={
+                "name": ["in", user_names],
+                "enabled": 1,
+            },
+            fields=["name", "email", "full_name"],
+        )
+        user_map = {user.name: user for user in users}
+
+    for row in rows:
+        user_doc = user_map.get(row.get("user"))
+
+        # Skip disabled / missing users where a User was selected
+        if row.get("user") and not user_doc:
+            continue
+
+        email = row.get("email_address") or (user_doc.email if user_doc else None)
+        if not email:
+            continue
+
+        if email not in recipients:
+            recipients.append(email)
+            name_by_email[email] = (
+                user_doc.full_name
+                if user_doc and user_doc.get("full_name")
+                else row.get("user")
+            )
+
+    return recipients, name_by_email

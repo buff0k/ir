@@ -233,6 +233,7 @@ doc_events = {
 		"validate": "ir.industrial_relations.utils.validate_contract_of_employment",
 	},
 	"Disciplinary Action": {
+		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"validate": "ir.industrial_relations.utils.validate_disciplinary_action",
 	},
 	"Anonymous Report": {

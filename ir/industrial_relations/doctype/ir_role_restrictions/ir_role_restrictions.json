@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "creation": "2026-02-09 09:27:24.456950",
  "doctype": "DocType",
@@ -10,7 +11,8 @@
   "ir_officer_restrictions",
   "ir_user_restrictions",
   "notification_emails_tab",
-  "report_recipients"
+  "report_recipients",
+  "disciplinary_recipients"
  ],
  "fields": [
   {
@@ -50,13 +52,19 @@
    "fieldtype": "Table",
    "label": "Report Recipients",
    "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "disciplinary_recipients",
+   "fieldtype": "Table",
+   "label": "Disciplinary Action Recipients",
+   "options": "IR User Restriction Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-10 12:44:03.754474",
+ "modified": "2026-07-02 11:02:32.304760",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Role Restrictions",
