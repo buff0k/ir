@@ -12,7 +12,10 @@
   "ir_user_restrictions",
   "notification_emails_tab",
   "report_recipients",
-  "disciplinary_recipients"
+  "disciplinary_recipients",
+  "hr_per_branch",
+  "trainer_per_branch",
+  "global_trainer"
  ],
  "fields": [
   {
@@ -58,13 +61,31 @@
    "fieldtype": "Table",
    "label": "Disciplinary Action Recipients",
    "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "hr_per_branch",
+   "fieldtype": "Table",
+   "label": "Responsible HR per Branch",
+   "options": "IR Role Restrictions User Branch"
+  },
+  {
+   "fieldname": "trainer_per_branch",
+   "fieldtype": "Table",
+   "label": "Responsible Training Officer per Branch",
+   "options": "IR Role Restrictions User Branch"
+  },
+  {
+   "fieldname": "global_trainer",
+   "fieldtype": "Table",
+   "label": "Recipient of all Training Notifications",
+   "options": "IR User Restriction Table"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-02 11:02:32.304760",
+ "modified": "2026-07-02 19:56:47.172589",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Role Restrictions",
