@@ -11,6 +11,7 @@
   "asset",
   "shift",
   "group",
+  "group_key",
   "row_key",
   "row_order",
   "row_label",
@@ -83,13 +84,20 @@
    "fieldname": "missing_employee",
    "fieldtype": "Check",
    "label": "Missing Employee"
+  },
+  {
+   "fieldname": "group_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Group Key",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-01 14:40:46.022399",
+ "modified": "2026-07-10 11:05:34.799647",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Mappings",

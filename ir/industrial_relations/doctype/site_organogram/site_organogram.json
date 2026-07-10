@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:{branch} - {DD}-{MM}-{YYYY}",
@@ -22,7 +23,9 @@
   "assets",
   "shift_mapping_tab",
   "shift_mappings",
-  "amended_from"
+  "amended_from",
+  "reporting_lines_tab",
+  "reporting_lines"
  ],
  "fields": [
   {
@@ -122,13 +125,24 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "reporting_lines_tab",
+   "fieldtype": "Tab Break",
+   "label": "Reporting Lines"
+  },
+  {
+   "fieldname": "reporting_lines",
+   "fieldtype": "Table",
+   "label": "Reporting Lines",
+   "options": "Site Organogram Reporting Line"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-06 13:55:43.434281",
+ "modified": "2026-07-10 11:07:41.638723",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",

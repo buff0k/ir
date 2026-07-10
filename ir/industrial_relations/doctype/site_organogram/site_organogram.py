@@ -12,10 +12,14 @@ from frappe.model.document import Document
 
 class SiteOrganogram(Document):
     def validate(self):
+        normalize_group_structure(self)
         normalize_mappings(self)
+        normalize_reporting_lines(self)
 
     def before_submit(self):
+        normalize_group_structure(self)
         normalize_mappings(self)
+        normalize_reporting_lines(self)
 
 
 # -------------------------------------------------------------------
@@ -136,6 +140,96 @@ def _asset_exists(asset_id):
     if not asset_id:
         return False
     return bool(frappe.db.exists("Asset", asset_id))
+
+
+def _new_group_key():
+    return f"GRP::{frappe.generate_hash(length=10)}"
+
+
+def normalize_group_structure(doc):
+    """Assign stable keys to headings and mirror them onto mapping rows."""
+    headings = getattr(doc, "group_headings", None) or []
+    mappings = getattr(doc, "shift_mappings", None) or []
+
+    by_key = {}
+    by_label = {}
+
+    for heading in headings:
+        label = _clean(getattr(heading, "group", None))
+        key = _clean(getattr(heading, "group_key", None))
+
+        if not key:
+            key = _new_group_key()
+            heading.group_key = key
+
+        if key in by_key and by_key[key] is not heading:
+            key = _new_group_key()
+            heading.group_key = key
+
+        by_key[key] = heading
+        if label and label not in by_label:
+            by_label[label] = heading
+
+    for row in mappings:
+        key = _clean(getattr(row, "group_key", None))
+        label = _clean(getattr(row, "group", None))
+        heading = by_key.get(key) if key else None
+
+        if not heading and label:
+            heading = by_label.get(label)
+
+        if heading:
+            row.group_key = heading.group_key
+            row.group = heading.group
+
+
+def normalize_reporting_lines(doc):
+    """Repair reporting-line endpoints without deleting user data."""
+    headings = getattr(doc, "group_headings", None) or []
+    lines = getattr(doc, "reporting_lines", None) or []
+
+    by_key = {
+        _clean(getattr(row, "group_key", None)): row
+        for row in headings
+        if _clean(getattr(row, "group_key", None))
+    }
+    by_label = {}
+    for row in headings:
+        label = _clean(getattr(row, "group", None))
+        if label and label not in by_label:
+            by_label[label] = row
+
+    for index, line in enumerate(lines, start=1):
+        for prefix in ("source", "target"):
+            key_field = f"{prefix}_group_key"
+            label_field = f"{prefix}_group"
+            scope_field = f"{prefix}_scope"
+            shift_field = f"{prefix}_shift"
+
+            key = _clean(getattr(line, key_field, None))
+            label = _clean(getattr(line, label_field, None))
+            heading = by_key.get(key) if key else None
+
+            if not heading and label:
+                heading = by_label.get(label)
+
+            if heading:
+                setattr(line, key_field, heading.group_key)
+                setattr(line, label_field, heading.group)
+
+            scope = _clean(getattr(line, scope_field, None)) or "Heading"
+            if scope not in ("Heading", "Shift"):
+                scope = "Heading"
+            setattr(line, scope_field, scope)
+
+            if scope == "Heading":
+                setattr(line, shift_field, "")
+
+        line.line_type = _clean(getattr(line, "line_type", None)) or "Solid"
+        line.source_anchor = _clean(getattr(line, "source_anchor", None)) or "Auto"
+        line.target_anchor = _clean(getattr(line, "target_anchor", None)) or "Auto"
+        if not _safe_int(getattr(line, "line_order", 0), 0):
+            line.line_order = index
 
 
 def normalize_mappings(doc):
@@ -448,13 +542,16 @@ def get_site_organogram_template(source_name):
         return {}
 
     doc = frappe.get_doc("Site Organogram", source_name)
+    normalize_group_structure(doc)
     normalize_mappings(doc)
+    normalize_reporting_lines(doc)
 
     return {
         "location": getattr(doc, "location", None),
         "shifts": getattr(doc, "shifts", None),
         "group_headings": [
             {
+                "group_key": getattr(r, "group_key", None),
                 "group": r.group,
                 "shifts": r.shifts,
             }
@@ -484,6 +581,7 @@ def get_site_organogram_template(source_name):
         ],
         "shift_mappings": [
             {
+                "group_key": getattr(r, "group_key", None),
                 "group": r.group,
                 "shift": r.shift,
                 "employee": r.employee,
@@ -496,6 +594,24 @@ def get_site_organogram_template(source_name):
                 "missing_employee": getattr(r, "missing_employee", 0),
             }
             for r in (getattr(doc, "shift_mappings", None) or [])
+        ],
+        "reporting_lines": [
+            {
+                "source_group_key": getattr(r, "source_group_key", None),
+                "source_group": getattr(r, "source_group", None),
+                "source_scope": getattr(r, "source_scope", None),
+                "source_shift": getattr(r, "source_shift", None),
+                "target_group_key": getattr(r, "target_group_key", None),
+                "target_group": getattr(r, "target_group", None),
+                "target_scope": getattr(r, "target_scope", None),
+                "target_shift": getattr(r, "target_shift", None),
+                "line_type": getattr(r, "line_type", None),
+                "label": getattr(r, "label", None),
+                "source_anchor": getattr(r, "source_anchor", None),
+                "target_anchor": getattr(r, "target_anchor", None),
+                "line_order": getattr(r, "line_order", None),
+            }
+            for r in (getattr(doc, "reporting_lines", None) or [])
         ],
     }
 
@@ -747,7 +863,9 @@ def export_site_organogram_excel(name):
 
     doc = frappe.get_doc("Site Organogram", name)
     doc.check_permission("read")
+    normalize_group_structure(doc)
     normalize_mappings(doc)
+    normalize_reporting_lines(doc)
 
     try:
         from openpyxl import Workbook
@@ -872,3 +990,174 @@ def export_site_organogram_excel(name):
     frappe.local.response.filename = filename
     frappe.local.response.filecontent = out.getvalue()
     frappe.local.response.type = "binary"
+# -------------------------------------------------------------------
+# Organogram Designer Page API
+# -------------------------------------------------------------------
+
+def _designer_child_rows(rows, fields):
+    return [
+        {field: getattr(row, field, None) for field in fields}
+        for row in (rows or [])
+    ]
+
+
+def _designer_payload(doc):
+    normalize_group_structure(doc)
+    normalize_mappings(doc)
+    normalize_reporting_lines(doc)
+
+    return {
+        "name": doc.name,
+        "doctype": doc.doctype,
+        "docstatus": doc.docstatus,
+        "modified": str(doc.modified or ""),
+        "branch": getattr(doc, "branch", None),
+        "location": getattr(doc, "location", None),
+        "shifts": getattr(doc, "shifts", None),
+        "asset_categories": _designer_child_rows(
+            getattr(doc, "asset_categories", None),
+            ["asset_cateogories"],
+        ),
+        "group_headings": _designer_child_rows(
+            getattr(doc, "group_headings", None),
+            ["group_key", "group", "shifts"],
+        ),
+        "employees": _designer_child_rows(
+            getattr(doc, "employees", None),
+            ["employee", "employee_name", "designation"],
+        ),
+        "assets": _designer_child_rows(
+            getattr(doc, "assets", None),
+            ["asset", "item_name", "asset_category"],
+        ),
+        "shift_mappings": _designer_child_rows(
+            getattr(doc, "shift_mappings", None),
+            [
+                "group_key", "group", "shift", "employee", "asset",
+                "row_key", "row_order", "row_label", "row_type",
+                "missing_asset", "missing_employee",
+            ],
+        ),
+        "reporting_lines": _designer_child_rows(
+            getattr(doc, "reporting_lines", None),
+            [
+                "source_group_key", "source_group", "source_scope", "source_shift",
+                "target_group_key", "target_group", "target_scope", "target_shift",
+                "line_type", "label", "source_anchor", "target_anchor", "line_order",
+            ],
+        ),
+    }
+
+
+@frappe.whitelist()
+def list_site_organograms_for_designer(branch=None, limit=100):
+    try:
+        limit = max(1, min(int(limit or 100), 500))
+    except Exception:
+        limit = 100
+
+    filters = {}
+    if branch:
+        filters["branch"] = branch
+
+    return frappe.get_all(
+        "Site Organogram",
+        filters=filters,
+        fields=["name", "branch", "location", "shifts", "docstatus", "modified"],
+        order_by="modified desc",
+        limit_page_length=limit,
+    )
+
+
+@frappe.whitelist()
+def get_site_organogram_designer_state(name):
+    if not name:
+        frappe.throw("Site Organogram name is required.")
+
+    doc = frappe.get_doc("Site Organogram", name)
+    doc.check_permission("read")
+    return _designer_payload(doc)
+
+
+def _replace_child_table(doc, fieldname, rows, allowed_fields):
+    doc.set(fieldname, [])
+    for item in _as_list(rows):
+        if not isinstance(item, dict):
+            continue
+        child = doc.append(fieldname, {})
+        for field in allowed_fields:
+            if field in item:
+                setattr(child, field, item.get(field))
+
+
+@frappe.whitelist()
+def save_site_organogram_designer_state(payload):
+    if isinstance(payload, str):
+        payload = frappe.parse_json(payload)
+    if not isinstance(payload, dict):
+        frappe.throw("A valid designer payload is required.")
+
+    name = _clean(payload.get("name"))
+    expected_modified = _clean(payload.get("modified"))
+
+    if name:
+        doc = frappe.get_doc("Site Organogram", name)
+        doc.check_permission("write")
+        if doc.docstatus != 0:
+            frappe.throw("Submitted or cancelled Site Organograms cannot be edited in the designer.")
+
+        current_modified = str(doc.modified or "")
+        if expected_modified and current_modified and expected_modified != current_modified:
+            frappe.throw(
+                "This Site Organogram was changed after it was loaded. Reload it before saving.",
+                title="Document Changed",
+            )
+    else:
+        doc = frappe.new_doc("Site Organogram")
+        doc.check_permission("create")
+
+    branch = _clean(payload.get("branch"))
+    location = _clean(payload.get("location"))
+    shifts = _clean(payload.get("shifts"))
+
+    if not branch:
+        frappe.throw("Site is required.")
+    if not location:
+        frappe.throw("Location is required.")
+    if shifts not in ("1", "2", "3", "4", "5"):
+        frappe.throw("Shift Teams must be between 1 and 5.")
+
+    doc.branch = branch
+    doc.location = location
+    doc.shifts = shifts
+
+    _replace_child_table(doc, "asset_categories", payload.get("asset_categories"), ["asset_cateogories"])
+    _replace_child_table(doc, "group_headings", payload.get("group_headings"), ["group_key", "group", "shifts"])
+    _replace_child_table(doc, "employees", payload.get("employees"), ["employee", "employee_name", "designation"])
+    _replace_child_table(doc, "assets", payload.get("assets"), ["asset", "item_name", "asset_category"])
+    _replace_child_table(
+        doc,
+        "shift_mappings",
+        payload.get("shift_mappings"),
+        [
+            "group_key", "group", "shift", "employee", "asset", "row_key",
+            "row_order", "row_label", "row_type", "missing_asset", "missing_employee",
+        ],
+    )
+    _replace_child_table(
+        doc,
+        "reporting_lines",
+        payload.get("reporting_lines"),
+        [
+            "source_group_key", "source_group", "source_scope", "source_shift",
+            "target_group_key", "target_group", "target_scope", "target_shift",
+            "line_type", "label", "source_anchor", "target_anchor", "line_order",
+        ],
+    )
+
+    normalize_group_structure(doc)
+    normalize_mappings(doc)
+    normalize_reporting_lines(doc)
+    doc.save()
+
+    return _designer_payload(doc)

@@ -149,6 +149,73 @@ function group_shifts(frm, group_row) {
   return active_shift_labels(frm);
 }
 
+function new_group_key() {
+  return `GRP::${frappe.utils.get_random(10)}`;
+}
+
+function ensure_group_keys(frm) {
+  const headings = frm.doc.group_headings || [];
+  const mappings = frm.doc.shift_mappings || [];
+  const lines = frm.doc.reporting_lines || [];
+  const byKey = new Map();
+  const byLabel = new Map();
+
+  for (const heading of headings) {
+    if (!heading.group_key || byKey.has(heading.group_key)) {
+      heading.group_key = new_group_key();
+    }
+    byKey.set(heading.group_key, heading);
+    if (heading.group && !byLabel.has(heading.group)) {
+      byLabel.set(heading.group, heading);
+    }
+  }
+
+  for (const row of mappings) {
+    const heading = (row.group_key && byKey.get(row.group_key)) || byLabel.get(row.group || "");
+    if (heading) {
+      row.group_key = heading.group_key;
+      row.group = heading.group;
+    }
+  }
+
+  for (const line of lines) {
+    for (const prefix of ["source", "target"]) {
+      const keyField = `${prefix}_group_key`;
+      const groupField = `${prefix}_group`;
+      const heading = (line[keyField] && byKey.get(line[keyField])) || byLabel.get(line[groupField] || "");
+      if (heading) {
+        line[keyField] = heading.group_key;
+        line[groupField] = heading.group;
+      }
+      const scopeField = `${prefix}_scope`;
+      const shiftField = `${prefix}_shift`;
+      line[scopeField] = line[scopeField] || "Heading";
+      if (line[scopeField] === "Heading") {
+        line[shiftField] = "";
+      }
+    }
+  }
+}
+
+function sync_group_name_by_key(frm, groupKey, newLabel) {
+  if (!groupKey) return;
+
+  for (const row of frm.doc.shift_mappings || []) {
+    if ((row.group_key || "") === groupKey) {
+      row.group = newLabel || "";
+    }
+  }
+
+  for (const line of frm.doc.reporting_lines || []) {
+    if ((line.source_group_key || "") === groupKey) {
+      line.source_group = newLabel || "";
+    }
+    if ((line.target_group_key || "") === groupKey) {
+      line.target_group = newLabel || "";
+    }
+  }
+}
+
 // ---------------------------------------------------------------------
 // localStorage helpers
 // ---------------------------------------------------------------------
@@ -312,11 +379,14 @@ async function ensure_designations_loaded(frm) {
 frappe.ui.form.on("Site Organogram", {
   onload(frm) {
     ensureAuto(frm);
+    ensure_group_keys(frm);
     frm._so = frm._so || {
       pool_mode: "employees",
       q: "",
       des: "",
       _clone_asked: false,
+      line_mode: false,
+      line_source: null,
     };
   },
 
@@ -329,23 +399,29 @@ frappe.ui.form.on("Site Organogram", {
       q: "",
       des: "",
       _clone_asked: false,
+      line_mode: false,
+      line_source: null,
     };
 
     await ensure_designations_loaded(frm);
+    ensure_group_keys(frm);
 
     frm._asset_cat_sig = categories_signature(frm);
 
     add_export_button(frm);
     render_site_organogram(frm);
+    $(window).off(`resize.site-organogram-${frm.doc.name}`).on(`resize.site-organogram-${frm.doc.name}`, debounce(() => render_site_organogram(frm), 150));
   },
 
   before_save(frm) {
+    ensure_group_keys(frm);
     normalize_mapping_rows(frm);
     sync_all_row_orders(frm, false);
   },
 
   onhide(frm) {
     stop_category_poll(frm);
+    $(window).off(`resize.site-organogram-${frm.doc.name}`);
   },
 
   async branch(frm) {
@@ -407,6 +483,41 @@ frappe.ui.form.on("Site Organogram", {
     }
 
     render_site_organogram(frm);
+  },
+});
+
+frappe.ui.form.on("Site Organogram Groups", {
+  group(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (!row.group_key) {
+      row.group_key = new_group_key();
+    }
+    sync_group_name_by_key(frm, row.group_key, row.group || "");
+    frm.refresh_fields(["shift_mappings", "reporting_lines"]);
+    render_site_organogram(frm);
+  },
+
+  group_key(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (!row.group_key) {
+      row.group_key = new_group_key();
+    }
+  },
+});
+
+frappe.ui.form.on("Site Organogram Reporting Line", {
+  source_scope(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (row.source_scope === "Heading") {
+      frappe.model.set_value(cdt, cdn, "source_shift", "");
+    }
+  },
+
+  target_scope(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (row.target_scope === "Heading") {
+      frappe.model.set_value(cdt, cdn, "target_shift", "");
+    }
   },
 });
 
@@ -713,6 +824,7 @@ async function apply_template_to_form(frm, tpl) {
     frm.clear_table("group_headings");
     (tpl.group_headings || []).forEach((r) => {
       const row = frm.add_child("group_headings");
+      row.group_key = r.group_key || new_group_key();
       row.group = r.group || "";
       row.shifts = r.shifts || "";
     });
@@ -750,6 +862,7 @@ async function apply_template_to_form(frm, tpl) {
     (tpl.shift_mappings || []).forEach((r) => {
       const row = frm.add_child("shift_mappings");
 
+      row.group_key = r.group_key || "";
       row.group = r.group || "";
       row.shift = r.shift || "";
       row.employee = r.employee || "";
@@ -762,6 +875,25 @@ async function apply_template_to_form(frm, tpl) {
       row.missing_employee = r.missing_employee ? 1 : 0;
     });
 
+    frm.clear_table("reporting_lines");
+    (tpl.reporting_lines || []).forEach((r) => {
+      const row = frm.add_child("reporting_lines");
+      row.source_group_key = r.source_group_key || "";
+      row.source_group = r.source_group || "";
+      row.source_scope = r.source_scope || "Heading";
+      row.source_shift = r.source_shift || "";
+      row.target_group_key = r.target_group_key || "";
+      row.target_group = r.target_group || "";
+      row.target_scope = r.target_scope || "Heading";
+      row.target_shift = r.target_shift || "";
+      row.line_type = r.line_type || "Solid";
+      row.label = r.label || "";
+      row.source_anchor = r.source_anchor || "Auto";
+      row.target_anchor = r.target_anchor || "Auto";
+      row.line_order = r.line_order || 0;
+    });
+
+    ensure_group_keys(frm);
     normalize_mapping_rows(frm);
 
     // The clone copies structure exactly first, then reconciles against the
@@ -776,7 +908,7 @@ async function apply_template_to_form(frm, tpl) {
     persistAuto(frm);
     frm._asset_cat_sig = categories_signature(frm);
 
-    frm.refresh_fields(["group_headings", "asset_categories", "employees", "assets", "shift_mappings"]);
+    frm.refresh_fields(["group_headings", "asset_categories", "employees", "assets", "shift_mappings", "reporting_lines"]);
     render_site_organogram(frm);
   } finally {
     frm._so_suppress = false;
@@ -909,7 +1041,7 @@ function remove_mapping_rows(frm, predicate) {
   }
 }
 
-function get_or_create_mapping_row(frm, { group, shift, row_key, row_type, row_label, asset }) {
+function get_or_create_mapping_row(frm, { group, group_key, shift, row_key, row_type, row_label, asset }) {
   const existing = find_mapping(frm, {
     group,
     shift,
@@ -922,6 +1054,7 @@ function get_or_create_mapping_row(frm, { group, shift, row_key, row_type, row_l
 
   const child = frm.add_child("shift_mappings");
   child.group = group;
+  child.group_key = group_key || ((frm.doc.group_headings || []).find((g) => g.group === group) || {}).group_key || "";
   child.shift = shift;
   child.row_key = row_key;
   child.row_type = row_type || "Designation";
@@ -1124,6 +1257,37 @@ function ensure_org_styles(wrapper) {
       .so-badge-ok { border-color: var(--so-ok); background: var(--so-ok-bg); }
       .so-badge-warn { border-color: var(--so-warn); background: var(--so-warn-bg); }
       .so-badge-bad { border-color: var(--so-bad); background: var(--so-bad-bg); }
+
+      .so-line-toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 10px; padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); }
+      .so-line-toolbar__status { font-size:12px; opacity:.8; margin-left:auto; }
+      .so-line-count { font-size:11px; opacity:.75; }
+
+      .so-reporting-panel { margin:0 0 14px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); overflow:hidden; }
+      .so-reporting-panel__hd { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border-bottom:1px solid var(--border-color); background:var(--control-bg); }
+      .so-reporting-panel__title { font-weight:900; }
+      .so-reporting-panel__hint { font-size:11px; opacity:.72; text-align:right; }
+      .so-reporting-scroll { overflow:auto; padding:16px; }
+      .so-reporting-canvas { position:relative; min-width:900px; min-height:250px; padding:58px 28px 70px; }
+      .so-reporting-stage { position:relative; z-index:2; display:flex; align-items:flex-start; justify-content:center; flex-wrap:wrap; gap:70px 34px; }
+      .so-reporting-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; z-index:1; }
+
+      .so-org-node { width:220px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); box-shadow:0 1px 2px rgba(0,0,0,.04); }
+      .so-org-node__heading { min-height:46px; display:flex; align-items:center; justify-content:center; padding:10px 12px; border-radius:11px 11px 0 0; background:var(--control-bg); font-size:12px; font-weight:900; text-align:center; }
+      .so-org-node__mode { padding:5px 8px; border-top:1px solid var(--border-color); font-size:10px; opacity:.68; text-align:center; }
+      .so-org-node__shifts { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:10px; border-top:1px solid var(--border-color); }
+      .so-org-shift { min-width:82px; padding:7px 8px; border:1px solid var(--border-color); border-radius:9px; background:var(--card-bg); font-size:11px; font-weight:800; text-align:center; }
+
+      .so-line-path { fill:none; stroke:var(--text-color); stroke-width:2.25; pointer-events:stroke; cursor:pointer; }
+      .so-line-path.is-dotted { stroke-dasharray:7 6; }
+      .so-line-path.is-advisory { stroke-dasharray:3 5; stroke-width:2; }
+      .so-line-path.is-functional { stroke-dasharray:12 5 3 5; stroke-width:2.25; }
+      .so-line-hit { fill:none; stroke:transparent; stroke-width:14; pointer-events:stroke; cursor:pointer; }
+      .so-line-label { font-size:11px; font-weight:700; fill:var(--text-color); paint-order:stroke; stroke:var(--card-bg); stroke-width:4px; stroke-linejoin:round; pointer-events:none; }
+
+      .so-endpoint { position:relative; cursor:default; }
+      .so-line-mode .so-endpoint { cursor:crosshair; outline:2px dashed var(--blue-400, #4c9aff); outline-offset:2px; }
+      .so-line-mode .so-endpoint:hover { background:color-mix(in srgb, var(--blue-400, #4c9aff) 16%, var(--card-bg)); }
+      .so-endpoint.is-line-source { outline:3px solid var(--orange-500, #f59e0b); outline-offset:2px; }
     </style>
   `);
 }
@@ -1559,15 +1723,277 @@ function render_site_organogram(frm) {
     </div>
   `;
 
+  const reportingHierarchyHtml = `
+    <div class="so-reporting-panel">
+      <div class="so-reporting-panel__hd">
+        <div class="so-reporting-panel__title">Reporting Structure</div>
+        <div class="so-reporting-panel__hint">Reporting lines are routed here so they do not obscure staffing and asset allocations.</div>
+      </div>
+      <div class="so-reporting-scroll">
+        <div class="so-reporting-canvas">
+          <svg class="so-reporting-svg" aria-hidden="true"></svg>
+          <div class="so-reporting-stage">
+            ${
+              (groups.length ? groups : [{ group: "No Groups Configured", shifts: "Shift Pattern", group_key: "" }])
+                .map((g) => {
+                  const shifts = group_shifts(frm, g);
+                  return `
+                    <div class="so-org-node">
+                      <div class="so-org-node__heading so-endpoint"
+                           data-so-endpoint="1"
+                           data-group-key="${escape_html(g.group_key || "")}"
+                           data-group="${escape_html(g.group || "")}"
+                           data-scope="Heading"
+                           data-shift="">
+                        ${escape_html(g.group || "Unnamed Group")}
+                      </div>
+                      <div class="so-org-node__mode">${escape_html(g.shifts || "Shift Pattern")}</div>
+                      <div class="so-org-node__shifts">
+                        ${shifts
+                          .map(
+                            (shift) => `
+                              <div class="so-org-shift so-endpoint"
+                                   data-so-endpoint="1"
+                                   data-group-key="${escape_html(g.group_key || "")}"
+                                   data-group="${escape_html(g.group || "")}"
+                                   data-scope="Shift"
+                                   data-shift="${escape_html(shift)}">
+                                ${escape_html(shift)}
+                              </div>
+                            `
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                  `;
+                })
+                .join("")
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const lineCount = (frm.doc.reporting_lines || []).length;
+  const lineMode = !!frm._so.line_mode;
+  const source = frm._so.line_source;
+  const lineStatus = lineMode
+    ? source
+      ? `Source selected: ${escape_html(endpoint_label(source))}. Select the target.`
+      : "Select a source heading or shift."
+    : `${lineCount} reporting line${lineCount === 1 ? "" : "s"}`;
+
   $w.append(`
+    <div class="${lineMode ? "so-line-mode" : ""}">
+      <div class="so-line-toolbar">
+        <button class="btn btn-sm ${lineMode ? "btn-warning" : "btn-default"}" data-so-action="toggle-line-mode">
+          ${lineMode ? "Cancel Drawing" : "Draw Reporting Line"}
+        </button>
+        <button class="btn btn-sm btn-default" data-so-action="manage-lines" ${lineCount ? "" : "disabled"}>Manage Lines</button>
+        <span class="so-line-count">Stored in Reporting Lines child table</span>
+        <span class="so-line-toolbar__status">${lineStatus}</span>
+      </div>
+      ${reportingHierarchyHtml}
+    </div>
+
+    <div class="so-panel__hd" style="margin:0 0 10px;border:1px solid var(--border-color);border-radius:12px;background:var(--control-bg);">
+      <div class="so-panel__title">Staffing and Asset Allocation</div>
+      <div style="font-size:11px;opacity:.72;">Drag employees, assets and designations below. Reporting lines are displayed only in the structure panel above.</div>
+    </div>
+
     <div class="so-wrap">
       ${groupsHtml}
       ${poolHtml}
     </div>
   `);
 
+  mark_selected_line_source(frm, $w);
   bind_events(frm, $w);
   restore_pool_focus_state(frm, $w);
+  const redrawLines = debounce(() => draw_reporting_lines(frm, $w), 40);
+  $w.find(".so-reporting-scroll").off("scroll.so-reporting").on("scroll.so-reporting", redrawLines);
+  requestAnimationFrame(() => draw_reporting_lines(frm, $w));
+}
+
+// ---------------------------------------------------------------------
+// Reporting lines
+// ---------------------------------------------------------------------
+
+function endpoint_from_element(el) {
+  return {
+    group_key: el.getAttribute("data-group-key") || "",
+    group: el.getAttribute("data-group") || "",
+    scope: el.getAttribute("data-scope") || "Heading",
+    shift: el.getAttribute("data-shift") || "",
+  };
+}
+
+function endpoint_label(endpoint) {
+  if (!endpoint) return "";
+  return endpoint.scope === "Shift" && endpoint.shift
+    ? `${endpoint.group} — ${endpoint.shift}`
+    : endpoint.group;
+}
+
+function endpoint_selector(endpoint) {
+  if (!endpoint) return "";
+  const esc = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `[data-so-endpoint="1"][data-group-key="${esc(endpoint.group_key)}"][data-scope="${esc(endpoint.scope)}"][data-shift="${esc(endpoint.shift || "")}"]`;
+}
+
+function line_endpoint(line, prefix) {
+  return {
+    group_key: line[`${prefix}_group_key`] || "",
+    group: line[`${prefix}_group`] || "",
+    scope: line[`${prefix}_scope`] || "Heading",
+    shift: line[`${prefix}_shift`] || "",
+  };
+}
+
+function mark_selected_line_source(frm, $w) {
+  $w.find(".so-endpoint").removeClass("is-line-source");
+  if (!frm._so || !frm._so.line_source) return;
+  const selector = endpoint_selector(frm._so.line_source);
+  if (selector) $w.find(selector).first().addClass("is-line-source");
+}
+
+function svg_point_for_element(el, canvasRect, anchor, otherCenter) {
+  const r = el.getBoundingClientRect();
+  const center = { x: r.left - canvasRect.left + r.width / 2, y: r.top - canvasRect.top + r.height / 2 };
+  const chosen = anchor && anchor !== "Auto" ? anchor : (() => {
+    if (!otherCenter) return "Bottom";
+    const dx = otherCenter.x - center.x;
+    const dy = otherCenter.y - center.y;
+    return Math.abs(dx) > Math.abs(dy) ? (dx >= 0 ? "Right" : "Left") : (dy >= 0 ? "Bottom" : "Top");
+  })();
+  if (chosen === "Top") return { x:center.x, y:r.top - canvasRect.top };
+  if (chosen === "Right") return { x:r.right - canvasRect.left, y:center.y };
+  if (chosen === "Left") return { x:r.left - canvasRect.left, y:center.y };
+  return { x:center.x, y:r.bottom - canvasRect.top };
+}
+
+function connector_path(a, b, laneOffset = 0) {
+  const sameBand = Math.abs(a.y - b.y) < 90;
+
+  if (sameBand) {
+    const laneY = Math.max(18, Math.min(a.y, b.y) - 34 - laneOffset);
+    return `M ${a.x} ${a.y} L ${a.x} ${laneY} L ${b.x} ${laneY} L ${b.x} ${b.y}`;
+  }
+
+  const direction = b.y >= a.y ? 1 : -1;
+  const laneY = a.y + direction * (34 + laneOffset);
+  return `M ${a.x} ${a.y} L ${a.x} ${laneY} L ${b.x} ${laneY} L ${b.x} ${b.y}`;
+}
+
+function draw_reporting_lines(frm, $w) {
+  const canvas = $w.find(".so-reporting-canvas").get(0);
+  const svg = $w.find(".so-reporting-svg").get(0);
+  if (!canvas || !svg) return;
+  const rect = canvas.getBoundingClientRect();
+  svg.setAttribute("viewBox", `0 0 ${Math.max(1, rect.width)} ${Math.max(1, rect.height)}`);
+  svg.innerHTML = `<defs><marker id="so-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path></marker></defs>`;
+
+  (frm.doc.reporting_lines || []).forEach((line, index) => {
+    const source = line_endpoint(line, "source");
+    const target = line_endpoint(line, "target");
+    const sourceEl = $w.find(endpoint_selector(source)).first().get(0);
+    const targetEl = $w.find(endpoint_selector(target)).first().get(0);
+    if (!sourceEl || !targetEl) return;
+    const sr = sourceEl.getBoundingClientRect();
+    const tr = targetEl.getBoundingClientRect();
+    const sc = { x:sr.left - rect.left + sr.width/2, y:sr.top - rect.top + sr.height/2 };
+    const tc = { x:tr.left - rect.left + tr.width/2, y:tr.top - rect.top + tr.height/2 };
+    const a = svg_point_for_element(sourceEl, rect, line.source_anchor || "Auto", tc);
+    const b = svg_point_for_element(targetEl, rect, line.target_anchor || "Auto", sc);
+    const laneOffset = (index % 6) * 10;
+    const d = connector_path(a, b, laneOffset);
+    const style = String(line.line_type || "Solid").toLowerCase();
+    const cls = style === "dotted" ? "is-dotted" : style === "advisory" ? "is-advisory" : style === "functional" ? "is-functional" : "";
+    const ns = "http://www.w3.org/2000/svg";
+    const hit = document.createElementNS(ns,"path");
+    hit.setAttribute("d",d); hit.setAttribute("class","so-line-hit"); hit.dataset.lineIndex=String(index);
+    const path = document.createElementNS(ns,"path");
+    path.setAttribute("d",d); path.setAttribute("class",`so-line-path ${cls}`); path.setAttribute("marker-end","url(#so-arrow)"); path.dataset.lineIndex=String(index);
+    svg.appendChild(hit); svg.appendChild(path);
+    if (line.label) {
+      const text = document.createElementNS(ns,"text");
+      const labelY = Math.abs(a.y - b.y) < 90 ? Math.max(18, Math.min(a.y, b.y) - 40 - laneOffset) : a.y + (b.y >= a.y ? 1 : -1) * (28 + laneOffset);
+      text.setAttribute("x",String((a.x+b.x)/2)); text.setAttribute("y",String(labelY)); text.setAttribute("text-anchor","middle"); text.setAttribute("class","so-line-label"); text.textContent=line.label; svg.appendChild(text);
+    }
+  });
+
+  $w.find(".so-line-hit, .so-line-path").off("click").on("click", async (ev) => {
+    ev.preventDefault(); ev.stopPropagation();
+    const index = Number(ev.currentTarget.getAttribute("data-line-index"));
+    if (Number.isInteger(index)) await edit_reporting_line(frm,index);
+  });
+}
+
+function reporting_line_exists(frm, source, target, ignoreIndex = -1) {
+  return (frm.doc.reporting_lines || []).some((line,index) => index !== ignoreIndex &&
+    (line.source_group_key || "") === source.group_key && (line.source_scope || "Heading") === source.scope && (line.source_shift || "") === (source.shift || "") &&
+    (line.target_group_key || "") === target.group_key && (line.target_scope || "Heading") === target.scope && (line.target_shift || "") === (target.shift || ""));
+}
+
+function show_reporting_line_dialog(frm, source, target, existing = null) {
+  return new Promise((resolve) => {
+    let completed = false;
+    const d = new frappe.ui.Dialog({
+      title: existing ? "Edit Reporting Line" : "Create Reporting Line",
+      fields: [
+        {fieldtype:"HTML", fieldname:"summary", options:`<div style="margin-bottom:8px"><b>${escape_html(endpoint_label(source))}</b> reports to <b>${escape_html(endpoint_label(target))}</b></div>`},
+        {fieldtype:"Select", fieldname:"line_type", label:"Line Type", options:"Solid\nDotted\nAdvisory\nFunctional", default:existing?.line_type || "Solid", reqd:1},
+        {fieldtype:"Data", fieldname:"label", label:"Label", default:existing?.label || ""},
+        {fieldtype:"Column Break"},
+        {fieldtype:"Select", fieldname:"source_anchor", label:"Source Anchor", options:"Auto\nTop\nRight\nBottom\nLeft", default:existing?.source_anchor || "Auto"},
+        {fieldtype:"Select", fieldname:"target_anchor", label:"Target Anchor", options:"Auto\nTop\nRight\nBottom\nLeft", default:existing?.target_anchor || "Auto"},
+      ],
+      primary_action_label: existing ? "Update" : "Create",
+      primary_action(values) { completed=true; d.hide(); resolve({action:"save", values}); },
+      secondary_action_label: existing ? "Delete" : undefined,
+      secondary_action() { if (!existing) return; completed=true; d.hide(); resolve({action:"delete"}); },
+    });
+    d.onhide=()=>{ if(!completed) resolve(null); };
+    d.show();
+  });
+}
+
+async function create_reporting_line(frm, source, target) {
+  if (!source?.group_key || !target?.group_key) { frappe.msgprint("Both reporting-line endpoints require a valid group key."); return; }
+  if (source.group_key === target.group_key && source.scope === target.scope && (source.shift || "") === (target.shift || "")) { frappe.msgprint("A reporting line cannot connect an endpoint to itself."); return; }
+  if (reporting_line_exists(frm,source,target)) { frappe.msgprint("That reporting line already exists."); return; }
+  const result = await show_reporting_line_dialog(frm,source,target);
+  if (!result || result.action !== "save") return;
+  const row = frm.add_child("reporting_lines");
+  row.source_group_key=source.group_key; row.source_group=source.group; row.source_scope=source.scope; row.source_shift=source.scope === "Shift" ? source.shift : "";
+  row.target_group_key=target.group_key; row.target_group=target.group; row.target_scope=target.scope; row.target_shift=target.scope === "Shift" ? target.shift : "";
+  row.line_type=result.values.line_type || "Solid"; row.label=result.values.label || ""; row.source_anchor=result.values.source_anchor || "Auto"; row.target_anchor=result.values.target_anchor || "Auto";
+  row.line_order=(frm.doc.reporting_lines || []).length;
+  frm.dirty(); frm.refresh_field("reporting_lines");
+}
+
+async function edit_reporting_line(frm,index) {
+  const line=(frm.doc.reporting_lines || [])[index]; if(!line) return;
+  const source=line_endpoint(line,"source"), target=line_endpoint(line,"target");
+  const result=await show_reporting_line_dialog(frm,source,target,line); if(!result) return;
+  if(result.action === "delete") {
+    const confirmed=await new Promise((resolve)=>frappe.confirm("Delete this reporting line?",()=>resolve(true),()=>resolve(false)));
+    if(!confirmed) return;
+    frappe.model.clear_doc(line.doctype,line.name);
+  } else {
+    Object.assign(line,{line_type:result.values.line_type || "Solid",label:result.values.label || "",source_anchor:result.values.source_anchor || "Auto",target_anchor:result.values.target_anchor || "Auto"});
+  }
+  frm.dirty(); frm.refresh_field("reporting_lines"); render_site_organogram(frm);
+}
+
+async function manage_reporting_lines(frm) {
+  const lines=frm.doc.reporting_lines || [];
+  if(!lines.length) { frappe.msgprint("No reporting lines have been created."); return; }
+  const labels=lines.map((line,index)=>`${index+1}. ${endpoint_label(line_endpoint(line,"source"))} → ${endpoint_label(line_endpoint(line,"target"))}${line.label ? ` — ${line.label}` : ""}`);
+  const choice=await so_select_dialog({title:"Manage Reporting Lines",label:"Reporting Line",options:labels,default_value:labels[0],primary_label:"Edit"});
+  if(!choice?.choice) return;
+  const index=labels.indexOf(choice.choice); if(index >= 0) await edit_reporting_line(frm,index);
 }
 
 // ---------------------------------------------------------------------
@@ -1575,6 +2001,30 @@ function render_site_organogram(frm) {
 // ---------------------------------------------------------------------
 
 function bind_events(frm, $w) {
+  $w.find('[data-so-action="toggle-line-mode"]').off("click").on("click", () => {
+    frm._so.line_mode = !frm._so.line_mode;
+    frm._so.line_source = null;
+    render_site_organogram(frm);
+  });
+
+  $w.find('[data-so-action="manage-lines"]').off("click").on("click", () => manage_reporting_lines(frm));
+
+  $w.find('[data-so-endpoint="1"]').off("click.so-line").on("click.so-line", async (ev) => {
+    if (!frm._so.line_mode) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const endpoint = endpoint_from_element(ev.currentTarget);
+    if (!frm._so.line_source) {
+      frm._so.line_source = endpoint;
+      render_site_organogram(frm);
+      return;
+    }
+    const source = frm._so.line_source;
+    await create_reporting_line(frm, source, endpoint);
+    frm._so.line_mode = false;
+    frm._so.line_source = null;
+    render_site_organogram(frm);
+  });
+
   $w.find("[data-so-tab]")
     .off("click")
     .on("click", async (ev) => {
@@ -1818,6 +2268,7 @@ async function add_asset_row(frm, group, assetId) {
     for (const shift of shifts) {
       const row = get_or_create_mapping_row(frm, {
         group,
+        group_key: grp.group_key || "",
         shift,
         row_key: rowKey,
         row_type: "Asset",
@@ -1859,6 +2310,7 @@ async function add_designation_row(frm, group, designation) {
     for (const shift of shifts) {
       const row = get_or_create_mapping_row(frm, {
         group,
+        group_key: grp.group_key || "",
         shift,
         row_key: rowKey,
         row_type: "Designation",
@@ -1958,6 +2410,7 @@ async function assign_employee_to_cell(frm, { group, shift, row_key, employee })
 
   const row = get_or_create_mapping_row(frm, {
     group,
+    group_key: rowIdentity.group_key || ((frm.doc.group_headings || []).find((g) => g.group === group) || {}).group_key || "",
     shift,
     row_key,
     row_type: rowIdentity.row_type || "Designation",

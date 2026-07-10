@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-07-10 10:57:22.841405",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "source_group_key",
+  "source_group",
+  "source_scope",
+  "source_shift",
+  "target_group_key",
+  "target_group",
+  "target_scope",
+  "target_shift",
+  "line_type",
+  "label",
+  "source_anchor",
+  "target_anchor",
+  "line_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "source_group_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Source Group Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Source Heading",
+   "reqd": 1
+  },
+  {
+   "default": "Heading",
+   "fieldname": "source_scope",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source Scope",
+   "options": "Heading\nShift",
+   "reqd": 1
+  },
+  {
+   "fieldname": "source_shift",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source Shift",
+   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nDay Shift\nNight Shift"
+  },
+  {
+   "fieldname": "target_group_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Target Group Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "target_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Target Heading",
+   "reqd": 1
+  },
+  {
+   "default": "Heading",
+   "fieldname": "target_scope",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Target Scope",
+   "options": "Heading\nShift",
+   "reqd": 1
+  },
+  {
+   "fieldname": "target_shift",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Target Shift",
+   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nDay Shift\nNight Shift"
+  },
+  {
+   "default": "Solid",
+   "fieldname": "line_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Line Type",
+   "options": "Solid\nDotted\nAdvisory\nFunctional",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "default": "Auto",
+   "fieldname": "source_anchor",
+   "fieldtype": "Select",
+   "label": "Source Anchor",
+   "options": "Auto\nTop\nRight\nBottom\nLeft"
+  },
+  {
+   "default": "Auto",
+   "fieldname": "target_anchor",
+   "fieldtype": "Select",
+   "label": "Target Anchor",
+   "options": "Auto\nTop\nRight\nBottom\nLeft"
+  },
+  {
+   "default": "0",
+   "fieldname": "line_order",
+   "fieldtype": "Int",
+   "label": "Line Order"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-10 11:04:11.066953",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Site Organogram Reporting Line",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

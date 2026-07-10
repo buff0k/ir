@@ -26,7 +26,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "person-standing",
- "idx": 6,
+ "idx": 9,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "IR General",
@@ -430,8 +430,8 @@
    "is_query_report": 0,
    "label": "Edit Site Organogram",
    "link_count": 0,
-   "link_to": "Site Organogram",
-   "link_type": "DocType",
+   "link_to": "ir-organogram-design",
+   "link_type": "Page",
    "onboard": 0,
    "type": "Link"
   },
@@ -476,7 +476,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-19 13:33:45.994386",
+ "modified": "2026-07-10 11:53:11.391930",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
