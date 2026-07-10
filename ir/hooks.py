@@ -16,7 +16,7 @@ app_home = "/desk/ir-general"
 add_to_apps_screen = [
 	{
 		"name": app_name,
-		"logo": app_logo_url,
+		"logo": "/assets/ir/dekstop_icons/ir-logo.png",
 		"title": app_title,
 		"route": app_home,
 		"has_permission": "ir.industrial_relations.utils.check_app_permission",
