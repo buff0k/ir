@@ -23,6 +23,7 @@ add_to_apps_screen = [
 	}
 ]
 app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
+app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",

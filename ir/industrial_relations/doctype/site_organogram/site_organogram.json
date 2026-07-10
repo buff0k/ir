@@ -9,21 +9,19 @@
  "engine": "InnoDB",
  "field_order": [
   "site_organogram_tab",
+  "amended_from",
   "branch",
   "asset_categories",
   "column_break_qkkw",
   "location",
   "shifts",
   "group_headings",
-  "section_break_ruaa",
-  "html",
   "employees_tab",
   "employees",
   "equipment_tab",
   "assets",
   "shift_mapping_tab",
   "shift_mappings",
-  "amended_from",
   "reporting_lines_tab",
   "reporting_lines"
  ],
@@ -41,20 +39,12 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_ruaa",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "location",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Location",
    "options": "Location",
    "reqd": 1
-  },
-  {
-   "fieldname": "html",
-   "fieldtype": "HTML"
   },
   {
    "fieldname": "asset_categories",
@@ -86,7 +76,7 @@
   {
    "fieldname": "site_organogram_tab",
    "fieldtype": "Tab Break",
-   "label": "Site Organogram"
+   "label": "Site Configuration"
   },
   {
    "fieldname": "employees_tab",
@@ -142,7 +132,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-10 11:07:41.638723",
+ "modified": "2026-07-10 16:39:27.242734",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",

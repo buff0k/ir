@@ -30,6 +30,9 @@ class SiteOrganogramDesigner {
     this.line_mode = false;
     this.line_source = null;
     this.drag_payload = null;
+    this.suppress_control_events = false;
+    this._control_load_timer = null;
+    this._recovery_prompt_key = "";
   }
 
   blank_state() {
@@ -50,87 +53,10 @@ class SiteOrganogramDesigner {
   }
 
   async init() {
-    this.add_styles();
     this.build_shell();
     this.build_page_actions();
     await this.load_designations();
     this.render_all();
-  }
-
-  add_styles() {
-    if (document.getElementById("so-page-styles")) return;
-    $("head").append(`
-      <style id="so-page-styles">
-        .so-page { padding: 0 4px 30px; }
-        .so-section { border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); margin-bottom:14px; overflow:hidden; }
-        .so-section__hd { padding:11px 14px; border-bottom:1px solid var(--border-color); background:var(--control-bg); display:flex; gap:12px; align-items:center; justify-content:space-between; }
-        .so-section__title { font-weight:900; }
-        .so-section__hint { font-size:11px; opacity:.7; text-align:right; }
-        .so-section__bd { padding:14px; }
-        .so-config-grid { display:grid; grid-template-columns:minmax(220px,1fr) minmax(220px,1fr) minmax(170px,.6fr); gap:12px; align-items:end; }
-        .so-config-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-        .so-table { width:100%; border-collapse:separate; border-spacing:0 7px; }
-        .so-table td { vertical-align:middle; }
-        .so-table .form-control { min-height:34px; }
-        .so-icon-btn { border:1px solid var(--border-color); background:var(--control-bg); border-radius:8px; min-width:34px; height:34px; }
-        .so-empty { padding:14px; border:1px dashed var(--border-color); border-radius:10px; opacity:.7; text-align:center; }
-        .so-wrap { display:flex; gap:12px; align-items:flex-start; }
-        .so-left { flex:1 1 auto; min-width:0; }
-        .so-right { flex:0 0 310px; max-width:330px; position:sticky; top:12px; }
-        .so-panel { border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); overflow:hidden; }
-        .so-panel__hd { padding:10px 12px; border-bottom:1px solid var(--border-color); display:flex; gap:8px; align-items:center; justify-content:space-between; }
-        .so-panel__bd { padding:10px 12px; }
-        .so-tabs { display:flex; gap:5px; flex-wrap:wrap; }
-        .so-tab { border:1px solid var(--border-color); background:var(--control-bg); border-radius:9px; padding:4px 8px; font-size:11px; }
-        .so-tab.is-active { font-weight:800; background:var(--btn-default-bg,var(--control-bg)); }
-        .so-filters { display:flex; gap:7px; margin-bottom:8px; }
-        .so-pool { display:flex; flex-direction:column; gap:7px; max-height:68vh; overflow:auto; }
-        .so-pool-drop { border:1px dashed var(--border-color); border-radius:9px; padding:9px; text-align:center; opacity:.8; margin-bottom:9px; }
-        .so-card { border:1px solid var(--border-color); border-radius:9px; background:var(--card-bg); padding:8px; cursor:grab; user-select:none; }
-        .so-card__title { font-size:12px; font-weight:800; overflow-wrap:anywhere; }
-        .so-card__meta { font-size:11px; opacity:.75; overflow-wrap:anywhere; }
-        .so-group { margin-bottom:12px; }
-        .so-group__hd { padding:10px 12px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); display:flex; justify-content:space-between; align-items:center; }
-        .so-group__name { font-weight:900; }
-        .so-gridwrap { margin-top:9px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); overflow:auto; }
-        .so-grid { min-width:900px; }
-        .so-grid__hdr,.so-grid__row { display:flex; gap:8px; padding:10px; }
-        .so-grid__hdr { border-bottom:1px solid var(--border-color); background:var(--control-bg); position:sticky; top:0; z-index:1; }
-        .so-hcell { font-size:12px; font-weight:900; border:1px solid var(--border-color); border-radius:9px; padding:8px; background:var(--card-bg); }
-        .so-h-left,.so-leftcell { width:190px; flex:0 0 190px; }
-        .so-h-slot,.so-slot { width:240px; flex:0 0 240px; }
-        .so-slot { border:1px dashed var(--border-color); border-radius:9px; padding:8px; display:flex; align-items:center; min-height:50px; }
-        .so-slot.is-empty { border-color:var(--red-500,#ef4444); background:color-mix(in srgb,var(--red-500,#ef4444) 14%,transparent); }
-        .so-slot.is-filled { border-color:var(--green-500,#22c55e); background:color-mix(in srgb,var(--green-500,#22c55e) 14%,transparent); }
-        .so-rowlabel { border:1px solid var(--border-color); border-radius:9px; padding:8px; background:var(--card-bg); min-height:50px; }
-        .so-rowlabel--desig { background:var(--control-bg); }
-        .so-rowlabel__title { font-size:12px; font-weight:900; }
-        .so-rowlabel__meta { font-size:11px; opacity:.75; }
-        .so-rowdrag { border:1px dashed transparent; border-radius:10px; }
-        .so-over { outline:2px dashed var(--blue-400,#4c9aff); outline-offset:2px; }
-        .so-report-toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
-        .so-report-status { margin-left:auto; font-size:12px; opacity:.75; }
-        .so-report-scroll { overflow:auto; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); padding:14px; }
-        .so-report-canvas { position:relative; min-width:900px; min-height:260px; padding:62px 28px 78px; }
-        .so-report-stage { position:relative; z-index:2; display:flex; flex-wrap:wrap; gap:72px 34px; justify-content:center; align-items:flex-start; }
-        .so-report-svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; z-index:1; }
-        .so-org-node { width:220px; border:1px solid var(--border-color); border-radius:12px; background:var(--card-bg); overflow:hidden; }
-        .so-org-heading { padding:11px; min-height:45px; display:flex; align-items:center; justify-content:center; background:var(--control-bg); font-size:12px; font-weight:900; text-align:center; }
-        .so-org-mode { padding:5px 8px; border-top:1px solid var(--border-color); text-align:center; font-size:10px; opacity:.68; }
-        .so-org-shifts { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding:10px; border-top:1px solid var(--border-color); }
-        .so-org-shift { min-width:82px; padding:7px; border:1px solid var(--border-color); border-radius:8px; font-size:11px; font-weight:800; text-align:center; }
-        .so-line-mode .so-endpoint { cursor:crosshair; outline:2px dashed var(--blue-400,#4c9aff); outline-offset:2px; }
-        .so-endpoint.is-source { outline:3px solid var(--orange-500,#f59e0b); outline-offset:2px; }
-        .so-line-path { fill:none; stroke:var(--text-color); stroke-width:2.25; pointer-events:stroke; cursor:pointer; }
-        .so-line-hit { fill:none; stroke:transparent; stroke-width:14; pointer-events:stroke; cursor:pointer; }
-        .so-line-path.dotted { stroke-dasharray:7 6; }
-        .so-line-path.advisory { stroke-dasharray:3 5; stroke-width:2; }
-        .so-line-path.functional { stroke-dasharray:12 5 3 5; }
-        .so-line-label { font-size:11px; font-weight:700; fill:var(--text-color); paint-order:stroke; stroke:var(--card-bg); stroke-width:4px; pointer-events:none; }
-        .so-dirty { color:var(--orange-600,#d97706); font-weight:800; }
-        @media(max-width:1050px){ .so-config-grid{grid-template-columns:1fr;} .so-wrap{flex-direction:column;} .so-right{position:static;max-width:none;width:100%;flex-basis:auto;} }
-      </style>
-    `);
   }
 
   build_shell() {
@@ -147,7 +73,11 @@ class SiteOrganogramDesigner {
               <div data-control="branch"></div>
               <div data-control="location"></div>
               <div data-control="shifts"></div>
-              <div data-control="asset_categories" style="grid-column:span 2"></div>
+              <div class="so-config-asset-categories" data-control="asset_categories"></div>
+              <div class="so-selected-categories">
+                <div class="so-selected-categories__label">Selected Asset Categories</div>
+                <div class="so-selected-categories__list"></div>
+              </div>
             </div>
             <div class="so-config-actions">
               <button class="btn btn-sm btn-default" data-action="new">New Organogram</button>
@@ -204,25 +134,151 @@ class SiteOrganogramDesigner {
       render_input: true,
     });
 
-    this.controls.organogram.$input.on("change", () => this.load_document(this.controls.organogram.get_value()));
-    this.controls.branch.$input.on("change", () => this.on_branch_change(this.controls.branch.get_value()));
-    this.controls.location.$input.on("change", () => { this.state.location = this.controls.location.get_value() || ""; this.mark_dirty(); });
-    this.controls.shifts.$input.on("change", () => { this.state.shifts = this.controls.shifts.get_value() || ""; this.reconcile_shifts(); this.mark_dirty(); this.render_planner(); this.render_reporting(); });
-    this.controls.asset_categories.$input.on("change", () => { this.state.asset_categories = (this.controls.asset_categories.get_value() || []).map(v => ({ asset_cateogories: typeof v === "string" ? v : (v.value || v.name || "") })).filter(r => r.asset_cateogories); this.mark_dirty(); });
+    this.bind_control_change(this.controls.organogram, async () => {
+      if (this.suppress_control_events) return;
+      const name = this.controls.organogram.get_value() || "";
+      if (!name || name === this.state.name) return;
+      await this.load_document(name);
+    });
+
+    this.bind_control_change(this.controls.branch, async () => {
+      if (this.suppress_control_events) return;
+      const branch = this.controls.branch.get_value() || "";
+      if (branch === this.state.branch) return;
+      await this.on_branch_change(branch);
+    });
+
+    this.bind_control_change(this.controls.location, () => {
+      if (this.suppress_control_events) return;
+      const location = this.controls.location.get_value() || "";
+      if (location === this.state.location) return;
+      this.state.location = location;
+      this.mark_dirty();
+    });
+
+    this.bind_control_change(this.controls.shifts, () => {
+      if (this.suppress_control_events) return;
+      const shifts = this.controls.shifts.get_value() || "";
+      if (shifts === String(this.state.shifts || "")) return;
+      this.state.shifts = shifts;
+      this.reconcile_shifts();
+      this.mark_dirty();
+      this.render_planner();
+      this.render_reporting();
+    });
+
+    this.bind_control_change(this.controls.asset_categories, () => {
+      if (this.suppress_control_events) return;
+      this.sync_asset_categories_from_control();
+      this.render_selected_asset_categories();
+      this.mark_dirty();
+    });
+  }
+
+  bind_control_change(control, handler) {
+    if (!control || !control.$input) return;
+    const namespace = `.so-designer-${control.df.fieldname}`;
+    const run = () => {
+      clearTimeout(this._control_load_timer);
+      this._control_load_timer = setTimeout(() => Promise.resolve(handler()).catch(err => {
+        console.error(err);
+        frappe.msgprint({ title: "Organogram Designer", message: err.message || String(err), indicator: "red" });
+      }), 0);
+    };
+    control.$input.off(namespace);
+    control.$input.on(`change${namespace} awesomplete-selectcomplete${namespace}`, run);
+    if (control.$wrapper) {
+      control.$wrapper.off(`awesomplete-selectcomplete${namespace}`);
+      control.$wrapper.on(`awesomplete-selectcomplete${namespace}`, run);
+    }
+  }
+
+  normalize_asset_category_values(value) {
+    let values = value;
+
+    if (typeof values === "string") {
+      const trimmed = values.trim();
+      if (!trimmed) return [];
+      try {
+        const parsed = JSON.parse(trimmed);
+        values = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (_) {
+        values = trimmed.split(",");
+      }
+    }
+
+    if (!Array.isArray(values)) values = values ? [values] : [];
+
+    const names = [];
+    for (const item of values) {
+      let name = "";
+      if (typeof item === "string") name = item;
+      else if (item && typeof item === "object") {
+        name = item.value || item.name || item.label || item.asset_cateogories || "";
+      }
+      name = String(name || "").trim();
+      if (name && !names.includes(name)) names.push(name);
+    }
+    return names;
+  }
+
+  sync_asset_categories_from_control() {
+    const control = this.controls.asset_categories;
+    const raw = control ? control.get_value() : [];
+    const names = this.normalize_asset_category_values(raw);
+    this.state.asset_categories = names.map(name => ({ asset_cateogories: name }));
+    return names;
+  }
+
+  render_selected_asset_categories() {
+    const $list = this.$main.find(".so-selected-categories__list");
+    if (!$list.length) return;
+
+    const names = (this.state.asset_categories || [])
+      .map(row => String(row.asset_cateogories || "").trim())
+      .filter(Boolean);
+
+    $list.html(names.length
+      ? names.map((name, index) => `
+          <span class="so-category-chip">
+            ${this.esc(name)}
+            <button type="button" data-remove-category="${index}" title="Remove ${this.esc(name)}">×</button>
+          </span>
+        `).join("")
+      : '<span class="so-category-empty">No asset categories selected.</span>');
+
+    $list.find("[data-remove-category]").off("click").on("click", ev => {
+      const index = Number(ev.currentTarget.getAttribute("data-remove-category"));
+      if (!Number.isInteger(index) || index < 0 || index >= names.length) return;
+      names.splice(index, 1);
+      this.state.asset_categories = names.map(name => ({ asset_cateogories: name }));
+      this.suppress_control_events = true;
+      try {
+        this.controls.asset_categories.set_value(names);
+      } finally {
+        setTimeout(() => { this.suppress_control_events = false; }, 0);
+      }
+      this.render_selected_asset_categories();
+      this.mark_dirty();
+    });
   }
 
   build_page_actions() {
     this.page.set_primary_action("Save", () => this.save(), "save");
+
+    this.page.add_inner_button("New Organogram", () => this.start_new_document());
+    this.page.add_inner_button("Print", () => this.print_organogram(), "Actions");
+    this.page.add_inner_button("Export Excel", () => this.export_excel(), "Actions");
+
     this.page.add_menu_item("Reload", () => this.reload());
     this.page.add_menu_item("Open DocType Record", () => {
       if (!this.state.name) return frappe.msgprint("Save the organogram first.");
       frappe.set_route("Form", "Site Organogram", this.state.name);
     });
-    this.page.add_menu_item("Export Excel", () => this.export_excel());
   }
 
   bind_shell_events() {
-    this.$main.on("click", '[data-action="new"]', () => this.new_document());
+    this.$main.on("click", '[data-action="new"]', () => this.start_new_document());
     this.$main.on("click", '[data-action="sync"]', () => this.sync_pools(true));
   }
 
@@ -236,15 +292,34 @@ class SiteOrganogramDesigner {
   }
 
   async load_document(name) {
+    name = String(name || "").trim();
     if (!name) return;
-    if (this.dirty) {
+    if (this.dirty && name !== this.state.name) {
       const ok = await this.confirm("Discard unsaved changes and load another organogram?");
-      if (!ok) { this.controls.organogram.set_value(this.state.name || ""); return; }
+      if (!ok) {
+        this.suppress_control_events = true;
+        try { this.controls.organogram.set_value(this.state.name || ""); }
+        finally { this.suppress_control_events = false; }
+        return;
+      }
     }
-    const r = await frappe.call({ method: `${SO_PY}.get_site_organogram_designer_state`, args: { name }, freeze: true, freeze_message: "Loading organogram..." });
-    this.state = Object.assign(this.blank_state(), r.message || {});
+
+    const r = await frappe.call({
+      method: `${SO_PY}.get_site_organogram_designer_state`,
+      args: { name },
+      freeze: true,
+      freeze_message: "Loading organogram...",
+    });
+
+    if (!r.message || !r.message.name) {
+      frappe.throw(`No Site Organogram data was returned for ${name}.`);
+    }
+
+    this.state = Object.assign(this.blank_state(), r.message);
     this.ensure_state_keys();
     this.dirty = false;
+    this.line_mode = false;
+    this.line_source = null;
     this.push_controls();
     this.render_all();
   }
@@ -254,32 +329,181 @@ class SiteOrganogramDesigner {
     this.new_document();
   }
 
+  async start_new_document() {
+    if (this.dirty) {
+      const ok = await this.confirm("Discard unsaved changes and start a new Site Organogram?");
+      if (!ok) return;
+    }
+
+    this.new_document();
+  }
+
   new_document() {
     this.state = this.blank_state();
     this.dirty = false;
     this.line_mode = false;
     this.line_source = null;
+    this._recovery_prompt_key = "";
     this.push_controls();
     this.render_all();
   }
 
   push_controls() {
-    this.controls.organogram.set_value(this.state.name || "");
-    this.controls.branch.set_value(this.state.branch || "");
-    this.controls.location.set_value(this.state.location || "");
-    this.controls.shifts.set_value(String(this.state.shifts || "3"));
-    this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean));
+    this.suppress_control_events = true;
+    try {
+      this.controls.organogram.set_value(this.state.name || "");
+      this.controls.branch.set_value(this.state.branch || "");
+      this.controls.location.set_value(this.state.location || "");
+      this.controls.shifts.set_value(String(this.state.shifts || "3"));
+      this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean));
+      this.render_selected_asset_categories();
+    } finally {
+      setTimeout(() => { this.suppress_control_events = false; }, 0);
+    }
   }
 
   async on_branch_change(branch) {
     this.state.branch = branch || "";
-    if (!branch) { this.state.location = ""; this.controls.location.set_value(""); this.mark_dirty(); return; }
-    const r = await frappe.call({ method: `${SO_PY}.get_matching_location_for_branch`, args: { branch } });
+    this._recovery_prompt_key = "";
+
+    if (!branch) {
+      this.state.location = "";
+      this.controls.location.set_value("");
+      this.mark_dirty();
+      return;
+    }
+
+    const r = await frappe.call({
+      method: `${SO_PY}.get_matching_location_for_branch`,
+      args: { branch },
+    });
+
     const location = r.message || "";
     this.state.location = location;
-    this.controls.location.set_value(location);
+
+    this.suppress_control_events = true;
+    try {
+      this.controls.location.set_value(location);
+    } finally {
+      setTimeout(() => { this.suppress_control_events = false; }, 0);
+    }
+
     this.mark_dirty();
+
+    const recovered = await this.offer_previous_organogram(branch, location);
+    if (!recovered) {
+      await this.sync_pools(false);
+    }
+  }
+
+  async offer_previous_organogram(branch, location) {
+    if (this.state.name || !branch || !location) return false;
+
+    const promptKey = `${branch}::${location}`;
+    if (this._recovery_prompt_key === promptKey) return false;
+    this._recovery_prompt_key = promptKey;
+
+    const result = await frappe.call({
+      method: `${SO_PY}.list_site_organograms_for_designer`,
+      args: { branch, limit: 50 },
+      freeze: true,
+      freeze_message: "Checking for previous organograms...",
+    });
+
+    const matches = (result.message || [])
+      .filter(row => row.name && row.branch === branch && row.location === location)
+      .sort((a, b) => String(b.modified || "").localeCompare(String(a.modified || "")))
+      .slice(0, 10);
+
+    if (!matches.length) return false;
+
+    const usePrevious = await this.confirm(
+      `Previous Site Organograms exist for Site <b>${this.esc(branch)}</b> and Location <b>${this.esc(location)}</b>.<br><br>Use one as the basis for this new organogram?`
+    );
+
+    if (!usePrevious) return false;
+
+    const labels = matches.map(row => {
+      const modified = row.modified ? frappe.datetime.str_to_user(row.modified) : "";
+      return modified ? `${row.name} — ${modified}` : row.name;
+    });
+
+    const selected = await new Promise(resolve => {
+      let completed = false;
+      const dialog = new frappe.ui.Dialog({
+        title: "Select Previous Site Organogram",
+        fields: [
+          {
+            fieldtype: "Select",
+            fieldname: "source",
+            label: "Previous Site Organogram",
+            options: labels.join("\n"),
+            default: labels[0],
+            reqd: 1,
+          },
+        ],
+        primary_action_label: "Use as Basis",
+        primary_action(values) {
+          completed = true;
+          dialog.hide();
+          resolve(values.source || "");
+        },
+      });
+      dialog.onhide = () => {
+        if (!completed) resolve("");
+      };
+      dialog.show();
+    });
+
+    if (!selected) return false;
+
+    const index = labels.indexOf(selected);
+    if (index < 0) return false;
+
+    await this.apply_previous_organogram(matches[index].name, branch, location);
+    return true;
+  }
+
+  async apply_previous_organogram(sourceName, branch, location) {
+    const result = await frappe.call({
+      method: `${SO_PY}.get_site_organogram_template`,
+      args: { source_name: sourceName },
+      freeze: true,
+      freeze_message: "Recovering previous organogram...",
+    });
+
+    const template = result.message || {};
+
+    this.state.name = "";
+    this.state.modified = "";
+    this.state.docstatus = 0;
+    this.state.branch = branch;
+    this.state.location = location;
+    this.state.shifts = String(template.shifts || this.state.shifts || "3");
+    this.state.asset_categories = (template.asset_categories || []).map(row => ({
+      asset_cateogories: row.asset_cateogories || "",
+    })).filter(row => row.asset_cateogories);
+    this.state.group_headings = (template.group_headings || []).map(row => ({
+      group_key: row.group_key || this.new_group_key(),
+      group: row.group || "",
+      shifts: row.shifts || "Shift Pattern",
+    }));
+    this.state.employees = (template.employees || []).map(row => ({ ...row }));
+    this.state.assets = (template.assets || []).map(row => ({ ...row }));
+    this.state.shift_mappings = (template.shift_mappings || []).map(row => ({ ...row }));
+    this.state.reporting_lines = (template.reporting_lines || []).map(row => ({ ...row }));
+
+    this.ensure_state_keys();
+    this.reconcile_shifts();
     await this.sync_pools(false);
+    this.push_controls();
+    this.mark_dirty();
+    this.render_all();
+
+    frappe.show_alert({
+      message: `Recovered ${sourceName} as the basis for a new organogram.`,
+      indicator: "green",
+    });
   }
 
   async sync_pools(show_message) {
@@ -366,6 +590,7 @@ class SiteOrganogramDesigner {
 
   render_all() {
     this.update_status();
+    this.render_selected_asset_categories();
     this.render_groups();
     this.render_planner();
     this.render_reporting();
@@ -381,7 +606,7 @@ class SiteOrganogramDesigner {
           <td><select class="form-control" data-group-field="shifts">
             ${["Shift Pattern","Day Shift Only","Night Shift Only"].map(v => `<option ${g.shifts===v?"selected":""}>${v}</option>`).join("")}
           </select></td>
-          <td style="width:42px"><button class="so-icon-btn" data-group-action="remove" title="Remove">×</button></td>
+          <td class="so-group-remove-cell"><button class="so-icon-btn" data-group-action="remove" title="Remove">×</button></td>
         </tr>`).join("")}</tbody></table>` : '<div class="so-empty">No group headings configured.</div>'}
       <button class="btn btn-sm btn-default" data-group-action="add">Add Group Heading</button>
     `);
@@ -447,13 +672,13 @@ class SiteOrganogramDesigner {
       const shifts = this.shifts_for_group(g);
       const rows = this.mapping_rows_for_group(g);
       return `<div class="so-group">
-        <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div><div style="font-size:11px;opacity:.7">${this.esc(g.shifts)}</div></div>
+        <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div><div class="so-group__mode">${this.esc(g.shifts)}</div></div>
         <div class="so-gridwrap"><div class="so-grid" data-drop="grid" data-group-key="${this.esc(g.group_key)}">
           <div class="so-grid__hdr"><div class="so-hcell so-h-left">Asset / Designation</div>${shifts.map(s=>`<div class="so-hcell so-h-slot">${this.esc(s)}</div>`).join("")}</div>
           ${rows.length ? rows.map(identity => `<div class="so-grid__row so-rowdrag" draggable="true" data-drag-type="row" data-group-key="${this.esc(g.group_key)}" data-row-key="${this.esc(identity.row_key)}">
             <div class="so-leftcell">${this.row_label(identity)}</div>
             ${shifts.map(s=>this.slot_html(g,s,identity)).join("")}
-          </div>`).join("") : '<div class="so-empty" style="margin:10px">Drop an Asset or Designation into this group to create rows.</div>'}
+          </div>`).join("") : '<div class="so-empty so-grid-empty">Drop an Asset or Designation into this group to create rows.</div>'}
         </div></div>
       </div>`;
     }).join("") || '<div class="so-empty">Add at least one Group Heading before planning the organogram.</div>';
@@ -474,7 +699,7 @@ class SiteOrganogramDesigner {
   asset_card(a) { return `<div class="so-card" draggable="true" data-drag-type="asset" data-asset="${this.esc(a.asset)}"><div class="so-card__title">${this.esc(a.asset)}</div><div class="so-card__meta">${this.esc(a.item_name||a.asset_category||"")}</div></div>`; }
   designation_card(d) { return `<div class="so-card" draggable="true" data-drag-type="designation" data-designation="${this.esc(d)}"><div class="so-card__title">${this.esc(d)}</div></div>`; }
   row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); return `<div class="so-rowlabel"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
-  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const e=r?.employee?this.employee_by_id(r.employee):null; return `<div class="so-slot ${e?"is-filled":"is-empty"}" data-drop="cell" data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):'<span style="font-size:12px;opacity:.7">Vacant</span>'}</div>`; }
+  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const e=r?.employee?this.employee_by_id(r.employee):null; return `<div class="so-slot ${e?"is-filled":"is-empty"}" data-drop="cell" data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):'<span class="so-vacant">Vacant</span>'}</div>`; }
 
   bind_planner_events($w) {
     $w.find("[data-pool-mode]").on("click",e=>{this.pool_mode=e.currentTarget.dataset.poolMode;this.render_planner();});
@@ -515,48 +740,863 @@ class SiteOrganogramDesigner {
   unassign(from,render=true){const r=this.find_mapping(from.group_key,from.shift,from.row_key);if(r){r.employee="";r.missing_employee=0;this.mark_dirty();if(render)this.render_planner();}}
   remove_row(groupKey,rowKey){this.state.shift_mappings=this.state.shift_mappings.filter(r=>!(r.group_key===groupKey&&r.row_key===rowKey));this.mark_dirty();this.render_planner();}
 
-  render_reporting() {
-    const $w=this.$main.find(".so-reporting"); const count=this.state.reporting_lines.length;
-    const status=this.line_mode?(this.line_source?`Source selected: ${this.esc(this.endpoint_label(this.line_source))}. Select the target.`:"Select a source heading or shift."):`${count} reporting line${count===1?"":"s"}`;
-    const nodes=this.state.group_headings.filter(g=>g.group).map(g=>`<div class="so-org-node"><div class="so-org-heading so-endpoint" data-group-key="${this.esc(g.group_key)}" data-group="${this.esc(g.group)}" data-scope="Heading" data-shift="">${this.esc(g.group)}</div><div class="so-org-mode">${this.esc(g.shifts)}</div><div class="so-org-shifts">${this.shifts_for_group(g).map(s=>`<div class="so-org-shift so-endpoint" data-group-key="${this.esc(g.group_key)}" data-group="${this.esc(g.group)}" data-scope="Shift" data-shift="${this.esc(s)}">${this.esc(s)}</div>`).join("")}</div></div>`).join("")||'<div class="so-empty">Add group headings to create reporting endpoints.</div>';
-    $w.html(`<div class="${this.line_mode?"so-line-mode":""}"><div class="so-report-toolbar"><button class="btn btn-sm ${this.line_mode?"btn-warning":"btn-default"}" data-report-action="toggle">${this.line_mode?"Cancel Drawing":"Draw Reporting Line"}</button><button class="btn btn-sm btn-default" data-report-action="manage" ${count?"":"disabled"}>Manage Lines</button><span class="so-report-status">${status}</span></div><div class="so-report-scroll"><div class="so-report-canvas"><svg class="so-report-svg"></svg><div class="so-report-stage">${nodes}</div></div></div></div>`);
-    if(this.line_source){$w.find(this.endpoint_selector(this.line_source)).first().addClass("is-source");}
-    $w.find('[data-report-action="toggle"]').on("click",()=>{this.line_mode=!this.line_mode;this.line_source=null;this.render_reporting();});
-    $w.find('[data-report-action="manage"]').on("click",()=>this.manage_lines());
-    $w.find(".so-endpoint").on("click",async e=>{if(!this.line_mode)return;const ep=this.endpoint_from_el(e.currentTarget);if(!this.line_source){this.line_source=ep;this.render_reporting();return;}await this.create_line(this.line_source,ep);this.line_mode=false;this.line_source=null;this.render_reporting();});
-    requestAnimationFrame(()=>this.draw_lines($w));
+  organogram_blocks() {
+    const groups = (this.state.group_headings || []).filter(
+      group => group.group && group.group_key
+    );
+    const blocks = [];
+    const byKey = new Map();
+
+    groups.forEach((group, groupOrder) => {
+      const shifts = this.shifts_for_group(group);
+      shifts.forEach((shift, shiftOrder) => {
+        const key = `${group.group_key}::${shift}`;
+        const block = {
+          key,
+          group_key: group.group_key,
+          group: group.group,
+          shift,
+          shift_order: shiftOrder,
+          group_order: groupOrder,
+          group_mode: group.shifts || "",
+          rows: this.organogram_block_rows(group, shift),
+        };
+        blocks.push(block);
+        byKey.set(key, block);
+      });
+    });
+
+    return { blocks, byKey, groups };
   }
 
-  endpoint_from_el(el){return{group_key:el.dataset.groupKey||"",group:el.dataset.group||"",scope:el.dataset.scope||"Heading",shift:el.dataset.shift||""};}
-  endpoint_label(ep){return ep.scope==="Shift"&&ep.shift?`${ep.group} — ${ep.shift}`:ep.group;}
-  endpoint_selector(ep){const esc=v=>String(v||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');return `.so-endpoint[data-group-key="${esc(ep.group_key)}"][data-scope="${esc(ep.scope)}"][data-shift="${esc(ep.shift||"")}"]`;}
-  line_ep(line,p){return{group_key:line[`${p}_group_key`]||"",group:line[`${p}_group`]||"",scope:line[`${p}_scope`]||"Heading",shift:line[`${p}_shift`]||""};}
+  organogram_block_rows(group, shift) {
+    const mappings = (this.state.shift_mappings || [])
+      .filter(row =>
+        (row.group_key === group.group_key || row.group === group.group) &&
+        row.shift === shift
+      )
+      .sort((a, b) => {
+        const ao = Number(a.row_order || 999999);
+        const bo = Number(b.row_order || 999999);
+        if (ao !== bo) return ao - bo;
+        return Number(a.idx || 999999) - Number(b.idx || 999999);
+      });
 
-  async create_line(source,target){
-    if(source.group_key===target.group_key&&source.scope===target.scope&&(source.shift||"")===(target.shift||""))return frappe.msgprint("A reporting line cannot connect an endpoint to itself.");
-    if(this.state.reporting_lines.some(l=>JSON.stringify(this.line_ep(l,"source"))===JSON.stringify(source)&&JSON.stringify(this.line_ep(l,"target"))===JSON.stringify(target)))return frappe.msgprint("That reporting line already exists.");
-    const result=await this.line_dialog(source,target);if(!result)return;
-    this.state.reporting_lines.push({source_group_key:source.group_key,source_group:source.group,source_scope:source.scope,source_shift:source.scope==="Shift"?source.shift:"",target_group_key:target.group_key,target_group:target.group,target_scope:target.scope,target_shift:target.scope==="Shift"?target.shift:"",line_type:result.line_type||"Solid",label:result.label||"",source_anchor:result.source_anchor||"Auto",target_anchor:result.target_anchor||"Auto",line_order:this.state.reporting_lines.length+1});
+    const seen = new Set();
+    const rows = [];
+
+    for (const mapping of mappings) {
+      const rowKey = mapping.row_key || `${mapping.row_label || ""}:${mapping.asset || ""}`;
+      if (seen.has(rowKey)) continue;
+      seen.add(rowKey);
+
+      const employee = mapping.employee
+        ? this.employee_by_id(mapping.employee)
+        : null;
+      const asset = mapping.asset
+        ? this.asset_by_id(mapping.asset)
+        : null;
+
+      const leftTitle =
+        mapping.row_type === "Asset"
+          ? asset?.asset || mapping.asset || mapping.row_label || "Asset"
+          : mapping.row_label || "Designation";
+
+      const leftMeta =
+        mapping.row_type === "Asset"
+          ? asset?.item_name || asset?.asset_category || ""
+          : "";
+
+      rows.push({
+        row_key: rowKey,
+        left_title: leftTitle,
+        left_meta: leftMeta,
+        employee_name:
+          employee?.employee_name ||
+          employee?.employee ||
+          (mapping.missing_employee ? "Missing" : "Vacant"),
+        employee_id: employee?.employee || "",
+        designation:
+          employee?.designation ||
+          (mapping.missing_employee ? "" : mapping.row_label || ""),
+        missing: !!mapping.missing_employee,
+        vacant: !employee && !mapping.missing_employee,
+      });
+    }
+
+    return rows;
+  }
+
+  organogram_endpoint_blocks(endpoint, model) {
+    if (!endpoint || !endpoint.group_key) return [];
+
+    if (endpoint.scope === "Shift" && endpoint.shift) {
+      const block = model.byKey.get(
+        `${endpoint.group_key}::${endpoint.shift}`
+      );
+      return block ? [block] : [];
+    }
+
+    return model.blocks.filter(
+      block => block.group_key === endpoint.group_key
+    );
+  }
+
+  expand_reporting_edges(model) {
+    const edges = [];
+    const seen = new Set();
+
+    const addEdge = (source, target, lineIndex) => {
+      if (!source || !target || source.key === target.key) return;
+      const key = `${source.key}=>${target.key}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      edges.push({ source, target, lineIndex });
+    };
+
+    (this.state.reporting_lines || []).forEach((line, lineIndex) => {
+      const sourceEndpoint = this.line_ep(line, "source");
+      const targetEndpoint = this.line_ep(line, "target");
+      const sourceBlocks = this.organogram_endpoint_blocks(
+        sourceEndpoint,
+        model
+      );
+      const targetBlocks = this.organogram_endpoint_blocks(
+        targetEndpoint,
+        model
+      );
+
+      if (!sourceBlocks.length || !targetBlocks.length) return;
+
+      if (
+        sourceEndpoint.scope === "Heading" &&
+        targetEndpoint.scope === "Heading" &&
+        sourceBlocks.length > 1 &&
+        targetBlocks.length > 1
+      ) {
+        const targetsByShift = new Map(
+          targetBlocks.map(block => [block.shift, block])
+        );
+        let paired = false;
+
+        for (const source of sourceBlocks) {
+          const target = targetsByShift.get(source.shift);
+          if (target) {
+            addEdge(source, target, lineIndex);
+            paired = true;
+          }
+        }
+
+        if (paired) return;
+      }
+
+      for (const source of sourceBlocks) {
+        for (const target of targetBlocks) {
+          addEdge(source, target, lineIndex);
+        }
+      }
+    });
+
+    return edges;
+  }
+
+  build_organogram_tree() {
+    const model = this.organogram_blocks();
+    const edges = this.expand_reporting_edges(model);
+    const children = new Map(
+      model.blocks.map(block => [block.key, []])
+    );
+    const parents = new Map(
+      model.blocks.map(block => [block.key, []])
+    );
+
+    for (const edge of edges) {
+      children.get(edge.source.key).push(edge);
+      parents.get(edge.target.key).push(edge);
+    }
+
+    for (const list of children.values()) {
+      list.sort((a, b) => {
+        const groupOrderCompare =
+          Number(a.target.group_order || 0) - Number(b.target.group_order || 0);
+        if (groupOrderCompare !== 0) return groupOrderCompare;
+
+        const shiftOrderCompare =
+          Number(a.target.shift_order || 0) - Number(b.target.shift_order || 0);
+        if (shiftOrderCompare !== 0) return shiftOrderCompare;
+
+        const groupCompare = a.target.group.localeCompare(
+          b.target.group,
+          undefined,
+          { numeric: true }
+        );
+        if (groupCompare !== 0) return groupCompare;
+
+        return a.target.shift.localeCompare(
+          b.target.shift,
+          undefined,
+          { numeric: true }
+        );
+      });
+    }
+
+    const roots = model.blocks.filter(
+      block => !parents.get(block.key).length
+    );
+    const visited = new Set();
+
+    const buildNode = (block, ancestry = new Set()) => {
+      const cyclic = ancestry.has(block.key);
+      const nextAncestry = new Set(ancestry);
+      nextAncestry.add(block.key);
+      visited.add(block.key);
+
+      const childNodes = cyclic
+        ? []
+        : children
+            .get(block.key)
+            .map(edge => ({
+              edge,
+              node: buildNode(edge.target, nextAncestry),
+            }));
+
+      return {
+        block,
+        cyclic,
+        children: childNodes,
+        secondary_parents: parents
+          .get(block.key)
+          .slice(1)
+          .map(edge => edge.source),
+      };
+    };
+
+    const trees = roots.map(root => buildNode(root));
+
+    for (const block of model.blocks) {
+      if (!visited.has(block.key)) {
+        trees.push(buildNode(block));
+      }
+    }
+
+    return { trees, model, edges };
+  }
+
+  organogram_block_html(node) {
+    const block = node.block;
+
+    const rowsHtml = block.rows.length
+      ? block.rows
+          .map(row => `
+            <div class="so-org-person-row ${
+              row.missing
+                ? "is-missing"
+                : row.vacant
+                ? "is-vacant"
+                : "is-filled"
+            }">
+              <div class="so-org-person-row__role">
+                <div class="so-org-person-row__role-title">
+                  ${this.esc(row.left_title)}
+                </div>
+                ${
+                  row.left_meta
+                    ? `<div class="so-org-person-row__meta">${this.esc(
+                        row.left_meta
+                      )}</div>`
+                    : ""
+                }
+              </div>
+              <div class="so-org-person-row__employee">
+                <div class="so-org-person-row__employee-name">
+                  ${this.esc(row.employee_name)}
+                  ${
+                    row.employee_id
+                      ? ` <span>(${this.esc(row.employee_id)})</span>`
+                      : ""
+                  }
+                </div>
+                ${
+                  row.designation
+                    ? `<div class="so-org-person-row__meta">${this.esc(
+                        row.designation
+                      )}</div>`
+                    : ""
+                }
+              </div>
+            </div>
+          `)
+          .join("")
+      : `
+        <div class="so-org-block__empty">
+          No Asset/Designation rows assigned to this block.
+        </div>
+      `;
+
+    const secondaryHtml = node.secondary_parents.length
+      ? `
+        <div class="so-org-block__secondary">
+          Additional reporting from:
+          ${node.secondary_parents
+            .map(parent => this.esc(`${parent.group} — ${parent.shift}`))
+            .join(", ")}
+        </div>
+      `
+      : "";
+
+    return `
+      <div class="so-org-block ${node.cyclic ? "is-cyclic" : ""}"
+           data-org-block-key="${this.esc(block.key)}">
+        <div class="so-org-block__header">
+          <div class="so-org-block__heading">${this.esc(block.group)}</div>
+          <div class="so-org-block__shift">${this.esc(block.shift)}</div>
+        </div>
+        <div class="so-org-block__body">${rowsHtml}</div>
+        ${secondaryHtml}
+      </div>
+    `;
+  }
+
+  reporting_sort_nodes(nodes) {
+    return [...nodes].sort((a, b) => {
+      const groupOrderCompare =
+        Number(a.block.group_order || 0) - Number(b.block.group_order || 0);
+      if (groupOrderCompare !== 0) return groupOrderCompare;
+
+      const shiftOrderCompare =
+        Number(a.block.shift_order || 0) - Number(b.block.shift_order || 0);
+      if (shiftOrderCompare !== 0) return shiftOrderCompare;
+
+      const groupCompare = a.block.group.localeCompare(
+        b.block.group,
+        undefined,
+        { numeric: true }
+      );
+      if (groupCompare !== 0) return groupCompare;
+
+      return a.block.shift.localeCompare(
+        b.block.shift,
+        undefined,
+        { numeric: true }
+      );
+    });
+  }
+
+  build_reporting_graph() {
+    const model = this.organogram_blocks();
+    const edges = this.expand_reporting_edges(model);
+    const nodesByKey = new Map(
+      model.blocks.map(block => [
+        block.key,
+        {
+          key: block.key,
+          block,
+          children: [],
+          parents: [],
+        },
+      ])
+    );
+
+    edges.forEach(edge => {
+      const source = nodesByKey.get(edge.source.key);
+      const target = nodesByKey.get(edge.target.key);
+      if (!source || !target) return;
+      source.children.push(target);
+      target.parents.push(source);
+    });
+
+    nodesByKey.forEach(node => {
+      node.children = this.reporting_sort_nodes(node.children);
+      node.parents = this.reporting_sort_nodes(node.parents);
+    });
+
+    const roots = this.reporting_sort_nodes(
+      [...nodesByKey.values()].filter(node => !node.parents.length)
+    );
+
+    return { model, edges, nodesByKey, roots };
+  }
+
+  collect_branch_descendants(node) {
+    const results = [];
+    const seen = new Set();
+
+    const visit = current => {
+      current.children.forEach(child => {
+        if (seen.has(child.key)) return;
+        seen.add(child.key);
+        results.push(child);
+        visit(child);
+      });
+    };
+
+    visit(node);
+    return this.reporting_sort_nodes(results);
+  }
+
+  build_reporting_layout() {
+    const graph = this.build_reporting_graph();
+    const matrices = [];
+    const standalone = [];
+
+    graph.roots.forEach(root => {
+      if (!root.children.length) {
+        standalone.push(root);
+        return;
+      }
+
+      const branches = this.reporting_sort_nodes(root.children);
+      const rowDefs = [];
+      const rowSeen = new Set();
+      const branchRows = new Map();
+
+      branches.forEach(branch => {
+        const descendants = this.collect_branch_descendants(branch).filter(
+          node => node.key !== branch.key
+        );
+        const byGroup = new Map();
+
+        descendants.forEach(node => {
+          const rowKey = node.block.group_key;
+          if (!rowKey || rowKey === branch.block.group_key) return;
+          if (!byGroup.has(rowKey)) {
+            byGroup.set(rowKey, node);
+          }
+          if (!rowSeen.has(rowKey)) {
+            rowSeen.add(rowKey);
+            rowDefs.push({
+              group_key: node.block.group_key,
+              group: node.block.group,
+              group_order: Number(node.block.group_order || 0),
+            });
+          }
+        });
+
+        branchRows.set(branch.key, byGroup);
+      });
+
+      rowDefs.sort((a, b) => {
+        const orderCompare = Number(a.group_order || 0) - Number(b.group_order || 0);
+        if (orderCompare !== 0) return orderCompare;
+        return String(a.group || "").localeCompare(String(b.group || ""), undefined, { numeric: true });
+      });
+
+      matrices.push({ root, branches, rowDefs, branchRows });
+    });
+
+    return { matrices, standalone };
+  }
+
+  reporting_present_node(node) {
+    return {
+      block: node.block,
+      cyclic: false,
+      secondary_parents: node.parents.slice(1).map(parent => parent.block),
+    };
+  }
+
+  reporting_matrix_html(layout, matrixIndex) {
+    const cols = Math.max(layout.branches.length, 1);
+    const columnWidth = 360;
+    const columnGap = 36;
+    const connectorWidth =
+      cols * columnWidth + Math.max(0, cols - 1) * columnGap;
+    const rootInset = columnWidth / 2;
+    const branchSpineInset = 18;
+
+    const branchRow = layout.branches
+      .map((branch, index) => `
+        <div class="so-org-grid__cell so-org-grid__cell--branch"
+             style="--branch-spine-x:${branchSpineInset}px;">
+          ${this.organogram_block_html(this.reporting_present_node(branch))}
+        </div>
+      `)
+      .join("");
+
+    const levelRows = layout.rowDefs
+      .map(row => `
+        <div class="so-org-grid__row so-org-grid__row--level"
+             style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
+          ${layout.branches
+            .map(branch => {
+              const node = layout.branchRows.get(branch.key)?.get(row.group_key);
+              return `
+                <div class="so-org-grid__cell ${node ? "has-node" : "is-empty"}"
+                     style="--branch-spine-x:${branchSpineInset}px;">
+                  ${node ? '<div class="so-org-grid__cell-connector"></div>' : ''}
+                  ${
+                    node
+                      ? this.organogram_block_html(this.reporting_present_node(node))
+                      : '<div class="so-org-grid__placeholder"></div>'
+                  }
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `)
+      .join("");
+
+    const branchGuides = layout.branches
+      .map((branch, index) => {
+        const columnLeft = index * (columnWidth + columnGap);
+        const centreX = columnLeft + columnWidth / 2;
+        const spineX = columnLeft + branchSpineInset;
+        return `
+          <span class="so-org-descendants__spine"
+                style="left:${spineX}px"></span>
+          <span class="so-org-descendants__branch-start"
+                style="left:${spineX}px; width:${centreX - spineX}px"></span>
+        `;
+      })
+      .join("");
+
+    return `
+      <div class="so-org-matrix" data-matrix-index="${matrixIndex}">
+        <div class="so-org-root-row">
+          ${this.organogram_block_html(this.reporting_present_node(layout.root))}
+        </div>
+
+        <div class="so-org-root-links"
+             style="width:${connectorWidth}px; --root-line-inset:${rootInset}px;">
+          <div class="so-org-root-links__trunk"></div>
+          <div class="so-org-root-links__line"></div>
+          ${layout.branches
+            .map((branch, index) => {
+              const left = index * (columnWidth + columnGap) + columnWidth / 2;
+              return `<span class="so-org-root-links__drop" style="left:${left}px"></span>`;
+            })
+            .join("")}
+        </div>
+
+        <div class="so-org-grid">
+          <div class="so-org-grid__row so-org-grid__row--branches"
+               style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
+            ${branchRow}
+          </div>
+
+          ${layout.rowDefs.length
+            ? `
+              <div class="so-org-descendants" style="width:${connectorWidth}px;">
+                <div class="so-org-descendants__guides">${branchGuides}</div>
+                ${levelRows}
+              </div>
+            `
+            : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  render_reporting() {
+    const $wrapper = this.$main.find(".so-reporting");
+    const lineCount = this.state.reporting_lines.length;
+    const status = this.line_mode
+      ? (
+          this.line_source
+            ? `Source selected: ${this.esc(
+                this.endpoint_label(this.line_source)
+              )}. Select the target.`
+            : "Select a source heading or shift."
+        )
+      : `${lineCount} reporting line${lineCount === 1 ? "" : "s"}`;
+
+    const layout = this.build_reporting_layout();
+
+    const matricesHtml = layout.matrices.length
+      ? layout.matrices
+          .map((matrix, index) => this.reporting_matrix_html(matrix, index))
+          .join("")
+      : "";
+
+    const standaloneHtml = layout.standalone.length
+      ? `
+          <div class="so-org-unlinked">
+            <div class="so-org-unlinked__title">Unlinked Blocks</div>
+            <div class="so-org-unlinked__list">
+              ${layout.standalone
+                .map(node => this.organogram_block_html(this.reporting_present_node(node)))
+                .join("")}
+            </div>
+          </div>
+        `
+      : "";
+
+    $wrapper.html(`
+      <div>
+        <div class="so-report-toolbar">
+          <button class="btn btn-sm btn-default"
+                  data-report-action="manage"
+                  ${lineCount ? "" : "disabled"}>
+            Manage Reporting Lines
+          </button>
+          <span class="so-report-status">${status}</span>
+        </div>
+
+        <div class="so-org-forest-scroll">
+          <div class="so-org-forest">
+            ${matricesHtml || '<div class="so-empty">Add headings, mappings and reporting lines to build the organogram.</div>'}
+            ${standaloneHtml}
+          </div>
+        </div>
+      </div>
+    `);
+
+    $wrapper
+      .find('[data-report-action="manage"]')
+      .on("click", () => this.manage_lines());
+  }
+
+  endpoint_from_el(el) {
+    return {
+      group_key: el.dataset.groupKey || "",
+      group: el.dataset.group || "",
+      scope: el.dataset.scope || "Heading",
+      shift: el.dataset.shift || "",
+    };
+  }
+
+  endpoint_label(endpoint) {
+    return endpoint.scope === "Shift" && endpoint.shift
+      ? `${endpoint.group} — ${endpoint.shift}`
+      : endpoint.group;
+  }
+
+  endpoint_selector(endpoint) {
+    const escapeSelector = value =>
+      String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+    return `.so-endpoint[data-group-key="${escapeSelector(endpoint.group_key)}"]` +
+      `[data-scope="${escapeSelector(endpoint.scope)}"]` +
+      `[data-shift="${escapeSelector(endpoint.shift || "")}"]`;
+  }
+
+  line_ep(line, prefix) {
+    return {
+      group_key: line[`${prefix}_group_key`] || "",
+      group: line[`${prefix}_group`] || "",
+      scope: line[`${prefix}_scope`] || "Heading",
+      shift: line[`${prefix}_shift`] || "",
+    };
+  }
+
+  async create_line(source, target) {
+    if (
+      source.group_key === target.group_key &&
+      source.scope === target.scope &&
+      (source.shift || "") === (target.shift || "")
+    ) {
+      return frappe.msgprint(
+        "A reporting line cannot connect an endpoint to itself."
+      );
+    }
+
+    const duplicate = this.state.reporting_lines.some(line =>
+      JSON.stringify(this.line_ep(line, "source")) === JSON.stringify(source) &&
+      JSON.stringify(this.line_ep(line, "target")) === JSON.stringify(target)
+    );
+
+    if (duplicate) {
+      return frappe.msgprint("That reporting line already exists.");
+    }
+
+    const result = await this.line_dialog(source, target);
+    if (!result) return;
+
+    this.state.reporting_lines.push({
+      source_group_key: source.group_key,
+      source_group: source.group,
+      source_scope: source.scope,
+      source_shift: source.scope === "Shift" ? source.shift : "",
+      target_group_key: target.group_key,
+      target_group: target.group,
+      target_scope: target.scope,
+      target_shift: target.scope === "Shift" ? target.shift : "",
+      line_type: result.line_type || "Solid",
+      label: result.label || "",
+      source_anchor: result.source_anchor || "Auto",
+      target_anchor: result.target_anchor || "Auto",
+      line_order: this.state.reporting_lines.length + 1,
+    });
+
     this.mark_dirty();
   }
 
-  line_dialog(source,target,existing){return new Promise(resolve=>{let done=false;const d=new frappe.ui.Dialog({title:existing?"Edit Reporting Line":"Create Reporting Line",fields:[{fieldtype:"HTML",options:`<div><b>${this.esc(this.endpoint_label(source))}</b> reports to <b>${this.esc(this.endpoint_label(target))}</b></div>`},{fieldtype:"Select",fieldname:"line_type",label:"Line Type",options:"Solid\nDotted\nAdvisory\nFunctional",default:existing?.line_type||"Solid",reqd:1},{fieldtype:"Data",fieldname:"label",label:"Label",default:existing?.label||""},{fieldtype:"Column Break"},{fieldtype:"Select",fieldname:"source_anchor",label:"Source Anchor",options:"Auto\nTop\nRight\nBottom\nLeft",default:existing?.source_anchor||"Auto"},{fieldtype:"Select",fieldname:"target_anchor",label:"Target Anchor",options:"Auto\nTop\nRight\nBottom\nLeft",default:existing?.target_anchor||"Auto"}],primary_action_label:existing?"Update":"Create",primary_action:v=>{done=true;d.hide();resolve(v);}});d.onhide=()=>{if(!done)resolve(null);};d.show();});}
+  line_dialog(source, target, existing) {
+    return new Promise(resolve => {
+      let completed = false;
 
-  async manage_lines(){const lines=this.state.reporting_lines;if(!lines.length)return;const labels=lines.map((l,i)=>`${i+1}. ${this.endpoint_label(this.line_ep(l,"source"))} → ${this.endpoint_label(this.line_ep(l,"target"))}${l.label?` — ${l.label}`:""}`);const d=new frappe.ui.Dialog({title:"Manage Reporting Lines",fields:[{fieldtype:"Select",fieldname:"line",label:"Reporting Line",options:labels.join("\n"),default:labels[0],reqd:1}],primary_action_label:"Edit",primary_action:async v=>{const i=labels.indexOf(v.line);d.hide();if(i<0)return;const l=lines[i];const vals=await this.line_dialog(this.line_ep(l,"source"),this.line_ep(l,"target"),l);if(vals){Object.assign(l,vals);this.mark_dirty();this.render_reporting();}}});d.add_custom_action?.("Delete",()=>{});d.show();const $delete=$(`<button class="btn btn-danger btn-sm">Delete</button>`).on("click",async()=>{const i=labels.indexOf(d.get_value("line"));if(i<0)return;const ok=await this.confirm("Delete this reporting line?");if(ok){lines.splice(i,1);d.hide();this.mark_dirty();this.render_reporting();}});d.$wrapper.find(".modal-footer").prepend($delete);}
+      const dialog = new frappe.ui.Dialog({
+        title: existing ? "Edit Reporting Line" : "Create Reporting Line",
+        fields: [
+          {
+            fieldtype: "HTML",
+            options: `
+              <div>
+                <b>${this.esc(this.endpoint_label(source))}</b>
+                leads to
+                <b>${this.esc(this.endpoint_label(target))}</b>
+              </div>
+            `,
+          },
+          {
+            fieldtype: "Select",
+            fieldname: "line_type",
+            label: "Line Type",
+            options: "Solid\nDotted\nAdvisory\nFunctional",
+            default: existing?.line_type || "Solid",
+            reqd: 1,
+          },
+          {
+            fieldtype: "Data",
+            fieldname: "label",
+            label: "Label",
+            default: existing?.label || "",
+          },
+          {
+            fieldtype: "Column Break",
+          },
+          {
+            fieldtype: "Select",
+            fieldname: "source_anchor",
+            label: "Source Anchor",
+            options: "Auto\nTop\nRight\nBottom\nLeft",
+            default: existing?.source_anchor || "Auto",
+          },
+          {
+            fieldtype: "Select",
+            fieldname: "target_anchor",
+            label: "Target Anchor",
+            options: "Auto\nTop\nRight\nBottom\nLeft",
+            default: existing?.target_anchor || "Auto",
+          },
+        ],
+        primary_action_label: existing ? "Update" : "Create",
+        primary_action: values => {
+          completed = true;
+          dialog.hide();
+          resolve(values);
+        },
+      });
 
-  draw_lines($w){const canvas=$w.find(".so-report-canvas").get(0),svg=$w.find(".so-report-svg").get(0);if(!canvas||!svg)return;const rect=canvas.getBoundingClientRect();svg.setAttribute("viewBox",`0 0 ${Math.max(1,rect.width)} ${Math.max(1,rect.height)}`);svg.innerHTML='<defs><marker id="so-page-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="currentColor"></path></marker></defs>';this.state.reporting_lines.forEach((l,i)=>{const s=$w.find(this.endpoint_selector(this.line_ep(l,"source"))).first().get(0),t=$w.find(this.endpoint_selector(this.line_ep(l,"target"))).first().get(0);if(!s||!t)return;const a=this.anchor_point(s,rect,l.source_anchor||"Auto",t),b=this.anchor_point(t,rect,l.target_anchor||"Auto",s),lane=(i%6)*10,d=this.orthogonal_path(a,b,lane),ns="http://www.w3.org/2000/svg";const hit=document.createElementNS(ns,"path");hit.setAttribute("d",d);hit.setAttribute("class","so-line-hit");hit.dataset.index=i;const path=document.createElementNS(ns,"path");path.setAttribute("d",d);path.setAttribute("class",`so-line-path ${String(l.line_type||"Solid").toLowerCase()}`);path.setAttribute("marker-end","url(#so-page-arrow)");path.dataset.index=i;svg.append(hit,path);if(l.label){const txt=document.createElementNS(ns,"text");txt.setAttribute("x",String((a.x+b.x)/2));txt.setAttribute("y",String(Math.min(a.y,b.y)-35-lane));txt.setAttribute("text-anchor","middle");txt.setAttribute("class","so-line-label");txt.textContent=l.label;svg.appendChild(txt);}});$w.find(".so-line-hit,.so-line-path").on("click",e=>{e.stopPropagation();const i=Number(e.currentTarget.dataset.index);if(Number.isInteger(i)){const l=this.state.reporting_lines[i];this.line_dialog(this.line_ep(l,"source"),this.line_ep(l,"target"),l).then(v=>{if(v){Object.assign(l,v);this.mark_dirty();this.render_reporting();}});}});}
-  anchor_point(el,canvasRect,anchor,other){const r=el.getBoundingClientRect(),o=other.getBoundingClientRect(),c={x:r.left-canvasRect.left+r.width/2,y:r.top-canvasRect.top+r.height/2},oc={x:o.left-canvasRect.left+o.width/2,y:o.top-canvasRect.top+o.height/2};let a=anchor;if(!a||a==="Auto"){const dx=oc.x-c.x,dy=oc.y-c.y;a=Math.abs(dx)>Math.abs(dy)?(dx>=0?"Right":"Left"):(dy>=0?"Bottom":"Top");}if(a==="Top")return{x:c.x,y:r.top-canvasRect.top};if(a==="Right")return{x:r.right-canvasRect.left,y:c.y};if(a==="Left")return{x:r.left-canvasRect.left,y:c.y};return{x:c.x,y:r.bottom-canvasRect.top};}
-  orthogonal_path(a,b,lane){if(Math.abs(a.y-b.y)<90){const y=Math.max(18,Math.min(a.y,b.y)-34-lane);return`M ${a.x} ${a.y} L ${a.x} ${y} L ${b.x} ${y} L ${b.x} ${b.y}`;}const dir=b.y>=a.y?1:-1,y=a.y+dir*(34+lane);return`M ${a.x} ${a.y} L ${a.x} ${y} L ${b.x} ${y} L ${b.x} ${b.y}`;}
+      dialog.onhide = () => {
+        if (!completed) resolve(null);
+      };
 
-  payload(){this.ensure_state_keys();return JSON.stringify(this.state);}
+      dialog.show();
+    });
+  }
+
+  async manage_lines() {
+    const lines = this.state.reporting_lines;
+    if (!lines.length) return;
+
+    const labels = lines.map(
+      (line, index) =>
+        `${index + 1}. ${this.endpoint_label(this.line_ep(line, "source"))}` +
+        ` → ${this.endpoint_label(this.line_ep(line, "target"))}` +
+        `${line.label ? ` — ${line.label}` : ""}`
+    );
+
+    const dialog = new frappe.ui.Dialog({
+      title: "Manage Reporting Lines",
+      fields: [
+        {
+          fieldtype: "Select",
+          fieldname: "line",
+          label: "Reporting Line",
+          options: labels.join("\n"),
+          default: labels[0],
+          reqd: 1,
+        },
+      ],
+      primary_action_label: "Edit",
+      primary_action: async values => {
+        const index = labels.indexOf(values.line);
+        dialog.hide();
+
+        if (index < 0) return;
+
+        const line = lines[index];
+        const updated = await this.line_dialog(
+          this.line_ep(line, "source"),
+          this.line_ep(line, "target"),
+          line
+        );
+
+        if (updated) {
+          Object.assign(line, updated);
+          this.mark_dirty();
+          this.render_reporting();
+        }
+      },
+    });
+
+    dialog.show();
+
+    const $delete = $('<button class="btn btn-danger btn-sm">Delete</button>')
+      .on("click", async () => {
+        const index = labels.indexOf(dialog.get_value("line"));
+        if (index < 0) return;
+
+        const confirmed = await this.confirm("Delete this reporting line?");
+        if (!confirmed) return;
+
+        lines.splice(index, 1);
+        dialog.hide();
+        this.mark_dirty();
+        this.render_reporting();
+      });
+
+    dialog.$wrapper.find(".modal-footer").prepend($delete);
+  }
+
+  payload(){
+    this.sync_asset_categories_from_control();
+    this.ensure_state_keys();
+    return JSON.stringify(this.state);
+  }
   async save(){
     if(!this.state.branch)return frappe.msgprint("Site is required.");
     if(!this.state.location)return frappe.msgprint("Location is required.");
+    this.sync_asset_categories_from_control();
+    this.render_selected_asset_categories();
+    if(!this.state.asset_categories.length)return frappe.msgprint("Select at least one Applicable Asset Category.");
     if(!this.state.group_headings.some(g=>g.group))return frappe.msgprint("Add at least one Group Heading.");
     const r=await frappe.call({method:`${SO_PY}.save_site_organogram_designer_state`,args:{payload:this.payload()},freeze:true,freeze_message:"Saving organogram..."});
     this.state=Object.assign(this.blank_state(),r.message||{});this.dirty=false;this.push_controls();this.render_all();frappe.show_alert({message:"Site Organogram saved.",indicator:"green"});
   }
-  export_excel(){if(!this.state.name)return frappe.msgprint("Save the organogram first.");if(this.dirty)return frappe.msgprint("Save changes before exporting.");window.open(`/api/method/${SO_PY}.export_site_organogram_excel?name=${encodeURIComponent(this.state.name)}`,"_blank");}
+  ensure_saved_for_output(actionLabel) {
+    if (!this.state.name) {
+      frappe.msgprint(`Save the organogram before ${actionLabel.toLowerCase()}.`);
+      return false;
+    }
+
+    if (this.dirty) {
+      frappe.msgprint(`Save changes before ${actionLabel.toLowerCase()} so the output includes the latest organogram.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  export_excel() {
+    if (!this.ensure_saved_for_output("Exporting")) return;
+
+    window.open(
+      `/api/method/${SO_PY}.export_site_organogram_excel?name=${encodeURIComponent(this.state.name)}`,
+      "_blank"
+    );
+  }
+
+  print_organogram() {
+    if (!this.ensure_saved_for_output("Printing")) return;
+
+    // Open Frappe's Desk Print page, which loads the configured/default Print
+    // Format and still allows the user to change format, letterhead and output.
+    const printUrl = `/app/print/${encodeURIComponent("Site Organogram")}/${encodeURIComponent(this.state.name)}`;
+    window.open(printUrl, "_blank");
+  }
   confirm(message){return new Promise(resolve=>frappe.confirm(message,()=>resolve(true),()=>resolve(false)));}
   esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
   debounce(fn,wait=200){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait);};}
