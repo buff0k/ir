@@ -115,13 +115,74 @@ def _migrate_document(plan: dict) -> None:
     if old_doc.get("amended_from"):
         new_doc.amended_from = old_doc.amended_from
 
-    # Preserve audit metadata and status. Frappe patch context permits inserting historical docs.
-    new_doc.owner = old_doc.owner
-    new_doc.creation = old_doc.creation
-    new_doc.modified = old_doc.modified
-    new_doc.modified_by = old_doc.modified_by
-    new_doc.docstatus = old_doc.docstatus
-    new_doc.insert(ignore_permissions=True, ignore_mandatory=True, set_name=old_doc.name)
+    # Frappe only permits a new document to be inserted as Draft. Historical
+    # Submitted/Cancelled status is restored directly after the insert.
+    historical_docstatus = old_doc.docstatus or 0
+    historical_metadata = {
+        "owner": old_doc.owner,
+        "creation": old_doc.creation,
+        "modified": old_doc.modified,
+        "modified_by": old_doc.modified_by,
+    }
+
+    new_doc.docstatus = 0
+    for table_field in new_meta.get_table_fields():
+        for row in new_doc.get(table_field.fieldname) or []:
+            row.docstatus = 0
+
+    new_doc.insert(
+        ignore_permissions=True,
+        ignore_mandatory=True,
+        ignore_links=True,
+        set_name=old_doc.name,
+    )
+
+    _restore_historical_state(
+        new_doc.name,
+        new_meta,
+        historical_docstatus,
+        historical_metadata,
+    )
+
+
+def _restore_historical_state(
+    name: str,
+    new_meta,
+    historical_docstatus: int,
+    historical_metadata: dict,
+) -> None:
+    """Restore audit fields and historical docstatus without workflow transitions."""
+    parent_values = {
+        **historical_metadata,
+        "docstatus": historical_docstatus,
+    }
+    frappe.db.set_value(
+        NEW_DOCTYPE,
+        name,
+        parent_values,
+        update_modified=False,
+    )
+
+    for table_field in new_meta.get_table_fields():
+        child_doctype = table_field.options
+        if not child_doctype or not frappe.db.exists("DocType", child_doctype):
+            continue
+
+        frappe.db.sql(
+            f"""
+            UPDATE `tab{child_doctype}`
+               SET `docstatus` = %s
+             WHERE `parent` = %s
+               AND `parenttype` = %s
+               AND `parentfield` = %s
+            """,
+            (
+                historical_docstatus,
+                name,
+                NEW_DOCTYPE,
+                table_field.fieldname,
+            ),
+        )
 
 
 def _move_system_references(name: str) -> None:
@@ -131,12 +192,14 @@ def _move_system_references(name: str) -> None:
         meta = frappe.get_meta(doctype)
         if not meta.has_field(type_field) or not meta.has_field(name_field):
             continue
-        frappe.db.set_value(
-            doctype,
-            {type_field: OLD_DOCTYPE, name_field: name},
-            type_field,
-            NEW_DOCTYPE,
-            update_modified=False,
+        frappe.db.sql(
+            f"""
+            UPDATE `tab{doctype}`
+               SET `{type_field}` = %s
+             WHERE `{type_field}` = %s
+               AND `{name_field}` = %s
+            """,
+            (NEW_DOCTYPE, OLD_DOCTYPE, name),
         )
 
 
