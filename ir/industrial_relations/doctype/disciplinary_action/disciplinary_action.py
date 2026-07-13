@@ -15,6 +15,7 @@ class DisciplinaryAction(Document):
 def fetch_employee_data(employee, fields):
     frappe.flags.ignore_permissions = True
 
+    # Parse the fields argument from JSON string to dictionary
     fields = json.loads(fields)
 
     data = {}
@@ -50,6 +51,8 @@ def _get_action_sanction_status(action) -> tuple[str, str]:
     offence_outcome = frappe.get_doc("Offence Outcome", action.outcome)
     sanction = offence_outcome.disc_offence_out if offence_outcome else ""
 
+    # Check both the linked outcome name and the displayed sanction value so existing
+    # outcome naming/configuration stays supported.
     if (action.outcome or "").strip().lower() == "cancelled" or (sanction or "").strip().lower() == "cancelled":
         return sanction or "Cancelled", "cancelled"
 
@@ -244,6 +247,10 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
+# --------------------------------------------------------------------------------------
+# NEW: Linked documents rendered into a single HTML field "linked_docs"
+# --------------------------------------------------------------------------------------
+
 def _linked_doc_mappings():
     """
     label: Display label for the card
@@ -267,7 +274,6 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-        ("Disciplinary Outcome Reports", "Disciplinary Outcome Report", "linked_disciplinary_action"),
         ("Warnings", "Warning Form", "linked_disciplinary_action"),
         ("Dismissals", "Dismissal Form", "linked_disciplinary_action"),
         ("Demotions", "Demotion Form", "linked_disciplinary_action"),
