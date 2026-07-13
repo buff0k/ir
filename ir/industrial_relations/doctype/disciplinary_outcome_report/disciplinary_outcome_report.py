@@ -163,7 +163,7 @@ def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked
     chairperson = None
     complainant = None
 
-    # Process linked_nta to find the latest NTA Hearing
+    # Process linked_nta to find the latest NTA Enquiry
     if linked_nta:
         if isinstance(linked_nta, str):  # Convert string to list if necessary
             linked_nta = frappe.parse_json(linked_nta)
@@ -171,16 +171,16 @@ def fetch_linked_fields(linked_nta=None, linked_disciplinary_action=None, linked
         nta_names = [row.get('linked_nta') for row in linked_nta if row.get('linked_nta')]
         if nta_names:
             latest_nta = frappe.db.get_value(
-                'NTA Hearing', 
+                'NTA Enquiry', 
                 filters={"name": ("in", nta_names)}, 
                 fieldname=["name"], 
                 order_by="creation DESC"
             )
 
-    # Fetch chairperson and complainant from the latest NTA Hearing
+    # Fetch chairperson and complainant from the latest NTA Enquiry
     if latest_nta:
-        chairperson = frappe.db.get_value('NTA Hearing', latest_nta, 'chairperson')
-        complainant = frappe.db.get_value('NTA Hearing', latest_nta, 'complainant')
+        chairperson = frappe.db.get_value('NTA Enquiry', latest_nta, 'chairperson')
+        complainant = frappe.db.get_value('NTA Enquiry', latest_nta, 'complainant')
 
     # If no linked_nta, fallback to other logic
     if linked_disciplinary_action and not complainant:

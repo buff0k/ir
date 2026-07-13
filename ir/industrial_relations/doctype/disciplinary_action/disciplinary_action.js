@@ -97,15 +97,9 @@ frappe.ui.form.on('Disciplinary Action', {
     }
 });
 
-
-// ----------------------
-// NEW: Linked docs render
-// ----------------------
-
 function render_linked_docs(frm) {
     if (!frm.fields_dict.linked_docs) return;
 
-    // Ensure CSS exists (shared UI)
     frappe.require('/assets/ir/css/ir_ui.css');
 
     if (frm.is_new() || frm.doc.__islocal) {
@@ -130,11 +124,6 @@ function render_linked_docs(frm) {
     });
 }
 
-
-// -----------------------------------------
-// Untracked disciplinary actions HTML table
-// -----------------------------------------
-
 function render_untracked_disciplinary_actions(frm) {
     if (!frm.fields_dict.untracked_disciplinary_actions) return;
 
@@ -154,11 +143,6 @@ function render_untracked_disciplinary_actions(frm) {
         }
     });
 }
-
-
-// ----------------------
-// Existing helpers
-// ----------------------
 
 function fetch_employee_data(frm, employee, fields, callback) {
     frappe.call({
@@ -245,18 +229,11 @@ function check_if_ss(frm, accused) {
     });
 }
 
-
-// ----------------------
-// Your existing actions (left as-is)
-// NOTE: These are placeholders if your originals live elsewhere in this file.
-// If your existing file already defines them below, keep them exactly.
-// ----------------------
-
 function make_nta_hearing(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_hearing",
+         method: "ir.industrial_relations.doctype.nta_enquiry.nta_enquiry.make_nta_enquiry_disciplinary",
         frm: frm,
-        args: { linked_disciplinary_action: frm.doc.name }
+        freeze_message: __("Creating NTA Enquiry ...")
     });
 }
 

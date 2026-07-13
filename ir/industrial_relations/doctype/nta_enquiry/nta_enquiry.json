@@ -1,0 +1,384 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2026-07-13 10:25:21.852344",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_oxg9",
+  "amended_from",
+  "company",
+  "letter_head",
+  "linked_intervention_processed",
+  "employee_details_section",
+  "ir_intervention",
+  "employee",
+  "position",
+  "signed_nta",
+  "column_break_uttr",
+  "linked_intervention",
+  "names",
+  "sec_complainant",
+  "complainant",
+  "column_break_uxjv",
+  "compl_name",
+  "hearing_details_section",
+  "hearing_date_time",
+  "applied_rights",
+  "column_break_epmh",
+  "venue",
+  "chairperson_details_section",
+  "chairperson",
+  "column_break_hvys",
+  "chairperson_name",
+  "details_of_offence_section",
+  "nta_charges",
+  "previous_disciplinary_offences_section",
+  "disciplinary_history",
+  "details_of_incapacity_section",
+  "type_of_incapacity",
+  "details_of_incapacity",
+  "previous_incapacity_outcomes_section",
+  "previous_incapacity_outcomes",
+  "details_of_poor_performance_section",
+  "performance_details_nta",
+  "history_of_poor_performance_section",
+  "previous_performance_outcomes",
+  "rights_section",
+  "employee_rights"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_oxg9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "NTA Enquiry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_details_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Details"
+  },
+  {
+   "fieldname": "signed_nta",
+   "fieldtype": "Attach",
+   "label": "Upload Signed NTA"
+  },
+  {
+   "fieldname": "column_break_uttr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "names",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Employee Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "position",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Employee Position",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sec_complainant",
+   "fieldtype": "Section Break",
+   "label": "Complainant Details"
+  },
+  {
+   "fieldname": "complainant",
+   "fieldtype": "Link",
+   "label": "Complainant",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "column_break_uxjv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "compl_name",
+   "fieldtype": "Read Only",
+   "label": "Complainant Name:"
+  },
+  {
+   "fieldname": "hearing_details_section",
+   "fieldtype": "Section Break",
+   "label": "Enquiry Details"
+  },
+  {
+   "fieldname": "hearing_date_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date and Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applied_rights",
+   "fieldtype": "Link",
+   "label": "Applicable Rights",
+   "options": "Employee Rights",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_epmh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "venue",
+   "fieldtype": "Link",
+   "label": "Venue",
+   "options": "Branch",
+   "reqd": 1
+  },
+  {
+   "fieldname": "chairperson_details_section",
+   "fieldtype": "Section Break",
+   "label": "Chairperson Details"
+  },
+  {
+   "fieldname": "chairperson",
+   "fieldtype": "Link",
+   "label": "Chairperson",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_hvys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "chairperson_name",
+   "fieldtype": "Read Only",
+   "label": "Chairperson Name"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
+   "fieldname": "details_of_offence_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Offence"
+  },
+  {
+   "columns": 1,
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
+   "fieldname": "nta_charges",
+   "fieldtype": "Table",
+   "label": "Charges",
+   "options": "Charges",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
+   "fieldname": "previous_disciplinary_offences_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Disciplinary Offences"
+  },
+  {
+   "columns": 3,
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
+   "fieldname": "disciplinary_history",
+   "fieldtype": "Table",
+   "label": "Disciplinary History:",
+   "options": "Disciplinary History",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "details_of_incapacity_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Link",
+   "label": "Type of Incapacity",
+   "options": "Type of Incapacity",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "previous_incapacity_outcomes_section",
+   "fieldtype": "Section Break",
+   "label": "Previous Inacpacity Outcomes"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
+   "fieldname": "details_of_poor_performance_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Poor Performance"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
+   "fieldname": "performance_details_nta",
+   "fieldtype": "Small Text",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
+   "fieldname": "history_of_poor_performance_section",
+   "fieldtype": "Section Break",
+   "label": "History of Poor Performance"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
+   "fieldname": "previous_performance_outcomes",
+   "fieldtype": "Table",
+   "options": "Performance History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rights_section",
+   "fieldtype": "Section Break",
+   "label": "Rights"
+  },
+  {
+   "fieldname": "employee_rights",
+   "fieldtype": "Table",
+   "label": "Employee Rights",
+   "options": "Individual Right",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_intervention_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked IR Intervention Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "label": "IR Intervention",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Appeal Against Outcome\",\"External Dispute Resolution\",\"Poor Performance\"]]]",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Dynamic Link",
+   "label": "Linked IR Intervention",
+   "options": "ir_intervention",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee Coy. No.",
+   "options": "Employee",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-07-13 10:48:28.572824",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "NTA Enquiry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

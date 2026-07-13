@@ -152,14 +152,9 @@ frappe.ui.form.on("Incapacity Proceedings", {
   },
 });
 
-// ----------------------
-// NEW: Linked docs render (HTML field)
-// ----------------------
-
 function render_linked_docs(frm) {
   if (!frm.fields_dict.linked_docs) return;
 
-  // Ensure shared CSS exists (same pattern as Disciplinary Action)
   frappe.require("/assets/ir/css/ir_ui.css");
 
   if (frm.is_new() || frm.doc.__islocal) {
@@ -184,10 +179,6 @@ function render_linked_docs(frm) {
     },
   });
 }
-
-// ----------------------
-// Existing helpers (kept)
-// ----------------------
 
 function fetch_employee_data(frm, employee, fields, callback) {
   frappe.call({
@@ -245,16 +236,11 @@ function fetch_incapacity_history(frm, accused) {
   });
 }
 
-// ----------------------
-// Existing actions (kept as-is)
-// ----------------------
-
 function make_nta_incap(frm) {
   frappe.model.open_mapped_doc({
-    method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_incap",
+    method: "ir.industrial_relations.doctype.nta_enquiry.nta_enquiry.make_nta_enquiry_incapacity",
     frm: frm,
-    args: { linked_incapacity_proceeding: frm.doc.name },
-    freeze_message: __("Creating NTA Incapcaity ..."),
+    freeze_message: __("Creating NTA Enquiry ...")
   });
 }
 

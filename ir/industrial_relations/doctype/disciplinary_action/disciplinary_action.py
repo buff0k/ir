@@ -15,7 +15,6 @@ class DisciplinaryAction(Document):
 def fetch_employee_data(employee, fields):
     frappe.flags.ignore_permissions = True
 
-    # Parse the fields argument from JSON string to dictionary
     fields = json.loads(fields)
 
     data = {}
@@ -51,8 +50,6 @@ def _get_action_sanction_status(action) -> tuple[str, str]:
     offence_outcome = frappe.get_doc("Offence Outcome", action.outcome)
     sanction = offence_outcome.disc_offence_out if offence_outcome else ""
 
-    # Check both the linked outcome name and the displayed sanction value so existing
-    # outcome naming/configuration stays supported.
     if (action.outcome or "").strip().lower() == "cancelled" or (sanction or "").strip().lower() == "cancelled":
         return sanction or "Cancelled", "cancelled"
 
@@ -247,10 +244,6 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
-# --------------------------------------------------------------------------------------
-# NEW: Linked documents rendered into a single HTML field "linked_docs"
-# --------------------------------------------------------------------------------------
-
 def _linked_doc_mappings():
     """
     label: Display label for the card
@@ -258,8 +251,22 @@ def _linked_doc_mappings():
     backref_field: field in target_doctype that points to this Disciplinary Action
     """
     return [
-        ("NTA Hearings", "NTA Hearing", "linked_disciplinary_action"),
-        ("Written Outcomes", "Written Outcome", "linked_intervention"),
+        (
+            "NTA Enquiries",
+            "NTA Enquiry",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Written Outcomes",
+            "Written Outcome",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
         ("Disciplinary Outcome Reports", "Disciplinary Outcome Report", "linked_disciplinary_action"),
         ("Warnings", "Warning Form", "linked_disciplinary_action"),
         ("Dismissals", "Dismissal Form", "linked_disciplinary_action"),
@@ -293,10 +300,16 @@ def get_linked_docs_html(disciplinary_action_name: str) -> str:
     total = 0
 
     for label, target_dt, backref in _linked_doc_mappings():
+        if isinstance(backref, dict):
+            filters = dict(backref)
+            filters["linked_intervention"] = disciplinary_action_name
+        else:
+            filters = {backref: disciplinary_action_name}
+
         try:
             rows = frappe.get_all(
                 target_dt,
-                filters={backref: disciplinary_action_name},
+                filters=filters,
                 fields=["name"],
                 order_by="modified desc",
             )

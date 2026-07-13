@@ -14,7 +14,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "person-standing",
- "idx": 0,
+ "idx": 5,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Disciplinary Matters",
@@ -42,6 +42,75 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "General Documents",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Voluntary Seperation Agreement",
+   "link_count": 0,
+   "link_to": "Voluntary Seperation Agreement",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Union",
+   "link_count": 0,
+   "link_to": "Trade Union",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trade Union Membership",
+   "link_count": 0,
+   "link_to": "Trade Union Membership",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Employee",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Disciplinary Action Summary",
+   "link_count": 0,
+   "link_to": "Disciplinary Action Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Disciplinary Action Documents",
    "link_count": 10,
    "link_type": "DocType",
@@ -61,9 +130,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "NTA Hearing",
+   "label": "NTA Enquiry",
    "link_count": 0,
-   "link_to": "NTA Hearing",
+   "link_to": "NTA Enquiry",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -147,84 +216,15 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "General Documents",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Voluntary Seperation Agreement",
-   "link_count": 0,
-   "link_to": "Voluntary Seperation Agreement",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trade Union",
-   "link_count": 0,
-   "link_to": "Trade Union",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trade Union Membership",
-   "link_count": 0,
-   "link_to": "Trade Union Membership",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Employee",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Disciplinary Action Summary",
-   "link_count": 0,
-   "link_to": "Disciplinary Action Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2026-04-14 10:45:40.405712",
+ "modified": "2026-07-13 12:05:45.877094",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "Industrial Relations",
+ "parent_page": "IR General",
  "public": 1,
  "quick_lists": [],
  "roles": [

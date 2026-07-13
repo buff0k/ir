@@ -26,12 +26,12 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             body_template="A Termination Form for {requested_for_names} ({requested_for}) at {requested_for_site} has been {action} by {actor}.",
             changed_fields=changed_fields
         )
-    elif doc.doctype == "NTA Hearing":
+    elif doc.doctype == "NTA Enquiry":
         return handle_notification(
             doc, action,
-            subject_template="A Notice to Attend for {names} ({coy}) {action}",
-            body_template="A Notice to Attend for {names} ({coy}) at {venue} has been {action} by {actor}.",
-            changed_fields=changed_fields
+            subject_template="A Notice to Attend for {names} ({employee}) {action}",
+            body_template="A Notice to Attend for {names} ({employee}) at {venue} has been {action} by {actor}.",
+            changed_fields=changed_fields,
         )
     elif doc.doctype == "Status Change Form":
         return handle_notification(

@@ -233,22 +233,22 @@ def _get_request_arg(key, default=None):
     return default
 
 
-def _get_nta_link_field(intervention_type: str | None) -> str | None:
-    return {
-        "Disciplinary Action": "linked_disciplinary_action",
-        "Incapacity Proceedings": "linked_incapacity_proceeding",
-        "Poor Performance": "linked_poor_performance",
-    }.get(intervention_type)
-
-
-def _get_latest_linked_nta(intervention: str | None, intervention_type: str | None) -> str | None:
-    link_field = _get_nta_link_field(intervention_type)
-    if not intervention or not link_field:
+def _get_latest_linked_nta(
+    intervention: str | None,
+    intervention_type: str | None,
+) -> str | None:
+    if (
+        not intervention
+        or intervention_type not in SUPPORTED_LINKED_INTERVENTIONS
+    ):
         return None
 
     rows = frappe.get_all(
-        "NTA Hearing",
-        filters={link_field: intervention},
+        "NTA Enquiry",
+        filters={
+            "ir_intervention": intervention_type,
+            "linked_intervention": intervention,
+        },
         fields=["name", "creation"],
         order_by="creation desc, modified desc",
         limit_page_length=1,
@@ -267,7 +267,7 @@ def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dic
     if not nta_name:
         return out
 
-    nta = frappe.get_doc("NTA Hearing", nta_name)
+    nta = frappe.get_doc("NTA Enquiry", nta_name)
 
     if intervention_type == "Disciplinary Action":
         out["nta_charges"] = []
@@ -374,11 +374,9 @@ def create_written_outcome(source_name=None, source_doctype=None):
     source = frappe.get_doc(source_doctype, source_name)
     doc = frappe.new_doc("Written Outcome")
 
-    # Core linkage only
     doc.ir_intervention = source_doctype
     doc.linked_intervention = source.name
 
-    # Map only stable base fields
     if source_doctype == "Disciplinary Action":
         doc.employee = source.accused
         doc.employee_name = source.accused_name
@@ -423,10 +421,6 @@ def create_written_outcome(source_name=None, source_doctype=None):
 
     else:
         frappe.throw(f"Unsupported source DocType: {source_doctype}")
-
-    # Do NOT populate linked_nta or NTA-derived fields here.
-    # The form refresh already calls fetch_intervention_data(),
-    # which will resolve the latest NTA and populate those fields.
 
     return doc.as_dict()
 
@@ -570,13 +564,24 @@ def get_nta_details(nta_name, intervention_type=None, linked_intervention=None):
         }
 
     if intervention_type and linked_intervention:
-        link_field = _get_nta_link_field(intervention_type)
-        if link_field:
-            actual_link = frappe.db.get_value("NTA Hearing", nta_name, link_field)
-            if actual_link != linked_intervention:
-                frappe.throw(
-                    f"NTA Hearing {nta_name} is not linked to {intervention_type} {linked_intervention}"
-                )
+        actual = frappe.db.get_value(
+            "NTA Enquiry",
+            nta_name,
+            ["ir_intervention", "linked_intervention"],
+            as_dict=True,
+        )
+        if not actual:
+            frappe.throw(_("NTA Enquiry {0} does not exist.").format(nta_name))
+
+        if (
+            actual.ir_intervention != intervention_type
+            or actual.linked_intervention != linked_intervention
+        ):
+            frappe.throw(
+                _(
+                    "NTA Enquiry {0} is not linked to {1} {2}."
+                ).format(nta_name, intervention_type, linked_intervention)
+            )
 
     return _get_nta_payload(nta_name, intervention_type)
 

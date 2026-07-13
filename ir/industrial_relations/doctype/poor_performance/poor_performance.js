@@ -197,9 +197,9 @@ function check_if_ss(frm, employee) {
 
 function make_nta_hearing(frm) {
     frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_poor_performance",
+        method: "ir.industrial_relations.doctype.nta_enquiry.nta_enquiry.make_nta_enquiry_poor_performance",
         frm: frm,
-        args: { linked_poor_performance: frm.doc.name }
+        freeze_message: __("Creating NTA Enquiry ...")
     });
 }
 

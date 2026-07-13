@@ -104,7 +104,7 @@ def fetch_performance_history(employee, current_doc_name=None):
 
 def _linked_doc_mappings():
     return [
-        ("NTA Hearings", "NTA Hearing", "linked_poor_performance"),
+        ("NTA Enquiries", "NTA Enquiry", "linked_intervention"),
         ("Written Outcomes", "Written Outcome", "linked_intervention"),
         ("Warnings", "Warning Form", "linked_poor_performance"),
         ("Performance Improvement Confirmations", "Performance Improved", "linked_poor_performance"),
@@ -129,8 +129,11 @@ def get_linked_docs_html(poor_performance_name):
 
     for label, target_dt, backref in _linked_doc_mappings():
         filters = {backref: poor_performance_name}
-        if target_dt == "Written Outcome":
-            filters = {"ir_intervention": "Poor Performance", "linked_intervention": poor_performance_name}
+        if target_dt in ("NTA Enquiry", "Written Outcome"):
+            filters = {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": poor_performance_name,
+            }
 
         try:
             rows = frappe.get_all(target_dt, filters=filters, fields=["name"], order_by="modified desc")

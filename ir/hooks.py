@@ -207,10 +207,11 @@ doc_events = {
 		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
-	"NTA Hearing": {
+	"NTA Enquiry": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+		"validate": "ir.permissions.validate_nta_enquiry",
 	},
 	"Status Change Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
@@ -232,23 +233,40 @@ doc_events = {
 		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 	},
 	"Contract of Employment": {
-		"validate": "ir.industrial_relations.utils.validate_contract_of_employment",
-	},
+        "validate": "ir.permissions.validate_contract_of_employment",
+    },
 	"Disciplinary Action": {
-		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"validate": "ir.industrial_relations.utils.validate_disciplinary_action",
-	},
+        "after_insert": "ir.controllers.notifications.handle_doc_event_create",
+        "validate": "ir.permissions.validate_disciplinary_action",
+    },
 	"Anonymous Report": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
-	}
+	},
+    "Incapacity Proceedings": {
+        "validate": "ir.permissions.validate_incapacity_proceedings",
+    },
+    "Poor Performance": {
+        "validate": "ir.permissions.validate_poor_performance",
+    },
+    "Written Outcome": {
+        "validate": "ir.permissions.validate_written_outcome",
+    },
 }
 permission_query_conditions = {
-	"Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_permission_query_conditions",
-	"Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_permission_query_conditions"
+    "Contract of Employment": "ir.permissions.contract_of_employment_permission_query_conditions",
+    "Disciplinary Action": "ir.permissions.disciplinary_action_permission_query_conditions",
+    "Incapacity Proceedings": "ir.permissions.incapacity_proceedings_permission_query_conditions",
+    "Poor Performance": "ir.permissions.poor_performance_permission_query_conditions",
+    "NTA Enquiry": "ir.permissions.nta_enquiry_permission_query_conditions",
+    "Written Outcome": "ir.permissions.written_outcome_permission_query_conditions",
 }
 has_permission = {
-    "Contract of Employment": "ir.industrial_relations.utils.contract_of_employment_has_permission",
-    "Disciplinary Action": "ir.industrial_relations.utils.disciplinary_action_has_permission"
+    "Contract of Employment": "ir.permissions.contract_of_employment_has_permission",
+    "Disciplinary Action": "ir.permissions.disciplinary_action_has_permission",
+    "Incapacity Proceedings": "ir.permissions.incapacity_proceedings_has_permission",
+    "Poor Performance": "ir.permissions.poor_performance_has_permission",
+    "NTA Enquiry": "ir.permissions.nta_enquiry_has_permission",
+    "Written Outcome": "ir.permissions.written_outcome_has_permission",
 }

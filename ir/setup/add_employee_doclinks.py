@@ -3,72 +3,82 @@
 
 import frappe
 
-def ensure_employee_links():
-    """Ensure required Document Links exist in the Employee DocType."""
 
-    required_links = [
-        # Normal links
-        {"link_doctype": "Disciplinary Action", "link_fieldname": "accused"},
-        {"link_doctype": "Contract of Employment", "link_fieldname": "employee"},
-        {"link_doctype": "Incapacity Proceedings", "link_fieldname": "accused"},
-        {"link_doctype": "Appeal Against Outcome", "link_fieldname": "employee"},
-        {"link_doctype": "NTA Hearing", "link_fieldname": "employee"},
-        {"link_doctype": "Not Guilty Form", "link_fieldname": "employee"},
-        {"link_doctype": "Warning Form", "link_fieldname": "employee"},
-        {"link_doctype": "Suspension Form", "link_fieldname": "employee"},
-        {"link_doctype": "Demotion Form", "link_fieldname": "employee"},
-        {"link_doctype": "Pay Deduction Form", "link_fieldname": "employee"},
-        {"link_doctype": "Pay Reduction Form", "link_fieldname": "employee"},
-        {"link_doctype": "Dismissal Form", "link_fieldname": "employee"},
-        {"link_doctype": "Voluntary Seperation Agreement", "link_fieldname": "employee"},
-        {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"},
-        {"link_doctype": "KPI Review Employees", "link_fieldname": "employee", "parent_doctype": "KPI Review", "table_fieldname": "employees", "is_child_table": 1},
-        {"link_doctype": "Termination Form", "link_fieldname": "requested_for"},
-        {"link_doctype": "Employee Induction Tracking", "link_fieldname": "employee"},
-        {"link_doctype": "Status Change Form", "link_fieldname": "employee"},
-        {"link_doctype": "Site Transfer Form", "link_fieldname": "employee"},
-    ]
+REQUIRED_LINKS = [
+    {"link_doctype": "Disciplinary Action", "link_fieldname": "accused"},
+    {"link_doctype": "Contract of Employment", "link_fieldname": "employee"},
+    {"link_doctype": "Incapacity Proceedings", "link_fieldname": "accused"},
+    {"link_doctype": "Poor Performance", "link_fieldname": "employee"},
+    {"link_doctype": "Appeal Against Outcome", "link_fieldname": "employee"},
+    {"link_doctype": "NTA Enquiry", "link_fieldname": "employee"},
+    {"link_doctype": "Written Outcome", "link_fieldname": "employee"},
+    {"link_doctype": "Not Guilty Form", "link_fieldname": "employee"},
+    {"link_doctype": "Warning Form", "link_fieldname": "employee"},
+    {"link_doctype": "Suspension Form", "link_fieldname": "employee"},
+    {"link_doctype": "Demotion Form", "link_fieldname": "employee"},
+    {"link_doctype": "Pay Deduction Form", "link_fieldname": "employee"},
+    {"link_doctype": "Pay Reduction Form", "link_fieldname": "employee"},
+    {"link_doctype": "Dismissal Form", "link_fieldname": "employee"},
+    {"link_doctype": "Voluntary Seperation Agreement", "link_fieldname": "employee"},
+    {"link_doctype": "Hearing Cancellation Form", "link_fieldname": "employee"},
+    {
+        "link_doctype": "KPI Review Employees",
+        "link_fieldname": "employee",
+        "parent_doctype": "KPI Review",
+        "table_fieldname": "employees",
+        "is_child_table": 1,
+    },
+    {"link_doctype": "Termination Form", "link_fieldname": "requested_for"},
+    {"link_doctype": "Employee Induction Tracking", "link_fieldname": "employee"},
+    {"link_doctype": "Status Change Form", "link_fieldname": "employee"},
+    {"link_doctype": "Site Transfer Form", "link_fieldname": "employee"},
+]
 
-    existing_links = frappe.get_all(
-        "DocType Link",
-        filters={"parent": "Employee"},
-        fields=["link_doctype", "link_fieldname", "parent_doctype", "table_fieldname", "is_child_table"]
+
+def _key(link):
+    return (
+        link.get("link_doctype") or "",
+        link.get("link_fieldname") or "",
+        link.get("parent_doctype") or "",
+        link.get("table_fieldname") or "",
+        int(link.get("is_child_table") or 0),
     )
 
-    existing_links_set = {
-        (
-            link["link_doctype"],
-            link["link_fieldname"],
-            link.get("parent_doctype") or "",
-            link.get("table_fieldname") or "",
-            int(link.get("is_child_table", 0))
-        )
-        for link in existing_links
-    }
 
-    for link in required_links:
-        key = (
-            link["link_doctype"],
-            link["link_fieldname"],
-            link.get("parent_doctype", ""),
-            link.get("table_fieldname", ""),
-            int(link.get("is_child_table", 0))
-        )
+def ensure_employee_links():
+    """Replace the obsolete NTA Hearing link and ensure all required Employee links."""
+    frappe.db.delete(
+        "DocType Link",
+        {
+            "parent": "Employee",
+            "parenttype": "DocType",
+            "link_doctype": "NTA Hearing",
+        },
+    )
 
-        if key not in existing_links_set:
-            doc = frappe.get_doc({
+    existing = frappe.get_all(
+        "DocType Link",
+        filters={"parent": "Employee", "parenttype": "DocType"},
+        fields=[
+            "link_doctype",
+            "link_fieldname",
+            "parent_doctype",
+            "table_fieldname",
+            "is_child_table",
+        ],
+    )
+    existing_keys = {_key(row) for row in existing}
+
+    for link in REQUIRED_LINKS:
+        if _key(link) in existing_keys:
+            continue
+        frappe.get_doc(
+            {
                 "doctype": "DocType Link",
                 "parent": "Employee",
                 "parentfield": "links",
                 "parenttype": "DocType",
-                "link_doctype": link["link_doctype"],
-                "link_fieldname": link["link_fieldname"],
-                "parent_doctype": link.get("parent_doctype"),
-                "table_fieldname": link.get("table_fieldname"),
-                "is_child_table": link.get("is_child_table", 0),
-                "group": "Industrial Relations"
-            })
-            doc.insert(ignore_permissions=True)
-            frappe.db.commit()
-            frappe.msgprint(f"✅ Added: {link['link_doctype']} ({'child' if link.get('is_child_table') else 'direct'})")
-
+                "group": "Industrial Relations",
+                **link,
+            }
+        ).insert(ignore_permissions=True)

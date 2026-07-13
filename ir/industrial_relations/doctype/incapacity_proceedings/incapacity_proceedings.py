@@ -120,10 +120,6 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
-# --------------------------------------------------------------------------------------
-# NEW: Linked documents rendered into a single HTML field "linked_docs"
-# --------------------------------------------------------------------------------------
-
 def _linked_doc_mappings():
     """
     label: Display label for the card
@@ -131,12 +127,24 @@ def _linked_doc_mappings():
     backref_field: field in target_doctype that points to this Incapacity Proceeding
     """
     return [
-        ("NTA Hearings", "NTA Hearing", "linked_incapacity_proceeding"),
+        (
+            "NTA Enquiries",
+            "NTA Enquiry",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
 
-        # You already used this linkage in your JS:
-        ("Written Outcomes", "Written Outcome", "linked_intervention"),
+        (
+            "Written Outcomes",
+            "Written Outcome",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
 
-        # You have a button that creates an outcome report; include it in the linked docs view.
         ("Incapacity Outcome Reports", "Disciplinary Outcome Report", "linked_incapacity_proceeding"),
 
         ("Dismissals", "Dismissal Form", "linked_incapacity_proceeding"),
@@ -169,10 +177,16 @@ def get_linked_docs_html(incapacity_proceedings_name: str) -> str:
     total = 0
 
     for label, target_dt, backref in _linked_doc_mappings():
+        if isinstance(backref, dict):
+            filters = dict(backref)
+            filters["linked_intervention"] = incapacity_proceedings_name
+        else:
+            filters = {backref: incapacity_proceedings_name}
+
         try:
             rows = frappe.get_all(
                 target_dt,
-                filters={backref: incapacity_proceedings_name},
+                filters=filters,
                 fields=["name"],
                 order_by="modified desc",
             )
