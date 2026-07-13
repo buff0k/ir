@@ -11,14 +11,13 @@ app_email = "buff0k@buff0k.co.za"
 app_license = "mit"
 required_apps = ["frappe/hrms", "https://github.com/EPIUSECX/cohenix_local_za"]
 source_link = "http://github.com/buff0k/ir"
-app_logo_url = "/assets/ir/dekstop_icons/ir-logo.png"
 app_home = "/desk/ir-general"
 add_to_apps_screen = [
 	{
-		"name": app_name,
-		"logo": "/assets/ir/dekstop_icons/ir-logo.png",
-		"title": app_title,
-		"route": app_home,
+		"name": "ir",
+		"logo": "/assets/ir/desktop_icons/ir-logo.png",
+		"title": "Industrial Relations",
+		"route": "/desk/ir-general",
 		"has_permission": "ir.industrial_relations.utils.check_app_permission",
 	}
 ]
