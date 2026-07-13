@@ -6,7 +6,188 @@ from __future__ import annotations
 import re
 import frappe
 from frappe.model.document import Document
+from frappe import _
 from frappe.utils import escape_html, get_url_to_form, formatdate
+
+
+SUPPORTED_LINKED_INTERVENTIONS = {
+    "Disciplinary Action",
+    "Incapacity Proceedings",
+    "Poor Performance",
+}
+
+
+def _normalise_text(value):
+    return (value or "").strip()
+
+
+def _normalise_charge(value):
+    return re.sub(r"\s+", " ", _normalise_text(value)).casefold()
+
+
+def _written_outcome_charges(doc):
+    return [
+        _normalise_text(row.get("indiv_charge"))
+        for row in (doc.get("final_charges") or [])
+        if _normalise_text(row.get("indiv_charge"))
+    ]
+
+
+def _source_disciplinary_charges(doc):
+    return [
+        _normalise_text(row.get("charge"))
+        for row in (doc.get("final_charges") or [])
+        if _normalise_text(row.get("charge"))
+    ]
+
+
+def _get_linked_update_state(written_outcome):
+    intervention_type = written_outcome.get("ir_intervention")
+    intervention_name = written_outcome.get("linked_intervention")
+
+    result = {
+        "supported": intervention_type in SUPPORTED_LINKED_INTERVENTIONS,
+        "changed": False,
+        "intervention_type": intervention_type,
+        "intervention_name": intervention_name,
+        "source_field": None,
+        "source_label": None,
+    }
+
+    if not result["supported"] or not intervention_name:
+        return result
+
+    if not frappe.db.exists(intervention_type, intervention_name):
+        frappe.throw(_("{0} {1} no longer exists.").format(
+            intervention_type, intervention_name
+        ))
+
+    source = frappe.get_doc(intervention_type, intervention_name)
+
+    if intervention_type == "Disciplinary Action":
+        result["source_field"] = "final_charges"
+        result["source_label"] = _("Final Charges")
+        result["changed"] = (
+            _written_outcome_charges(written_outcome)
+            != _source_disciplinary_charges(source)
+        )
+    elif intervention_type == "Incapacity Proceedings":
+        result["source_field"] = "details_of_incapacity"
+        result["source_label"] = _("Details of Incapacity")
+        result["changed"] = (
+            _normalise_text(written_outcome.get("final_incapacity_details"))
+            != _normalise_text(source.get("details_of_incapacity"))
+        )
+    elif intervention_type == "Poor Performance":
+        result["source_field"] = "details_of_poor_performance"
+        result["source_label"] = _("Details of Poor Performance")
+        result["changed"] = (
+            _normalise_text(written_outcome.get("final_performance_details"))
+            != _normalise_text(source.get("details_of_poor_performance"))
+        )
+
+    return result
+
+
+def _replace_disciplinary_final_charges(source, written_outcome):
+    desired = _written_outcome_charges(written_outcome)
+    current = list(source.get("final_charges") or [])
+    offences = list(source.get("offences") or [])
+
+    current_by_charge = {}
+    for row in current:
+        key = _normalise_charge(row.get("charge"))
+        if key:
+            current_by_charge.setdefault(key, []).append(row)
+
+    replacement = []
+    used_names = set()
+
+    for index, charge in enumerate(desired):
+        code_item = None
+        key = _normalise_charge(charge)
+
+        for row in current_by_charge.get(key, []):
+            if row.name not in used_names:
+                code_item = row.get("code_item")
+                used_names.add(row.name)
+                break
+
+        if not code_item and index < len(current):
+            code_item = current[index].get("code_item")
+
+        if not code_item and index < len(offences):
+            code_item = offences[index].get("code_item")
+
+        if not code_item:
+            frappe.throw(_(
+                'Cannot update Disciplinary Action {0}: the charge "{1}" '
+                'has no Disciplinary Code Item to preserve. Add or correct '
+                'the corresponding charge on the source Disciplinary Action first.'
+            ).format(source.name, charge))
+
+        replacement.append({"code_item": code_item, "charge": charge})
+
+    source.set("final_charges", [])
+    for row in replacement:
+        source.append("final_charges", row)
+
+
+@frappe.whitelist()
+def get_linked_intervention_update_status(docname):
+    written_outcome = frappe.get_doc("Written Outcome", docname)
+    written_outcome.check_permission("read")
+    return _get_linked_update_state(written_outcome)
+
+
+@frappe.whitelist()
+def update_linked_intervention_from_outcome(docname):
+    written_outcome = frappe.get_doc("Written Outcome", docname)
+    written_outcome.check_permission("write")
+
+    state = _get_linked_update_state(written_outcome)
+    if not state["supported"]:
+        return {"updated": False, "reason": "unsupported_intervention"}
+    if not state["changed"]:
+        return {"updated": False, "reason": "unchanged"}
+
+    source = frappe.get_doc(
+        written_outcome.ir_intervention,
+        written_outcome.linked_intervention,
+    )
+    source.check_permission("write")
+
+    if written_outcome.ir_intervention == "Disciplinary Action":
+        _replace_disciplinary_final_charges(source, written_outcome)
+    elif written_outcome.ir_intervention == "Incapacity Proceedings":
+        source.details_of_incapacity = (
+            written_outcome.final_incapacity_details or ""
+        )
+    elif written_outcome.ir_intervention == "Poor Performance":
+        source.details_of_poor_performance = (
+            written_outcome.final_performance_details or ""
+        )
+
+    # The intervention may already be submitted. We still use Document.save()
+    # so modified metadata, hooks and Version tracking are preserved.
+    source.flags.ignore_validate_update_after_submit = True
+    source.save()
+    source.add_comment(
+        "Info",
+        _("Updated from Written Outcome {0} by {1}. Source field: {2}.").format(
+            written_outcome.name,
+            frappe.session.user,
+            state["source_label"],
+        ),
+    )
+
+    return {
+        "updated": True,
+        "intervention_type": source.doctype,
+        "intervention_name": source.name,
+        "source_field": state["source_field"],
+        "source_label": state["source_label"],
+    }
 
 
 class WrittenOutcome(Document):
@@ -103,6 +284,78 @@ def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dic
         out["performance_details_nta"] = nta.get("performance_details_nta") or ""
 
     return out
+
+
+def _get_disciplinary_history_charges(action_doc) -> str:
+    charges = []
+
+    for row in action_doc.get("final_charges") or []:
+        charge = _normalise_text(row.get("charge"))
+        if not charge:
+            continue
+
+        code_item = _normalise_text(row.get("code_item"))
+        charges.append(f"({code_item}) {charge}" if code_item else charge)
+
+    return "\n".join(charges) if charges else "No charges recorded"
+
+
+def _get_disciplinary_history_for_written_outcome(
+    accused: str | None,
+    current_action: str | None,
+) -> list[dict]:
+    """
+    Return every other Disciplinary Action for the employee.
+
+    Completed, Cancelled and Pending actions are all included. The action
+    currently linked to this Written Outcome is excluded because it is the
+    matter being decided, not previous history.
+    """
+    if not accused:
+        return []
+
+    filters = {"accused": accused}
+    if current_action:
+        filters["name"] = ["!=", current_action]
+
+    actions = frappe.get_all(
+        "Disciplinary Action",
+        filters=filters,
+        fields=["name", "outcome_date", "outcome"],
+        order_by="outcome_date desc, modified desc",
+    )
+
+    history = []
+
+    for action in actions:
+        action_doc = frappe.get_doc("Disciplinary Action", action.name)
+
+        if not action.outcome:
+            sanction = "Pending"
+        else:
+            sanction = frappe.db.get_value(
+                "Offence Outcome",
+                action.outcome,
+                "disc_offence_out",
+            ) or action.outcome
+
+            if (
+                _normalise_text(action.outcome).casefold() == "cancelled"
+                or _normalise_text(sanction).casefold() == "cancelled"
+            ):
+                sanction = "Cancelled"
+
+        history.append(
+            {
+                "disc_action": action_doc.name,
+                "date": action_doc.get("outcome_date"),
+                "sanction": sanction,
+                "charges": _get_disciplinary_history_charges(action_doc),
+            }
+        )
+
+    return history
+
 
 @frappe.whitelist()
 def create_written_outcome(source_name=None, source_doctype=None):
@@ -229,7 +482,6 @@ def fetch_intervention_data(intervention, intervention_type):
                 "complainant",
                 "complainant_name",
                 "branch",
-                "details_of_poor_performance",
             ],
             "target_fields": [
                 "employee",
@@ -239,7 +491,6 @@ def fetch_intervention_data(intervention, intervention_type):
                 "complainant",
                 "complainant_name",
                 "employee_branch",
-                "final_performance_details",
             ],
         },
         "Appeal Against Outcome": {
@@ -272,6 +523,38 @@ def fetch_intervention_data(intervention, intervention_type):
     latest_nta = _get_latest_linked_nta(intervention, intervention_type)
     transformed["linked_nta"] = latest_nta
     transformed.update(_get_nta_payload(latest_nta, intervention_type))
+
+    if intervention_type == "Disciplinary Action":
+        transformed["disciplinary_history"] = (
+            _get_disciplinary_history_for_written_outcome(
+                accused=data.get("accused"),
+                current_action=intervention,
+            )
+        )
+
+    elif intervention_type == "Incapacity Proceedings":
+        source_doc = frappe.get_doc(intervention_type, intervention)
+        transformed["previous_incapacity_outcomes"] = [
+            {
+                "incap_proc": row.get("incap_proc"),
+                "date": row.get("date"),
+                "incap_details": row.get("incap_details") or "",
+                "sanction": row.get("sanction") or "",
+            }
+            for row in (source_doc.get("previous_incapacity_outcomes") or [])
+        ]
+
+    elif intervention_type == "Poor Performance":
+        source_doc = frappe.get_doc(intervention_type, intervention)
+        transformed["previous_performance_outcomes"] = [
+            {
+                "performance_action": row.get("performance_action"),
+                "date": row.get("date"),
+                "charges": row.get("charges") or "",
+                "sanction": row.get("sanction") or "",
+            }
+            for row in (source_doc.get("previous_disciplinary_outcomes") or [])
+        ]
 
     return transformed
 

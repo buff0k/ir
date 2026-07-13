@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2025-02-07 10:04:47.250418",
@@ -204,6 +205,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "nta_charges",
    "fieldtype": "Table",
    "label": "Charges as per NTA",
@@ -211,13 +213,15 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "incap_type_nta",
    "fieldtype": "Link",
    "label": "Type of Incapacity as per NTA",
-   "options": "Incapacity Proceedings",
+   "options": "Type of Incapacity",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "incapacity_details_nta",
    "fieldtype": "Small Text",
    "label": "Details of Incapacity as per NTA",
@@ -279,6 +283,7 @@
    "label": "Finding"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
    "label": "Previous Disciplinary History",
@@ -286,6 +291,7 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "previous_incapacity_outcomes",
    "fieldtype": "Table",
    "label": "Previous Incapacity History",
@@ -349,12 +355,14 @@
    "label": "Aggravating Considerations"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "final_charges",
    "fieldtype": "Table",
    "label": "Final Charges",
    "options": "Charges"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "final_incapacity_details",
    "fieldtype": "Small Text",
    "label": "Final Incapacity Details"
@@ -367,17 +375,20 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details_nta",
    "fieldtype": "Small Text",
    "label": "Details of Poor Performance as per NTA",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "final_performance_details",
    "fieldtype": "Small Text",
    "label": "Final Poor Performance Details"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "previous_performance_outcomes",
    "fieldtype": "Table",
    "label": "Performance History",
@@ -394,7 +405,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-05-18 15:13:27.504461",
+ "modified": "2026-07-13 09:57:48.409782",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
