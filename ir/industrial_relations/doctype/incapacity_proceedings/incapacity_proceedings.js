@@ -32,9 +32,9 @@ frappe.ui.form.on("Incapacity Proceedings", {
       );
 
       frm.page.add_inner_button(
-        __("Issue Not Incapacitated"),
+        __("Determine Employee Not Incapacitated"),
         function () {
-          make_not_incap(frm);
+          create_no_further_action_form(frm);
         },
         "Actions"
       );
@@ -262,14 +262,24 @@ function create_written_outcome(frm) {
   });
 }
 
-function make_not_incap(frm) {
-  frappe.model.open_mapped_doc({
-    method: "ir.industrial_relations.doctype.not_guilty_form.not_guilty_form.make_not_incap",
-    frm: frm,
-    args: { linked_incapacity_proceeding: frm.doc.name },
-    freeze_message: __("Creating Not Incapacitated Form ..."),
-  });
+function create_no_further_action_form(frm) {
+    frappe.call({
+        method: "ir.industrial_relations.doctype.no_further_action_form.no_further_action_form.create_no_further_action_form",
+        args: {
+            source_name: frm.doc.name,
+            source_doctype: frm.doctype
+        },
+        freeze: true,
+        freeze_message: __("Creating No Further Action Form ..."),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "No Further Action Form", r.message.name);
+            }
+        }
+    });
 }
+
 
 function make_suspension_form_incap(frm) {
   frappe.model.open_mapped_doc({

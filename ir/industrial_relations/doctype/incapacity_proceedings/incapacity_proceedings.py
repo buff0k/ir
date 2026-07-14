@@ -120,6 +120,10 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
+# --------------------------------------------------------------------------------------
+# NEW: Linked documents rendered into a single HTML field "linked_docs"
+# --------------------------------------------------------------------------------------
+
 def _linked_doc_mappings():
     """
     label: Display label for the card
@@ -145,12 +149,20 @@ def _linked_doc_mappings():
             },
         ),
 
+        # You have a button that creates an outcome report; include it in the linked docs view.
         ("Incapacity Outcome Reports", "Disciplinary Outcome Report", "linked_incapacity_proceeding"),
 
         ("Dismissals", "Dismissal Form", "linked_incapacity_proceeding"),
         ("Demotions", "Demotion Form", "linked_incapacity_proceeding"),
         ("Pay Reductions", "Pay Reduction Form", "linked_incapacity_proceeding"),
-        ("Not Incapacitated Outcomes", "Not Guilty Form", "linked_incapacity_proceeding"),
+        (
+            "No Further Action Forms",
+            "No Further Action Form",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
         ("Suspensions", "Suspension Form", "linked_incapacity_proceeding"),
         ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_incapacity_proceeding"),
         ("Hearing Cancellations", "Hearing Cancellation Form", "linked_incapacity_proceeding"),

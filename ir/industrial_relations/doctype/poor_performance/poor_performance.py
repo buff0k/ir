@@ -107,7 +107,7 @@ def _linked_doc_mappings():
         ("NTA Enquiries", "NTA Enquiry", "linked_intervention"),
         ("Written Outcomes", "Written Outcome", "linked_intervention"),
         ("Warnings", "Warning Form", "linked_poor_performance"),
-        ("Performance Improvement Confirmations", "Performance Improved", "linked_poor_performance"),
+        ("No Further Action Forms", "No Further Action Form", "linked_intervention"),
         ("Dismissals", "Dismissal Form", "linked_poor_performance"),
         ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_poor_performance"),
         ("Hearing Cancellations", "Hearing Cancellation Form", "linked_poor_performance"),
@@ -129,7 +129,7 @@ def get_linked_docs_html(poor_performance_name):
 
     for label, target_dt, backref in _linked_doc_mappings():
         filters = {backref: poor_performance_name}
-        if target_dt in ("NTA Enquiry", "Written Outcome"):
+        if target_dt in ("NTA Enquiry", "Written Outcome", "No Further Action Form"):
             filters = {
                 "ir_intervention": "Poor Performance",
                 "linked_intervention": poor_performance_name,

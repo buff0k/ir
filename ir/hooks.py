@@ -178,6 +178,24 @@ fixtures = [
         "Asbcondment / Desertion",
         "Dismissal for Misconduct",
         "Resignation"
+	]]]},
+    {"dt": "Offence Outcome", "filters": [["name", "in", [
+		"NGG",
+		"PI",
+		"CAN",
+		"NG",
+		"VSP",
+        "USUS",
+        "TRANS",
+        "TDM",
+        "PSUS",
+        "PDUC",
+        "IDM",
+        "FWW",
+        "DIS",
+        "2WW",
+        "1WW",
+        "FIT"
 	]]]}
 ]
 scheduler_events = {

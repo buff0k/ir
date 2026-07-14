@@ -22,8 +22,8 @@ frappe.ui.form.on('Poor Performance', {
                 make_warning_form(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Confirm Performance Improved'), function() {
-                make_performance_improved(frm);
+            frm.page.add_inner_button(__('Determine Employee Performance Improved'), function() {
+                create_no_further_action_form(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Suspension'), function() {
@@ -229,13 +229,24 @@ function make_warning_form(frm) {
     });
 }
 
-function make_performance_improved(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.performance_improved.performance_improved.make_performance_improved",
-        frm: frm,
-        args: { linked_poor_performance: frm.doc.name }
+function create_no_further_action_form(frm) {
+    frappe.call({
+        method: "ir.industrial_relations.doctype.no_further_action_form.no_further_action_form.create_no_further_action_form",
+        args: {
+            source_name: frm.doc.name,
+            source_doctype: frm.doctype
+        },
+        freeze: true,
+        freeze_message: __("Creating No Further Action Form ..."),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "No Further Action Form", r.message.name);
+            }
+        }
     });
 }
+
 
 function make_suspension_form(frm) {
     frappe.model.open_mapped_doc({

@@ -28,8 +28,8 @@ frappe.ui.form.on('Disciplinary Action', {
                 make_warning_form(frm);
             }, 'Actions');
 
-            frm.page.add_inner_button(__('Issue Not Guilty'), function() {
-                make_not_guilty_form(frm);
+            frm.page.add_inner_button(__('Make Finding of Not Guilty'), function() {
+                create_no_further_action_form(frm);
             }, 'Actions');
 
             frm.page.add_inner_button(__('Issue Suspension'), function() {
@@ -286,13 +286,24 @@ function make_warning_form(frm) {
     });
 }
 
-function make_not_guilty_form(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.not_guilty_form.not_guilty_form.make_not_guilty_form",
-        frm: frm,
-        args: { linked_disciplinary_action: frm.doc.name }
+function create_no_further_action_form(frm) {
+    frappe.call({
+        method: "ir.industrial_relations.doctype.no_further_action_form.no_further_action_form.create_no_further_action_form",
+        args: {
+            source_name: frm.doc.name,
+            source_doctype: frm.doctype
+        },
+        freeze: true,
+        freeze_message: __("Creating No Further Action Form ..."),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "No Further Action Form", r.message.name);
+            }
+        }
     });
 }
+
 
 function make_suspension_form(frm) {
     frappe.model.open_mapped_doc({
