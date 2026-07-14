@@ -120,16 +120,7 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
-# --------------------------------------------------------------------------------------
-# NEW: Linked documents rendered into a single HTML field "linked_docs"
-# --------------------------------------------------------------------------------------
-
 def _linked_doc_mappings():
-    """
-    label: Display label for the card
-    target_doctype: DocType to list documents from
-    backref_field: field in target_doctype that points to this Incapacity Proceeding
-    """
     return [
         (
             "NTA Enquiries",
@@ -139,7 +130,6 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-
         (
             "Written Outcomes",
             "Written Outcome",
@@ -148,10 +138,6 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-
-        # You have a button that creates an outcome report; include it in the linked docs view.
-        ("Incapacity Outcome Reports", "Disciplinary Outcome Report", "linked_incapacity_proceeding"),
-
         ("Dismissals", "Dismissal Form", "linked_incapacity_proceeding"),
         ("Demotions", "Demotion Form", "linked_incapacity_proceeding"),
         ("Pay Reductions", "Pay Reduction Form", "linked_incapacity_proceeding"),
@@ -164,8 +150,16 @@ def _linked_doc_mappings():
             },
         ),
         ("Suspensions", "Suspension Form", "linked_incapacity_proceeding"),
-        ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_incapacity_proceeding"),
-        ("Hearing Cancellations", "Hearing Cancellation Form", "linked_incapacity_proceeding"),
+        (
+            "Voluntary Separations",
+            "Voluntary Seperation Agreement",
+            "linked_incapacity_proceeding",
+        ),
+        (
+            "Hearing Cancellations",
+            "Hearing Cancellation Form",
+            "linked_incapacity_proceeding",
+        ),
         ("Appeals", "Appeal Against Outcome", "linked_incapacity_proceeding"),
     ]
 
