@@ -71,7 +71,7 @@ def daily_sync_attendance() -> None:
 	start_date = add_days(today, -DAYS_PAST)
 	end_date = add_days(today, DAYS_FUTURE)
 
-	employees = _get_active_employees()
+	employees = _get_active_employees(today)
 	if not employees:
 		return
 
@@ -171,8 +171,8 @@ def recompute_attendance_for_employee_day(employee: str, attendance_date) -> Non
 	"""
 	attendance_date = getdate(attendance_date)
 
-	# If the employee is not active, skip.
-	if not _is_employee_active(employee):
+	# Do not create Attendance outside the employee's employment period.
+	if not _is_employee_active_on_date(employee, attendance_date):
 		return
 
 	# Determine shift + shift type
@@ -563,28 +563,62 @@ def _get_shift_type_for_assignment(shift_assignment):
 		return None
 
 
-def _get_shift_type_for_assignment(shift_assignment):
-	if not shift_assignment or not shift_assignment.shift:
-		return None
-
-	# In HRMS, Shift Type doctype is typically "Shift Type" and linked from shift name.
-	# Sometimes the shift itself is a Shift Type. We'll assume the link is Shift Type.
-	try:
-		return frappe.get_cached_doc("Shift Type", shift_assignment.shift)
-	except Exception:
-		return None
-
-
 # ---------------------------------------------------------------------------
 # Employee helpers
 # ---------------------------------------------------------------------------
 
-def _get_active_employees() -> List[str]:
-	return frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
+def _get_active_employees(attendance_date=None) -> List[str]:
+	attendance_date = getdate(attendance_date)
+
+	return frappe.get_all(
+		"Employee",
+		filters={
+			"status": "Active",
+			"date_of_joining": ("<=", attendance_date),
+		},
+		or_filters=[
+			["relieving_date", "is", "not set"],
+			["relieving_date", ">=", attendance_date],
+		],
+		pluck="name",
+	)	return frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
 
 
-def _is_employee_active(employee: str) -> bool:
-	return frappe.db.get_value("Employee", employee, "status") == "Active"
+def _is_employee_active_on_date(employee: str, attendance_date) -> bool:
+	"""
+	Return whether the employee was employed and active on the requested date.
+
+	An Employee may already have status=Active while their joining date is still
+	in the future, so status alone is insufficient for Attendance creation.
+	"""
+	attendance_date = getdate(attendance_date)
+
+	employee_details = frappe.db.get_value(
+		"Employee",
+		employee,
+		["status", "date_of_joining", "relieving_date"],
+		as_dict=True,
+	)
+
+	if not employee_details:
+		return False
+
+	if employee_details.status != "Active":
+		return False
+
+	if (
+		employee_details.date_of_joining
+		and attendance_date < getdate(employee_details.date_of_joining)
+	):
+		return False
+
+	if (
+		employee_details.relieving_date
+		and attendance_date > getdate(employee_details.relieving_date)
+	):
+		return False
+
+	return Truereturn frappe.db.get_value("Employee", employee, "status") == "Active"
 
 
 def _get_employee_checkin_days(start_date, end_date) -> Iterable[Tuple[str, object]]:
