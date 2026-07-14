@@ -520,28 +520,47 @@ def _sum_intervals(checkins: List[dict]) -> Tuple[int, Optional[datetime], Optio
 
 def _get_shift_assignment(employee: str, attendance_date):
 	"""
-	Return an object-like dict with .shift and .shift_type (via Shift Type link).
-	HRMS uses Shift Assignment (employee/date range -> shift).
+	Return the submitted Shift Assignment applicable to an employee on a date.
+
+	Shift Assignment links to Shift Type through the `shift_type` field.
+	The end date may be blank for an open-ended assignment.
 	"""
 	attendance_date = getdate(attendance_date)
 
-	row = frappe.db.get_value(
+	rows = frappe.get_all(
 		"Shift Assignment",
-		{
+		filters={
 			"employee": employee,
 			"docstatus": 1,
+			"status": "Active",
 			"start_date": ("<=", attendance_date),
-			"end_date": (">=", attendance_date),
 		},
-		["name", "shift"],
-		as_dict=True,
+		or_filters=[
+			["end_date", "is", "not set"],
+			["end_date", ">=", attendance_date],
+		],
+		fields=["name", "shift_type", "start_date", "end_date"],
+		order_by="start_date desc, creation desc",
+		limit=1,
 	)
 
-	if not row:
+	if not rows:
 		return None
 
-	# Convert to a simple object-like structure
-	return frappe._dict(row)
+	return frappe._dict(rows[0])
+
+
+def _get_shift_type_for_assignment(shift_assignment):
+	if not shift_assignment or not shift_assignment.shift_type:
+		return None
+
+	try:
+		return frappe.get_cached_doc(
+			"Shift Type",
+			shift_assignment.shift_type,
+		)
+	except frappe.DoesNotExistError:
+		return None
 
 
 def _get_shift_type_for_assignment(shift_assignment):
