@@ -247,15 +247,12 @@ def check_if_ss(accused):
     return {"is_ss": False, "ss_union": None}
 
 
-# --------------------------------------------------------------------------------------
-# NEW: Linked documents rendered into a single HTML field "linked_docs"
-# --------------------------------------------------------------------------------------
-
 def _linked_doc_mappings():
     """
-    label: Display label for the card
-    target_doctype: DocType to list documents from
-    backref_field: field in target_doctype that points to this Disciplinary Action
+    Defines the documents displayed in the linked-documents HTML panel.
+
+    Dictionary filters are used by the consolidated intervention DocTypes,
+    while legacy single-purpose outcome forms use their direct Link field.
     """
     return [
         (
@@ -274,7 +271,6 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-        ("Disciplinary Outcome Reports", "Disciplinary Outcome Report", "linked_disciplinary_action"),
         ("Warnings", "Warning Form", "linked_disciplinary_action"),
         ("Dismissals", "Dismissal Form", "linked_disciplinary_action"),
         ("Demotions", "Demotion Form", "linked_disciplinary_action"),
@@ -289,8 +285,16 @@ def _linked_doc_mappings():
             },
         ),
         ("Suspensions", "Suspension Form", "linked_disciplinary_action"),
-        ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_disciplinary_action"),
-        ("Hearing Cancellations", "Hearing Cancellation Form", "linked_disciplinary_action"),
+        (
+            "Voluntary Separations",
+            "Voluntary Seperation Agreement",
+            "linked_disciplinary_action",
+        ),
+        (
+            "Hearing Cancellations",
+            "Hearing Cancellation Form",
+            "linked_disciplinary_action",
+        ),
         ("Appeals", "Appeal Against Outcome", "linked_disciplinary_action"),
     ]
 
