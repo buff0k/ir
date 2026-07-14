@@ -3,74 +3,81 @@
 
 import frappe
 
+PARENT_DOCTYPE = "Disciplinary Action"
+
+LINKED_TABLES = {
+    "linked_nta": ("NTA Hearing", "linked_nta", "linked_disciplinary_action"),
+    "linked_outcome": ("Disciplinary Outcome Report", "linked_outcome", "linked_disciplinary_action"),
+    "linked_warning": ("Warning Form", "linked_warning", "linked_disciplinary_action"),
+    "linked_dismissal": ("Dismissal Form", "linked_dismissal", "linked_disciplinary_action"),
+    "linked_demotion": ("Demotion Form", "linked_demotion", "linked_disciplinary_action"),
+    "linked_pay_deduction": ("Pay Deduction Form", "linked_pay_deduction", "linked_disciplinary_action"),
+    "linked_pay_reduction": ("Pay Reduction Form", "linked_pay_reduction", "linked_disciplinary_action"),
+    "linked_not_guilty": ("Not Guilty Form", "linked_not_guilty", "linked_disciplinary_action"),
+    "linked_suspension": ("Suspension Form", "linked_suspension", "linked_disciplinary_action"),
+    "linked_vsp": ("Voluntary Seperation Agreement", "linked_vsp", "linked_disciplinary_action"),
+    "linked_cancellation": ("Hearing Cancellation Form", "linked_cancellation", "linked_disciplinary_action"),
+}
+
+
 def execute():
     frappe.flags.ignore_permissions = True
 
-    # Step 1: Clear old linked fields from the Disciplinary Action Doctype
-    frappe.db.sql("""
-        UPDATE `tabDisciplinary Action`
-        SET linked_nta = NULL, 
-            linked_outcome = NULL, 
-            linked_warning = NULL, 
-            linked_dismissal = NULL, 
-            linked_demotion = NULL, 
-            linked_pay_deduction = NULL, 
-            linked_pay_reduction = NULL, 
-            linked_not_guilty = NULL, 
-            linked_suspension = NULL, 
-            linked_vsp = NULL, 
-            linked_cancellation = NULL
-    """)
+    if not frappe.db.exists("DocType", PARENT_DOCTYPE):
+        return
 
-    # Step 2: Map Table Multiselect fields to their respective linked Doctypes and fields in child tables
-    linked_tables = {
-        "linked_nta": {"doctype": "NTA Hearing", "child_table_field": "linked_nta"},
-        "linked_outcome": {"doctype": "Disciplinary Outcome Report", "child_table_field": "linked_outcome"},
-        "linked_warning": {"doctype": "Warning Form", "child_table_field": "linked_warning"},
-        "linked_dismissal": {"doctype": "Dismissal Form", "child_table_field": "linked_dismissal"},
-        "linked_demotion": {"doctype": "Demotion Form", "child_table_field": "linked_demotion"},
-        "linked_pay_deduction": {"doctype": "Pay Deduction Form", "child_table_field": "linked_pay_deduction"},
-        "linked_pay_reduction": {"doctype": "Pay Reduction Form", "child_table_field": "linked_pay_reduction"},
-        "linked_not_guilty": {"doctype": "Not Guilty Form", "child_table_field": "linked_not_guilty"},
-        "linked_suspension": {"doctype": "Suspension Form", "child_table_field": "linked_suspension"},
-        "linked_vsp": {"doctype": "Voluntary Seperation Agreement", "child_table_field": "linked_vsp"},
-        "linked_cancellation": {"doctype": "Hearing Cancellation Form", "child_table_field": "linked_cancellation"}
-    }
+    active_mappings = _get_active_mappings()
+    if not active_mappings:
+        return
 
-    # Step 3: Get all Disciplinary Action documents
-    disciplinary_actions = frappe.get_all("Disciplinary Action", fields=["name"])
+    for row in frappe.get_all(PARENT_DOCTYPE, fields=["name"]):
+        parent = frappe.get_doc(PARENT_DOCTYPE, row.name)
+        parent.flags.ignore_validate_update_after_submit = True
 
-    for disciplinary_action in disciplinary_actions:
-        doc_name = disciplinary_action.name
-        disciplinary_doc = frappe.get_doc("Disciplinary Action", doc_name)
+        for parent_field, mapping in active_mappings.items():
+            target_doctype, child_table_field, back_reference = mapping
+            parent.set(parent_field, [])
 
-        # Allow updates to submitted documents without validation errors
-        disciplinary_doc.flags.ignore_validate_update_after_submit = True
-
-        # Step 4: Clear existing data in the child tables
-        for child_field in linked_tables.keys():
-            disciplinary_doc.set(child_field, [])
-
-        # Step 5: Populate the Table Multiselect fields
-        for child_field, table_info in linked_tables.items():
-            doctype_name = table_info["doctype"]
-            child_table_field = table_info["child_table_field"]
-
-            # Fetch linked documents for the current Doctype
-            linked_docs = frappe.get_all(
-                doctype_name, 
-                filters={"linked_disciplinary_action": doc_name}, 
-                fields=["name"]
+            linked_documents = frappe.get_all(
+                target_doctype,
+                filters={back_reference: parent.name},
+                fields=["name"],
+                order_by="creation asc, name asc",
             )
 
-            # Append entries to the child table
-            for linked_doc in linked_docs:
-                disciplinary_doc.append(child_field, {
-                    child_table_field: linked_doc["name"]  # Populate the correct field in the child table
-                })
+            for linked_document in linked_documents:
+                parent.append(
+                    parent_field,
+                    {child_table_field: linked_document.name},
+                )
 
-        # Save the updated Disciplinary Action document
-        disciplinary_doc.save()
+        parent.save(ignore_permissions=True)
 
-    # Commit changes to the database
-    frappe.db.commit()
+
+def _get_active_mappings():
+    parent_meta = frappe.get_meta(PARENT_DOCTYPE)
+    active = {}
+
+    for parent_field, mapping in LINKED_TABLES.items():
+        target_doctype, child_table_field, back_reference = mapping
+        parent_df = parent_meta.get_field(parent_field)
+
+        if not parent_df or parent_df.fieldtype not in ("Table", "Table MultiSelect"):
+            continue
+
+        if not frappe.db.exists("DocType", target_doctype):
+            continue
+
+        if not frappe.db.has_column(target_doctype, back_reference):
+            continue
+
+        child_doctype = parent_df.options
+        if not child_doctype or not frappe.db.exists("DocType", child_doctype):
+            continue
+
+        if not frappe.db.has_column(child_doctype, child_table_field):
+            continue
+
+        active[parent_field] = mapping
+
+    return active

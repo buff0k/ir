@@ -3,22 +3,34 @@
 
 import frappe
 
+HISTORY_DOCTYPE = "Disciplinary History"
+OUTCOME_DOCTYPE = "Offence Outcome"
+
+
 def execute():
-    # This function will update the 'sanction' field in the 'Disciplinary History' child table
-    # by replacing it with the 'disc_offence_out' value from the 'Offence Outcome' table.
+    if not _schema_exists():
+        return
 
-    # SQL query to perform the update directly on the database
-    query = """
-    UPDATE `tabDisciplinary History` dh
-    INNER JOIN `tabOffence Outcome` oo ON dh.sanction = oo.name
-    SET dh.sanction = oo.disc_offence_out;
-    """
+    frappe.db.sql(
+        """
+        UPDATE `tabDisciplinary History` AS history
+        INNER JOIN `tabOffence Outcome` AS outcome
+            ON history.sanction = outcome.name
+        SET history.sanction = outcome.disc_offence_out
+        WHERE history.sanction IS NOT NULL
+          AND history.sanction != ''
+          AND outcome.disc_offence_out IS NOT NULL
+          AND outcome.disc_offence_out != ''
+        """
+    )
 
-    # Execute the SQL query
-    frappe.db.sql(query)
 
-    # Commit the transaction (although Frappe usually commits automatically after patches)
-    frappe.db.commit()
+def _schema_exists():
+    for doctype in (HISTORY_DOCTYPE, OUTCOME_DOCTYPE):
+        if not frappe.db.exists("DocType", doctype):
+            return False
 
-    # Optional: Log or print a message for patch execution confirmation
-    print("Patch to update Disciplinary History sanction field has been applied.")
+    return (
+        frappe.db.has_column(HISTORY_DOCTYPE, "sanction")
+        and frappe.db.has_column(OUTCOME_DOCTYPE, "disc_offence_out")
+    )

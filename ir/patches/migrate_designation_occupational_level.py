@@ -3,6 +3,7 @@
 
 import frappe
 
+DESIGNATION_DOCTYPE = "Designation"
 
 OLD_TO_NEW_OCCUPATIONAL_LEVEL = {
     "Top management": "Top Management",
@@ -15,27 +16,20 @@ OLD_TO_NEW_OCCUPATIONAL_LEVEL = {
 
 
 def execute():
-    doctype = "Designation"
+    if not frappe.db.exists("DocType", DESIGNATION_DOCTYPE):
+        return
 
-    required_fields = [
-        "custom_occupational_level",
-        "ir_occupational_level",
-    ]
-
-    missing_fields = [
-        fieldname
-        for fieldname in required_fields
-        if not frappe.db.has_column(doctype, fieldname)
-    ]
-
-    if missing_fields:
-        frappe.throw(
-            "Cannot migrate Designation occupational level. Missing columns on Designation: {0}".format(
-                ", ".join(missing_fields)
-            )
-        )
+    if not _has_columns("custom_occupational_level", "ir_occupational_level"):
+        return
 
     migrate_occupational_level()
+
+
+def _has_columns(*fieldnames):
+    return all(
+        frappe.db.has_column(DESIGNATION_DOCTYPE, fieldname)
+        for fieldname in fieldnames
+    )
 
 
 def migrate_occupational_level():
@@ -43,26 +37,23 @@ def migrate_occupational_level():
         frappe.db.sql(
             """
             UPDATE `tabDesignation`
-            SET ir_occupational_level = %(new_value)s
-            WHERE custom_occupational_level = %(old_value)s
+            SET `ir_occupational_level` = %(new_value)s
+            WHERE `custom_occupational_level` = %(old_value)s
+              AND (`ir_occupational_level` IS NULL
+                   OR `ir_occupational_level` = '')
             """,
-            {
-                "old_value": old_value,
-                "new_value": new_value,
-            },
+            {"old_value": old_value, "new_value": new_value},
         )
 
     unmapped_values = frappe.db.sql(
         """
-        SELECT DISTINCT custom_occupational_level
+        SELECT DISTINCT `custom_occupational_level`
         FROM `tabDesignation`
-        WHERE custom_occupational_level IS NOT NULL
-          AND custom_occupational_level != ''
-          AND custom_occupational_level NOT IN %(mapped_values)s
+        WHERE `custom_occupational_level` IS NOT NULL
+          AND `custom_occupational_level` != ''
+          AND `custom_occupational_level` NOT IN %(mapped_values)s
         """,
-        {
-            "mapped_values": tuple(OLD_TO_NEW_OCCUPATIONAL_LEVEL.keys()),
-        },
+        {"mapped_values": tuple(OLD_TO_NEW_OCCUPATIONAL_LEVEL.keys())},
         as_dict=True,
     )
 

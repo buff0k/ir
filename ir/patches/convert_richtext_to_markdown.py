@@ -2,29 +2,52 @@
 # For license information, please see license.txt
 
 import frappe
-import markdownify
 from markdownify import markdownify as md
 
+LEGACY_DOCTYPE = "Disciplinary Outcome Report"
+
+FIELDS_TO_CONVERT = (
+    "introduction",
+    "complainant_case",
+    "accused_case",
+    "analysis_of_evidence",
+    "finding",
+    "mitigating_considerations",
+    "aggravating_conisderations",
+    "outcome",
+)
+
+
 def execute():
-    """Convert existing HTML Text Editor content to Markdown for Disciplinary Outcome Report"""
-    fields_to_convert = [
-        "introduction", "complainant_case", "accused_case", "analysis_of_evidence",
-        "finding", "mitigating_considerations", "aggravating_conisderations", "outcome"
+    if not frappe.db.exists("DocType", LEGACY_DOCTYPE):
+        return
+
+    available_fields = [
+        fieldname
+        for fieldname in FIELDS_TO_CONVERT
+        if frappe.db.has_column(LEGACY_DOCTYPE, fieldname)
     ]
-    
-    # Fetch all the reports
-    reports = frappe.get_all("Disciplinary Outcome Report", fields=["name"] + fields_to_convert)
-    
+
+    if not available_fields:
+        return
+
+    reports = frappe.get_all(
+        LEGACY_DOCTYPE,
+        fields=["name", *available_fields],
+    )
+
     for report in reports:
-        for field in fields_to_convert:
-            if report.get(field):  # Ensure there's content to convert
-                # Convert HTML content to Markdown using markdownify
-                markdown_content = md(report.get(field))
-                
-                # Perform a direct database update for each field
-                frappe.db.set_value("Disciplinary Outcome Report", report.name, field, markdown_content)
-        
-        # Commit the changes immediately after updating the record
-        frappe.db.commit()
-    
-    print("✅ Converted all Rich Text fields to Markdown in Disciplinary Outcome Report")
+        values = {}
+
+        for fieldname in available_fields:
+            content = report.get(fieldname)
+            if content:
+                values[fieldname] = md(content)
+
+        if values:
+            frappe.db.set_value(
+                LEGACY_DOCTYPE,
+                report.name,
+                values,
+                update_modified=False,
+            )
