@@ -199,7 +199,7 @@ def recompute_attendance_for_employee_day(employee: str, attendance_date) -> Non
 	_upsert_attendance(
 		employee=employee,
 		attendance_date=attendance_date,
-		shift=shift_assignment.shift if shift_assignment else None,
+		shift=shift_assignment.shift_type if shift_assignment else None,
 		status=status,
 		working_hours=work.total_hours,
 		in_time=work.first_in,
