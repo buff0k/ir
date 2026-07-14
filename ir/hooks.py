@@ -210,6 +210,8 @@ scheduler_events = {
 		"ir.controllers.outstanding_poor_performance.outstanding_poor_performance",
 		"ir.controllers.notifications.send_weekly_induction_expiring_soon_notifications",
 		"ir.controllers.notifications.send_weekly_induction_expired_notifications",
+        "ir.controllers.notifications.send_weekly_outstanding_leave_application_notifications",
+		"ir.controllers.notifications.send_weekly_outstanding_employee_change_form_notifications",
 	],
 	"daily": [
 		"ir.controllers.attendance_sync.enqueue_daily_sync",

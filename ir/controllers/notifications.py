@@ -795,3 +795,388 @@ def _get_enabled_user_map(user_names):
     )
 
     return {user.name: user for user in users}
+
+
+# ---------- Weekly Outstanding HR Workflow Notifications ----------
+
+
+def send_weekly_outstanding_leave_application_notifications():
+    """
+    Weekly report of draft Leave Applications for active employees.
+
+    Each draft Leave Application is reported independently. No supersession
+    or latest-record logic is applied because multiple Leave Applications may
+    legitimately follow one another in the workflow.
+    """
+    rows = _get_outstanding_leave_applications()
+
+    _send_outstanding_workflow_email(
+        rows=rows,
+        subject="Weekly HR Report: Outstanding Leave Applications",
+        intro=(
+            "The following Leave Applications belong to active employees "
+            "and have not yet been submitted."
+        ),
+        table_headers=[
+            "Leave Application",
+            "Employee Name",
+            "Employee",
+            "Branch",
+            "Leave Type",
+            "From Date",
+            "To Date",
+            "Leave Days",
+            "Created",
+        ],
+        row_builder=_build_leave_application_row,
+        empty_log_message="No outstanding Leave Applications found.",
+        sent_log_label="outstanding Leave Application",
+    )
+
+
+def send_weekly_outstanding_employee_change_form_notifications():
+    """
+    Weekly combined report of draft Status Change Forms and Site Transfer
+    Forms for active employees.
+
+    Each draft document is reported independently. No supersession or
+    latest-record logic is applied because these documents may legitimately
+    be sequenced one after another.
+    """
+    rows = []
+
+    rows.extend(_get_outstanding_status_change_forms())
+    rows.extend(_get_outstanding_site_transfer_forms())
+
+    rows.sort(
+        key=lambda row: (
+            str(row.get("branch") or ""),
+            str(row.get("employee_name") or ""),
+            str(row.get("creation") or ""),
+            str(row.get("doctype") or ""),
+        )
+    )
+
+    _send_outstanding_workflow_email(
+        rows=rows,
+        subject="Weekly HR Report: Outstanding Employee Change Forms",
+        intro=(
+            "The following Status Change Forms and Site Transfer Forms "
+            "belong to active employees and have not yet been submitted."
+        ),
+        table_headers=[
+            "Document Type",
+            "Document",
+            "Employee Name",
+            "Employee",
+            "Branch",
+            "Effective Date",
+            "Change",
+            "Created",
+        ],
+        row_builder=_build_employee_change_form_row,
+        empty_log_message="No outstanding employee change forms found.",
+        sent_log_label="outstanding employee change form",
+    )
+
+
+def _get_outstanding_leave_applications():
+    """
+    Return draft Leave Applications linked to active employees.
+
+    Employee is joined directly so that inactive employees are excluded even
+    where the Leave Application itself still exists as a draft.
+    """
+    return frappe.db.sql(
+        """
+        SELECT
+            leave_application.name,
+            leave_application.employee,
+            COALESCE(
+                leave_application.employee_name,
+                employee.employee_name,
+                leave_application.employee
+            ) AS employee_name,
+            employee.branch,
+            leave_application.leave_type,
+            leave_application.from_date,
+            leave_application.to_date,
+            leave_application.total_leave_days,
+            leave_application.posting_date,
+            leave_application.creation
+        FROM `tabLeave Application` leave_application
+        INNER JOIN `tabEmployee` employee
+            ON employee.name = leave_application.employee
+        WHERE
+            leave_application.docstatus = 0
+            AND leave_application.employee IS NOT NULL
+            AND employee.status = 'Active'
+        ORDER BY
+            employee.branch ASC,
+            employee.employee_name ASC,
+            leave_application.from_date ASC,
+            leave_application.creation ASC
+        """,
+        as_dict=True,
+    )
+
+
+def _get_outstanding_status_change_forms():
+    """
+    Return draft Status Change Forms linked to active employees.
+    """
+    rows = frappe.db.sql(
+        """
+        SELECT
+            'Status Change Form' AS doctype,
+            status_change.name,
+            status_change.employee,
+            COALESCE(
+                status_change.employee_name,
+                employee.employee_name,
+                status_change.employee
+            ) AS employee_name,
+            employee.branch,
+            status_change.effective_date,
+            status_change.current_designation,
+            status_change.new_designation,
+            NULL AS current_branch,
+            NULL AS new_branch,
+            status_change.creation
+        FROM `tabStatus Change Form` status_change
+        INNER JOIN `tabEmployee` employee
+            ON employee.name = status_change.employee
+        WHERE
+            status_change.docstatus = 0
+            AND status_change.employee IS NOT NULL
+            AND employee.status = 'Active'
+        ORDER BY
+            employee.branch ASC,
+            employee.employee_name ASC,
+            status_change.effective_date ASC,
+            status_change.creation ASC
+        """,
+        as_dict=True,
+    )
+
+    return rows
+
+
+def _get_outstanding_site_transfer_forms():
+    """
+    Return draft Site Transfer Forms linked to active employees.
+    """
+    rows = frappe.db.sql(
+        """
+        SELECT
+            'Site Transfer Form' AS doctype,
+            site_transfer.name,
+            site_transfer.employee,
+            COALESCE(
+                site_transfer.employee_name,
+                employee.employee_name,
+                site_transfer.employee
+            ) AS employee_name,
+            COALESCE(
+                site_transfer.current_branch,
+                employee.branch
+            ) AS branch,
+            site_transfer.transfer_date AS effective_date,
+            NULL AS current_designation,
+            NULL AS new_designation,
+            site_transfer.current_branch,
+            site_transfer.new_branch,
+            site_transfer.creation
+        FROM `tabSite Transfer Form` site_transfer
+        INNER JOIN `tabEmployee` employee
+            ON employee.name = site_transfer.employee
+        WHERE
+            site_transfer.docstatus = 0
+            AND site_transfer.employee IS NOT NULL
+            AND employee.status = 'Active'
+        ORDER BY
+            branch ASC,
+            employee.employee_name ASC,
+            site_transfer.transfer_date ASC,
+            site_transfer.creation ASC
+        """,
+        as_dict=True,
+    )
+
+    return rows
+
+
+def _send_outstanding_workflow_email(
+    rows,
+    subject,
+    intro,
+    table_headers,
+    row_builder,
+    empty_log_message,
+    sent_log_label,
+):
+    """
+    Send one personalised weekly report to each configured report recipient.
+
+    Recipient configuration:
+        IR Role Restrictions > Report Recipients
+
+    This deliberately uses get_ir_notification_recipients(), matching the
+    existing weekly IR and HR reports.
+    """
+    if not rows:
+        frappe.logger().info(empty_log_message)
+        return
+
+    recipient_emails, name_by_email = get_ir_notification_recipients()
+
+    if not recipient_emails:
+        frappe.logger().info("No valid IR report recipients found.")
+        return
+
+    header_html = "".join(
+        f'<th align="left">{html_escape(str(header))}</th>'
+        for header in table_headers
+    )
+
+    row_html = "".join(row_builder(row) for row in rows)
+
+    table_html = f"""
+        <table
+            border="1"
+            cellspacing="0"
+            cellpadding="6"
+            style="border-collapse: collapse; width: 100%;"
+        >
+            <thead>
+                <tr>
+                    {header_html}
+                </tr>
+            </thead>
+            <tbody>
+                {row_html}
+            </tbody>
+        </table>
+    """
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "Valued IR Team"
+        first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
+
+        message = f"""
+            <p>Dear {html_escape(first_name)},</p>
+
+            <p>{html_escape(intro)}</p>
+
+            {table_html}
+
+            <p>Please review and attend to the outstanding documents.</p>
+
+            <p>
+                Kind regards,<br>
+                Industrial Relations
+            </p>
+        """
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+        )
+
+    frappe.logger().info(
+        f"Weekly {sent_log_label} report sent to "
+        f"{len(recipient_emails)} recipients."
+    )
+
+
+def _build_leave_application_row(row):
+    document_name = row.get("name") or ""
+    document_url = frappe.utils.get_url(
+        f"/app/leave-application/{document_name}"
+    )
+
+    return f"""
+        <tr>
+            <td>
+                <a href="{html_escape(document_url)}">
+                    {html_escape(document_name)}
+                </a>
+            </td>
+            <td>{html_escape(row.get("employee_name") or "")}</td>
+            <td>{html_escape(row.get("employee") or "")}</td>
+            <td>{html_escape(row.get("branch") or "")}</td>
+            <td>{html_escape(row.get("leave_type") or "")}</td>
+            <td>{_format_notification_date(row.get("from_date"))}</td>
+            <td>{_format_notification_date(row.get("to_date"))}</td>
+            <td>{html_escape(_format_leave_days(row.get("total_leave_days")))}</td>
+            <td>{_format_notification_date(row.get("creation"))}</td>
+        </tr>
+    """
+
+
+def _build_employee_change_form_row(row):
+    doctype = row.get("doctype") or ""
+    document_name = row.get("name") or ""
+
+    route = frappe.scrub(doctype).replace("_", "-")
+    document_url = frappe.utils.get_url(f"/app/{route}/{document_name}")
+
+    if doctype == "Status Change Form":
+        current_designation = row.get("current_designation") or "Not specified"
+        new_designation = row.get("new_designation") or "Not specified"
+
+        change_description = (
+            f"Designation: {current_designation} → {new_designation}"
+        )
+    elif doctype == "Site Transfer Form":
+        current_branch = row.get("current_branch") or "Not specified"
+        new_branch = row.get("new_branch") or "Not specified"
+
+        change_description = (
+            f"Branch: {current_branch} → {new_branch}"
+        )
+    else:
+        change_description = ""
+
+    return f"""
+        <tr>
+            <td>{html_escape(doctype)}</td>
+            <td>
+                <a href="{html_escape(document_url)}">
+                    {html_escape(document_name)}
+                </a>
+            </td>
+            <td>{html_escape(row.get("employee_name") or "")}</td>
+            <td>{html_escape(row.get("employee") or "")}</td>
+            <td>{html_escape(row.get("branch") or "")}</td>
+            <td>{_format_notification_date(row.get("effective_date"))}</td>
+            <td>{html_escape(change_description)}</td>
+            <td>{_format_notification_date(row.get("creation"))}</td>
+        </tr>
+    """
+
+
+def _format_notification_date(value):
+    if not value:
+        return ""
+
+    try:
+        return html_escape(formatdate(getdate(value)))
+    except Exception:
+        return html_escape(str(value))
+
+
+def _format_leave_days(value):
+    if value in (None, ""):
+        return ""
+
+    try:
+        numeric_value = float(value)
+
+        if numeric_value.is_integer():
+            return str(int(numeric_value))
+
+        return str(numeric_value)
+    except (TypeError, ValueError):
+        return str(value)
