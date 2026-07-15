@@ -21,6 +21,13 @@ frappe.ui.form.on("Warning Form", {
         toggle_intervention_sections(frm);
 
         if (
+            frm.doc.applied_rights &&
+            !(frm.doc.employee_rights || []).length
+        ) {
+            frm.trigger("applied_rights");
+        }
+
+        if (
             frm.doc.linked_intervention &&
             !frm.doc.linked_intervention_processed
         ) {

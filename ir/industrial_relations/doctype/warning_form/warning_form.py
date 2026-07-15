@@ -153,17 +153,37 @@ def fetch_intervention_data(ir_intervention, linked_intervention):
     return get_intervention_data(ir_intervention, linked_intervention)
 
 
-def get_intervention_data(ir_intervention, linked_intervention):
+def get_intervention_data(
+    ir_intervention,
+    linked_intervention,
+):
     if ir_intervention not in SUPPORTED_INTERVENTIONS:
-        frappe.throw(_("Unsupported intervention type."))
+        frappe.throw(
+            _("Unsupported intervention type.")
+        )
 
-    if not frappe.db.exists(ir_intervention, linked_intervention):
+    if not frappe.db.exists(
+        ir_intervention,
+        linked_intervention,
+    ):
         return {}
 
     if ir_intervention == "Disciplinary Action":
-        return _get_disciplinary_action_data(linked_intervention)
+        return _get_disciplinary_action_data(
+            linked_intervention
+        )
 
-    return _get_poor_performance_data(linked_intervention)
+    if ir_intervention == "Incapacity Proceedings":
+        return _get_incapacity_data(
+            linked_intervention
+        )
+
+    if ir_intervention == "Poor Performance":
+        return _get_poor_performance_data(
+            linked_intervention
+        )
+
+    return {}
 
 
 def _get_disciplinary_action_data(name):
@@ -250,6 +270,36 @@ def _apply_intervention_data(target, data):
         target.set(fieldname, [])
         for row in data.get(fieldname) or []:
             target.append(fieldname, row)
+
+
+def _apply_employee_rights(target, employee_rights_name):
+    target.set("employee_rights", [])
+
+    if not employee_rights_name:
+        return
+
+    if not frappe.db.exists(
+        "Employee Rights",
+        employee_rights_name,
+    ):
+        frappe.throw(
+            _("Employee Rights record {0} does not exist.").format(
+                employee_rights_name
+            )
+        )
+
+    rights_doc = frappe.get_doc(
+        "Employee Rights",
+        employee_rights_name,
+    )
+
+    for row in rights_doc.get("applicable_rights") or []:
+        target.append(
+            "employee_rights",
+            {
+                "individual_right": row.individual_right,
+            },
+        )
 
 
 @frappe.whitelist()
