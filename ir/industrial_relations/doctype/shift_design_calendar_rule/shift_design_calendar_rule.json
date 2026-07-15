@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-07-15 17:55:35.776692",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "priority",
+  "rule_type",
+  "day_of_week",
+  "action",
+  "day_shift_hours",
+  "night_shift_hours",
+  "enabled",
+  "notes"
+ ],
+ "fields": [
+  {
+   "default": "10",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Priority",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "rule_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Rule Type",
+   "options": "\nSunday\nPublic Holiday\nWeekday",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.rule_type == 'Weekday'",
+   "fieldname": "day_of_week",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Day of Week",
+   "options": "\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Action",
+   "options": "\nFollow Pattern\nNo Work\nDay Shift Only\nNight Shift Only\nContinue Previous Day Team\nContinue Saturday Day Team\nNo Night Shift",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "day_shift_hours",
+   "fieldtype": "Float",
+   "label": "Day Shift Hours"
+  },
+  {
+   "fieldname": "night_shift_hours",
+   "fieldtype": "Float",
+   "label": "Night Shift Hours"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-07-15 19:42:55.231591",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Design Calendar Rule",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

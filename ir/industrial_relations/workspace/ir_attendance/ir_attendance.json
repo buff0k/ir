@@ -1,7 +1,7 @@
 {
  "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"wECMhmTbNU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Attendance</span>\",\"col\":12}},{\"id\":\"KN6XMPzk6q\",\"type\":\"card\",\"data\":{\"card_name\":\"Attendance Tracking\",\"col\":4}},{\"id\":\"xPYZCLle-0\",\"type\":\"card\",\"data\":{\"card_name\":\"Leave Management\",\"col\":4}}]",
+ "content": "[{\"id\":\"wECMhmTbNU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Attendance</span>\",\"col\":12}},{\"id\":\"KN6XMPzk6q\",\"type\":\"card\",\"data\":{\"card_name\":\"Attendance Tracking\",\"col\":4}},{\"id\":\"xPYZCLle-0\",\"type\":\"card\",\"data\":{\"card_name\":\"Leave Management\",\"col\":4}},{\"id\":\"BR_MOvqibw\",\"type\":\"card\",\"data\":{\"card_name\":\"Shift Design\",\"col\":4}}]",
  "creation": "2026-01-27 13:49:25.261811",
  "custom_blocks": [],
  "docstatus": 0,
@@ -9,7 +9,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "money-coins-1",
- "idx": 3,
+ "idx": 4,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "IR Attendance",
@@ -113,9 +113,38 @@
    "onboard": 0,
    "report_ref_doctype": "Leave Application",
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Design",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Design",
+   "link_count": 0,
+   "link_to": "Shift Design",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Designer",
+   "link_count": 0,
+   "link_to": "ir-shift-design",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-06-26 14:55:09.051323",
+ "modified": "2026-07-15 18:22:44.393546",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Attendance",

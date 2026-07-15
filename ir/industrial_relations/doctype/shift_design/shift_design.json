@@ -1,0 +1,371 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{branch} - {design_name}",
+ "creation": "2026-07-15 17:55:36.077943",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "configuration_tab",
+  "identity_section",
+  "design_name",
+  "branch",
+  "identity_column",
+  "company",
+  "day_shift_type",
+  "night_shift_type",
+  "pay_period_start_day",
+  "pay_period_end_day",
+  "ordinary_hours_limit",
+  "sunday_rule",
+  "validity_section",
+  "status",
+  "enabled",
+  "validity_column",
+  "effective_from",
+  "effective_until",
+  "cycle_section",
+  "number_of_teams",
+  "cycle_length",
+  "cycle_column",
+  "anchor_date",
+  "default_assignment_horizon",
+  "teams_tab",
+  "teams",
+  "pattern_tab",
+  "pattern",
+  "calendar_rules_tab",
+  "calendar_rules",
+  "date_overrides_tab",
+  "date_overrides",
+  "generation_tab",
+  "generation_status_section",
+  "last_generated_through",
+  "last_generation_date",
+  "generation_status_column",
+  "last_generation_status",
+  "last_generation_message"
+ ],
+ "fields": [
+  {
+   "fieldname": "configuration_tab",
+   "fieldtype": "Tab Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "identity_section",
+   "fieldtype": "Section Break",
+   "label": "Identity and Scope"
+  },
+  {
+   "fieldname": "design_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Design Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Branch",
+   "options": "Branch",
+   "reqd": 1
+  },
+  {
+   "fieldname": "identity_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "validity_section",
+   "fieldtype": "Section Break",
+   "label": "Validity"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nDraft\nActive\nSuperseded\nArchived",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "validity_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Effective From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "effective_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Effective Until"
+  },
+  {
+   "fieldname": "cycle_section",
+   "fieldtype": "Section Break",
+   "label": "Cycle Configuration"
+  },
+  {
+   "default": "3",
+   "fieldname": "number_of_teams",
+   "fieldtype": "Int",
+   "label": "Number of Shift Teams",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "9",
+   "description": "Number of calendar days in the repeating shift cycle.",
+   "fieldname": "cycle_length",
+   "fieldtype": "Int",
+   "label": "Cycle Length",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "cycle_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The date on which Pattern Day 1 applies.",
+   "fieldname": "anchor_date",
+   "fieldtype": "Date",
+   "label": "Anchor Date",
+   "reqd": 1
+  },
+  {
+   "default": "90",
+   "description": "Default number of future days to preview or generate.",
+   "fieldname": "default_assignment_horizon",
+   "fieldtype": "Int",
+   "label": "Default Assignment Horizon",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "teams_tab",
+   "fieldtype": "Tab Break",
+   "label": "Teams"
+  },
+  {
+   "fieldname": "teams",
+   "fieldtype": "Table",
+   "label": "Shift Teams",
+   "options": "Shift Design Team",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pattern_tab",
+   "fieldtype": "Tab Break",
+   "label": "Pattern"
+  },
+  {
+   "fieldname": "pattern",
+   "fieldtype": "Table",
+   "label": "Rotation Pattern",
+   "options": "Shift Design Pattern"
+  },
+  {
+   "fieldname": "calendar_rules_tab",
+   "fieldtype": "Tab Break",
+   "label": "Calendar Rules"
+  },
+  {
+   "fieldname": "calendar_rules",
+   "fieldtype": "Table",
+   "label": "Calendar Rules",
+   "options": "Shift Design Calendar Rule"
+  },
+  {
+   "fieldname": "date_overrides_tab",
+   "fieldtype": "Tab Break",
+   "label": "Date Overrides"
+  },
+  {
+   "fieldname": "date_overrides",
+   "fieldtype": "Table",
+   "label": "Date Overrides",
+   "options": "Shift Design Date Override"
+  },
+  {
+   "fieldname": "generation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Generation"
+  },
+  {
+   "fieldname": "generation_status_section",
+   "fieldtype": "Section Break",
+   "label": "Assignment Generation Status"
+  },
+  {
+   "fieldname": "last_generated_through",
+   "fieldtype": "Date",
+   "label": "Last Generated Through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_generation_date",
+   "fieldtype": "Datetime",
+   "label": "Last Generation Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "generation_status_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Not Generated",
+   "fieldname": "last_generation_status",
+   "fieldtype": "Select",
+   "label": "Last Generation Status",
+   "options": "\nNot Generated\nSuccess\nPartial\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_generation_message",
+   "fieldtype": "Small Text",
+   "label": "Last Generation Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "day_shift_type",
+   "fieldtype": "Link",
+   "label": "Day Shift Type",
+   "options": "Shift Type"
+  },
+  {
+   "fieldname": "night_shift_type",
+   "fieldtype": "Link",
+   "label": "Night Shift Type",
+   "options": "Shift Type"
+  },
+  {
+   "default": "1",
+   "fieldname": "pay_period_start_day",
+   "fieldtype": "Int",
+   "label": "Pay Period Start Day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "pay_period_end_day",
+   "fieldtype": "Int",
+   "label": "Pay Period End Day",
+   "non_negative": 1,
+   "options": "31",
+   "reqd": 1
+  },
+  {
+   "default": "195",
+   "fieldname": "ordinary_hours_limit",
+   "fieldtype": "Float",
+   "label": "Ordinary Hours Limit",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Follow Pattern",
+   "fieldname": "sunday_rule",
+   "fieldtype": "Select",
+   "label": "Sunday Rule",
+   "options": "Follow Pattern\nExtend Saturday Day Team",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-15 19:52:23.393811",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Shift Design",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "branch,design_name,status",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "design_name",
+ "track_changes": 1
+}
