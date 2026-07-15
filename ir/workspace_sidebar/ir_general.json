@@ -69,6 +69,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "align-end-vertical",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Dashboard",
+   "link_to": "Industrial Relations",
+   "link_type": "Dashboard",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Employee",
@@ -123,7 +135,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-01 11:26:00.356119",
+ "modified": "2026-07-15 08:58:30.963266",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
