@@ -19,3 +19,4 @@ ir.patches.migrate_disciplinary_outcome_report_to_written_outcome
 ir.patches.migrate_not_guilty_form_to_no_further_action_form
 ir.patches.migrate_warning_form_intervention_links
 ir.patches.migrate_suspension_form_intervention_model
+ir.patches.migrate_dismissal_form_intervention_model

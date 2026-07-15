@@ -247,7 +247,12 @@ function make_pay_reduction_form(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form_performance", { linked_poor_performance: frm.doc.name });
 }
 function make_dismissal_form(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_performance", { linked_poor_performance: frm.doc.name });
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+        "Dismissal Form",
+        "Creating Dismissal Form ..."
+    );
 }
 function make_vsp(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_performance", { linked_poor_performance: frm.doc.name });

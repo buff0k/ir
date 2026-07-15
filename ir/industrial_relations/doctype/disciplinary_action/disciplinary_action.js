@@ -276,10 +276,20 @@ function make_pay_reduction_form_misc(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form_misc", { linked_disciplinary_action: frm.doc.name });
 }
 function make_dismissal_form(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form", { linked_disciplinary_action: frm.doc.name });
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+        "Dismissal Form",
+        "Creating Dismissal Form ..."
+    );
 }
 function make_vsp(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp", { linked_disciplinary_action: frm.doc.name });
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.create_vsp",
+        "Voluntary Separation Agreement",
+        "Creating Voluntary Separation Agreement ..."
+    );
 }
 function cancel_disciplinary(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.hearing_cancellation_form.hearing_cancellation_form.cancel_disciplinary", { linked_disciplinary_action: frm.doc.name });

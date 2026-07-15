@@ -2,280 +2,317 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.model.mapper import get_mapped_doc
-from frappe import _, get_doc
+from frappe.utils import cint
+
 from ir.industrial_relations.utils import fetch_performance_data
+
+SUPPORTED_INTERVENTIONS = {
+    "Disciplinary Action",
+    "Incapacity Proceedings",
+    "Poor Performance",
+}
+
 
 class DismissalForm(Document):
     def autoname(self):
-        linked_field = None
-        linked_field_name = None
-
-        if self.linked_disciplinary_action:
-            linked_field = self.linked_disciplinary_action
-            linked_field_name = 'linked_disciplinary_action'
-        elif self.linked_incapacity_proceeding:
-            linked_field = self.linked_incapacity_proceeding
-            linked_field_name = 'linked_incapacity_proceeding'
-        elif self.linked_poor_performance:
-            linked_field = self.linked_poor_performance
-            linked_field_name = 'linked_poor_performance'
-
-        if not linked_field:
+        if not self.linked_intervention:
             return
 
-        existing_docs = frappe.get_all(self.doctype, filters={linked_field_name: linked_field}, fields=["name"])
+        prefix = f"DISM-{self.linked_intervention}"
+        existing = frappe.get_all(
+            self.doctype,
+            filters={
+                "ir_intervention": self.ir_intervention,
+                "linked_intervention": self.linked_intervention,
+            },
+            pluck="name",
+        )
 
-        if len(existing_docs) == 0:
-            self.name = f"DISM-{linked_field}"
-        else:
-            latest_revision = 0
-            for doc in existing_docs:
-                if doc.name.startswith(f"DISM-{linked_field}-"):
-                    revision_number = doc.name.split('-')[-1]
-                    try:
-                        revision_number = int(revision_number)
-                        latest_revision = max(latest_revision, revision_number)
-                    except ValueError:
-                        pass
+        if not existing:
+            self.name = prefix
+            return
 
-            new_revision = latest_revision + 1
-            self.name = f"DISM-{linked_field}-{new_revision}"
+        latest_revision = 0
+        for name in existing:
+            if not name.startswith(f"{prefix}-"):
+                continue
+            try:
+                latest_revision = max(latest_revision, int(name.rsplit("-", 1)[1]))
+            except (TypeError, ValueError):
+                continue
+
+        self.name = f"{prefix}-{latest_revision + 1}"
+
+    def validate(self):
+        self._validate_intervention()
+        self._validate_required_values()
 
     def before_save(self):
         if not getattr(self, "__confirmed_save", False):
-            self.clear_outcome_in_linked_documents()
+            self.clear_source_outcome()
 
     def before_submit(self):
+        self._validate_submission()
+        self._update_employee_as_left()
+
+    def on_submit(self):
+        if not getattr(self, "__confirmed_submit", False):
+            self.set_source_outcome()
+
+    def _validate_intervention(self):
+        if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
+            frappe.throw(_("Select a supported IR Intervention."))
+
+        if not self.linked_intervention:
+            frappe.throw(_("Linked IR Intervention is required."))
+
+        if not frappe.db.exists(self.ir_intervention, self.linked_intervention):
+            frappe.throw(
+                _("{0} {1} does not exist.").format(
+                    self.ir_intervention,
+                    self.linked_intervention,
+                )
+            )
+
+    def _validate_required_values(self):
         if not self.employee:
-            frappe.throw(_("Please link an Employee before submitting."))
-
+            frappe.throw(_("Please link an Employee."))
+        if not self.dismissal_type:
+            frappe.throw(_("Dismissal Type is required."))
         if not self.outcome_date:
-            frappe.throw(_("Outcome Date is required before submitting."))
+            frappe.throw(_("Date of Dismissal is required."))
 
+    def _validate_submission(self):
+        self._validate_required_values()
+        if not self.signed_dismissal:
+            frappe.throw(_("Attach the signed dismissal before submitting."))
+
+    def _get_source_document(self):
+        self._validate_intervention()
+        return frappe.get_doc(self.ir_intervention, self.linked_intervention)
+
+    def clear_source_outcome(self):
+        source = self._get_source_document()
+        previous = _get_outcome_values(source)
+
+        if not any(previous.values()):
+            return
+
+        updates = {
+            "outcome": None,
+            "outcome_date": None,
+            "outcome_start": None,
+            "outcome_end": None,
+        }
+        _apply_source_updates(source, updates, previous)
+
+        frappe.msgprint(
+            _("Outcome information for {0} ({1}) has been cleared.").format(
+                source.name,
+                source.doctype,
+            ),
+            alert=True,
+        )
+
+    def set_source_outcome(self):
+        source = self._get_source_document()
+        previous = _get_outcome_values(source)
+        updates = {
+            "outcome": self.dismissal_type,
+            "outcome_date": self.outcome_date,
+            "outcome_start": None,
+            "outcome_end": None,
+        }
+        _apply_source_updates(source, updates, previous)
+
+        frappe.msgprint(
+            _("Outcome for {0} ({1}) has been updated to {2} dated {3}.").format(
+                source.name,
+                source.doctype,
+                self.dismissal_type,
+                self.outcome_date,
+            ),
+            alert=True,
+        )
+
+    def _update_employee_as_left(self):
         employee = frappe.get_doc("Employee", self.employee)
         employee.status = "Left"
         employee.relieving_date = self.outcome_date
         employee.save(ignore_permissions=True)
 
         frappe.msgprint(
-            _("Employee {0}'s status has been updated to 'Left' and relieving date set to {1}.").format(
-                self.employee, self.outcome_date
+            _("Employee {0} has been marked Left with relieving date {1}.").format(
+                self.employee,
+                self.outcome_date,
             ),
-            alert=True
+            alert=True,
         )
 
-    def on_submit(self):
-        if not getattr(self, "__confirmed_submit", False):
-            self.set_outcome_in_linked_documents()
 
-    def clear_outcome_in_linked_documents(self):
-        linked_doc_name, linked_doctype = self.get_linked_document()
-        if linked_doc_name and linked_doctype:
-            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
-            linked_doc.flags.ignore_version = True  # Avoid version mismatch
-
-            previous_outcome = linked_doc.get("outcome")
-            previous_outcome_date = linked_doc.get("outcome_date")
-
-            if linked_doc.docstatus == 0:  # Non-submitted document
-                linked_doc.outcome = None
-                linked_doc.outcome_date = None
-                linked_doc.outcome_start = None
-                linked_doc.outcome_end = None
-                linked_doc.save(ignore_permissions=True)
-            else:  # Submitted document
-                linked_doc.db_set("outcome", None)
-                linked_doc.db_set("outcome_date", None)
-                linked_doc.db_set("outcome_start", None)
-                linked_doc.db_set("outcome_end", None)
-                # Create a manual version entry for the submitted document
-                create_manual_version(linked_doc, "outcome", previous_outcome, None)
-                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, None)
-                create_manual_version(linked_doc, "outcome_start", previous_outcome_date, None)
-                create_manual_version(linked_doc, "outcome_end", previous_outcome_date, None)
-
-            # Notify the user
-            frappe.msgprint(
-                _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been cleared.").format(linked_doc_name, linked_doctype),
-                alert=True
-            )
-
-    def set_outcome_in_linked_documents(self):
-        linked_doc_name, linked_doctype = self.get_linked_document()
-        if linked_doc_name and linked_doctype:
-            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
-            linked_doc.flags.ignore_version = True  # Avoid version mismatch
-
-            previous_outcome = linked_doc.get("outcome")
-            previous_outcome_date = linked_doc.get("outcome_date")
-
-            if linked_doc.docstatus == 0:  # Non-submitted document
-                linked_doc.outcome = self.dismissal_type
-                linked_doc.outcome_date = self.outcome_date
-                linked_doc.save(ignore_permissions=True)
-            else:  # Submitted document
-                linked_doc.db_set("outcome", self.dismissal_type)
-                linked_doc.db_set("outcome_date", self.outcome_date)
-                # Create a manual version entry for the submitted document
-                create_manual_version(linked_doc, "outcome", previous_outcome, self.dismissal_type)
-                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, self.outcome_date)
-
-            # Notify the user
-            frappe.msgprint(
-                _("Outcome and Outcome Date for {0} ({1}) have been updated to {2} and {3}, respectively.")
-                .format(linked_doc_name, linked_doctype, self.dismissal_type, self.outcome_date),
-                alert=True
-            )
-
-    def get_linked_document(self):
-        if self.linked_disciplinary_action:
-            return self.linked_disciplinary_action, "Disciplinary Action"
-        elif self.linked_incapacity_proceeding:
-            return self.linked_incapacity_proceeding, "Incapacity Proceedings"
-        elif self.linked_poor_performance:
-            return self.linked_poor_performance, "Poor Performance"
-        return None, None
-
-def create_manual_version(doc, fieldname, old_value, new_value):
-    """Create a manual version entry for a submitted document."""
-    version_data = {
-        "ref_doctype": doc.doctype,
-        "docname": doc.name,
-        "data": frappe.as_json({
-            "changed": [[fieldname, old_value, new_value]]
-        })
+def _get_outcome_values(doc):
+    return {
+        "outcome": doc.get("outcome"),
+        "outcome_date": doc.get("outcome_date"),
+        "outcome_start": doc.get("outcome_start"),
+        "outcome_end": doc.get("outcome_end"),
     }
-    frappe.get_doc({"doctype": "Version", **version_data}).insert(ignore_permissions=True)
-
-@frappe.whitelist()
-def make_dismissal_form(source_name, target_doc=None):
-    def set_missing_values(source, target):
-        target.linked_disciplinary_action = source_name
-
-    doclist = get_mapped_doc("Disciplinary Action", source_name, {
-        "Disciplinary Action": {
-            "doctype": "Dismissal Form",
-            "field_map": {
-                "name": "linked_disciplinary_action"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
-
-@frappe.whitelist()
-def make_dismissal_form_incap(source_name, target_doc=None):
-    def set_missing_values(source, target):
-        target.linked_incapacity_proceeding = source_name
-
-    doclist = get_mapped_doc("Incapacity Proceedings", source_name, {
-        "Incapacity Proceedings": {
-            "doctype": "Dismissal Form",
-            "field_map": {
-                "name": "linked_incapacity_proceeding"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
-
-@frappe.whitelist()
-def make_dismissal_form_poor_performance(source_name, target_doc=None):
-    from frappe.model.mapper import get_mapped_doc
-
-    def set_missing_values(source, target):
-        target.linked_poor_performance = source_name
-
-    doclist = get_mapped_doc("Poor Performance", source_name, {
-        "Poor Performance": {
-            "doctype": "Dismissal Form",
-            "field_map": {
-                "name": "linked_poor_performance"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
 
 
-@frappe.whitelist()
-def fetch_disciplinary_action_data(disciplinary_action):
-    data = frappe.db.get_value('Disciplinary Action', disciplinary_action, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company'], as_dict=True)
+def _apply_source_updates(source, updates, previous):
+    source.flags.ignore_version = True
 
-    if not data:
-        return {}
-    
-    disciplinary_action_doc = frappe.get_doc('Disciplinary Action', disciplinary_action)
-    
-    previous_disciplinary_outcomes = [
+    if source.docstatus == 0:
+        for fieldname, value in updates.items():
+            source.set(fieldname, value)
+        source.save(ignore_permissions=True)
+        return
+
+    for fieldname, value in updates.items():
+        old_value = previous.get(fieldname)
+        if old_value == value:
+            continue
+        source.db_set(fieldname, value, update_modified=False)
+        _create_manual_version(source, fieldname, old_value, value)
+
+
+def _create_manual_version(doc, fieldname, old_value, new_value):
+    frappe.get_doc(
         {
-            'disc_action': row.disc_action,
-            'date': row.date,
-            'sanction': row.sanction,
-            'charges': row.charges
-        } for row in disciplinary_action_doc.previous_disciplinary_outcomes
-    ]
-    
-    final_charges = [
+            "doctype": "Version",
+            "ref_doctype": doc.doctype,
+            "docname": doc.name,
+            "data": frappe.as_json(
+                {"changed": [[fieldname, old_value, new_value]]}
+            ),
+        }
+    ).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def create_dismissal_form(source_name, source_doctype):
+    if source_doctype not in SUPPORTED_INTERVENTIONS:
+        frappe.throw(_("Unsupported source DocType: {0}").format(source_doctype))
+
+    source = frappe.get_doc(source_doctype, source_name)
+    target = frappe.new_doc("Dismissal Form")
+    target.ir_intervention = source_doctype
+    target.linked_intervention = source.name
+    target.linked_intervention_processed = 0
+    return target
+
+
+@frappe.whitelist()
+def fetch_intervention_data(source_doctype, source_name):
+    if source_doctype not in SUPPORTED_INTERVENTIONS:
+        frappe.throw(_("Unsupported source DocType: {0}").format(source_doctype))
+    if not frappe.db.exists(source_doctype, source_name):
+        frappe.throw(_("{0} {1} was not found.").format(source_doctype, source_name))
+
+    if source_doctype == "Disciplinary Action":
+        return _fetch_disciplinary_data(source_name)
+    if source_doctype == "Incapacity Proceedings":
+        return _fetch_incapacity_data(source_name)
+    return _fetch_performance_data(source_name)
+
+
+def _fetch_disciplinary_data(source_name):
+    data = frappe.db.get_value(
+        "Disciplinary Action",
+        source_name,
+        ["accused", "accused_name", "accused_pos", "company"],
+        as_dict=True,
+    ) or {}
+    source = frappe.get_doc("Disciplinary Action", source_name)
+    data.update(
         {
-            'indiv_charge': f"({row.code_item}) {row.charge}"
-        } for row in disciplinary_action_doc.final_charges
-    ]
-    
-    data.update({
-        'previous_disciplinary_outcomes': previous_disciplinary_outcomes,
-        'final_charges': final_charges
-    })
-    
+            "employee": data.get("accused") or "",
+            "names": data.get("accused_name") or "",
+            "position": data.get("accused_pos") or "",
+            "disciplinary_history": [
+                {
+                    "disc_action": row.disc_action,
+                    "date": row.date,
+                    "sanction": row.sanction,
+                    "charges": row.charges,
+                }
+                for row in (source.previous_disciplinary_outcomes or [])
+            ],
+            "dismissal_charges": [
+                {"indiv_charge": f"({row.code_item}) {row.charge}"}
+                for row in (source.final_charges or [])
+            ],
+        }
+    )
     return data
 
-@frappe.whitelist()
-def fetch_incpacity_proceeding_data(incapacity_proceeding):
-    if not frappe.db.exists('Incapacity Proceedings', incapacity_proceeding):
-        frappe.throw(_("Incapacity Proceedings {0} not found").format(incapacity_proceeding))
 
-    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceeding, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'type_of_incapacity', 'details_of_incapacity'], as_dict=True)
-
-    if not data:
-        return {}
-    
-    incapacity_proceeding_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceeding)
-    
-    previous_incapacity_outcomes = [
+def _fetch_incapacity_data(source_name):
+    data = frappe.db.get_value(
+        "Incapacity Proceedings",
+        source_name,
+        [
+            "accused",
+            "accused_name",
+            "accused_pos",
+            "company",
+            "type_of_incapacity",
+            "details_of_incapacity",
+        ],
+        as_dict=True,
+    ) or {}
+    source = frappe.get_doc("Incapacity Proceedings", source_name)
+    data.update(
         {
-            'incap_proc': row.incap_proc,
-            'date': row.date,
-            'sanction': row.sanction,
-            'incap_details': row.incap_details
-        } for row in incapacity_proceeding_doc.previous_incapacity_outcomes
-    ]
-    
-    data.update({
-        'previous_incapacity_outcomes': previous_incapacity_outcomes
-    })
-    
+            "employee": data.get("accused") or "",
+            "names": data.get("accused_name") or "",
+            "position": data.get("accused_pos") or "",
+            "previous_incapacity_outcomes": [
+                {
+                    "incap_proc": row.incap_proc,
+                    "date": row.date,
+                    "sanction": row.sanction,
+                    "incap_details": row.incap_details,
+                }
+                for row in (source.previous_incapacity_outcomes or [])
+            ],
+        }
+    )
     return data
 
-@frappe.whitelist()
-def fetch_poor_performance_data(poor_performance):
-    return fetch_performance_data(poor_performance)
+
+def _fetch_performance_data(source_name):
+    data = fetch_performance_data(source_name) or {}
+    return {
+        "employee": data.get("employee") or "",
+        "names": data.get("employee_name") or "",
+        "position": data.get("employee_designation") or "",
+        "company": data.get("company") or "",
+        "performance_details": (
+            data.get("performance_details")
+            or data.get("details_of_poor_performance")
+            or ""
+        ),
+        "previous_performance_outcomes": (
+            data.get("previous_performance_outcomes") or []
+        ),
+    }
 
 
 @frappe.whitelist()
 def fetch_company_letter_head(company):
-    letter_head = frappe.db.get_value('Company', company, 'default_letter_head')
-    return {'letter_head': letter_head} if letter_head else {}
+    return frappe.db.get_value("Company", company, "default_letter_head") or ""
+
 
 @frappe.whitelist()
 def get_linked_outcome(doc_name, doctype):
+    if doctype not in SUPPORTED_INTERVENTIONS:
+        frappe.throw(_("Unsupported source DocType: {0}").format(doctype))
     linked_doc = frappe.get_doc(doctype, doc_name)
     return {
         "linked_doc_name": linked_doc.name,
         "linked_doctype": doctype,
-        "outcome": linked_doc.outcome,
-        "outcome_date": linked_doc.outcome_date
+        **_get_outcome_values(linked_doc),
     }

@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "creation": "2024-07-23 09:55:56.786734",
  "doctype": "DocType",
@@ -7,23 +8,18 @@
  "field_order": [
   "section_break_ut3o",
   "amended_from",
-  "employee",
   "company",
   "letter_head",
-  "linked_disciplinary_action_processed",
-  "linked_incapacity_proceeding_processed",
-  "linked_poor_performance_processed",
+  "linked_intervention_processed",
   "section_break_qeko",
   "employee_details_column",
-  "linked_disciplinary_action",
-  "linked_incapacity_proceeding",
-  "linked_poor_performance",
-  "linked_nta_hearing",
+  "ir_intervention",
+  "employee",
   "dismissal_type",
   "signed_dismissal",
   "column_break_iuhw",
+  "linked_intervention",
   "names",
-  "coy",
   "position",
   "dismissal_details_section",
   "outcome_date",
@@ -41,7 +37,7 @@
   "details_of_poor_performance_section",
   "performance_details",
   "performance_history_section",
-  "table_fqxg",
+  "previous_performance_outcomes",
   "rights_section",
   "employee_rights"
  ],
@@ -70,15 +66,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "linked_disciplinary_action",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action",
-   "read_only": 1
-  },
-  {
    "fieldname": "dismissal_type",
    "fieldtype": "Link",
    "label": "Dismissal Type",
@@ -95,12 +82,13 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
-   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "company",
@@ -121,13 +109,6 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "linked_disciplinary_action_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Discipliniary Action Processed"
-  },
-  {
    "fieldname": "column_break_iuhw",
    "fieldtype": "Column Break"
   },
@@ -138,21 +119,10 @@
    "reqd": 1
   },
   {
-   "fieldname": "coy",
-   "fieldtype": "Read Only",
-   "label": "Coy. No",
-   "reqd": 1
-  },
-  {
    "fieldname": "position",
    "fieldtype": "Read Only",
    "label": "Position",
    "reqd": 1
-  },
-  {
-   "fieldname": "linked_nta_hearing",
-   "fieldtype": "Read Only",
-   "label": "Linked NTA"
   },
   {
    "fieldname": "dismissal_details_section",
@@ -171,11 +141,13 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "details_of_offence_section",
    "fieldtype": "Section Break",
    "label": "Details of Offence"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "dismissal_charges",
    "fieldtype": "Table",
    "label": "Charges",
@@ -183,11 +155,13 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "previous_disciplinary_offences_section",
    "fieldtype": "Section Break",
-   "label": "Previous Disciplinary Offences"
+   "label": "Previous Disciplinary History"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
    "label": "Disciplinary History:",
@@ -212,32 +186,19 @@
    "label": "Attach Signed Dismissal"
   },
   {
-   "default": "0",
-   "fieldname": "linked_incapacity_proceeding_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Incapacity Proceeding Processed"
-  },
-  {
-   "fieldname": "linked_incapacity_proceeding",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Linked Incapacity Proceeding",
-   "options": "Incapacity Proceedings",
-   "read_only": 1
-  },
-  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "incap_details_section",
    "fieldtype": "Section Break",
    "label": "Details of Incapacity"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "previous_incapacity_outcomes_section",
    "fieldtype": "Section Break",
-   "label": "Previous Inacpacity Outcomes"
+   "label": "Previous Incapacity Outcomes"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "previous_incapacity_outcomes",
    "fieldtype": "Table",
    "label": "Previous Incapacity History",
@@ -245,12 +206,14 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "details_of_incapacity",
    "fieldtype": "Small Text",
    "label": "Details of Incapacity",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
    "fieldname": "type_of_incapacity",
    "fieldtype": "Link",
    "label": "Type of Incapacity",
@@ -258,36 +221,52 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "linked_poor_performance_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Poor Performance Processed",
-   "read_only": 1
-  },
-  {
-   "fieldname": "linked_poor_performance",
-   "fieldtype": "Link",
-   "label": "Linked Poor Performance",
-   "options": "Poor Performance"
-  },
-  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "details_of_poor_performance_section",
    "fieldtype": "Section Break",
    "label": "Details of Poor Performance"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details",
    "fieldtype": "Small Text",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_history_section",
    "fieldtype": "Section Break",
    "label": "Performance History"
   },
   {
-   "fieldname": "table_fqxg",
+   "default": "0",
+   "fieldname": "linked_intervention_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Intervention Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "label": "IR Intervention",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Poor Performance\"]]]",
+   "options": "DocType",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Linked IR Intervention",
+   "options": "ir_intervention",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
+   "fieldname": "previous_performance_outcomes",
    "fieldtype": "Table",
    "options": "Performance History",
    "read_only": 1
@@ -297,10 +276,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-18 15:19:22.476738",
+ "modified": "2026-07-15 12:04:18.711766",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dismissal Form",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
