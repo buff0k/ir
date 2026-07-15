@@ -1,344 +1,274 @@
 // Copyright (c) 2026, BuFf0k and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Suspension Form', {
-    refresh: function(frm) {
-        // Check the flags before triggering the handler
-        if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
-            frm.trigger('linked_disciplinary_action');
-        } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
-            frm.trigger('linked_incapacity_proceeding');
-        } else if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
-            frm.trigger('linked_poor_performance');
-        }
+frappe.ui.form.on("Suspension Form", {
+    setup(frm) {
+        frm.set_query("ir_intervention", () => ({
+            filters: {
+                name: [
+                    "in",
+                    [
+                        "Disciplinary Action",
+                        "Incapacity Proceedings",
+                        "Poor Performance",
+                    ],
+                ],
+            },
+        }));
+
+        frm.set_query("suspension_type", () => ({
+            filters: {
+                issuspension: 1,
+            },
+        }));
     },
-    
-    linked_disciplinary_action: function(frm) {
-        if (frm.doc.linked_disciplinary_action) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.fetch_disciplinary_action_data',
-                args: {
-                    disciplinary_action: frm.doc.linked_disciplinary_action
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
 
-                        // Directly update the doc and refresh fields without triggering events
-                        frm.doc.employee = data.accused || '';
-                        frm.doc.names = data.accused_name || '';
-                        frm.doc.coy = data.accused_coy || '';
-                        frm.doc.position = data.accused_pos || '';
-                        frm.doc.company = data.company || '';
+    refresh(frm) {
+        toggle_source_sections(frm);
 
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
-
-                        // Update child tables
-                        frm.clear_table('disciplinary_history');
-                        $.each(data.previous_disciplinary_outcomes, function(_, row) {
-                            let child = frm.add_child('disciplinary_history');
-                            child.disc_action = row.disc_action;
-                            child.date = row.date;
-                            child.sanction = row.sanction;
-                            child.charges = row.charges;
-                        });
-                        frm.refresh_field('disciplinary_history');
-
-                        frm.clear_table('susp_charges');
-                        $.each(data.final_charges, function(_, row) {
-                            let child = frm.add_child('susp_charges');
-                            child.indiv_charge = row.indiv_charge;
-                        });
-                        frm.refresh_field('susp_charges');
-
-                        // Update applied_rights field
-                        frm.set_value('applied_rights', 'Suspension');
-                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
-
-                        // Set the flag to prevent refresh loop
-                        frm.set_value('linked_disciplinary_action_processed', true);
-                    }
-                }
-            });
+        if (
+            frm.doc.ir_intervention &&
+            frm.doc.linked_intervention &&
+            !frm.doc.linked_intervention_processed
+        ) {
+            frm.trigger("linked_intervention");
         }
     },
 
-    linked_incapacity_proceeding: function(frm) {
-        if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.fetch_incpacity_proceeding_data',
-                args: {
-                    incapacity_proceeding: frm.doc.linked_incapacity_proceeding
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
-
-                        // Update fields
-                        frm.doc.employee = data.accused || '';
-                        frm.doc.names = data.accused_name || '';
-                        frm.doc.coy = data.accused_coy || '';
-                        frm.doc.position = data.accused_pos || '';
-                        frm.doc.company = data.company || '';
-                        frm.doc.type_of_incapacity = data.type_of_incapacity || '';
-                        frm.set_value('details_of_incapacity', data.details_of_incapacity || '');
-
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
-                        frm.refresh_field('details_of_incapacity');
-
-                        // Update child tables
-                        frm.clear_table('previous_incapacity_outcomes');
-                        $.each(data.previous_incapacity_outcomes, function(_, row) {
-                            let child = frm.add_child('previous_incapacity_outcomes');
-                            child.incap_proc = row.incap_proc;
-                            child.date = row.date;
-                            child.sanction = row.sanction;
-                            child.incap_details = row.incap_details;
-                        });
-                        frm.refresh_field('previous_incapacity_outcomes');
-
-                        // Update applied_rights field
-                        frm.set_value('applied_rights', 'Suspension');
-                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
-
-                        // Set the processed flag
-                        frm.set_value('linked_incapacity_proceeding_processed', true);
-
-                    }
-                }
-            });
-        }
+    ir_intervention(frm) {
+        toggle_source_sections(frm);
     },
 
-
-    linked_poor_performance: function(frm) {
-        if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.fetch_poor_performance_data',
-                args: {
-                    poor_performance: frm.doc.linked_poor_performance
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
-
-                        frm.doc.employee = data.employee || '';
-                        frm.doc.names = data.employee_name || '';
-                        frm.doc.coy = data.employee || '';
-                        frm.doc.position = data.employee_designation || '';
-                        frm.doc.company = data.company || '';
-                        frm.set_value('performance_details', data.performance_details || '');
-
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
-                        frm.refresh_field('performance_details');
-
-                        frm.clear_table('previous_performance_outcomes');
-                        $.each(data.previous_performance_outcomes || [], function(_, row) {
-                            let child = frm.add_child('previous_performance_outcomes');
-                            child.performance_action = row.performance_action;
-                            child.date = row.date;
-                            child.charges = row.charges;
-                            child.sanction = row.sanction;
-                        });
-                        frm.refresh_field('previous_performance_outcomes');
-
-                        frm.set_value('applied_rights', 'Suspension');
-                        frm.trigger('applied_rights');
-
-                        frm.set_value('linked_poor_performance_processed', true);
-                    }
-                }
-            });
-        }
-    },
-
-    company: function(frm) {
-        if (frm.doc.company) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_company_letter_head',
-                args: {
-                    company: frm.doc.company
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frm.doc.letter_head = r.message.letter_head || '';
-                        frm.refresh_field('letter_head');
-                    }
-                }
-            });
-        }
-    },
-
-    suspension_type: function (frm) {
-        if (frm.doc.suspension_type) {
-            frappe.db.get_doc('Offence Outcome', frm.doc.suspension_type)
-                .then(suspension_type_doc => {
-                    if (suspension_type_doc) {
-                        frm.set_value('ispaydeduction', suspension_type_doc.ispaydeduction);
-                    }
-                })
-        } else {
-            frm.set_value('ispaydeduction', 0);
-        }
-    },
-
-    applied_rights: function(frm) {
-        if (frm.doc.applied_rights) {
-            frappe.model.with_doc('Employee Rights', frm.doc.applied_rights, function() {
-                let doc = frappe.get_doc('Employee Rights', frm.doc.applied_rights);
-                frm.clear_table('employee_rights');
-                $.each(doc.applicable_rights, function(_, row) {
-                    let child = frm.add_child('employee_rights');
-                    child.individual_right = row.individual_right;
-                });
-                frm.refresh_field('employee_rights');
-            });
-        }
-    },
-
-    before_save: function(frm) {
-        console.log('Running before_save'); // Debug log
-
-        // Skip if already confirmed for this save
-        if (frm.__confirmed_save) {
-            console.log('Save already confirmed'); // Debug log
+    linked_intervention(frm) {
+        if (!frm.doc.ir_intervention || !frm.doc.linked_intervention) {
             return;
         }
 
-        // Determine linked document
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
-        let linked_doctype = frm.doc.linked_disciplinary_action
-            ? 'Disciplinary Action'
-            : frm.doc.linked_incapacity_proceeding
-                ? 'Incapacity Proceedings'
-                : 'Poor Performance';
-
-        if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.get_linked_outcome',
-                args: {
-                    doc_name: linked_doc_name,
-                    doctype: linked_doctype
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const { outcome, outcome_date } = r.message;
-
-                        const outcome_str = outcome ? outcome.toString() : 'None';
-                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
-
-                        if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation'); // Debug log
-                            frm.__confirmed_save = true;
-                            frappe.validated = true;  // Allow save
-                            frm.save();
-                            return;
-                        }
-
-                        // Prompt for confirmation
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be cleared upon saving. Do you want to proceed?`;
-
-                        frappe.confirm(
-                            msg,
-                            function() {
-                                console.log('User confirmed save'); // Debug log
-                                frm.__confirmed_save = true;  // Set flag after confirmation
-                                frappe.validated = true;  // Allow save
-                                frm.save();
-                            },
-                            function() {
-                                console.log('User canceled save'); // Debug log
-                                frappe.msgprint(__('Save operation canceled.'));
-                                frappe.validated = false;  // Block save
-                            }
-                        );
-                    }
+        frappe.call({
+            method:
+                "ir.industrial_relations.doctype.suspension_form.suspension_form.fetch_intervention_data",
+            args: {
+                ir_intervention: frm.doc.ir_intervention,
+                linked_intervention: frm.doc.linked_intervention,
+            },
+            freeze: true,
+            freeze_message: __("Loading intervention data ..."),
+            callback(r) {
+                if (!r.exc && r.message) {
+                    apply_intervention_data(frm, r.message);
                 }
-            });
-
-            console.log('Blocking save until confirmation'); // Debug log
-            frappe.validated = false;  // Block save
-        }
+            },
+        });
     },
 
-    before_submit: function(frm) {
-        console.log('Running before_submit'); // Debug log
+    suspension_nature(frm) {
+        if (frm.doc.suspension_nature === "Precautionary") {
+            frm.set_value("suspension_type", null);
+            if (!frm.doc.remuneration_status) {
+                frm.set_value("remuneration_status", "Paid");
+            }
+        }
 
+        frm.refresh_field("suspension_type");
+    },
+
+    applied_rights(frm) {
+        load_employee_rights(frm);
+    },
+
+    before_save(frm) {
+        return confirm_punitive_outcome_change(frm, "save");
+    },
+
+    before_submit(frm) {
         if (!frm.doc.signed_suspension) {
-            frappe.msgprint(__('You must attach the signed suspension before submitting.'));
-            frappe.validated = false;
-            return;
+            frappe.throw(__("Attach the signed suspension before submitting."));
         }
 
-        if (frm.__confirmed_submit) {
-            console.log('Submit already confirmed'); // Debug log
-            return;
-        }
-
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
-        let linked_doctype = frm.doc.linked_disciplinary_action
-            ? 'Disciplinary Action'
-            : frm.doc.linked_incapacity_proceeding
-                ? 'Incapacity Proceedings'
-                : 'Poor Performance';
-
-        if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.suspension_form.suspension_form.get_linked_outcome',
-                args: {
-                    doc_name: linked_doc_name,
-                    doctype: linked_doctype
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const { outcome, outcome_date } = r.message;
-
-                        const outcome_str = outcome ? outcome.toString() : 'None';
-                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
-
-                        if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation for submit'); // Debug log
-                            frm.__confirmed_submit = true;
-                            frm.save({ action: 'submit' });
-                            return;
-                        }
-
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with suspension type: ${frm.doc.suspension_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
-
-                        frappe.confirm(
-                            msg,
-                            function() {
-                                console.log('User confirmed submit'); // Debug log
-                                frm.__confirmed_submit = true;
-                                frm.save({ action: 'submit' });
-                            },
-                            function() {
-                                frappe.msgprint(__('Submit operation canceled.'));
-                                frappe.validated = false;  // Block submit
-                            }
-                        );
-                    }
-                }
-            });
-
-            console.log('Blocking submit until confirmation'); // Debug log
-            frappe.validated = false;  // Block submit
-        }
-    }
+        return confirm_punitive_outcome_change(frm, "submit");
+    },
 });
+
+function toggle_source_sections(frm) {
+    const source = frm.doc.ir_intervention;
+
+    frm.toggle_display(
+        [
+            "details_of_offence_section",
+            "susp_charges",
+            "previous_disciplinary_offences_section",
+            "disciplinary_history",
+        ],
+        source === "Disciplinary Action"
+    );
+
+    frm.toggle_display(
+        [
+            "incap_details_section",
+            "type_of_incapacity",
+            "details_of_incapacity",
+            "previous_incapacity_outcomes_section",
+            "previous_incapacity_outcomes",
+        ],
+        source === "Incapacity Proceedings"
+    );
+
+    frm.toggle_display(
+        [
+            "performance_details_section",
+            "performance_details",
+            "performance_history_section",
+            "previous_performance_outcomes",
+        ],
+        source === "Poor Performance"
+    );
+}
+
+function apply_intervention_data(frm, data) {
+    const scalar_fields = [
+        "employee",
+        "names",
+        "position",
+        "company",
+        "letter_head",
+        "type_of_incapacity",
+        "details_of_incapacity",
+        "performance_details",
+    ];
+
+    scalar_fields.forEach((fieldname) => {
+        if (Object.prototype.hasOwnProperty.call(data, fieldname)) {
+            frm.set_value(fieldname, data[fieldname] || "");
+        }
+    });
+
+    replace_child_table(frm, "susp_charges", data.susp_charges || []);
+    replace_child_table(frm, "disciplinary_history", data.disciplinary_history || []);
+    replace_child_table(
+        frm,
+        "previous_incapacity_outcomes",
+        data.previous_incapacity_outcomes || []
+    );
+    replace_child_table(
+        frm,
+        "previous_performance_outcomes",
+        data.previous_performance_outcomes || []
+    );
+
+    if (!frm.doc.applied_rights) {
+        frm.set_value("applied_rights", "Suspension");
+    }
+    load_employee_rights(frm);
+
+    frm.set_value("linked_intervention_processed", 1);
+    toggle_source_sections(frm);
+}
+
+function replace_child_table(frm, fieldname, rows) {
+    if (!frm.fields_dict[fieldname]) {
+        return;
+    }
+
+    frm.clear_table(fieldname);
+    rows.forEach((row) => {
+        const child = frm.add_child(fieldname);
+        Object.assign(child, row);
+    });
+    frm.refresh_field(fieldname);
+}
+
+function load_employee_rights(frm) {
+    if (!frm.doc.applied_rights) {
+        return;
+    }
+
+    frappe.model.with_doc("Employee Rights", frm.doc.applied_rights, () => {
+        const rights = frappe.get_doc("Employee Rights", frm.doc.applied_rights);
+        frm.clear_table("employee_rights");
+        (rights.applicable_rights || []).forEach((row) => {
+            const child = frm.add_child("employee_rights");
+            child.individual_right = row.individual_right;
+        });
+        frm.refresh_field("employee_rights");
+    });
+}
+
+function confirm_punitive_outcome_change(frm, action) {
+    if (
+        frm.doc.suspension_nature !== "Punitive" ||
+        !frm.doc.ir_intervention ||
+        !frm.doc.linked_intervention
+    ) {
+        return Promise.resolve();
+    }
+
+    if (action === "save" && frm.__punitive_save_confirmed) {
+        return Promise.resolve();
+    }
+
+    if (action === "submit" && frm.__punitive_submit_confirmed) {
+        return Promise.resolve();
+    }
+
+    return frappe
+        .call({
+            method:
+                "ir.industrial_relations.doctype.suspension_form.suspension_form.get_linked_outcome",
+            args: {
+                doc_name: frm.doc.linked_intervention,
+                doctype: frm.doc.ir_intervention,
+            },
+        })
+        .then((r) => {
+            const current = r.message || {};
+            const has_existing_outcome = Boolean(
+                current.outcome ||
+                current.outcome_date ||
+                current.outcome_start ||
+                current.outcome_end
+            );
+
+            if (!has_existing_outcome) {
+                return;
+            }
+
+            const outcome = current.outcome || __("None");
+            const outcomeDate = current.outcome_date
+                ? frappe.datetime.str_to_user(current.outcome_date)
+                : __("None");
+
+            const message =
+                action === "save"
+                    ? __(
+                          "The linked {0} currently has outcome {1}, dated {2}. Saving this punitive suspension will clear that outcome pending submission. Continue?",
+                          [frm.doc.ir_intervention, outcome, outcomeDate]
+                      )
+                    : __(
+                          "The linked {0} currently has outcome {1}, dated {2}. Submitting this punitive suspension will replace it with {3}, dated {4}. Continue?",
+                          [
+                              frm.doc.ir_intervention,
+                              outcome,
+                              outcomeDate,
+                              frm.doc.suspension_type || __("the suspension outcome"),
+                              frm.doc.outcome_date
+                                  ? frappe.datetime.str_to_user(frm.doc.outcome_date)
+                                  : __("None"),
+                          ]
+                      );
+
+            return new Promise((resolve, reject) => {
+                frappe.confirm(
+                    message,
+                    () => {
+                        if (action === "save") {
+                            frm.__punitive_save_confirmed = true;
+                        } else {
+                            frm.__punitive_submit_confirmed = true;
+                        }
+                        resolve();
+                    },
+                    () => reject(new Error(__("Operation cancelled.")))
+                );
+            });
+        });
+}
