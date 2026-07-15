@@ -248,53 +248,38 @@ def check_if_ss(accused):
 
 
 def _linked_doc_mappings():
-    """
-    Defines the documents displayed in the linked-documents HTML panel.
-
-    Dictionary filters are used by the consolidated intervention DocTypes,
-    while legacy single-purpose outcome forms use their direct Link field.
-    """
     return [
-        (
-            "NTA Enquiries",
-            "NTA Enquiry",
+        ("NTA Enquiries", "NTA Enquiry",
             {
                 "ir_intervention": "Disciplinary Action",
                 "linked_intervention": None,
             },
         ),
-        (
-            "Written Outcomes",
-            "Written Outcome",
+        ("Written Outcomes", "Written Outcome",
             {
                 "ir_intervention": "Disciplinary Action",
                 "linked_intervention": None,
             },
         ),
-        ("Warnings", "Warning Form", "linked_disciplinary_action"),
+        ("Warnings", "Warning Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
         ("Dismissals", "Dismissal Form", "linked_disciplinary_action"),
         ("Demotions", "Demotion Form", "linked_disciplinary_action"),
         ("Pay Deductions", "Pay Deduction Form", "linked_disciplinary_action"),
         ("Pay Reductions", "Pay Reduction Form", "linked_disciplinary_action"),
-        (
-            "No Further Action Forms",
-            "No Further Action Form",
+        ("No Further Action Forms", "No Further Action Form",
             {
                 "ir_intervention": "Disciplinary Action",
                 "linked_intervention": None,
             },
         ),
         ("Suspensions", "Suspension Form", "linked_disciplinary_action"),
-        (
-            "Voluntary Separations",
-            "Voluntary Seperation Agreement",
-            "linked_disciplinary_action",
-        ),
-        (
-            "Hearing Cancellations",
-            "Hearing Cancellation Form",
-            "linked_disciplinary_action",
-        ),
+        ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_disciplinary_action"),
+        ("Hearing Cancellations", "Hearing Cancellation Form", "linked_disciplinary_action"),
         ("Appeals", "Appeal Against Outcome", "linked_disciplinary_action"),
     ]
 

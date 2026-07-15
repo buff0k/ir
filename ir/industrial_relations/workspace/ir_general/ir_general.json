@@ -26,7 +26,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "person-standing",
- "idx": 9,
+ "idx": 10,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "IR General",
@@ -464,9 +464,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "No Further Action Form",
+   "link_count": 0,
+   "link_to": "No Further Action Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-14 13:07:35.666902",
+ "modified": "2026-07-15 08:48:45.458159",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",

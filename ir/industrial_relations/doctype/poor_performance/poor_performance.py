@@ -104,75 +104,161 @@ def fetch_performance_history(employee, current_doc_name=None):
 
 def _linked_doc_mappings():
     return [
-        ("NTA Enquiries", "NTA Enquiry", "linked_intervention"),
-        ("Written Outcomes", "Written Outcome", "linked_intervention"),
-        ("Warnings", "Warning Form", "linked_poor_performance"),
-        ("No Further Action Forms", "No Further Action Form", "linked_intervention"),
-        ("Dismissals", "Dismissal Form", "linked_poor_performance"),
-        ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_poor_performance"),
-        ("Hearing Cancellations", "Hearing Cancellation Form", "linked_poor_performance"),
-        ("Appeals", "Appeal Against Outcome", "linked_poor_performance"),
+        (
+            "NTA Enquiries",
+            "NTA Enquiry",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Written Outcomes",
+            "Written Outcome",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Warnings",
+            "Warning Form",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "No Further Action Forms",
+            "No Further Action Form",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Dismissals",
+            "Dismissal Form",
+            "linked_poor_performance",
+        ),
+        (
+            "Voluntary Separations",
+            "Voluntary Seperation Agreement",
+            "linked_poor_performance",
+        ),
+        (
+            "Hearing Cancellations",
+            "Hearing Cancellation Form",
+            "linked_poor_performance",
+        ),
+        (
+            "Appeals",
+            "Appeal Against Outcome",
+            "linked_poor_performance",
+        ),
     ]
 
 
 @frappe.whitelist()
 def get_linked_docs_html(poor_performance_name):
-    if not poor_performance_name or poor_performance_name.startswith("new-"):
+    if (
+        not poor_performance_name
+        or poor_performance_name.startswith("new-")
+    ):
         return """
         <div class="ir-linked-docs">
-          <div class="ir-linked-docs__empty">Linked documents will appear here once the record is saved.</div>
+          <div class="ir-linked-docs__empty">
+            Linked documents will appear here once the record is saved.
+          </div>
         </div>
         """
 
     cards = []
     total = 0
 
-    for label, target_dt, backref in _linked_doc_mappings():
-        filters = {backref: poor_performance_name}
-        if target_dt in ("NTA Enquiry", "Written Outcome", "No Further Action Form"):
+    for label, target_doctype, back_reference in _linked_doc_mappings():
+        if isinstance(back_reference, dict):
+            filters = dict(back_reference)
+            filters["linked_intervention"] = poor_performance_name
+        else:
             filters = {
-                "ir_intervention": "Poor Performance",
-                "linked_intervention": poor_performance_name,
+                back_reference: poor_performance_name,
             }
 
         try:
-            rows = frappe.get_all(target_dt, filters=filters, fields=["name"], order_by="modified desc")
+            rows = frappe.get_all(
+                target_doctype,
+                filters=filters,
+                fields=["name"],
+                order_by="modified desc",
+            )
         except Exception:
-            frappe.log_error(title="Poor Performance linked docs query failed", message=frappe.get_traceback())
+            frappe.log_error(
+                title=(
+                    f"Poor Performance linked docs query failed: "
+                    f"{target_doctype}"
+                ),
+                message=frappe.get_traceback(),
+            )
             rows = []
 
         if not rows:
             continue
 
         total += len(rows)
-        chips = []
-        for r in rows:
-            url = get_url_to_form(target_dt, r.name)
-            chips.append(f"""
-                <a class="ir-linked-docs__chip" href="{escape_html(url)}" target="_blank" rel="noopener">
-                    {escape_html(r.name)}
-                </a>
-            """)
 
-        cards.append(f"""
+        chips = []
+
+        for row in rows:
+            url = get_url_to_form(
+                target_doctype,
+                row.name,
+            )
+
+            chips.append(
+                f"""
+                <a
+                    class="ir-linked-docs__chip"
+                    href="{escape_html(url)}"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    {escape_html(row.name)}
+                </a>
+                """
+            )
+
+        cards.append(
+            f"""
             <div class="ir-linked-docs__card">
               <div class="ir-linked-docs__card-header">
-                <div class="ir-linked-docs__title">{escape_html(label)}</div>
-                <div class="ir-linked-docs__badge">{len(rows)}</div>
+                <div class="ir-linked-docs__title">
+                  {escape_html(label)}
+                </div>
+                <div class="ir-linked-docs__badge">
+                  {len(rows)}
+                </div>
               </div>
-              <div class="ir-linked-docs__chips">{''.join(chips)}</div>
+              <div class="ir-linked-docs__chips">
+                {''.join(chips)}
+              </div>
             </div>
-        """)
+            """
+        )
 
     if total == 0:
         return """
         <div class="ir-linked-docs">
-          <div class="ir-linked-docs__empty">No linked documents yet.</div>
+          <div class="ir-linked-docs__empty">
+            No linked documents yet.
+          </div>
         </div>
         """
 
     return f"""
     <div class="ir-linked-docs">
-      <div class="ir-linked-docs__grid">{''.join(cards)}</div>
+      <div class="ir-linked-docs__grid">
+        {''.join(cards)}
+      </div>
     </div>
     """

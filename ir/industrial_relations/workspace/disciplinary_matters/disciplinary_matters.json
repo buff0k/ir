@@ -206,9 +206,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "No Further Action Form",
+   "link_count": 0,
+   "link_to": "No Further Action Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-14 13:07:20.654704",
+ "modified": "2026-07-15 08:49:03.906017",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",

@@ -222,10 +222,25 @@ function create_written_outcome(frm) {
 }
 
 function make_warning_form(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.warning_form.warning_form.make_warning_form_poor_performance",
-        frm: frm,
-        args: { linked_poor_performance: frm.doc.name }
+    frappe.call({
+        method:
+            "ir.industrial_relations.doctype.warning_form.warning_form.create_warning_form",
+        args: {
+            source_name: frm.doc.name,
+            source_doctype: frm.doctype,
+        },
+        freeze: true,
+        freeze_message: __("Creating Warning Form ..."),
+        callback(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route(
+                    "Form",
+                    "Warning Form",
+                    r.message.name
+                );
+            }
+        },
     });
 }
 
