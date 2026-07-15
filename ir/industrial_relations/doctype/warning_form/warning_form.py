@@ -117,18 +117,33 @@ class WarningForm(Document):
 @frappe.whitelist()
 def create_warning_form(source_name, source_doctype):
     if source_doctype not in SUPPORTED_INTERVENTIONS:
-        frappe.throw(_("Unsupported intervention type: {0}").format(source_doctype))
+        frappe.throw(
+            _("Unsupported intervention type: {0}").format(source_doctype)
+        )
 
     if not frappe.db.exists(source_doctype, source_name):
-        frappe.throw(_("{0} {1} does not exist.").format(source_doctype, source_name))
+        frappe.throw(
+            _("{0} {1} does not exist.").format(
+                source_doctype,
+                source_name,
+            )
+        )
 
     target = frappe.new_doc("Warning Form")
     target.ir_intervention = source_doctype
     target.linked_intervention = source_name
     target.applied_rights = "Warning Form"
 
-    data = get_intervention_data(source_doctype, source_name)
+    data = get_intervention_data(
+        source_doctype,
+        source_name,
+    )
     _apply_intervention_data(target, data)
+    _apply_employee_rights(
+        target,
+        target.applied_rights,
+    )
+
     target.linked_intervention_processed = 1
     return target
 
