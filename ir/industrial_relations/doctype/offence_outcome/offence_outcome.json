@@ -21,7 +21,8 @@
   "is_a_performance_improvement",
   "is_a_grievance_without_foundation",
   "is_not_incapacitated",
-  "expiry_days"
+  "expiry_days",
+  "severity_rank"
  ],
  "fields": [
   {
@@ -115,6 +116,13 @@
    "fieldname": "is_not_incapacitated",
    "fieldtype": "Check",
    "label": "Is not Incapacitated"
+  },
+  {
+   "default": "0",
+   "fieldname": "severity_rank",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Severity Rank"
   }
  ],
  "grid_page_length": 50,
@@ -137,7 +145,7 @@
    "link_fieldname": "sanction_on_fourth_offence"
   }
  ],
- "modified": "2026-07-13 17:58:06.824615",
+ "modified": "2026-07-16 14:05:31.591738",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Offence Outcome",

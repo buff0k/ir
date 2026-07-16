@@ -16,7 +16,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-06 15:00:55.701321",
-  "name": "TDM"
+  "name": "TDM",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Transfer Employee",
@@ -35,7 +36,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-06 15:00:55.722749",
-  "name": "TRANS"
+  "name": "TRANS",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Performance Improved",
@@ -54,7 +56,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2026-05-18 14:55:03.228552",
-  "name": "PI"
+  "name": "PI",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "No Grounds for Grievance",
@@ -73,7 +76,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2026-07-13 17:47:25.985396",
-  "name": "NGG"
+  "name": "NGG",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Employee is Fit",
@@ -92,7 +96,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2026-07-13 17:59:01.345511",
-  "name": "FIT"
+  "name": "FIT",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Voluntary Seperation",
@@ -111,7 +116,8 @@
   "istermination": 1,
   "iswarning": 0,
   "modified": "2024-08-07 13:30:50.981324",
-  "name": "VSP"
+  "name": "VSP",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Paid Suspension",
@@ -130,7 +136,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-06 15:00:55.679644",
-  "name": "PSUS"
+  "name": "PSUS",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Unpaid Suspension",
@@ -148,8 +155,9 @@
   "issuspension": 1,
   "istermination": 0,
   "iswarning": 0,
-  "modified": "2024-08-06 15:00:55.744121",
-  "name": "USUS"
+  "modified": "2026-07-16 14:03:47.449989",
+  "name": "USUS",
+  "severity_rank": 4
  },
  {
   "disc_offence_out": "Indefinite Demotion",
@@ -168,7 +176,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-06 15:00:55.614842",
-  "name": "IDM"
+  "name": "IDM",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Pay Deduction",
@@ -186,8 +195,9 @@
   "issuspension": 0,
   "istermination": 0,
   "iswarning": 0,
-  "modified": "2024-08-06 15:00:55.657842",
-  "name": "PDUC"
+  "modified": "2026-07-16 14:03:51.963580",
+  "name": "PDUC",
+  "severity_rank": 5
  },
  {
   "disc_offence_out": "2nd Written Warning",
@@ -205,8 +215,9 @@
   "issuspension": 0,
   "istermination": 0,
   "iswarning": 1,
-  "modified": "2024-08-06 15:00:55.544646",
-  "name": "2WW"
+  "modified": "2026-07-16 14:03:37.118952",
+  "name": "2WW",
+  "severity_rank": 2
  },
  {
   "disc_offence_out": "Not Guilty",
@@ -225,7 +236,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-07 19:06:15.339619",
-  "name": "NG"
+  "name": "NG",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "Dismissal",
@@ -243,8 +255,9 @@
   "issuspension": 0,
   "istermination": 1,
   "iswarning": 0,
-  "modified": "2024-08-06 15:00:55.568968",
-  "name": "DIS"
+  "modified": "2026-07-16 14:03:56.181875",
+  "name": "DIS",
+  "severity_rank": 6
  },
  {
   "disc_offence_out": "Cancelled",
@@ -263,7 +276,8 @@
   "istermination": 0,
   "iswarning": 0,
   "modified": "2024-08-16 15:11:48.974713",
-  "name": "CAN"
+  "name": "CAN",
+  "severity_rank": 0
  },
  {
   "disc_offence_out": "1st Written Warning",
@@ -281,8 +295,9 @@
   "issuspension": 0,
   "istermination": 0,
   "iswarning": 1,
-  "modified": "2024-08-06 15:00:55.449710",
-  "name": "1WW"
+  "modified": "2026-07-16 14:03:32.041216",
+  "name": "1WW",
+  "severity_rank": 1
  },
  {
   "disc_offence_out": "Final Written Warning",
@@ -300,7 +315,8 @@
   "issuspension": 0,
   "istermination": 0,
   "iswarning": 1,
-  "modified": "2024-08-06 15:00:55.591114",
-  "name": "FWW"
+  "modified": "2026-07-16 14:03:42.273783",
+  "name": "FWW",
+  "severity_rank": 3
  }
 ]

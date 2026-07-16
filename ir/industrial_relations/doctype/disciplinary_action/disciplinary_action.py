@@ -8,7 +8,46 @@ from frappe.utils import getdate, today, add_months, escape_html, get_url_to_for
 
 
 class DisciplinaryAction(Document):
-    pass
+    def validate(self):
+        self._sync_offence_codes_and_final_charges()
+
+    def _sync_offence_codes_and_final_charges(self):
+        """Keep offence display codes and final charges aligned without altering child schemas."""
+        offences = list(self.offences or [])
+        charges = list(self.final_charges or [])
+
+        descriptions = {}
+        code_items = {row.code_item for row in offences if row.code_item}
+        if code_items:
+            descriptions = {
+                row.name: row.offence_description or ""
+                for row in frappe.get_all(
+                    "Disciplinary Offence",
+                    filters={"name": ["in", list(code_items)]},
+                    fields=["name", "offence_description"],
+                )
+            }
+
+        for index, offence in enumerate(offences):
+            offence.offence_code = offence.code_item or ""
+
+            if index < len(charges):
+                charge = charges[index]
+                code_changed = (charge.code_item or "") != (offence.code_item or "")
+                charge.code_item = offence.code_item or ""
+                if code_changed or not charge.charge:
+                    charge.charge = descriptions.get(offence.code_item, "")
+            else:
+                self.append(
+                    "final_charges",
+                    {
+                        "code_item": offence.code_item or "",
+                        "charge": descriptions.get(offence.code_item, ""),
+                    },
+                )
+
+        while len(self.final_charges or []) > len(offences):
+            self.remove(self.final_charges[-1])
 
 
 @frappe.whitelist()
@@ -370,3 +409,205 @@ def get_linked_docs_html(disciplinary_action_name: str) -> str:
       </div>
     </div>
     """
+
+SANCTION_FIELDS = (
+    (1, "sanction_on_first_offence", "First offence"),
+    (2, "sanction_on_second_offence", "Second offence"),
+    (3, "sanction_on_third_offence", "Third offence"),
+    (4, "sanction_on_fourth_offence", "Fourth or subsequent offence"),
+)
+
+
+def _get_prior_offence_counts(accused: str, current_doc_name: str | None, code_items: list[str]) -> dict[str, int]:
+    counts = {code_item: 0 for code_item in code_items}
+    if not accused or not code_items:
+        return counts
+
+    parent_filters = {
+        "accused": accused,
+        "docstatus": ["!=", 2],
+        "outcome": ["is", "set"],
+    }
+    if current_doc_name and not current_doc_name.startswith("new-"):
+        parent_filters["name"] = ["!=", current_doc_name]
+
+    action_names = frappe.get_all(
+        "Disciplinary Action",
+        filters=parent_filters,
+        pluck="name",
+    )
+    if not action_names:
+        return counts
+
+    cancelled_outcomes = set(
+        frappe.get_all(
+            "Offence Outcome",
+            filters={"iscancellation": 1},
+            pluck="name",
+        )
+    )
+    if cancelled_outcomes:
+        action_names = [
+            name
+            for name in action_names
+            if frappe.db.get_value("Disciplinary Action", name, "outcome") not in cancelled_outcomes
+        ]
+    if not action_names:
+        return counts
+
+    rows = frappe.get_all(
+        "Disciplinary Charges",
+        filters={
+            "parent": ["in", action_names],
+            "parenttype": "Disciplinary Action",
+            "parentfield": "final_charges",
+            "code_item": ["in", code_items],
+        },
+        fields=["code_item"],
+    )
+    for row in rows:
+        counts[row.code_item] = counts.get(row.code_item, 0) + 1
+    return counts
+
+
+def _get_outcome_details(outcome_names: set[str]) -> dict[str, dict]:
+    if not outcome_names:
+        return {}
+
+    has_rank = frappe.db.has_column("Offence Outcome", "severity_rank")
+    fields = ["name", "disc_offence_out"]
+    if has_rank:
+        fields.append("severity_rank")
+
+    result = {}
+    for row in frappe.get_all(
+        "Offence Outcome",
+        filters={"name": ["in", list(outcome_names)]},
+        fields=fields,
+    ):
+        result[row.name] = {
+            "label": row.disc_offence_out or row.name,
+            "rank": int(getattr(row, "severity_rank", 0) or 0),
+        }
+    return result
+
+
+@frappe.whitelist()
+def get_offence_qol_data(accused=None, current_doc_name=None, code_items=None):
+    """Return offence descriptions, applicable sanctions and rendered summary HTML."""
+    if isinstance(code_items, str):
+        code_items = json.loads(code_items or "[]")
+    code_items = [code for code in (code_items or []) if code]
+
+    unique_codes = list(dict.fromkeys(code_items))
+    if not unique_codes:
+        return {"offences": {}, "html": "", "harshest_outcome": None}
+
+    offence_fields = [
+        "name",
+        "offence_description",
+        "sanction_on_first_offence",
+        "sanction_on_second_offence",
+        "sanction_on_third_offence",
+        "sanction_on_fourth_offence",
+    ]
+    offence_rows = frappe.get_all(
+        "Disciplinary Offence",
+        filters={"name": ["in", unique_codes]},
+        fields=offence_fields,
+    )
+    offences = {row.name: row for row in offence_rows}
+    prior_counts = _get_prior_offence_counts(accused, current_doc_name, unique_codes)
+
+    outcome_names = set()
+    for offence in offence_rows:
+        for _, fieldname, _ in SANCTION_FIELDS:
+            value = getattr(offence, fieldname, None)
+            if value:
+                outcome_names.add(value)
+    outcomes = _get_outcome_details(outcome_names)
+
+    offence_payload = {}
+    summary_rows = []
+    harshest = None
+
+    for code_item in unique_codes:
+        offence = offences.get(code_item)
+        if not offence:
+            continue
+
+        prior_count = prior_counts.get(code_item, 0)
+        occurrence = min(prior_count + 1, 4)
+        sanction_field = SANCTION_FIELDS[occurrence - 1][1]
+        occurrence_label = SANCTION_FIELDS[occurrence - 1][2]
+        sanction_name = getattr(offence, sanction_field, None) or ""
+        sanction = outcomes.get(sanction_name, {"label": sanction_name or "Not configured", "rank": 0})
+
+        offence_payload[code_item] = {
+            "offence_code": code_item,
+            "offence_description": offence.offence_description or "",
+            "prior_count": prior_count,
+            "occurrence": occurrence,
+            "occurrence_label": occurrence_label,
+            "sanction": sanction_name,
+            "sanction_label": sanction["label"],
+            "severity_rank": sanction["rank"],
+        }
+
+        candidate = {
+            "name": sanction_name,
+            "label": sanction["label"],
+            "rank": sanction["rank"],
+            "code_item": code_item,
+        }
+        if harshest is None or candidate["rank"] > harshest["rank"]:
+            harshest = candidate
+
+        summary_rows.append(
+            f"""
+            <tr>
+              <td><strong>{escape_html(code_item)}</strong></td>
+              <td>{escape_html(offence.offence_description or '')}</td>
+              <td>{prior_count}</td>
+              <td>{escape_html(occurrence_label)}</td>
+              <td>{escape_html(sanction['label'])}</td>
+              <td>{sanction['rank']}</td>
+            </tr>
+            """
+        )
+
+    harshest_label = harshest["label"] if harshest else "Not configured"
+    harshest_code = harshest["code_item"] if harshest else ""
+    html = f"""
+    <div class="ir-sanction-summary">
+      <div class="alert alert-warning" style="margin-bottom: 12px;">
+        <strong>Harshest applicable guideline:</strong>
+        {escape_html(harshest_label)}
+        {f' <span class="text-muted">({escape_html(harshest_code)})</span>' if harshest_code else ''}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm" style="margin-bottom: 0;">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Offence</th>
+              <th>Previous findings</th>
+              <th>Applicable level</th>
+              <th>Guideline sanction</th>
+              <th>Severity rank</th>
+            </tr>
+          </thead>
+          <tbody>{''.join(summary_rows)}</tbody>
+        </table>
+      </div>
+      <div class="text-muted small" style="margin-top: 8px;">
+        This is a guideline only. Previous findings are counted from non-cancelled disciplinary actions with an outcome.
+      </div>
+    </div>
+    """
+
+    return {
+        "offences": offence_payload,
+        "html": html,
+        "harshest_outcome": harshest,
+    }

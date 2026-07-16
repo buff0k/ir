@@ -37,6 +37,7 @@
   "compl_pos",
   "details_of_offence",
   "offences",
+  "recommended_sanction_summary",
   "attach",
   "disciplinary_history_section",
   "previous_disciplinary_outcomes",
@@ -311,13 +312,18 @@
    "fieldtype": "HTML",
    "label": "Pending and Cancelled Disciplinary Actions",
    "read_only": 1
+  },
+  {
+   "fieldname": "recommended_sanction_summary",
+   "fieldtype": "HTML",
+   "label": "Applicable Sanction Guidelines"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-09 15:05:16.267382",
+ "modified": "2026-07-16 13:59:00.261249",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",
