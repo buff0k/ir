@@ -2,11 +2,14 @@
 # For license information, please see license.txt
 
 from collections import defaultdict
+from io import BytesIO
 
 import frappe
 from frappe import _
 from frappe.utils import add_days, cint, date_diff, flt, get_first_day, getdate, now_datetime, today
 from frappe.utils.xlsxutils import make_xlsx
+from openpyxl import load_workbook
+from openpyxl.styles.numbers import FORMAT_DATE_XLSX14
 
 
 RACE_KEYS = {
@@ -741,8 +744,20 @@ def _employee_reporting_fields():
             "last_name": _first_existing_field("Employee", ["last_name"], labels=["Last Name", "Surname"]),
             "id_number": _first_existing_field(
                 "Employee",
-                ["custom_id_number", "id_number", "passport_number"],
-                labels=["ID Number", "Identity Number", "Passport Number"],
+                [
+                    "za_id_number",
+                    "custom_sa_id_number",
+                    "custom_id_number",
+                    "sa_id_number",
+                    "id_number",
+                ],
+                labels=[
+                    "SA ID Number",
+                    "South African ID Number",
+                    "ID Number",
+                    "Identity Number",
+                    "Passport Number",
+                ],
             ),
             "cell_number": _first_existing_field(
                 "Employee",
@@ -762,12 +777,19 @@ def _employee_reporting_fields():
                 ["contract_end_date", "custom_contract_end_date", "end_date"],
                 labels=["Contract End Date", "Employment End Date"],
             ),
-            "salary_band": _first_existing_field(
-                "Employee", ["grade", "custom_salary_band", "salary_band"], labels=["Grade", "Salary Band"]
-            ),
+            # Salary data is not yet available from a verified source. Keep the
+            # export column blank rather than guessing from Employee Grade or
+            # another similarly labelled field.
+            "salary_band": None,
             "education": _first_existing_field(
                 "Employee",
-                ["education", "highest_qualification", "custom_highest_level_of_education"],
+                [
+                    "za_highest_qualification",
+                    "custom_highest_qualification",
+                    "custom_highest_level_of_education",
+                    "highest_qualification",
+                    "highest_level_of_education",
+                ],
                 labels=["Highest Level of Education", "Highest Qualification"],
             ),
             "dependants": _first_existing_field(
@@ -854,9 +876,16 @@ def _salary_map_as_at(employee_names, snapshot_date):
 
 
 def _employee_age(row, snapshot_date):
+    """Return age in completed full years at the supplied snapshot date."""
     if not row.get("date_of_birth"):
         return None
-    return max(date_diff(snapshot_date, getdate(row.date_of_birth)) / 365.2425, 0)
+
+    snapshot = getdate(snapshot_date)
+    birth_date = getdate(row.date_of_birth)
+    age = snapshot.year - birth_date.year
+    if (snapshot.month, snapshot.day) < (birth_date.month, birth_date.day):
+        age -= 1
+    return max(age, 0)
 
 
 def _employee_flags(row, snapshot_date):
@@ -1023,6 +1052,44 @@ def _quarter_label(value):
     return f"{start_year}/{str(start_year + 1)[-2:]} Q{quarter}"
 
 
+
+def _single_line_address(value):
+    """Convert Small Text address line breaks into comma-separated address lines."""
+    if not value:
+        return ""
+    lines = [line.strip() for line in str(value).replace("\r\n", "\n").replace("\r", "\n").split("\n")]
+    return ", ".join(line for line in lines if line)
+
+
+def _format_new_employee_xlsx(xlsx_bytes):
+    """Apply real Excel cell types and built-in formats to the generated workbook."""
+    workbook = load_workbook(BytesIO(xlsx_bytes))
+    worksheet = workbook["New employee details"]
+
+    # E: SA ID Number must remain text so Excel never converts or truncates it.
+    for cell in worksheet["E"][1:]:
+        if cell.value not in (None, ""):
+            cell.value = str(cell.value)
+        cell.number_format = "@"
+
+    # L/M: store Python date values as Excel dates and use Excel's built-in date format 14.
+    for column in ("L", "M"):
+        for cell in worksheet[column][1:]:
+            if cell.value not in (None, ""):
+                cell.value = getdate(cell.value)
+                cell.number_format = FORMAT_DATE_XLSX14
+
+    # AA: age is a whole-number count of completed years.
+    for cell in worksheet["AA"][1:]:
+        if cell.value not in (None, ""):
+            cell.value = cint(cell.value)
+            cell.number_format = "0"
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return output
+
 def _new_employee_export_rows(company, from_date, to_date):
     fields = _employee_reporting_fields()
     designation_level = _designation_level_field()
@@ -1068,15 +1135,15 @@ def _new_employee_export_rows(company, from_date, to_date):
             nature,
             row.get("first_name") or row.get("employee_name") or "",
             row.get("last_name") or "",
-            row.get("id_number") or "",
+            str(row.get("id_number") or ""),
             row.get("cell_number") or "",
-            row.get("physical_address") or "",
+            _single_line_address(row.get("physical_address")),
             row.get("region") or row.get("branch") or "",
             company,
             "",
             row.get("designation") or "",
-            row.get("date_of_joining"),
-            row.get("contract_end_date") or "",
+            getdate(row.get("date_of_joining")) if row.get("date_of_joining") else "",
+            getdate(row.get("contract_end_date")) if row.get("contract_end_date") else "",
             row.get("salary_band") or "",
             row.get("designated_group") or "",
             row.get("gender") or "",
@@ -1090,7 +1157,7 @@ def _new_employee_export_rows(company, from_date, to_date):
             _quarter_label(row.get("date_of_joining")),
             _("Yes") if still_employed else _("No"),
             _("Yes") if still_employed else _("No"),
-            round(age, 1) if age is not None else "",
+            cint(age) if age is not None else "",
             _("Yes") if age is not None and age < 35 else _("No") if age is not None else "",
         ])
     return result
@@ -1103,7 +1170,7 @@ def download_new_employee_details(company, from_date, to_date):
     from_date, to_date = _validate_filters(company, from_date, to_date)
     headers = [
         "Count / No.", "Nature of employment", "Beneficiary First Name(s)", "Beneficiary Surname",
-        "Beneficiary ID No.", "Cell / Tel Number", "Physical Address", "Region", "Company Name",
+        "SA ID Number", "Cell / Tel Number", "Physical Address", "Region", "Company Name",
         "Company Contact Details", "Position", "Start Date", "Contract End Date", "Salary band",
         "Race", "Gender", "Highest level of education", "Skilled/Semi-skilled and Unskilled",
         "Job type", "Person with disability", "Dependants", "Comments", "Tier 1 evidence submitted",
@@ -1111,6 +1178,7 @@ def download_new_employee_details(company, from_date, to_date):
     ]
     data = [headers, *_new_employee_export_rows(company, from_date, to_date)]
     xlsx = make_xlsx(data, "New employee details")
+    xlsx = _format_new_employee_xlsx(xlsx.getvalue())
     filename = f"New-Employee-Details-{frappe.scrub(company).replace('_', '-')}-{from_date}-to-{to_date}.xlsx"
     frappe.response["filename"] = filename
     frappe.response["filecontent"] = xlsx.getvalue()
