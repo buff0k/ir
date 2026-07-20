@@ -270,7 +270,12 @@ function make_demotion_form(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form", { linked_disciplinary_action: frm.doc.name });
 }
 function make_pay_deduction_form(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.make_pay_deduction_form", { linked_disciplinary_action: frm.doc.name });
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.create_pay_deduction_form",
+        "Pay Deduction Form",
+        "Creating Pay Deduction Form ..."
+    );
 }
 function make_pay_reduction_form_misc(frm) {
     create_generic_document(

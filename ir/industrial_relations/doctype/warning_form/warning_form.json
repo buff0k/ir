@@ -26,11 +26,9 @@
   "outcome_date",
   "details_of_offence_section",
   "warning_charges",
-  "previous_disciplinary_offences_section",
   "disciplinary_history",
   "details_of_poor_performance_section",
   "performance_details",
-  "performance_history_section",
   "previous_performance_outcomes",
   "rights_section",
   "employee_rights"
@@ -114,12 +112,6 @@
    "label": "Details of Offence"
   },
   {
-   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
-   "fieldname": "previous_disciplinary_offences_section",
-   "fieldtype": "Section Break",
-   "label": "Previous Disciplinary Offences"
-  },
-  {
    "columns": 1,
    "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "warning_charges",
@@ -132,6 +124,7 @@
    "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
+   "label": "Disciplinary History",
    "options": "Disciplinary History",
    "read_only": 1
   },
@@ -189,18 +182,14 @@
    "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details",
    "fieldtype": "Small Text",
+   "label": "Details of Poor Performance",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
-   "fieldname": "performance_history_section",
-   "fieldtype": "Section Break",
-   "label": "Performance History"
   },
   {
    "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "previous_performance_outcomes",
    "fieldtype": "Table",
+   "label": "Performance History",
    "options": "Performance History",
    "read_only": 1
   },
@@ -236,7 +225,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-15 08:32:31.597078",
+ "modified": "2026-07-20 08:18:08.981623",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Warning Form",

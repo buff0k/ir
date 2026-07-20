@@ -20,6 +20,7 @@ frappe.ui.form.on("Incapacity Proceedings", {
             add_action(frm, "Determine Employee Not Incapacitated", create_no_further_action_form);
             add_suspension_actions(frm);
             add_action(frm, "Issue Demotion", make_demotion_form_incap);
+            add_action(frm, "Issue Pay Deduction", make_pay_deduction_form);
             add_action(frm, "Issue Pay Reduction", make_pay_reduction_form);
             add_action(frm, "Issue Dismissal", make_dismissal_form_incap);
             add_action(frm, "Issue VSP", make_vsp_incap);
@@ -229,6 +230,14 @@ function open_legacy_mapped(frm, method, args, message) {
 
 function make_demotion_form_incap(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form_incap", { linked_incapacity_proceeding: frm.doc.name });
+}
+function make_pay_deduction_form(frm) {
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.create_pay_deduction_form",
+        "Pay Deduction Form",
+        "Creating Pay Deduction Form ..."
+    );
 }
 function make_pay_reduction_form(frm) {
     create_generic_document(

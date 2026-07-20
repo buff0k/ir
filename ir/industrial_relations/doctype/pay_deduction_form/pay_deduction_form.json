@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_rename": 1,
  "creation": "2024-07-23 09:58:38.872174",
  "doctype": "DocType",
@@ -7,17 +8,15 @@
  "field_order": [
   "section_break_dceb",
   "amended_from",
-  "employee",
   "company",
   "letter_head",
-  "linked_disciplinary_action_processed",
-  "linked_poor_performance_processed",
+  "linked_intervention_processed",
   "employee_section",
-  "linked_disciplinary_action",
-  "linked_poor_performance",
+  "ir_intervention",
+  "employee",
   "column_break_okqk",
+  "linked_intervention",
   "names",
-  "coy",
   "position",
   "pay_deduction_details_section",
   "outcome_date",
@@ -30,12 +29,14 @@
   "to_date",
   "details_of_offence_section",
   "ded_charges",
-  "previous_disciplinary_offences_section",
   "disciplinary_history",
   "performance_details_section",
   "performance_details",
-  "performance_history_section",
   "previous_performance_outcomes",
+  "incap_details_section",
+  "type_of_incapacity",
+  "details_of_incapacity",
+  "previous_incapacity_outcomes",
   "rights_section",
   "employee_rights"
  ],
@@ -60,14 +61,6 @@
    "label": "Employee Details"
   },
   {
-   "fieldname": "linked_disciplinary_action",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Linked Disciplinary Action",
-   "options": "Disciplinary Action",
-   "read_only": 1
-  },
-  {
    "fieldname": "pay_deduction_type",
    "fieldtype": "Link",
    "label": "Pay Deduction Type",
@@ -84,31 +77,26 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
-   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fieldname": "company",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Company"
+   "label": "Company",
+   "options": "Company"
   },
   {
    "fieldname": "letter_head",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Letterhead"
-  },
-  {
-   "default": "0",
-   "fieldname": "linked_disciplinary_action_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Disciplinary Action Processed"
+   "label": "Letterhead",
+   "options": "Letter Head"
   },
   {
    "fieldname": "column_break_okqk",
@@ -121,15 +109,10 @@
    "reqd": 1
   },
   {
-   "fieldname": "coy",
-   "fieldtype": "Read Only",
-   "label": "Coy. No.",
-   "reqd": 1
-  },
-  {
    "fieldname": "position",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Position",
+   "options": "Designation",
    "reqd": 1
   },
   {
@@ -149,23 +132,22 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "details_of_offence_section",
    "fieldtype": "Section Break",
    "label": "Details of Offence"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "ded_charges",
    "fieldtype": "Table",
    "label": "Charges",
+   "mandatory_depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "options": "Charges",
    "read_only": 1
   },
   {
-   "fieldname": "previous_disciplinary_offences_section",
-   "fieldtype": "Section Break",
-   "label": "Previous Disciplinary Offences"
-  },
-  {
+   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "disciplinary_history",
    "fieldtype": "Table",
    "label": "Disciplinary History",
@@ -187,7 +169,7 @@
   {
    "fieldname": "attached_signed_pay_deduction",
    "fieldtype": "Attach",
-   "label": "Attached Signed Pay Deduction"
+   "label": "Attach Signed Pay Deduction"
   },
   {
    "fieldname": "from_date",
@@ -209,39 +191,76 @@
    "reqd": 1
   },
   {
-   "default": "0",
-   "fieldname": "linked_poor_performance_processed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Linked Performance Counselling Processed",
-   "read_only": 1
-  },
-  {
-   "fieldname": "linked_poor_performance",
-   "fieldtype": "Link",
-   "label": "Linked Poor Performance",
-   "options": "Poor Performance",
-   "read_only": 1
-  },
-  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details_section",
    "fieldtype": "Section Break",
    "label": "Performance Details"
   },
   {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details",
    "fieldtype": "Small Text",
+   "mandatory_depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "read_only": 1
   },
   {
-   "fieldname": "performance_history_section",
-   "fieldtype": "Section Break",
-   "label": "Performance History"
-  },
-  {
+   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "previous_performance_outcomes",
    "fieldtype": "Table",
    "options": "Performance History",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "label": "IR Intervention",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Poor Performance\"]]]",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Dynamic Link",
+   "label": "Linked IR Intervention",
+   "options": "ir_intervention",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_intervention_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Intervention Processed"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "incap_details_section",
+   "fieldtype": "Section Break",
+   "label": "Details of Incapacity"
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "type_of_incapacity",
+   "fieldtype": "Link",
+   "label": "Type of Incapacity",
+   "mandatory_depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "options": "Type of Incapacity",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "details_of_incapacity",
+   "fieldtype": "Small Text",
+   "label": "Details of Incapacity",
+   "mandatory_depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
+   "fieldname": "previous_incapacity_outcomes",
+   "fieldtype": "Table",
+   "label": "Previous Incapacity History",
+   "options": "Incapacity History",
    "read_only": 1
   }
  ],
@@ -249,7 +268,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-18 15:43:19.964087",
+ "modified": "2026-07-20 08:15:26.174478",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Pay Deduction Form",
