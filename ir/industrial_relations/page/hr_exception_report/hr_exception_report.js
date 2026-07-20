@@ -1,5 +1,5 @@
 // Copyright (c) 2026, BuFf0k and contributors
-// Organogram Designer Page
+// HR Excpetion Report Page
 
 frappe.pages["hr-exception-report"].on_page_load = function (wrapper) {
   new HRExceptionReport(wrapper);
@@ -580,12 +580,20 @@ class HRExceptionReport {
   }
 
   async ensure_html2canvas() {
-    if (window.html2canvas) return;
-    await frappe.require("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js");
-    if (!window.html2canvas) throw new Error(__("html2canvas could not be loaded."));
+    if (window.html2canvas) {
+      return;
+    }
+
+    await frappe.require(
+      "/assets/ir/js/vendor/html2canvas.min.js"
+    );
+
+    if (!window.html2canvas) {
+      throw new Error(
+        __("html2canvas could not be loaded.")
+      );
+    }
   }
-
-
 
   export_race_totals(ee) {
     const grand = ee?.all_employees?.grand_total || {};
