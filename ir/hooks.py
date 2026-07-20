@@ -195,7 +195,8 @@ fixtures = [
         "DIS",
         "2WW",
         "1WW",
-        "FIT"
+        "FIT",
+        "PRED"
 	]]]}
 ]
 scheduler_events = {

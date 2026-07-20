@@ -231,15 +231,15 @@ function make_demotion_form_incap(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form_incap", { linked_incapacity_proceeding: frm.doc.name });
 }
 function make_pay_reduction_form(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form", { linked_incapacity_proceeding: frm.doc.name });
-}
-function make_dismissal_form_incap(frm) {
     create_generic_document(
         frm,
-        "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
-        "Dismissal Form",
-        "Creating Dismissal Form ..."
+        "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.create_pay_reduction_form",
+        "Pay Reduction Form",
+        "Creating Pay Reduction Form ..."
     );
+}
+function make_dismissal_form_incap(frm) {
+    open_legacy_mapped(frm, "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_incap", { linked_incapacity_proceeding: frm.doc.name });
 }
 function make_vsp_incap(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_incap", { linked_incapacity_proceeding: frm.doc.name });

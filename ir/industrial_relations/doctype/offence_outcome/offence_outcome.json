@@ -15,6 +15,7 @@
   "isdemotion",
   "istermination",
   "ispaydeduction",
+  "ispayreduction",
   "isnotguilty",
   "iscancellation",
   "expires_or_lapses",
@@ -123,6 +124,12 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Severity Rank"
+  },
+  {
+   "default": "0",
+   "fieldname": "ispayreduction",
+   "fieldtype": "Check",
+   "label": "Is a pay reduction"
   }
  ],
  "grid_page_length": 50,
@@ -145,7 +152,7 @@
    "link_fieldname": "sanction_on_fourth_offence"
   }
  ],
- "modified": "2026-07-16 14:05:31.591738",
+ "modified": "2026-07-20 07:44:07.367631",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Offence Outcome",

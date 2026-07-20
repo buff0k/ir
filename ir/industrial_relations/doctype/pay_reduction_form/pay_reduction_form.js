@@ -2,331 +2,308 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Pay Reduction Form", {
-    refresh: function(frm) {
-        // Check the flags before triggering the handler
-        if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
-            frm.trigger('linked_disciplinary_action');
-        } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
-            frm.trigger('linked_incapacity_proceeding');
-        } else if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
-            frm.trigger('linked_poor_performance');
-        }
+    setup(frm) {
+        frm.set_query("ir_intervention", () => ({
+            filters: {
+                name: [
+                    "in",
+                    [
+                        "Disciplinary Action",
+                        "Incapacity Proceedings",
+                        "Poor Performance",
+                    ],
+                ],
+            },
+        }));
     },
-    
-    linked_disciplinary_action: function(frm) {
-        if (frm.doc.linked_disciplinary_action) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.fetch_disciplinary_action_data',
-                args: {
-                    disciplinary_action: frm.doc.linked_disciplinary_action
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
 
-                        // Directly update the doc and refresh fields without triggering events
-                        frm.doc.employee = data.accused || '';
-                        frm.doc.names = data.accused_name || '';
-                        frm.doc.coy = data.accused_coy || '';
-                        frm.doc.position = data.accused_pos || '';
-                        frm.doc.company = data.company || '';
+    refresh(frm) {
+        toggle_intervention_sections(frm);
 
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
+        if (
+            frm.doc.applied_rights &&
+            !(frm.doc.employee_rights || []).length
+        ) {
+            frm.trigger("applied_rights");
+        }
 
-                        // Update child tables
-                        frm.clear_table('disciplinary_history');
-                        $.each(data.previous_disciplinary_outcomes, function(_, row) {
-                            let child = frm.add_child('disciplinary_history');
-                            child.disc_action = row.disc_action;
-                            child.date = row.date;
-                            child.sanction = row.sanction;
-                            child.charges = row.charges;
-                        });
-                        frm.refresh_field('disciplinary_history');
-
-                        frm.clear_table('nta_charges');
-                        $.each(data.final_charges, function(_, row) {
-                            let child = frm.add_child('nta_charges');
-                            child.indiv_charge = row.indiv_charge;
-                        });
-                        frm.refresh_field('nta_charges');
-
-                        // Update applied_rights field
-                        frm.set_value('applied_rights', 'Pay Reduction');
-                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
-                        
-                        // Set the flag to prevent refresh loop
-                        frm.set_value('linked_disciplinary_action_processed', true);
-                        
-                    }
-                }
-            });
+        if (
+            frm.doc.linked_intervention &&
+            !frm.doc.linked_intervention_processed
+        ) {
+            frm.trigger("linked_intervention");
         }
     },
 
-    linked_incapacity_proceeding: function(frm) {
-        if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.fetch_incpacity_proceeding_data',
-                args: {
-                    incapacity_proceeding: frm.doc.linked_incapacity_proceeding
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
-
-                        // Update fields
-                        frm.doc.employee = data.accused || '';
-                        frm.doc.names = data.accused_name || '';
-                        frm.doc.coy = data.accused_coy || '';
-                        frm.doc.position = data.accused_pos || '';
-                        frm.doc.company = data.company || '';
-                        frm.doc.type_of_incapacity = data.type_of_incapacity || '';
-                        frm.set_value('details_of_incapacity', data.details_of_incapacity || '');
-
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
-                        frm.refresh_field('details_of_incapacity');
-
-                        // Update child tables
-                        frm.clear_table('previous_incapacity_outcomes');
-                        $.each(data.previous_incapacity_outcomes, function(_, row) {
-                            let child = frm.add_child('previous_incapacity_outcomes');
-                            child.incap_proc = row.incap_proc;
-                            child.date = row.date;
-                            child.sanction = row.sanction;
-                            child.incap_details = row.incap_details;
-                        });
-                        frm.refresh_field('previous_incapacity_outcomes');
-
-                        // Update applied_rights field
-                        frm.set_value('applied_rights', 'Pay Reduction');
-                        frm.trigger('applied_rights'); // Trigger the applied_rights function to populate child table
-
-                        // Set the processed flag
-                        frm.set_value('linked_incapacity_proceeding_processed', true);
-
-                    }
-                }
-            });
-        }
+    ir_intervention(frm) {
+        frm.set_value("linked_intervention", "");
+        frm.set_value("linked_intervention_processed", 0);
+        clear_intervention_data(frm);
+        toggle_intervention_sections(frm);
     },
 
-
-    linked_poor_performance: function(frm) {
-        if (frm.doc.linked_poor_performance && !frm.doc.linked_poor_performance_processed) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.fetch_poor_performance_data',
-                args: {
-                    poor_performance: frm.doc.linked_poor_performance
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const data = r.message;
-
-                        frm.doc.employee = data.employee || '';
-                        frm.doc.names = data.employee_name || '';
-                        frm.doc.coy = data.employee || '';
-                        frm.doc.position = data.employee_designation || '';
-                        frm.doc.company = data.company || '';
-                        frm.set_value('performance_details', data.performance_details || '');
-
-                        frm.refresh_field('employee');
-                        frm.refresh_field('names');
-                        frm.refresh_field('coy');
-                        frm.refresh_field('position');
-                        frm.refresh_field('company');
-                        frm.refresh_field('performance_details');
-
-                        frm.clear_table('previous_performance_outcomes');
-                        $.each(data.previous_performance_outcomes || [], function(_, row) {
-                            let child = frm.add_child('previous_performance_outcomes');
-                            child.performance_action = row.performance_action;
-                            child.date = row.date;
-                            child.charges = row.charges;
-                            child.sanction = row.sanction;
-                        });
-                        frm.refresh_field('previous_performance_outcomes');
-
-                        frm.set_value('applied_rights', 'Pay Reduction');
-                        frm.trigger('applied_rights');
-
-                        frm.set_value('linked_poor_performance_processed', true);
-                    }
-                }
-            });
+    linked_intervention(frm) {
+        if (!frm.doc.ir_intervention || !frm.doc.linked_intervention) {
+            return;
         }
+
+        frappe.call({
+            method:
+                "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.fetch_intervention_data",
+            args: {
+                ir_intervention: frm.doc.ir_intervention,
+                linked_intervention: frm.doc.linked_intervention,
+            },
+            freeze: true,
+            freeze_message: __("Loading intervention details ..."),
+            callback(r) {
+                if (!r.message) return;
+
+                apply_intervention_data(frm, r.message);
+                frm.set_value("applied_rights", "Pay Reduction");
+                frm.trigger("applied_rights");
+                frm.set_value("linked_intervention_processed", 1);
+            },
+        });
     },
 
-    company: function(frm) {
-        if (frm.doc.company) {
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_company_letter_head',
-                args: {
-                    company: frm.doc.company
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        frm.doc.letter_head = r.message.letter_head || '';
-                        frm.refresh_field('letter_head');
-                    }
-                }
-            });
+    company(frm) {
+        if (!frm.doc.company) {
+            frm.set_value("letter_head", "");
+            return;
         }
+
+        frappe.call({
+            method:
+                "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.fetch_company_letter_head",
+            args: { company: frm.doc.company },
+            callback(r) {
+                frm.set_value("letter_head", r.message?.letter_head || "");
+            },
+        });
     },
 
-    applied_rights: function(frm) {
-        if (frm.doc.applied_rights) {
-            frappe.model.with_doc('Employee Rights', frm.doc.applied_rights, function() {
-                let doc = frappe.get_doc('Employee Rights', frm.doc.applied_rights);
-                frm.clear_table('employee_rights');
-                $.each(doc.applicable_rights, function(_, row) {
-                    let child = frm.add_child('employee_rights');
+    applied_rights(frm) {
+        if (!frm.doc.applied_rights) {
+            frm.clear_table("employee_rights");
+            frm.refresh_field("employee_rights");
+            return;
+        }
+
+        frappe.model.with_doc(
+            "Employee Rights",
+            frm.doc.applied_rights,
+            () => {
+                const rights = frappe.get_doc(
+                    "Employee Rights",
+                    frm.doc.applied_rights
+                );
+
+                frm.clear_table("employee_rights");
+                (rights.applicable_rights || []).forEach((row) => {
+                    const child = frm.add_child("employee_rights");
                     child.individual_right = row.individual_right;
                 });
-                frm.refresh_field('employee_rights');
-            });
-        }
+                frm.refresh_field("employee_rights");
+            }
+        );
     },
 
-    before_save: function(frm) {
-        console.log('Running before_save'); // Debug log
-
-        // Skip if already confirmed for this save
-        if (frm.__confirmed_save) {
-            console.log('Save already confirmed'); // Debug log
-            return;
-        }
-
-        // Determine linked document
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
-        let linked_doctype = frm.doc.linked_disciplinary_action
-            ? 'Disciplinary Action'
-            : frm.doc.linked_incapacity_proceeding
-                ? 'Incapacity Proceedings'
-                : 'Poor Performance';
-
-        if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.get_linked_outcome',
-                args: {
-                    doc_name: linked_doc_name,
-                    doctype: linked_doctype
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const { outcome, outcome_date } = r.message;
-
-                        const outcome_str = outcome ? outcome.toString() : 'None';
-                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
-
-                        if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation'); // Debug log
-                            frm.__confirmed_save = true;
-                            frappe.validated = true;  // Allow save
-                            frm.save();
-                            return;
-                        }
-
-                        // Prompt for confirmation
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be cleared upon saving. Do you want to proceed?`;
-
-                        frappe.confirm(
-                            msg,
-                            function() {
-                                console.log('User confirmed save'); // Debug log
-                                frm.__confirmed_save = true;  // Set flag after confirmation
-                                frappe.validated = true;  // Allow save
-                                frm.save();
-                            },
-                            function() {
-                                console.log('User canceled save'); // Debug log
-                                frappe.msgprint(__('Save operation canceled.'));
-                                frappe.validated = false;  // Block save
-                            }
-                        );
-                    }
-                }
-            });
-
-            console.log('Blocking save until confirmation'); // Debug log
-            frappe.validated = false;  // Block save
-        }
+    before_save(frm) {
+        return confirm_outcome_change(frm, "clear");
     },
 
-    before_submit: function(frm) {
-        console.log('Running before_submit'); // Debug log
-
+    before_submit(frm) {
         if (!frm.doc.signed_pay_reduction) {
-            frappe.msgprint(__('You must attach the signed pay reduction before submitting.'));
-            frappe.validated = false;
-            return;
+            frappe.throw(
+                __("You must attach the signed pay reduction before submitting.")
+            );
         }
 
-        if (frm.__confirmed_submit) {
-            console.log('Submit already confirmed'); // Debug log
-            return;
-        }
-
-        let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
-        let linked_doctype = frm.doc.linked_disciplinary_action
-            ? 'Disciplinary Action'
-            : frm.doc.linked_incapacity_proceeding
-                ? 'Incapacity Proceedings'
-                : 'Poor Performance';
-
-        if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
-
-            frappe.call({
-                method: 'ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.get_linked_outcome',
-                args: {
-                    doc_name: linked_doc_name,
-                    doctype: linked_doctype
-                },
-                callback: function(r) {
-                    if (r.message) {
-                        const { outcome, outcome_date } = r.message;
-
-                        const outcome_str = outcome ? outcome.toString() : 'None';
-                        const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
-
-                        if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation for submit'); // Debug log
-                            frm.__confirmed_submit = true;
-                            frm.save({ action: 'submit' });
-                            return;
-                        }
-
-                        let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be overwritten with pay reduction type: ${frm.doc.pay_reduction_type} and outcome date: ${frm.doc.outcome_date}. Do you want to proceed?`;
-
-                        frappe.confirm(
-                            msg,
-                            function() {
-                                console.log('User confirmed submit'); // Debug log
-                                frm.__confirmed_submit = true;
-                                frm.save({ action: 'submit' });
-                            },
-                            function() {
-                                frappe.msgprint(__('Submit operation canceled.'));
-                                frappe.validated = false;  // Block submit
-                            }
-                        );
-                    }
-                }
-            });
-
-            console.log('Blocking submit until confirmation'); // Debug log
-            frappe.validated = false;  // Block submit
-        }
-    }
+        return confirm_outcome_change(frm, "overwrite");
+    },
 });
+
+
+function toggle_intervention_sections(frm) {
+    const intervention = frm.doc.ir_intervention;
+
+    frm.toggle_display(
+        [
+            "details_of_offence_section",
+            "nta_charges",
+            "previous_disciplinary_offences_section",
+            "disciplinary_history",
+        ],
+        intervention === "Disciplinary Action"
+    );
+
+    frm.toggle_display(
+        [
+            "incap_details_section",
+            "type_of_incapacity",
+            "details_of_incapacity",
+            "previous_incapacity_outcomes_section",
+            "previous_incapacity_outcomes",
+        ],
+        intervention === "Incapacity Proceedings"
+    );
+
+    frm.toggle_display(
+        [
+            "details_of_poor_performance_section",
+            "performance_details",
+            "performance_history_section",
+            "previous_performance_outcomes",
+        ],
+        intervention === "Poor Performance"
+    );
+}
+
+
+function clear_intervention_data(frm) {
+    [
+        "employee",
+        "names",
+        "position",
+        "company",
+        "type_of_incapacity",
+        "details_of_incapacity",
+        "performance_details",
+    ].forEach((fieldname) => {
+        if (frm.fields_dict[fieldname]) {
+            frm.set_value(fieldname, "");
+        }
+    });
+
+    [
+        "nta_charges",
+        "disciplinary_history",
+        "previous_incapacity_outcomes",
+        "previous_performance_outcomes",
+    ].forEach((fieldname) => {
+        if (frm.fields_dict[fieldname]) {
+            frm.clear_table(fieldname);
+            frm.refresh_field(fieldname);
+        }
+    });
+}
+
+
+function apply_intervention_data(frm, data) {
+    [
+        "employee",
+        "names",
+        "position",
+        "company",
+        "type_of_incapacity",
+        "details_of_incapacity",
+        "performance_details",
+    ].forEach((fieldname) => {
+        if (frm.fields_dict[fieldname]) {
+            frm.set_value(fieldname, data[fieldname] || "");
+        }
+    });
+
+    const tables = {
+        nta_charges: ["indiv_charge"],
+        disciplinary_history: [
+            "disc_action",
+            "date",
+            "sanction",
+            "charges",
+        ],
+        previous_incapacity_outcomes: [
+            "incap_proc",
+            "date",
+            "sanction",
+            "incap_details",
+        ],
+        previous_performance_outcomes: [
+            "performance_action",
+            "date",
+            "charges",
+            "sanction",
+        ],
+    };
+
+    Object.entries(tables).forEach(([fieldname, fields]) => {
+        if (!frm.fields_dict[fieldname]) return;
+
+        frm.clear_table(fieldname);
+        (data[fieldname] || []).forEach((row) => {
+            const child = frm.add_child(fieldname);
+            fields.forEach((childField) => {
+                child[childField] = row[childField];
+            });
+        });
+        frm.refresh_field(fieldname);
+    });
+
+    toggle_intervention_sections(frm);
+}
+
+
+function confirm_outcome_change(frm, mode) {
+    if (!frm.doc.ir_intervention || !frm.doc.linked_intervention) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+        frappe.call({
+            method:
+                "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.get_linked_outcome",
+            args: {
+                doc_name: frm.doc.linked_intervention,
+                doctype: frm.doc.ir_intervention,
+            },
+            callback(r) {
+                const data = r.message || {};
+                const hasOutcome = [
+                    data.outcome,
+                    data.outcome_date,
+                    data.outcome_start,
+                    data.outcome_end,
+                ].some(Boolean);
+
+                if (!hasOutcome) {
+                    resolve();
+                    return;
+                }
+
+                const current = __(
+                    "The linked {0} currently has outcome {1} dated {2}.",
+                    [
+                        frm.doc.ir_intervention,
+                        data.outcome || __("None"),
+                        data.outcome_date
+                            ? frappe.datetime.str_to_user(data.outcome_date)
+                            : __("None"),
+                    ]
+                );
+
+                const action =
+                    mode === "overwrite"
+                        ? __(
+                              "Submitting will replace it with {0} dated {1}. Continue?",
+                              [
+                                  frm.doc.pay_reduction_type,
+                                  frappe.datetime.str_to_user(
+                                      frm.doc.outcome_date
+                                  ),
+                              ]
+                          )
+                        : __(
+                              "Saving this draft will clear the linked outcome and its period details. Continue?"
+                          );
+
+                frappe.confirm(
+                    `${current}<br><br>${action}`,
+                    resolve,
+                    () => reject(new Error("User cancelled"))
+                );
+            },
+            error: reject,
+        });
+    });
+}
