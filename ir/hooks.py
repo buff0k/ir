@@ -216,7 +216,8 @@ scheduler_events = {
 	],
 	"daily": [
 		"ir.controllers.attendance_sync.enqueue_daily_sync",
-		"ir.controllers.employee_termination_sync.run_daily"
+		"ir.controllers.employee_termination_sync.run_daily",
+        "ir.controllers.demotion_expiry.run_daily",
 	]
 }
 after_migrate = [

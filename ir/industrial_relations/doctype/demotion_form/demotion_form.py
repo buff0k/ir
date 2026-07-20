@@ -1,339 +1,256 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
+from __future__ import annotations
+
 import frappe
-from frappe.model.mapper import get_mapped_doc
+from frappe import _
 from frappe.model.document import Document
-from frappe import _, get_doc
+from frappe.utils import getdate
+
+from ir.industrial_relations.utils import (
+    autoname_by_linked_parent,
+    clear_parent_outcome,
+    fetch_company_letter_head as _fetch_company_letter_head,
+    fetch_performance_data,
+    get_linked_outcome as _get_linked_outcome,
+    hydrate_employee_from_source,
+    set_parent_outcome,
+)
+
+SUPPORTED_INTERVENTIONS = {
+    "Disciplinary Action",
+    "Incapacity Proceedings",
+    "Poor Performance",
+}
+
 
 class DemotionForm(Document):
     def autoname(self):
-        linked_field = None
-        linked_field_name = None
+        autoname_by_linked_parent(self, "DEM")
 
-        # Check which linked field is populated
-        if self.linked_disciplinary_action:
-            linked_field = self.linked_disciplinary_action
-            linked_field_name = 'linked_disciplinary_action'
-        elif self.linked_incapacity_proceeding:
-            linked_field = self.linked_incapacity_proceeding
-            linked_field_name = 'linked_incapacity_proceeding'
-        elif self.linked_poor_performance:
-            linked_field = self.linked_poor_performance
-            linked_field_name = 'linked_poor_performance'
-
-        # If neither linked field is populated, return None (default naming)
-        if not linked_field:
-            return
-
-        # Check if this is the first document for the linked field
-        existing_docs = frappe.get_all(self.doctype, filters={linked_field_name: linked_field}, fields=["name"])
-
-        # If no existing documents are found, this is the first document
-        if len(existing_docs) == 0:
-            # Naming format for the first document
-            self.name = f"DEM-{linked_field}"
-        else:
-            # If not the first document, find the latest revision number specific to this linked field
-            latest_revision = 0
-            for doc in existing_docs:
-                # Extract the revision number (after the dash)
-                if doc.name.startswith(f"DEM-{linked_field}-"):
-                    revision_number = doc.name.split('-')[-1]
-                    try:
-                        revision_number = int(revision_number)
-                        latest_revision = max(latest_revision, revision_number)
-                    except ValueError:
-                        pass  # Skip invalid revision numbers
-
-            # Increment the revision number for the next document
-            new_revision = latest_revision + 1
-            self.name = f"DEM-{linked_field}-{new_revision}"
+    def validate(self):
+        self._validate_intervention()
+        self._validate_demotion()
 
     def before_save(self):
-        if not getattr(self, "__confirmed_save", False):
-            self.clear_outcome_in_linked_documents()
+        # Preserve current behaviour: saving a draft clears an existing source outcome.
+        if not self.flags.get("skip_clear_parent_outcome"):
+            clear_parent_outcome(self)
 
     def before_submit(self):
         if not self.employee:
             frappe.throw(_("Please link an Employee before submitting."))
-
+        if not self.position:
+            frappe.throw(_("Current Position is required before submitting."))
         if not self.new_position:
-            frappe.throw(_("New Position is required before submitting."))
+            frappe.throw(_("New Position after Demotion is required before submitting."))
+        if self.position == self.new_position:
+            frappe.throw(_("The new position must differ from the employee's current position."))
+        if not self.signed_demotion:
+            frappe.throw(_("You must attach the signed demotion before submitting."))
 
-        employee = frappe.get_doc("Employee", self.employee)
-        employee.designation = self.new_position
-        employee.status = "Active"
-        employee.save(ignore_permissions=True)
-
-        frappe.msgprint(
-            _("Employee {0}'s designation has been updated to {1}.").format(
-                self.employee, self.new_position
-            ),
-            alert=True
-        )
+        self._apply_demotion()
 
     def on_submit(self):
-        if not getattr(self, "__confirmed_submit", False):
-            self.set_outcome_in_linked_documents()
+        self._set_source_outcome()
 
-    def clear_outcome_in_linked_documents(self):
-        linked_doc_name, linked_doctype = self.get_linked_document()
-        if linked_doc_name and linked_doctype:
-            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
-            linked_doc.flags.ignore_version = True  # Avoid version mismatch
-
-            previous_outcome = linked_doc.get("outcome")
-            previous_outcome_date = linked_doc.get("outcome_date")
-            previous_outcome_start = linked_doc.get("outcome_start")
-            previous_outcome_end = linked_doc.get("outcome_end")
-
-            if linked_doc.docstatus == 0:  # Non-submitted document
-                linked_doc.outcome = None
-                linked_doc.outcome_date = None
-                linked_doc.outcome_start = None
-                linked_doc.outcome_end = None
-                linked_doc.save(ignore_permissions=True)
-            else:  # Submitted document
-                linked_doc.db_set("outcome", None)
-                linked_doc.db_set("outcome_date", None)
-                linked_doc.db_set("outcome_start", None)
-                linked_doc.db_set("outcome_end", None)
-                # Create a manual version entry for the submitted document
-                create_manual_version(linked_doc, "outcome", previous_outcome, None)
-                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, None)
-                create_manual_version(linked_doc, "outcome_start", previous_outcome_date, None)
-                create_manual_version(linked_doc, "outcome_end", previous_outcome_date, None)
-
-            # Notify the user
-            frappe.msgprint(
-                _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been cleared.").format(linked_doc_name, linked_doctype),
-                alert=True
+    def _validate_intervention(self):
+        if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
+            frappe.throw(_("Unsupported IR Intervention: {0}").format(self.ir_intervention))
+        if not self.linked_intervention:
+            frappe.throw(_("Linked IR Intervention is required."))
+        if not frappe.db.exists(self.ir_intervention, self.linked_intervention):
+            frappe.throw(
+                _("{0} {1} does not exist.").format(
+                    self.ir_intervention, self.linked_intervention
+                )
             )
 
-    def set_outcome_in_linked_documents(self):
-        linked_doc_name, linked_doctype = self.get_linked_document()
-        if linked_doc_name and linked_doctype:
-            linked_doc = frappe.get_doc(linked_doctype, linked_doc_name)
-            linked_doc.flags.ignore_version = True  # Avoid version mismatch
+    def _validate_demotion(self):
+        if self.from_date and self.to_date and getdate(self.to_date) < getdate(self.from_date):
+            frappe.throw(_("End Date of Demotion cannot be before From Date."))
 
-            previous_outcome = linked_doc.get("outcome")
-            previous_outcome_date = linked_doc.get("outcome_date")
-            previous_outcome_start = linked_doc.get("outcome_start")
-            previous_outcome_end = linked_doc.get("outcome_end")
+    def _apply_demotion(self):
+        employee = frappe.get_doc("Employee", self.employee)
+        old_designation = employee.designation
 
-            if linked_doc.docstatus == 0:  # Non-submitted document
-                linked_doc.outcome = self.demotion_type
-                linked_doc.outcome_date = self.outcome_date
-                linked_doc.outcome_start = f"The employee is demoted from {self.from_date}."
-                if self.to_date:
-                    linked_doc.outcome_end = f"The employee is demoted until {self.to_date}."
-                linked_doc.save(ignore_permissions=True)
-            else:  # Submitted document
-                linked_doc.db_set("outcome", self.demotion_type)
-                linked_doc.db_set("outcome_date", self.outcome_date)
-                linked_doc.db_set("outcome_start", f"The employee is demoted from {self.from_date}.")
-                if self.to_date:
-                    linked_doc.db_set("outcome_end", f"The employee is demoted until {self.to_date}.")
-                    create_manual_version(linked_doc, "outcome_end", previous_outcome_end, f"The employee is demoted until {self.to_date}.")
-                # Create a manual version entry for the submitted document
-                create_manual_version(linked_doc, "outcome", previous_outcome, self.demotion_type)
-                create_manual_version(linked_doc, "outcome_date", previous_outcome_date, self.outcome_date)
-                create_manual_version(linked_doc, "outcome_start", previous_outcome_start, f"The employee is demoted from {self.from_date}.")
+        employee.designation = self.new_position
+        employee.status = "Active"
+        _append_employee_audit(
+            employee,
+            fieldname="designation",
+            old_value=old_designation,
+            new_value=self.new_position,
+            reference_doctype=self.doctype,
+            reference_name=self.name,
+            remarks=_("Demotion applied from {0}").format(self.from_date),
+        )
+        employee.save(ignore_permissions=True)
 
-            # Notify the user
-            frappe.msgprint(
-                _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been updated to {2} and {3}, respectively.")
-                .format(linked_doc_name, linked_doctype, self.demotion_type, self.outcome_date),
-                alert=True
-            )
+        self.demotion_applied = 1
+        self.demotion_reversed = 0
+        self.demotion_reversed_on = None
 
-    def get_linked_document(self):
-        if self.linked_disciplinary_action:
-            return self.linked_disciplinary_action, "Disciplinary Action"
-        elif self.linked_incapacity_proceeding:
-            return self.linked_incapacity_proceeding, "Incapacity Proceedings"
-        elif self.linked_poor_performance:
-            return self.linked_poor_performance, "Poor Performance"
-        return None, None
+    def _set_source_outcome(self):
+        if self.to_date:
+            outcome_start = _(
+                "The employee is demoted to {0} from {1}."
+            ).format(self.new_position, self.from_date)
+            outcome_end = _(
+                "The temporary demotion ends on {0}, after which the employee is to return to {1}."
+            ).format(self.to_date, self.position)
+        else:
+            outcome_start = _(
+                "The employee is demoted to {0} with effect from {1}."
+            ).format(self.new_position, self.from_date)
+            outcome_end = None
 
-def create_manual_version(doc, fieldname, old_value, new_value):
-    """Create a manual version entry for a submitted document."""
-    version_data = {
-        "ref_doctype": doc.doctype,
-        "docname": doc.name,
-        "data": frappe.as_json({
-            "changed": [[fieldname, old_value, new_value]]
-        })
+        # set_parent_outcome currently omits None values, so clear a stale end explicitly.
+        set_parent_outcome(
+            self,
+            self.demotion_type,
+            self.outcome_date,
+            outcome_start,
+            outcome_end,
+        )
+        if not self.to_date:
+            linked = frappe.get_doc(self.ir_intervention, self.linked_intervention)
+            if linked.docstatus == 0:
+                linked.outcome_end = None
+                linked.save(ignore_permissions=True)
+            else:
+                linked.db_set("outcome_end", None, update_modified=False)
+
+
+def _append_employee_audit(employee, *, fieldname, old_value, new_value, reference_doctype, reference_name, remarks):
+    """Append to the custom Employee audit table when that table exists.
+
+    The app's deployed audit child DocType has changed over time, so this helper
+    fills recognised field names dynamically instead of hard-coding one schema.
+    Standard Employee Version history is also created by employee.save() where
+    Employee Track Changes is enabled.
+    """
+    if not employee.meta.has_field("ir_employee_audit"):
+        return
+
+    table_field = employee.meta.get_field("ir_employee_audit")
+    if not table_field or not table_field.options:
+        return
+
+    child_meta = frappe.get_meta(table_field.options)
+    row = employee.append("ir_employee_audit", {})
+    values = {
+        "change_date": frappe.utils.now_datetime(),
+        "date": frappe.utils.today(),
+        "modified_on": frappe.utils.now_datetime(),
+        "changed_by": frappe.session.user,
+        "user": frappe.session.user,
+        "fieldname": fieldname,
+        "field_name": fieldname,
+        "field": fieldname,
+        "old_value": old_value,
+        "previous_value": old_value,
+        "new_value": new_value,
+        "reference_doctype": reference_doctype,
+        "reference_name": reference_name,
+        "reference_document": reference_name,
+        "remarks": remarks,
+        "description": remarks,
     }
-    frappe.get_doc({"doctype": "Version", **version_data}).insert(ignore_permissions=True)
-
-@frappe.whitelist()
-def make_demotion_form(source_name, target_doc=None):
-    from frappe.model.mapper import get_mapped_doc
-
-    def set_missing_values(source, target):
-        target.linked_disciplinary_action = source_name
-
-    doclist = get_mapped_doc("Disciplinary Action", source_name, {
-        "Disciplinary Action": {
-            "doctype": "Demotion Form",
-            "field_map": {
-                "name": "linked_disciplinary_action"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
-
-@frappe.whitelist()
-def make_demotion_form_incap(source_name, target_doc=None):
-    from frappe.model.mapper import get_mapped_doc
-
-    def set_missing_values(source, target):
-        target.linked_incapacity_proceeding = source_name
-
-    doclist = get_mapped_doc("Incapacity Proceedings", source_name, {
-        "Incapacity Proceedings": {
-            "doctype": "Demotion Form",
-            "field_map": {
-                "name": "linked_incapacity_proceeding"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
+    for key, value in values.items():
+        if child_meta.has_field(key):
+            row.set(key, value)
 
 
 @frappe.whitelist()
-def make_demotion_form_performance(source_name, target_doc=None):
-    from frappe.model.mapper import get_mapped_doc
+def create_demotion_form(source_name: str, source_doctype: str):
+    if source_doctype not in SUPPORTED_INTERVENTIONS:
+        frappe.throw(_("Unsupported IR Intervention: {0}").format(source_doctype))
+    if not frappe.db.exists(source_doctype, source_name):
+        frappe.throw(_("{0} {1} does not exist.").format(source_doctype, source_name))
 
-    def set_missing_values(source, target):
-        target.linked_poor_performance = source_name
+    source = frappe.get_doc(source_doctype, source_name)
+    target = frappe.new_doc("Demotion Form")
+    target.ir_intervention = source_doctype
+    target.linked_intervention = source_name
+    target.linked_intervention_processed = 1
+    hydrate_employee_from_source(source, target)
 
-    doclist = get_mapped_doc("Poor Performance", source_name, {
-        "Poor Performance": {
-            "doctype": "Demotion Form",
-            "field_map": {
-                "name": "linked_poor_performance"
-            }
-        }
-    }, target_doc, set_missing_values)
-
-    return doclist
-
-@frappe.whitelist()
-def fetch_disciplinary_action_data(disciplinary_action):
-    data = frappe.db.get_value('Disciplinary Action', disciplinary_action, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company'], as_dict=True)
-
-    if not data:
-        return {}
-    
-    # Fetch child table data
-    disciplinary_action_doc = frappe.get_doc('Disciplinary Action', disciplinary_action)
-    
-    previous_disciplinary_outcomes = [
-        {
-            'disc_action': row.disc_action,
-            'date': row.date,
-            'sanction': row.sanction,
-            'charges': row.charges
-        } for row in disciplinary_action_doc.previous_disciplinary_outcomes
-    ]
-    
-    final_charges = [
-        {
-            'indiv_charge': f"({row.code_item}) {row.charge}"
-        } for row in disciplinary_action_doc.final_charges
-    ]
-    
-    data.update({
-        'previous_disciplinary_outcomes': previous_disciplinary_outcomes,
-        'final_charges': final_charges
-    })
-    
-    return data
-
-@frappe.whitelist()
-def fetch_incpacity_proceeding_data(incapacity_proceeding):
-    # Check if the provided name exists and belongs to the correct DocType
-    if not frappe.db.exists('Incapacity Proceedings', incapacity_proceeding):
-        frappe.throw(_("Incapacity Proceedings {0} not found").format(incapacity_proceeding))
-
-    data = frappe.db.get_value('Incapacity Proceedings', incapacity_proceeding, 
-        ['accused', 'accused_name', 'accused_coy', 'accused_pos', 'company', 'type_of_incapacity', 'details_of_incapacity'], as_dict=True)
-
-    if not data:
-        return {}
-    
-    # Fetch child table data
-    incapacity_proceeding_doc = frappe.get_doc('Incapacity Proceedings', incapacity_proceeding)
-    
-    previous_incapacity_outcomes = [
-        {
-            'incap_proc': row.incap_proc,
-            'date': row.date,
-            'sanction': row.sanction,
-            'incap_details': row.incap_details
-        } for row in incapacity_proceeding_doc.previous_incapacity_outcomes
-    ]
-    
-    data.update({
-        'previous_incapacity_outcomes': previous_incapacity_outcomes
-    })
-    
-    return data
-
-
-@frappe.whitelist()
-def fetch_poor_performance_data(poor_performance):
-    if not frappe.db.exists('Poor Performance', poor_performance):
-        frappe.throw(_("Poor Performance {0} not found").format(poor_performance))
-
-    data = frappe.db.get_value(
-        'Poor Performance',
-        poor_performance,
-        ['employee', 'employee_name', 'employee_designation', 'company', 'details_of_poor_performance'],
-        as_dict=True,
+    # position is intentionally editable and represents the reviewed pre-demotion position.
+    target.position = (
+        source.get("employee_designation")
+        or source.get("accused_pos")
+        or frappe.db.get_value("Employee", target.employee, "designation")
     )
+    target.applied_rights = "Demotion"
+    target.company = source.get("company")
+    if target.company:
+        target.letter_head = frappe.db.get_value("Company", target.company, "default_letter_head")
 
-    if not data:
-        return {}
+    _populate_rights(target)
+    if source_doctype == "Disciplinary Action":
+        _populate_disciplinary(source, target)
+    elif source_doctype == "Incapacity Proceedings":
+        _populate_incapacity(source, target)
+    else:
+        _populate_performance(source, target)
 
-    poor_performance_doc = frappe.get_doc('Poor Performance', poor_performance)
+    return target
 
-    previous_performance_outcomes = [
-        {
-            'performance_action': row.performance_action,
-            'date': row.date,
-            'charges': row.charges,
-            'sanction': row.sanction,
-        }
-        for row in (poor_performance_doc.previous_disciplinary_outcomes or [])
-    ]
 
-    data.update({
-        'performance_details': data.get('details_of_poor_performance') or '',
-        'previous_performance_outcomes': previous_performance_outcomes,
-    })
+def _populate_rights(target):
+    if not frappe.db.exists("Employee Rights", "Demotion"):
+        return
+    rights = frappe.get_doc("Employee Rights", "Demotion")
+    target.set("employee_rights", [])
+    for item in rights.get("applicable_rights") or []:
+        target.append("employee_rights", {"individual_right": item.get("individual_right")})
 
-    return data
+
+def _populate_disciplinary(source, target):
+    target.set("disciplinary_history", [])
+    for row in source.get("previous_disciplinary_outcomes") or []:
+        target.append("disciplinary_history", {
+            "disc_action": row.get("disc_action"),
+            "date": row.get("date"),
+            "sanction": row.get("sanction"),
+            "charges": row.get("charges"),
+        })
+    target.set("dem_charges", [])
+    for row in source.get("final_charges") or []:
+        code = row.get("code_item") or ""
+        charge = row.get("charge") or ""
+        text = f"({code}) {charge}" if code else charge
+        target.append("dem_charges", {"indiv_charge": text})
+
+
+def _populate_incapacity(source, target):
+    target.type_of_incapacity = source.get("type_of_incapacity")
+    target.details_of_incapacity = source.get("details_of_incapacity")
+    target.set("previous_incapacity_outcomes", [])
+    for row in source.get("previous_incapacity_outcomes") or []:
+        target.append("previous_incapacity_outcomes", {
+            "incap_proc": row.get("incap_proc"),
+            "date": row.get("date"),
+            "sanction": row.get("sanction"),
+            "incap_details": row.get("incap_details"),
+        })
+
+
+def _populate_performance(source, target):
+    data = fetch_performance_data(source.name)
+    target.performance_details = data.get("performance_details")
+    target.set("previous_performance_outcomes", [])
+    for row in data.get("previous_performance_outcomes") or []:
+        target.append("previous_performance_outcomes", row)
+
 
 @frappe.whitelist()
 def fetch_company_letter_head(company):
-    letter_head = frappe.db.get_value('Company', company, 'default_letter_head')
-    return {'letter_head': letter_head} if letter_head else {}
+    return _fetch_company_letter_head(company)
+
 
 @frappe.whitelist()
 def get_linked_outcome(doc_name, doctype):
-    linked_doc = frappe.get_doc(doctype, doc_name)
-    return {
-        "linked_doc_name": linked_doc.name,
-        "linked_doctype": doctype,
-        "outcome": linked_doc.outcome,
-        "outcome_date": linked_doc.outcome_date,
-        "outcome_start": linked_doc.outcome_start,
-        "outcome_end": linked_doc.outcome_end
-    }
+    return _get_linked_outcome(doc_name, doctype)

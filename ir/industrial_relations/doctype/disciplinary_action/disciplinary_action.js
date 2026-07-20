@@ -267,7 +267,12 @@ function open_legacy_mapped(frm, method, args, message) {
 }
 
 function make_demotion_form(frm) {
-    open_legacy_mapped(frm, "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form", { linked_disciplinary_action: frm.doc.name });
+    create_generic_document(
+        frm,
+        "ir.industrial_relations.doctype.demotion_form.demotion_form.create_demotion_form",
+        "Demotion Form",
+        "Creating Demotion Form ..."
+    );
 }
 function make_pay_deduction_form(frm) {
     create_generic_document(

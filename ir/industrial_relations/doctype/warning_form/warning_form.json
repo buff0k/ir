@@ -109,7 +109,7 @@
    "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
    "fieldname": "details_of_offence_section",
    "fieldtype": "Section Break",
-   "label": "Details of Offence"
+   "label": "Disciplinary Details"
   },
   {
    "columns": 1,
@@ -225,7 +225,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-20 08:18:08.981623",
+ "modified": "2026-07-20 09:32:44.613272",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Warning Form",
