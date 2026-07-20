@@ -1,0 +1,26 @@
+{
+ "content": null,
+ "creation": "2026-07-20 10:56:06.632115",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-07-20 11:38:02.336409",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "hr-exception-report",
+ "owner": "Administrator",
+ "page_name": "hr-exception-report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "HR Exception Report"
+}

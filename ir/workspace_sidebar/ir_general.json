@@ -81,6 +81,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "chart",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Exception Report",
+   "link_to": "hr-exception-report",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
    "label": "Employee",
@@ -135,7 +147,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-15 08:58:30.963266",
+ "modified": "2026-07-20 11:37:42.145965",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
