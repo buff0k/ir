@@ -2014,3 +2014,146 @@ button.her-mini-list {
 .her-slide--screen .her-ee-table tr.is-special th {
   color: var(--text-color);
 }
+
+/* -------------------------------------------------
+   HR Exception Report - ESG comparison extension
+   Page-only content; deliberately excluded from PNG
+   ------------------------------------------------- */
+
+.her-esg-section {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  color: var(--text-color);
+  background: var(--fg-color, var(--card-bg));
+}
+
+.her-esg-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.her-esg-heading span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.her-esg-heading h2 {
+  margin: 2px 0 3px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.her-esg-heading p {
+  margin: 0;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.her-esg-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.her-esg-table {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.her-esg-table th,
+.her-esg-table td {
+  padding: 8px 9px;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+}
+
+.her-esg-table tr:last-child th,
+.her-esg-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.her-esg-table th:last-child,
+.her-esg-table td:last-child {
+  border-right: 0;
+}
+
+.her-esg-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--text-color);
+  background: var(--control-bg);
+  text-align: left;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.her-esg-table tbody th {
+  min-width: 300px;
+  text-align: left;
+  font-weight: 800;
+}
+
+.her-esg-table td:nth-child(2),
+.her-esg-table td:nth-child(3),
+.her-esg-table td:nth-child(4),
+.her-esg-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+.her-esg-table tr.is-reduction {
+  background: color-mix(in srgb, var(--red-500, #ef4444) 8%, transparent);
+}
+
+.her-esg-table tr.is-increase {
+  background: color-mix(in srgb, var(--green-500, #22c55e) 7%, transparent);
+}
+
+.her-esg-table tr.is-reduction .her-esg-change {
+  color: var(--red-600, #dc2626);
+  font-weight: 900;
+}
+
+.her-esg-table tr.is-increase .her-esg-change {
+  color: var(--green-600, #16a34a);
+  font-weight: 900;
+}
+
+.her-esg-notes {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-color);
+  border-radius: 9px;
+  background: var(--control-bg);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.her-esg-notes strong {
+  font-weight: 900;
+}
+
+.her-esg-notes ul {
+  margin: 5px 0 5px 18px;
+  padding: 0;
+}
+
+@media (max-width: 700px) {
+  .her-esg-heading {
+    flex-direction: column;
+  }
+}
+

@@ -27,6 +27,7 @@ class HRExceptionReport {
     this.page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
     this.page.add_inner_button(__("Export transparent PNG"), () => this.export_png(), __("Export"));
     this.page.add_inner_button(__("Copy PNG"), () => this.copy_png(), __("Export"));
+    this.page.add_inner_button(__("Export new employee details"), () => this.export_new_employee_details(), __("Export"));
 
     this.initialise_defaults();
   }
@@ -180,9 +181,11 @@ class HRExceptionReport {
           ${this.render_footer(d)}
         </article>
       </div>
+      ${this.render_esg_section(d.esg_comparison)}
     `);
 
     this.bind_metric_clicks();
+    this.$content.off("click.her-esg", '[data-action="export-new-employees"]').on("click.her-esg", '[data-action="export-new-employees"]', () => this.export_new_employee_details());
   }
 
   render_header(d) {
@@ -457,6 +460,87 @@ class HRExceptionReport {
       warnings.push(`<div class="her-ee-warning">${__("No employees matched the company and snapshot date. Detected fields:")} ${frappe.utils.escape_html(JSON.stringify(ee.field_map || {}))}</div>`);
     }
     return warnings.join("");
+  }
+
+
+  render_esg_section(esg) {
+    if (!esg?.rows?.length) return "";
+    const currency = frappe.defaults.get_default("currency") || "ZAR";
+    return `
+      <section class="her-esg-section">
+        <div class="her-esg-heading">
+          <div>
+            <span>${__("Additional ESG information")}</span>
+            <h2>${__("Workforce measurement-period comparison")}</h2>
+            <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
+          </div>
+          <button class="btn btn-default btn-sm" data-action="export-new-employees">
+            ${__("Export new employee details to Excel")}
+          </button>
+        </div>
+        <div class="her-esg-table-wrap">
+          <table class="her-esg-table">
+            <thead>
+              <tr>
+                <th>${__("ESG measure")}</th>
+                <th>${__("Unit")}</th>
+                <th>${this.format_date(esg.from_date)}</th>
+                <th>${this.format_date(esg.to_date)}</th>
+                <th>${__("Change")}</th>
+                <th>${__("Reason for reduction")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${esg.rows.map((row) => `
+                <tr class="${row.change === null || row.change === undefined ? "is-unavailable" : Number(row.change) < 0 ? "is-reduction" : Number(row.change) > 0 ? "is-increase" : ""}">
+                  <th>${frappe.utils.escape_html(row.label)}</th>
+                  <td>${row.unit === "Currency" ? frappe.utils.escape_html(currency) : row.unit === "Unavailable" ? frappe.utils.escape_html(__("Not available")) : frappe.utils.escape_html(__(row.unit))}</td>
+                  <td>${this.esg_value(row.start, row.unit, currency)}</td>
+                  <td>${this.esg_value(row.end, row.unit, currency)}</td>
+                  <td class="her-esg-change">${this.esg_change(row.change, row.unit, currency)}</td>
+                  <td>${frappe.utils.escape_html(row.reduction_reasons || "")}</td>
+                </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="her-esg-notes">
+          <strong>${__("Calculation notes")}</strong>
+          <ul>${(esg.assumptions || []).map((note) => `<li>${frappe.utils.escape_html(note)}</li>`).join("")}</ul>
+        </div>
+      </section>
+    `;
+  }
+
+  esg_value(value, unit, currency) {
+    if (value === null || value === undefined || unit === "Unavailable") {
+      return `<span class="her-esg-unavailable">${__("Not available")}</span>`;
+    }
+    const number = Number(value || 0);
+    if (unit === "Currency") {
+      return format_currency(number, currency, 2);
+    }
+    return frappe.format(number, { fieldtype: "Int" });
+  }
+
+  esg_change(value, unit, currency) {
+    if (value === null || value === undefined || unit === "Unavailable") {
+      return `<span class="her-esg-unavailable">—</span>`;
+    }
+    const number = Number(value || 0);
+    const formatted = unit === "Currency"
+      ? format_currency(Math.abs(number), currency, 2)
+      : frappe.format(Math.abs(number), { fieldtype: "Int" });
+    return `${number > 0 ? "+" : number < 0 ? "−" : ""}${formatted}`;
+  }
+
+  export_new_employee_details() {
+    const filters = this.get_filters();
+    if (!this.validate_filters(filters)) return;
+    const query = new URLSearchParams(filters).toString();
+    window.open(
+      `/api/method/ir.industrial_relations.page.hr_exception_report.hr_exception_report.download_new_employee_details?${query}`,
+      "_blank"
+    );
   }
 
   render_footer(d) {
