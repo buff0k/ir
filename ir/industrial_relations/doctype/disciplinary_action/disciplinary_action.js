@@ -5,6 +5,7 @@ frappe.ui.form.on("Disciplinary Action", {
     refresh(frm) {
         render_linked_docs(frm);
         render_untracked_disciplinary_actions(frm);
+        sync_offences_and_render_sanctions(frm);
 
         frm.toggle_display(
             ["make_warning_form", "make_nta_hearing"],
@@ -34,7 +35,9 @@ frappe.ui.form.on("Disciplinary Action", {
     after_save(frm) {
         render_linked_docs(frm);
         render_untracked_disciplinary_actions(frm);
+        sync_offences_and_render_sanctions(frm);
     },
+
 
     accused(frm) {
         if (!frm.doc.accused) return;
@@ -301,4 +304,123 @@ function cancel_disciplinary(frm) {
 }
 function appeal_disciplinary(frm) {
     open_legacy_mapped(frm, "ir.industrial_relations.doctype.appeal_against_outcome.appeal_disciplinary", { linked_disciplinary_action: frm.doc.name });
+}
+
+frappe.ui.form.on("List of Offences", {
+    code_item(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row) return;
+
+        row.offence_code = row.code_item || "";
+        frm.refresh_field("offences");
+        sync_offences_and_render_sanctions(frm, row.idx);
+    },
+
+    offences_remove(frm) {
+        sync_offences_and_render_sanctions(frm);
+    },
+
+    offences_move(frm) {
+        sync_offences_and_render_sanctions(frm);
+    },
+});
+
+function sync_offences_and_render_sanctions(frm, changed_idx = null) {
+    if (!frm.fields_dict.offences || !frm.fields_dict.final_charges) return;
+
+    if (frm.doc.docstatus !== 0) {
+        render_offence_sanction_summary(frm);
+        return;
+    }
+
+    const offences = frm.doc.offences || [];
+    const charges = frm.doc.final_charges || [];
+    const code_items = offences.map((row) => row.code_item).filter(Boolean);
+
+    offences.forEach((row) => {
+        row.offence_code = row.code_item || "";
+    });
+    frm.refresh_field("offences");
+
+    if (!code_items.length) {
+        frm.clear_table("final_charges");
+        frm.refresh_field("final_charges");
+        render_offence_sanction_summary(frm);
+        return;
+    }
+
+    frappe.call({
+        method:
+            "ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.get_offence_qol_data",
+        args: {
+            accused: frm.doc.accused || "",
+            current_doc_name: frm.doc.name || "",
+            code_items: JSON.stringify(code_items),
+        },
+        callback(r) {
+            const data = r.message || {};
+            const offence_data = data.offences || {};
+
+            offences.forEach((offence, index) => {
+                let charge = charges[index];
+                if (!charge) {
+                    charge = frm.add_child("final_charges");
+                }
+
+                const old_code = charge.code_item || "";
+                const new_code = offence.code_item || "";
+                const description = (offence_data[new_code] || {}).offence_description || "";
+                const code_changed = old_code !== new_code;
+
+                charge.code_item = new_code;
+                if (code_changed || !charge.charge || changed_idx === offence.idx) {
+                    charge.charge = description;
+                }
+            });
+
+            while ((frm.doc.final_charges || []).length > offences.length) {
+                frm.doc.final_charges.pop();
+            }
+
+            (frm.doc.final_charges || []).forEach((row, index) => {
+                row.idx = index + 1;
+            });
+
+            frm.refresh_field("final_charges");
+            render_offence_sanction_summary(frm, data.html || "");
+        },
+    });
+}
+
+function render_offence_sanction_summary(frm, supplied_html = null) {
+    if (!frm.fields_dict.recommended_sanction_summary) return;
+
+    if (supplied_html !== null) {
+        frm.fields_dict.recommended_sanction_summary.$wrapper.html(supplied_html);
+        return;
+    }
+
+    const code_items = (frm.doc.offences || [])
+        .map((row) => row.code_item)
+        .filter(Boolean);
+
+    if (!code_items.length) {
+        frm.fields_dict.recommended_sanction_summary.$wrapper.html("");
+        return;
+    }
+
+    frappe.call({
+        method:
+            "ir.industrial_relations.doctype.disciplinary_action.disciplinary_action.get_offence_qol_data",
+        args: {
+            accused: frm.doc.accused || "",
+            current_doc_name: frm.doc.name || "",
+            code_items: JSON.stringify(code_items),
+        },
+        callback(r) {
+            frm.fields_dict.recommended_sanction_summary.$wrapper.html(
+                (r.message || {}).html || ""
+            );
+        },
+    });
 }
