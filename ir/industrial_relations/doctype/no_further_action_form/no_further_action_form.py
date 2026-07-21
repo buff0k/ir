@@ -26,6 +26,9 @@ SUPPORTED_INTERVENTIONS = {
 }
 
 
+CANCELLATION_FLAG = "iscancellation"
+
+
 def _text(value):
     return (value or "").strip()
 
@@ -146,22 +149,56 @@ def _source_payload(source) -> dict:
     frappe.throw(_("Unsupported IR Intervention: {0}").format(source.doctype))
 
 
+def _get_outcome_flags(outcome_type: str, *fieldnames: str) -> frappe._dict:
+    if not outcome_type or not frappe.db.exists("Offence Outcome", outcome_type):
+        frappe.throw(_("Please select a valid Outcome Type."))
+
+    available_fields = [
+        fieldname
+        for fieldname in fieldnames
+        if _has_field("Offence Outcome", fieldname)
+    ]
+
+    if not available_fields:
+        return frappe._dict()
+
+    return frappe.db.get_value(
+        "Offence Outcome",
+        outcome_type,
+        available_fields,
+        as_dict=True,
+    ) or frappe._dict()
+
+
+def _is_cancellation_outcome(outcome_type: str) -> bool:
+    if not _has_field("Offence Outcome", CANCELLATION_FLAG):
+        return False
+
+    return bool(
+        frappe.db.get_value(
+            "Offence Outcome",
+            outcome_type,
+            CANCELLATION_FLAG,
+        )
+    )
+
+
 def _validate_outcome_type(intervention_type: str, outcome_type: str) -> None:
     config = SUPPORTED_INTERVENTIONS.get(intervention_type)
     if not config:
         frappe.throw(_("Unsupported IR Intervention: {0}").format(intervention_type))
 
-    if not outcome_type or not frappe.db.exists("Offence Outcome", outcome_type):
-        frappe.throw(_("Please select a valid Outcome Type."))
+    process_flag = config["outcome_flag"]
+    required_flags = [process_flag, CANCELLATION_FLAG]
 
-    flag_field = config["outcome_flag"]
-    if not _has_field("Offence Outcome", flag_field):
-        frappe.throw(
-            _("Offence Outcome is missing the required field {0}.").format(flag_field)
-        )
+    for fieldname in required_flags:
+        if not _has_field("Offence Outcome", fieldname):
+            frappe.throw(
+                _("Offence Outcome is missing the required field {0}.").format(fieldname)
+            )
 
-    is_allowed = frappe.db.get_value("Offence Outcome", outcome_type, flag_field)
-    if not is_allowed:
+    flags = _get_outcome_flags(outcome_type, process_flag, CANCELLATION_FLAG)
+    if not flags.get(process_flag) and not flags.get(CANCELLATION_FLAG):
         frappe.throw(
             _("Outcome {0} is not valid for {1}.").format(
                 outcome_type,
@@ -220,6 +257,34 @@ def _clear_source_outcome_if_owned(source, outcome_type, outcome_date):
         source.db_set("outcome_date", None, update_modified=False)
 
 
+def _set_if_present(doc, fieldname: str, value) -> None:
+    if _has_field(doc.doctype, fieldname):
+        doc.set(fieldname, value)
+
+
+def _populate_authorizer_details(doc) -> None:
+    if not _has_field(doc.doctype, "authorized_by"):
+        return
+
+    if not doc.get("authorized_by"):
+        _set_if_present(doc, "auth_names", None)
+        _set_if_present(doc, "auth_designation", None)
+        return
+
+    employee = frappe.db.get_value(
+        "Employee",
+        doc.get("authorized_by"),
+        ["employee_name", "designation"],
+        as_dict=True,
+    )
+
+    if not employee:
+        frappe.throw(_("Authorising Employee {0} does not exist.").format(doc.get("authorized_by")))
+
+    _set_if_present(doc, "auth_names", employee.employee_name)
+    _set_if_present(doc, "auth_designation", employee.designation)
+
+
 class NoFurtherActionForm(Document):
     def autoname(self):
         if not self.linked_intervention:
@@ -265,6 +330,22 @@ class NoFurtherActionForm(Document):
 
         _validate_outcome_type(self.ir_intervention, self.outcome_type)
 
+        is_cancellation = _is_cancellation_outcome(self.outcome_type)
+
+        if is_cancellation:
+            _populate_authorizer_details(self)
+
+            if not self.get("authorized_by"):
+                frappe.throw(_("Authorised By is required for a cancellation."))
+
+            if not _text(self.get("cancel_reason")):
+                frappe.throw(_("Reason for Cancellation is required for a cancellation."))
+        else:
+            _set_if_present(self, "authorized_by", None)
+            _set_if_present(self, "auth_names", None)
+            _set_if_present(self, "auth_designation", None)
+            _set_if_present(self, "cancel_reason", None)
+
     def before_submit(self):
         if not self.signed_ng:
             frappe.throw(_("You must attach the signed outcome before submitting."))
@@ -287,6 +368,67 @@ def get_intervention_config(intervention_type: str) -> dict:
 
 
 @frappe.whitelist()
+def get_allowed_outcomes(intervention_type: str) -> list[str]:
+    config = SUPPORTED_INTERVENTIONS.get(intervention_type)
+    if not config:
+        return []
+
+    process_flag = config["outcome_flag"]
+    for fieldname in (process_flag, CANCELLATION_FLAG):
+        if not _has_field("Offence Outcome", fieldname):
+            return []
+
+    rows = frappe.get_all(
+        "Offence Outcome",
+        filters=[
+            ["Offence Outcome", process_flag, "=", 1],
+        ],
+        pluck="name",
+        order_by="disc_offence_out asc",
+    )
+
+    cancellations = frappe.get_all(
+        "Offence Outcome",
+        filters={CANCELLATION_FLAG: 1},
+        pluck="name",
+        order_by="disc_offence_out asc",
+    )
+
+    return list(dict.fromkeys([*rows, *cancellations]))
+
+
+@frappe.whitelist()
+def get_outcome_state(outcome_type: str | None = None) -> dict:
+    if not outcome_type or not frappe.db.exists("Offence Outcome", outcome_type):
+        return {"is_cancellation": 0}
+
+    return {
+        "is_cancellation": 1 if _is_cancellation_outcome(outcome_type) else 0,
+    }
+
+
+@frappe.whitelist()
+def get_authorizer_details(employee: str | None = None) -> dict:
+    if not employee:
+        return {"auth_names": None, "auth_designation": None}
+
+    values = frappe.db.get_value(
+        "Employee",
+        employee,
+        ["employee_name", "designation"],
+        as_dict=True,
+    )
+
+    if not values:
+        return {"auth_names": None, "auth_designation": None}
+
+    return {
+        "auth_names": values.employee_name,
+        "auth_designation": values.designation,
+    }
+
+
+@frappe.whitelist()
 def fetch_intervention_data(intervention_type: str, intervention_name: str) -> dict:
     if intervention_type not in SUPPORTED_INTERVENTIONS:
         frappe.throw(_("Unsupported IR Intervention: {0}").format(intervention_type))
@@ -303,9 +445,14 @@ def fetch_intervention_data(intervention_type: str, intervention_name: str) -> d
 
 
 @frappe.whitelist()
-def create_no_further_action_form(source_name=None, source_doctype=None):
+def create_no_further_action_form(
+    source_name=None,
+    source_doctype=None,
+    outcome_type=None,
+):
     source_name = source_name or frappe.form_dict.get("source_name")
     source_doctype = source_doctype or frappe.form_dict.get("source_doctype")
+    outcome_type = outcome_type or frappe.form_dict.get("outcome_type")
 
     if source_doctype not in SUPPORTED_INTERVENTIONS:
         frappe.throw(_("Unsupported source DocType: {0}").format(source_doctype))
@@ -321,7 +468,12 @@ def create_no_further_action_form(source_name=None, source_doctype=None):
     target.linked_intervention = source_name
 
     payload = _source_payload(source)
-    payload["outcome_type"] = SUPPORTED_INTERVENTIONS[source_doctype]["default_outcome"]
+    payload["outcome_type"] = (
+        outcome_type
+        or SUPPORTED_INTERVENTIONS[source_doctype]["default_outcome"]
+    )
+
+    _validate_outcome_type(source_doctype, payload["outcome_type"])
 
     for fieldname, value in payload.items():
         if fieldname in {
@@ -335,4 +487,5 @@ def create_no_further_action_form(source_name=None, source_doctype=None):
             target.set(fieldname, value)
 
     target.linked_intervention_processed = 1
+
     return target.as_dict()

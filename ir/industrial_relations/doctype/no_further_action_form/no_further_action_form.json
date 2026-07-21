@@ -22,20 +22,22 @@
   "names",
   "designation",
   "hearing_details_section",
+  "authorized_by",
+  "auth_names",
+  "auth_designation",
+  "column_break_akhg",
   "outcome_date",
+  "cancel_reason",
   "details_of_offence_section",
   "ng_charges",
-  "previous_disciplinary_offences_section",
   "disciplinary_history",
   "incap_details_section",
   "type_of_incapacity",
   "details_of_incapacity",
-  "previous_incapacity_outcomes_section",
   "previous_incapacity_outcomes",
   "details_of_poor_performance_section",
   "performance_details_nta",
   "improvement_summary",
-  "history_of_poor_performance_section",
   "previous_performance_outcomes"
  ],
  "fields": [
@@ -103,7 +105,7 @@
   {
    "fieldname": "hearing_details_section",
    "fieldtype": "Section Break",
-   "label": "Enquiry Details"
+   "label": "No Further Action Details"
   },
   {
    "fieldname": "outcome_date",
@@ -124,12 +126,6 @@
    "label": "Charges",
    "options": "Charges",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
-   "fieldname": "previous_disciplinary_offences_section",
-   "fieldtype": "Section Break",
-   "label": "Previous Disciplinary Offences"
   },
   {
    "depends_on": "eval:doc.ir_intervention==\"Disciplinary Action\"",
@@ -159,12 +155,6 @@
    "fieldtype": "Small Text",
    "label": "Details of Incapacity",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
-   "fieldname": "previous_incapacity_outcomes_section",
-   "fieldtype": "Section Break",
-   "label": "Previous Incapacity Outcomes"
   },
   {
    "depends_on": "eval:doc.ir_intervention==\"Incapacity Proceedings\"",
@@ -217,18 +207,14 @@
    "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "performance_details_nta",
    "fieldtype": "Small Text",
+   "label": "Details of Poor Peformance",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
-   "fieldname": "history_of_poor_performance_section",
-   "fieldtype": "Section Break",
-   "label": "History of Poor Performance"
   },
   {
    "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "previous_performance_outcomes",
    "fieldtype": "Table",
+   "label": "Performance History",
    "options": "Performance History",
    "read_only": 1
   },
@@ -243,15 +229,42 @@
    "depends_on": "eval:doc.ir_intervention==\"Poor Performance\"",
    "fieldname": "improvement_summary",
    "fieldtype": "Small Text",
-   "label": "Improvement Summary",
-   "mandatory_depends_on": "eval:doc.ir_intervention==\"Poor Performance\""
+   "label": "Improvement Summary"
+  },
+  {
+   "fieldname": "authorized_by",
+   "fieldtype": "Link",
+   "label": "Authorised By",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "auth_names",
+   "fieldtype": "Data",
+   "label": "Authorised By Full Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "auth_designation",
+   "fieldtype": "Link",
+   "label": "Authorised By Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_akhg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cancel_reason",
+   "fieldtype": "Small Text",
+   "label": "Reason for Cancellation"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-14 09:10:12.476065",
+ "modified": "2026-07-21 15:45:26.164699",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "No Further Action Form",
