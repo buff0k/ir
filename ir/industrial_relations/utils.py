@@ -3,8 +3,11 @@
 
 from __future__ import annotations
 
+import json
+
 import frappe
 from frappe import _
+from frappe.utils import escape_html, get_url_to_form
 
 
 def check_app_permission():
@@ -242,6 +245,150 @@ def fetch_performance_data(poor_performance):
         for row in (doc.get("previous_disciplinary_outcomes") or [])
     ]
     return data
+
+
+ALLOWED_EMPLOYEE_FETCH_FIELDS = {
+    "employee_name",
+    "employee",
+    "designation",
+    "company",
+    "date_of_joining",
+    "branch",
+}
+
+
+def fetch_employee_fields(employee, fields):
+    """Fetch a restricted set of Employee fields for populating generated-document forms.
+
+    `fields` is a JSON-encoded (or already-decoded) mapping of source Employee
+    fieldname -> target fieldname on the calling form. Only source fields in
+    ALLOWED_EMPLOYEE_FETCH_FIELDS are honoured; anything else is silently dropped.
+    """
+    if isinstance(fields, str):
+        fields = json.loads(fields)
+
+    data = {}
+    for source_field, target_field in fields.items():
+        if source_field not in ALLOWED_EMPLOYEE_FETCH_FIELDS:
+            continue
+        data[target_field] = frappe.db.get_value("Employee", employee, source_field) or ""
+    return data
+
+
+def get_letter_head_string(company):
+    """Return the company's default letter head as a bare string (not a dict)."""
+    return fetch_company_letter_head(company).get("letter_head", "")
+
+
+def fetch_complainant_fields(complainant):
+    """Return an Employee's name/designation for use as a complainant, doctype-agnostic."""
+    return {
+        "name": frappe.db.get_value("Employee", complainant, "employee_name") or "",
+        "designation": frappe.db.get_value("Employee", complainant, "designation") or "",
+    }
+
+
+def check_if_ss(employee):
+    """Return whether `employee` is a listed Shop Steward for any Trade Union, and which one."""
+    for trade_union in frappe.get_all("Trade Union", fields=["name"], order_by="name asc"):
+        rows = frappe.get_all(
+            "Union Shop Stewards",
+            filters={"parent": trade_union.name, "parentfield": "ss_list", "ss_id": employee},
+            fields=["ss_id"],
+            limit_page_length=1,
+        )
+        if rows:
+            return {"is_ss": True, "ss_union": trade_union.name}
+
+    return {"is_ss": False, "ss_union": None}
+
+
+def _linked_docs_empty_html(message):
+    return f"""
+    <div class="ir-linked-docs">
+      <div class="ir-linked-docs__empty">{message}</div>
+    </div>
+    """
+
+
+def render_linked_docs_html(source_name, mappings):
+    """Render the shared "linked documents" card grid used by several source doctypes.
+
+    `mappings` is a list of (label, target_doctype, backref) tuples, where `backref`
+    is either a plain fieldname (filtered as {backref: source_name}), or a dict of
+    extra filters combined with {"linked_intervention": source_name} for the generic
+    intervention model.
+    """
+    if not source_name or source_name.startswith("new-"):
+        return _linked_docs_empty_html("Linked documents will appear here once the record is saved.")
+
+    cards = []
+    total = 0
+
+    for label, target_doctype, backref in mappings:
+        if isinstance(backref, dict):
+            filters = dict(backref)
+            filters["linked_intervention"] = source_name
+        else:
+            filters = {backref: source_name}
+
+        try:
+            rows = frappe.get_all(
+                target_doctype,
+                filters=filters,
+                fields=["name"],
+                order_by="modified desc",
+            )
+        except Exception:
+            frappe.log_error(
+                title=f"get_linked_docs_html query failed: {target_doctype}",
+                message=frappe.get_traceback(),
+            )
+            rows = []
+
+        if not rows:
+            continue
+
+        total += len(rows)
+
+        chips = []
+        for row in rows:
+            url = get_url_to_form(target_doctype, row.name)
+            chips.append(
+                f"""
+                <a class="ir-linked-docs__chip"
+                   href="{escape_html(url)}"
+                   target="_blank"
+                   rel="noopener">
+                   {escape_html(row.name)}
+                </a>
+                """
+            )
+
+        cards.append(
+            f"""
+            <div class="ir-linked-docs__card">
+              <div class="ir-linked-docs__card-header">
+                <div class="ir-linked-docs__title">{escape_html(label)}</div>
+                <div class="ir-linked-docs__badge">{len(rows)}</div>
+              </div>
+              <div class="ir-linked-docs__chips">
+                {''.join(chips)}
+              </div>
+            </div>
+            """
+        )
+
+    if total == 0:
+        return _linked_docs_empty_html("No linked documents yet.")
+
+    return f"""
+    <div class="ir-linked-docs">
+      <div class="ir-linked-docs__grid">
+        {''.join(cards)}
+      </div>
+    </div>
+    """
 
 
 def hydrate_employee_from_source(source, target):

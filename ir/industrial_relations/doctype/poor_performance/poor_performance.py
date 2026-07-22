@@ -1,10 +1,10 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
-import json
 import frappe
 from frappe.model.document import Document
-from frappe.utils import escape_html, get_url_to_form
+
+from ir.industrial_relations import utils
 
 
 class PoorPerformance(Document):
@@ -13,45 +13,23 @@ class PoorPerformance(Document):
 
 @frappe.whitelist()
 def fetch_employee_data(employee, fields):
-    frappe.flags.ignore_permissions = True
-    fields = json.loads(fields) if isinstance(fields, str) else fields
-
-    data = {}
-    for source_field, target_field in fields.items():
-        data[target_field] = frappe.db.get_value("Employee", employee, source_field) or ""
-    return data
+    return utils.fetch_employee_fields(employee, fields)
 
 
 @frappe.whitelist()
 def fetch_default_letter_head(company):
-    frappe.flags.ignore_permissions = True
-    return frappe.db.get_value("Company", company, "default_letter_head") or ""
+    return utils.get_letter_head_string(company)
 
 
 @frappe.whitelist()
 def fetch_complainant_data(complainant):
-    frappe.flags.ignore_permissions = True
-    return {
-        "complainant_name": frappe.db.get_value("Employee", complainant, "employee_name") or "",
-        "complainant_designation": frappe.db.get_value("Employee", complainant, "designation") or "",
-    }
+    data = utils.fetch_complainant_fields(complainant)
+    return {"complainant_name": data["name"], "complainant_designation": data["designation"]}
 
 
 @frappe.whitelist()
 def check_if_ss(employee):
-    frappe.flags.ignore_permissions = True
-
-    for tu in frappe.get_all("Trade Union", fields=["name"], order_by="name asc"):
-        rows = frappe.get_all(
-            "Union Shop Stewards",
-            filters={"parent": tu.name, "parentfield": "ss_list", "ss_id": employee},
-            fields=["ss_id"],
-            limit_page_length=1,
-        )
-        if rows:
-            return {"is_ss": True, "ss_union": tu.name}
-
-    return {"is_ss": False, "ss_union": None}
+    return utils.check_if_ss(employee)
 
 
 def _performance_history_row(doc):
@@ -161,104 +139,4 @@ def _linked_doc_mappings():
 
 @frappe.whitelist()
 def get_linked_docs_html(poor_performance_name):
-    if (
-        not poor_performance_name
-        or poor_performance_name.startswith("new-")
-    ):
-        return """
-        <div class="ir-linked-docs">
-          <div class="ir-linked-docs__empty">
-            Linked documents will appear here once the record is saved.
-          </div>
-        </div>
-        """
-
-    cards = []
-    total = 0
-
-    for label, target_doctype, back_reference in _linked_doc_mappings():
-        if isinstance(back_reference, dict):
-            filters = dict(back_reference)
-            filters["linked_intervention"] = poor_performance_name
-        else:
-            filters = {
-                back_reference: poor_performance_name,
-            }
-
-        try:
-            rows = frappe.get_all(
-                target_doctype,
-                filters=filters,
-                fields=["name"],
-                order_by="modified desc",
-            )
-        except Exception:
-            frappe.log_error(
-                title=(
-                    f"Poor Performance linked docs query failed: "
-                    f"{target_doctype}"
-                ),
-                message=frappe.get_traceback(),
-            )
-            rows = []
-
-        if not rows:
-            continue
-
-        total += len(rows)
-
-        chips = []
-
-        for row in rows:
-            url = get_url_to_form(
-                target_doctype,
-                row.name,
-            )
-
-            chips.append(
-                f"""
-                <a
-                    class="ir-linked-docs__chip"
-                    href="{escape_html(url)}"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    {escape_html(row.name)}
-                </a>
-                """
-            )
-
-        cards.append(
-            f"""
-            <div class="ir-linked-docs__card">
-              <div class="ir-linked-docs__card-header">
-                <div class="ir-linked-docs__title">
-                  {escape_html(label)}
-                </div>
-                <div class="ir-linked-docs__badge">
-                  {len(rows)}
-                </div>
-              </div>
-              <div class="ir-linked-docs__chips">
-                {''.join(chips)}
-              </div>
-            </div>
-            """
-        )
-
-    if total == 0:
-        return """
-        <div class="ir-linked-docs">
-          <div class="ir-linked-docs__empty">
-            No linked documents yet.
-          </div>
-        </div>
-        """
-
-    return f"""
-    <div class="ir-linked-docs">
-      <div class="ir-linked-docs__grid">
-        {''.join(cards)}
-      </div>
-    </div>
-    """
+    return utils.render_linked_docs_html(poor_performance_name, _linked_doc_mappings())

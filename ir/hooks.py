@@ -267,10 +267,15 @@ doc_events = {
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
     "Incapacity Proceedings": {
+        "after_insert": "ir.controllers.notifications.handle_doc_event_create",
         "validate": "ir.permissions.validate_incapacity_proceedings",
     },
     "Poor Performance": {
+        "after_insert": "ir.controllers.notifications.handle_doc_event_create",
         "validate": "ir.permissions.validate_poor_performance",
+    },
+    "External Dispute Resolution": {
+        "after_insert": "ir.controllers.notifications.handle_doc_event_create",
     },
     "Written Outcome": {
         "validate": "ir.permissions.validate_written_outcome",

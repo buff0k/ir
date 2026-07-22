@@ -30,6 +30,16 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
     "Written Outcome": "position",
 }
 
+# Doctype -> fieldname holding the Employee link whose Employee.branch is checked
+# against a user's "Responsible HR per Branch" (hr_per_branch) rows on IR Role
+# Restrictions. Deliberately does not include External Dispute Resolution (no single
+# branch - it's inherently multi-employee/multi-branch) or NTA Enquiry/Written Outcome.
+BRANCH_LIMITED_DOCTYPES = {
+    "Disciplinary Action": "accused",
+    "Incapacity Proceedings": "accused",
+    "Poor Performance": "employee",
+}
+
 
 def effective_ir_role(user: str | None = None) -> str | None:
     """Return the user's highest IR role: Manager, Officer, then User."""
@@ -71,12 +81,70 @@ def _sql_not_in_designations(field_sql: str, designations: list[str]) -> str:
     return f"({field_sql} IS NULL OR {field_sql} = '' OR {field_sql} NOT IN ({escaped}))"
 
 
+def responsible_branches_for_user(user: str | None = None, parentfield: str = "hr_per_branch") -> list[str]:
+    """Branches a user is responsible for, from IR Role Restrictions (hr_per_branch by
+    default). An empty list means the branch limit doesn't apply to this user at all -
+    callers must treat that as "no restriction", not "restricted from everything"."""
+    user = user or frappe.session.user
+    rows = frappe.get_all(
+        "IR Role Restrictions User Branch",
+        filters={
+            "parent": "IR Role Restrictions",
+            "parenttype": "IR Role Restrictions",
+            "parentfield": parentfield,
+            "user": user,
+        },
+        fields=["branch"],
+    )
+    return [row.branch for row in rows if row.get("branch")]
+
+
+def _employee_branch(employee: str | None) -> str | None:
+    if not employee:
+        return None
+    return frappe.db.get_value("Employee", employee, "branch")
+
+
+def _branch_is_restricted(doctype: str, employee: str | None, user: str | None = None) -> bool:
+    """True only if this user has hr_per_branch rows (branch limits apply to them at
+    all) AND the employee's branch isn't among them. No rows -> designation-only
+    fallback, per design."""
+    if doctype not in BRANCH_LIMITED_DOCTYPES:
+        return False
+
+    branches = responsible_branches_for_user(user)
+    if not branches:
+        return False
+
+    return _employee_branch(employee) not in branches
+
+
+def _sql_branch_condition(doctype: str, employee_field: str, user: str | None) -> str | None:
+    branches = responsible_branches_for_user(user)
+    if not branches:
+        return None
+    escaped = ", ".join(frappe.db.escape(value) for value in branches)
+    return (
+        f"`tab{doctype}`.`{employee_field}` IN "
+        f"(SELECT name FROM `tabEmployee` WHERE branch IN ({escaped}))"
+    )
+
+
 def _permission_query(doctype: str, user: str | None) -> str:
+    conditions = []
+
     restricted = restricted_designations_for_user(user)
-    if not restricted:
-        return ""
-    fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
-    return _sql_not_in_designations(f"`tab{doctype}`.`{fieldname}`", restricted)
+    if restricted:
+        fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
+        conditions.append(_sql_not_in_designations(f"`tab{doctype}`.`{fieldname}`", restricted))
+
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doctype)
+    if employee_field:
+        branch_condition = _sql_branch_condition(doctype, employee_field, user)
+        if branch_condition:
+            conditions.append(branch_condition)
+
+    return " and ".join(conditions)
 
 
 def _designation_is_restricted(designation: str | None, user: str | None = None) -> bool:
@@ -89,7 +157,14 @@ def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | N
         return True
     if ptype not in PROTECTED_PERMISSION_TYPES:
         return True
-    return not _designation_is_restricted(doc.get(fieldname), user)
+    if _designation_is_restricted(doc.get(fieldname), user):
+        return False
+
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
+    if employee_field and _branch_is_restricted(doc.doctype, doc.get(employee_field), user):
+        return False
+
+    return True
 
 
 def _validate_designation(doc, fieldname: str, user: str | None = None) -> None:
@@ -102,6 +177,24 @@ def _validate_designation(doc, fieldname: str, user: str | None = None) -> None:
             _("You are not permitted to create or edit this document for designation: {0}").format(designation),
             frappe.PermissionError,
         )
+
+
+def recipient_passes_restrictions(doc, user: str | None) -> bool:
+    """Whether `user` would be permitted to view `doc`, combining Designation Limits
+    and Branch Limits (where applicable). Used to decide whether to include `user` as
+    a notification recipient - the same filtering that gates record visibility."""
+    if not user or not effective_ir_role(user):
+        return True
+
+    designation_field = DESIGNATION_FIELD_BY_DOCTYPE.get(doc.doctype)
+    if designation_field and _designation_is_restricted(doc.get(designation_field), user):
+        return False
+
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
+    if employee_field and _branch_is_restricted(doc.doctype, doc.get(employee_field), user):
+        return False
+
+    return True
 
 
 # Permission query hooks

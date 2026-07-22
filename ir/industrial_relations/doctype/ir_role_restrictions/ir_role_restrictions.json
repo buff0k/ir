@@ -10,11 +10,15 @@
   "ir_manager_restrictions",
   "ir_officer_restrictions",
   "ir_user_restrictions",
+  "branch_limits_tab",
+  "hr_per_branch",
+  "trainer_per_branch",
   "notification_emails_tab",
   "report_recipients",
   "disciplinary_recipients",
-  "hr_per_branch",
-  "trainer_per_branch",
+  "incapacity_recipients",
+  "performance_recipients",
+  "external_dispute_recipients",
   "global_trainer"
  ],
  "fields": [
@@ -77,7 +81,30 @@
   {
    "fieldname": "global_trainer",
    "fieldtype": "Table",
-   "label": "Recipient of all Training Notifications",
+   "label": "Recipients for Training Notifications",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "branch_limits_tab",
+   "fieldtype": "Tab Break",
+   "label": "Branch Limits"
+  },
+  {
+   "fieldname": "incapacity_recipients",
+   "fieldtype": "Table",
+   "label": "Incapacity Proceedings Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "performance_recipients",
+   "fieldtype": "Table",
+   "label": "Poor Performance Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "external_dispute_recipients",
+   "fieldtype": "Table",
+   "label": "External Dispute Resolution Recipients",
    "options": "IR User Restriction Table"
   }
  ],
@@ -85,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-02 19:56:47.172589",
+ "modified": "2026-07-22 08:57:59.599180",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Role Restrictions",

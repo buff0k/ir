@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.meta import get_meta
+from ir import permissions
 from ir.industrial_relations.utils import get_ir_notification_recipients
 from collections import defaultdict
 from datetime import date
@@ -55,6 +56,15 @@ def handle_doc_event_create(doc, method):
 
     if doc.doctype == "Disciplinary Action":
         return handle_disciplinary_action_create(doc, method)
+
+    if doc.doctype == "Incapacity Proceedings":
+        return handle_incapacity_proceedings_create(doc, method)
+
+    if doc.doctype == "Poor Performance":
+        return handle_poor_performance_create(doc, method)
+
+    if doc.doctype == "External Dispute Resolution":
+        return handle_external_dispute_resolution_create(doc, method)
 
     return handle_doc_event(doc, method, "created")
 
@@ -287,7 +297,7 @@ def _diff_child_table_rows(curr_rows, prev_rows):
 
 
 def handle_disciplinary_action_create(doc, method=None):
-    recipient_emails, name_by_email = _collect_disciplinary_action_recipients()
+    recipient_emails, name_by_email = _collect_recipients_from_table("disciplinary_recipients", doc)
     if not recipient_emails:
         return
 
@@ -335,17 +345,16 @@ def handle_disciplinary_action_create(doc, method=None):
         )
 
 
-def _collect_disciplinary_action_recipients():
-    recipients = []
-    name_by_email = {}
-
+def _fetch_ir_user_restriction_rows(parentfield):
+    """Raw rows from IR User Restriction Table for a given parentfield on the
+    IR Role Restrictions singleton."""
     try:
-        rows = frappe.get_all(
+        return frappe.get_all(
             "IR User Restriction Table",
             filters={
                 "parent": "IR Role Restrictions",
                 "parenttype": "IR Role Restrictions",
-                "parentfield": "disciplinary_recipients",
+                "parentfield": parentfield,
             },
             fields=["user", "email_address"],
             order_by="idx asc",
@@ -353,10 +362,25 @@ def _collect_disciplinary_action_recipients():
     except Exception:
         frappe.log_error(
             frappe.get_traceback(),
-            "Unable to fetch Disciplinary Action recipients from IR Role Restrictions"
+            f"Unable to fetch recipients from IR Role Restrictions.{parentfield}"
         )
-        return [], {}
+        return []
 
+
+def _collect_recipients_from_table(parentfield, doc=None):
+    """Resolve a recipient table (disciplinary_recipients, incapacity_recipients,
+    performance_recipients, external_dispute_recipients, ...) into (emails,
+    name_by_email).
+
+    When `doc` is given, each row whose `user` is set is checked against
+    permissions.recipient_passes_restrictions(doc, user) - i.e. narrowed to their
+    hr_per_branch branch(es) if they have any, and skipped if the record's
+    designation is restricted for them. Rows with no linked `user` (just a raw
+    email address) are never filtered - there's no identity to check restrictions
+    against. Pass doc=None (e.g. for External Dispute Resolution) to send
+    branch/designation-agnostically to everyone in the table.
+    """
+    rows = _fetch_ir_user_restriction_rows(parentfield)
     if not rows:
         return [], {}
 
@@ -374,11 +398,18 @@ def _collect_disciplinary_action_recipients():
         )
         user_map = {user.name: user for user in users}
 
+    recipients = []
+    name_by_email = {}
+
     for row in rows:
-        user_doc = user_map.get(row.get("user"))
+        row_user = row.get("user")
+        user_doc = user_map.get(row_user)
 
         # Skip disabled / missing users where a User was selected
-        if row.get("user") and not user_doc:
+        if row_user and not user_doc:
+            continue
+
+        if doc is not None and row_user and not permissions.recipient_passes_restrictions(doc, row_user):
             continue
 
         email = row.get("email_address") or (user_doc.email if user_doc else None)
@@ -390,10 +421,118 @@ def _collect_disciplinary_action_recipients():
             name_by_email[email] = (
                 user_doc.full_name
                 if user_doc and user_doc.get("full_name")
-                else row.get("user")
+                else row_user
             )
 
     return recipients, name_by_email
+
+
+def handle_incapacity_proceedings_create(doc, method=None):
+    recipient_emails, name_by_email = _collect_recipients_from_table("incapacity_recipients", doc)
+    if not recipient_emails:
+        return
+
+    accused_name = doc.get("accused_name") or doc.get("accused") or "Unknown Employee"
+    accused_coy = doc.get("accused_coy") or doc.get("accused") or "Unknown Coy No."
+    branch = doc.get("branch") or "Unknown Branch"
+
+    subject = f"New Incapacity Proceedings Created: {accused_name} ({accused_coy})"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        lines = [
+            f"Dear {full_name}",
+            "",
+            f"A new Incapacity Proceedings has been created for {accused_name} ({accused_coy}) at {branch}.",
+            "",
+            "Please attend to this matter urgently.",
+            "",
+            f'<a href="{url}">Click here to view</a>',
+        ]
+
+        message = "<br>".join(lines)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def handle_poor_performance_create(doc, method=None):
+    recipient_emails, name_by_email = _collect_recipients_from_table("performance_recipients", doc)
+    if not recipient_emails:
+        return
+
+    employee_name = doc.get("employee_name") or doc.get("employee") or "Unknown Employee"
+    branch = doc.get("branch") or "Unknown Branch"
+
+    subject = f"New Poor Performance Record Created: {employee_name}"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        lines = [
+            f"Dear {full_name}",
+            "",
+            f"A new Poor Performance record has been created for {employee_name} at {branch}.",
+            "",
+            "Please attend to this matter urgently.",
+            "",
+            f'<a href="{url}">Click here to view</a>',
+        ]
+
+        message = "<br>".join(lines)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def handle_external_dispute_resolution_create(doc, method=None):
+    # No Branch or Designation Limits apply to External Dispute Resolution - the full
+    # external_dispute_recipients table is notified unconditionally (doc=None below).
+    recipient_emails, name_by_email = _collect_recipients_from_table("external_dispute_recipients")
+    if not recipient_emails:
+        return
+
+    case_no = doc.get("case_no") or doc.name
+    forum = doc.get("forum") or "Unknown Forum"
+
+    subject = f"New External Dispute Resolution Created: {case_no}"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        lines = [
+            f"Dear {full_name}",
+            "",
+            f"A new External Dispute Resolution matter has been created ({forum}), case number {case_no}.",
+            "",
+            "Please attend to this matter urgently.",
+            "",
+            f'<a href="{url}">Click here to view</a>',
+        ]
+
+        message = "<br>".join(lines)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
 
 
 from collections import defaultdict
