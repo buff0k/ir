@@ -226,23 +226,17 @@ after_migrate = [
 doc_events = {
 	"Termination Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"on_update": "ir.controllers.notifications.handle_doc_event_update",
-		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
 	"NTA Enquiry": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"on_update": "ir.controllers.notifications.handle_doc_event_update",
-		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 		"validate": "ir.permissions.validate_nta_enquiry",
 	},
 	"Status Change Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
 	"Site Transfer Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
     "Employee Checkin": {
@@ -263,7 +257,6 @@ doc_events = {
     },
 	"Anonymous Report": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
-		"on_update": "ir.controllers.notifications.handle_doc_event_update",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
     "Incapacity Proceedings": {
