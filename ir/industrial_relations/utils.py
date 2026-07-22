@@ -391,6 +391,60 @@ def render_linked_docs_html(source_name, mappings):
     """
 
 
+def _latest_work_history_row(rows):
+    if not rows:
+        return None
+    with_from = [row for row in rows if row.get("from_date")]
+    if with_from:
+        return sorted(with_from, key=lambda row: row.from_date)[-1]
+    return rows[-1]
+
+
+def append_internal_work_history(employee, *, from_date, to_date=None, branch=None, department=None, designation=None):
+    """Close the employee's current Internal Work History row (if any) and append a
+    new one reflecting a branch/department/designation change effective `from_date`.
+
+    Any of branch/department/designation left as None carries forward the latest
+    existing row's value (falling back to the Employee's current field) - pass only
+    the field(s) that actually changed. Does not save the Employee document; the
+    caller decides when to save (e.g. batched with other field changes in the same
+    .save() call).
+    """
+    history = employee.get("internal_work_history") or []
+    latest = _latest_work_history_row(history)
+
+    if not latest:
+        prev_branch = employee.get("branch")
+        prev_department = employee.get("department")
+        prev_designation = employee.get("designation")
+        employee.append(
+            "internal_work_history",
+            {
+                "branch": prev_branch,
+                "department": prev_department,
+                "designation": prev_designation,
+                "from_date": employee.get("date_of_joining"),
+                "to_date": from_date,
+            },
+        )
+    else:
+        prev_branch = latest.get("branch") or employee.get("branch")
+        prev_department = latest.get("department") or employee.get("department")
+        prev_designation = latest.get("designation") or employee.get("designation")
+        latest.to_date = from_date
+
+    employee.append(
+        "internal_work_history",
+        {
+            "branch": branch or prev_branch,
+            "department": department or prev_department,
+            "designation": designation or prev_designation,
+            "from_date": from_date,
+            "to_date": to_date,
+        },
+    )
+
+
 def hydrate_employee_from_source(source, target):
     """Populate common generated-document employee fields without assuming a coy field."""
     employee = source.get("employee") or source.get("accused")

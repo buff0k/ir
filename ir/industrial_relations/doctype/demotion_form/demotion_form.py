@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import getdate
 
 from ir.industrial_relations.utils import (
+    append_internal_work_history,
     autoname_by_linked_parent,
     clear_parent_outcome,
     fetch_company_letter_head as _fetch_company_letter_head,
@@ -74,6 +75,12 @@ class DemotionForm(Document):
     def _apply_demotion(self):
         employee = frappe.get_doc("Employee", self.employee)
         old_designation = employee.designation
+
+        append_internal_work_history(
+            employee,
+            designation=self.new_position,
+            from_date=self.from_date,
+        )
 
         employee.designation = self.new_position
         employee.status = "Active"

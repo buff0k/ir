@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import today
 
 from ir.industrial_relations.doctype.demotion_form.demotion_form import _append_employee_audit
+from ir.industrial_relations.utils import append_internal_work_history
 
 SETTINGS_DOCTYPE = "Notification Permissions"
 DEFAULT_ROLES = ("IR Manager", "IR Officer", "HR Manager")
@@ -45,6 +46,16 @@ def _restore(demotion):
         return
 
     old_designation = employee.designation
+
+    # Boundary convention matches _apply_demotion: the closed row's to_date equals
+    # the new row's from_date, using the demotion's own defined end date rather than
+    # whichever day this background job happens to run.
+    append_internal_work_history(
+        employee,
+        designation=demotion.position,
+        from_date=demotion.to_date,
+    )
+
     employee.designation = demotion.position
     employee.status = "Active"
     _append_employee_audit(
