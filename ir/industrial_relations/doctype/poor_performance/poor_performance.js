@@ -288,10 +288,11 @@ function make_pay_reduction_form(frm) {
   );
 }
 function make_dismissal_form(frm) {
-  open_legacy_mapped(
+  create_generic_document(
     frm,
-    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_performance",
-    { linked_poor_performance: frm.doc.name },
+    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+    "Dismissal Form",
+    "Creating Dismissal Form ...",
   );
 }
 function make_vsp(frm) {

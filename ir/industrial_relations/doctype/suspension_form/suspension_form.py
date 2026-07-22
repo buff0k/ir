@@ -6,6 +6,14 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
+from ir.industrial_relations.utils import (
+    autoname_by_linked_parent,
+    clear_parent_outcome,
+    get_letter_head_string,
+    get_linked_outcome as _get_linked_outcome,
+    set_parent_outcome,
+)
+
 SUPPORTED_INTERVENTIONS = {
     "Disciplinary Action",
     "Incapacity Proceedings",
@@ -18,34 +26,7 @@ VALID_REMUNERATION_STATUSES = {"Paid", "Unpaid"}
 
 class SuspensionForm(Document):
     def autoname(self):
-        if not self.linked_intervention:
-            return
-
-        base_name = f"SUS-{self.linked_intervention}"
-        existing = frappe.get_all(
-            self.doctype,
-            filters={
-                "ir_intervention": self.ir_intervention,
-                "linked_intervention": self.linked_intervention,
-            },
-            pluck="name",
-        )
-
-        if not existing:
-            self.name = base_name
-            return
-
-        latest_revision = 0
-        prefix = f"{base_name}-"
-        for name in existing:
-            if not name.startswith(prefix):
-                continue
-            try:
-                latest_revision = max(latest_revision, int(name.rsplit("-", 1)[1]))
-            except (TypeError, ValueError):
-                continue
-
-        self.name = f"{base_name}-{latest_revision + 1}"
+        autoname_by_linked_parent(self, "SUS")
 
     def validate(self):
         self._validate_intervention()
@@ -56,7 +37,7 @@ class SuspensionForm(Document):
             self.suspension_type = None
             return
 
-        self._clear_source_outcome()
+        clear_parent_outcome(self)
 
     def before_submit(self):
         if not self.employee:
@@ -65,13 +46,9 @@ class SuspensionForm(Document):
         if not self.signed_suspension:
             frappe.throw(_("Attach the signed suspension before submitting."))
 
-        frappe.db.set_value(
-            "Employee",
-            self.employee,
-            "status",
-            "Suspended",
-            update_modified=False,
-        )
+        employee = frappe.get_doc("Employee", self.employee)
+        employee.status = "Suspended"
+        employee.save(ignore_permissions=True)
 
     def on_submit(self):
         if self.suspension_nature == "Punitive":
@@ -105,53 +82,29 @@ class SuspensionForm(Document):
         if self.from_date and self.to_date and getdate(self.to_date) < getdate(self.from_date):
             frappe.throw(_("End Date cannot be before Start Date."))
 
-    def _get_source(self):
-        return frappe.get_doc(self.ir_intervention, self.linked_intervention)
-
-    def _clear_source_outcome(self):
-        source = self._get_source()
-        values = {
-            "outcome": None,
-            "outcome_date": None,
-            "outcome_start": None,
-            "outcome_end": None,
-        }
-        _update_source_fields(source, values)
-
     def _set_source_outcome(self):
-        source = self._get_source()
-        values = {
-            "outcome": self.suspension_type,
-            "outcome_date": self.outcome_date,
-            "outcome_start": _("The employee is suspended from {0}.").format(self.from_date),
-            "outcome_end": (
-                _("The employee is suspended until {0}.").format(self.to_date)
-                if self.to_date
-                else None
-            ),
-        }
-        _update_source_fields(source, values)
+        outcome_start = _("The employee is suspended from {0}.").format(self.from_date)
+        outcome_end = (
+            _("The employee is suspended until {0}.").format(self.to_date)
+            if self.to_date
+            else None
+        )
 
-
-def _update_source_fields(source, values):
-    applicable = {
-        fieldname: value
-        for fieldname, value in values.items()
-        if source.meta.has_field(fieldname)
-    }
-
-    if not applicable:
-        return
-
-    if source.docstatus == 0:
-        for fieldname, value in applicable.items():
-            source.set(fieldname, value)
-        source.flags.ignore_version = True
-        source.save(ignore_permissions=True)
-        return
-
-    for fieldname, value in applicable.items():
-        source.db_set(fieldname, value, update_modified=False)
+        # set_parent_outcome currently omits None values, so clear a stale end explicitly.
+        set_parent_outcome(
+            self,
+            self.suspension_type,
+            self.outcome_date,
+            outcome_start,
+            outcome_end,
+        )
+        if not self.to_date:
+            linked = frappe.get_doc(self.ir_intervention, self.linked_intervention)
+            if linked.docstatus == 0:
+                linked.outcome_end = None
+                linked.save(ignore_permissions=True)
+            else:
+                linked.db_set("outcome_end", None, update_modified=False)
 
 
 @frappe.whitelist()
@@ -302,9 +255,7 @@ def _populate_employee_rights(target):
 
 
 def _get_company_letter_head(company):
-    if not company:
-        return None
-    return frappe.db.get_value("Company", company, "default_letter_head")
+    return get_letter_head_string(company)
 
 
 @frappe.whitelist()
@@ -312,12 +263,4 @@ def get_linked_outcome(doc_name, doctype):
     if doctype not in SUPPORTED_INTERVENTIONS:
         frappe.throw(_("Unsupported IR Intervention."))
 
-    linked_doc = frappe.get_doc(doctype, doc_name)
-    return {
-        "linked_doc_name": linked_doc.name,
-        "linked_doctype": doctype,
-        "outcome": linked_doc.get("outcome"),
-        "outcome_date": linked_doc.get("outcome_date"),
-        "outcome_start": linked_doc.get("outcome_start"),
-        "outcome_end": linked_doc.get("outcome_end"),
-    }
+    return _get_linked_outcome(doc_name, doctype)

@@ -12,7 +12,10 @@ frappe.ui.form.on("Incapacity Proceedings", {
         frm.doc.workflow_state !== "Submitted",
     );
 
-    if (frappe.user.has_role("IR Manager")) {
+    if (
+      frappe.user.has_role("IR Manager") ||
+      frappe.user.has_role("IR Officer")
+    ) {
       frm
         .add_custom_button(__("Actions"), function () {}, "Actions")
         .addClass("btn-primary")
@@ -275,10 +278,11 @@ function make_pay_reduction_form(frm) {
   );
 }
 function make_dismissal_form_incap(frm) {
-  open_legacy_mapped(
+  create_generic_document(
     frm,
-    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_incap",
-    { linked_incapacity_proceeding: frm.doc.name },
+    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+    "Dismissal Form",
+    "Creating Dismissal Form ...",
   );
 }
 function make_vsp_incap(frm) {

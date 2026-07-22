@@ -58,10 +58,9 @@ class WarningForm(Document):
             frappe.throw(_("You must attach the signed warning before submitting."))
 
         employee = frappe.get_doc("Employee", self.employee)
-        employee.db_set(
-            {"status": "Active", "relieving_date": None},
-            update_modified=False,
-        )
+        employee.status = "Active"
+        employee.relieving_date = None
+        employee.save(ignore_permissions=True)
 
     def on_submit(self):
         self._set_linked_outcome()

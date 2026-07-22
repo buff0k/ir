@@ -9,10 +9,6 @@ frappe.ui.form.on("Appeal Against Outcome", {
                 .addClass('btn-primary')
                 .attr('id', 'actions_dropdown');
 
-            frm.page.add_inner_button(__('Issue NTA'), function() {
-                make_nta_appeal(frm);
-            }, 'Actions');
-
             frm.page.add_inner_button(__('Write Outcome Report'), function() {
                 create_written_outcome(frm);
             }, 'Actions');
@@ -114,7 +110,7 @@ frappe.ui.form.on("Appeal Against Outcome", {
     linked_incapacity_proceeding: function(frm) {
         if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
             frappe.call({
-                method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_incpacity_proceeding_data',
+                method: 'ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.fetch_incpacity_proceeding_data',
                 args: {
                     incapacity_proceeding: frm.doc.linked_incapacity_proceeding
                 },
@@ -197,7 +193,7 @@ frappe.ui.form.on("Appeal Against Outcome", {
     company: function(frm) {
         if (frm.doc.company) {
             frappe.call({
-                method: 'ir.industrial_relations.doctype.nta_hearing.nta_hearing.fetch_company_letter_head',
+                method: 'ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.fetch_company_letter_head',
                 args: {
                     company: frm.doc.company
                 },
@@ -316,17 +312,6 @@ function fetch_additional_linked_documents(frm) {
     });
 }
 
-function make_nta_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.nta_hearing.nta_hearing.make_nta_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating NTA Appeal Enquiry ...")
-    });
-}
-
 function create_written_outcome(frm) {
     frappe.call({
         method: "ir.industrial_relations.doctype.written_outcome.written_outcome.create_written_outcome",
@@ -345,101 +330,164 @@ function create_written_outcome(frm) {
     });
 }
 
-function make_not_guilty_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.not_guilty_form.not_guilty_form.make_not_guilty_form_appeal",
-        frm: frm,
+function get_appeal_source(frm) {
+    if (frm.doc.linked_disciplinary_action) {
+        return { source_name: frm.doc.linked_disciplinary_action, source_doctype: "Disciplinary Action" };
+    }
+    if (frm.doc.linked_incapacity_proceeding) {
+        return { source_name: frm.doc.linked_incapacity_proceeding, source_doctype: "Incapacity Proceedings" };
+    }
+    if (frm.doc.linked_poor_performance) {
+        return { source_name: frm.doc.linked_poor_performance, source_doctype: "Poor Performance" };
+    }
+    frappe.msgprint(__("This Appeal is not linked to a Disciplinary Action, Incapacity Proceedings, or Poor Performance record."));
+    return null;
+}
+
+function create_form_from_appeal(frm, method, target_doctype, freeze_message, extra_args = {}) {
+    const source = get_appeal_source(frm);
+    if (!source) return;
+
+    frappe.call({
+        method: method,
         args: {
-            linked_appeal: frm.doc.name
+            source_name: source.source_name,
+            source_doctype: source.source_doctype,
+            ...extra_args
         },
-        freeze_message: __("Creating Not Guilty Form ...")
+        freeze: true,
+        freeze_message: __(freeze_message),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", target_doctype, r.message.name);
+            }
+        }
     });
+}
+
+function make_not_guilty_form_appeal(frm) {
+    // "Not Guilty Form" was migrated to "No Further Action Form"; omitting outcome_type
+    // lets the server pick the source doctype's own not-guilty-equivalent default (NG/FIT/PI).
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.no_further_action_form.no_further_action_form.create_no_further_action_form",
+        "No Further Action Form",
+        "Creating No Further Action Form ...",
+    );
 }
 
 function make_warning_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.warning_form.warning_form.make_warning_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating Warning Form ...")
-    });
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.warning_form.warning_form.create_warning_form",
+        "Warning Form",
+        "Creating Warning Form ...",
+    );
 }
 
 function make_suspension_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.suspension_form.suspension_form.make_suspension_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
+    const source = get_appeal_source(frm);
+    if (!source) return;
+
+    frappe.prompt(
+        {
+            fieldname: "suspension_nature",
+            label: __("Suspension Nature"),
+            fieldtype: "Select",
+            options: ["Precautionary", "Punitive"],
+            reqd: 1,
         },
-        freeze_message: __("Creating Suspension Form ...")
-    });
+        function(values) {
+            frappe.call({
+                method: "ir.industrial_relations.doctype.suspension_form.suspension_form.create_suspension_form",
+                args: {
+                    source_name: source.source_name,
+                    source_doctype: source.source_doctype,
+                    suspension_nature: values.suspension_nature,
+                },
+                freeze: true,
+                freeze_message: __("Creating Suspension Form ..."),
+                callback: function(r) {
+                    if (!r.exc && r.message) {
+                        frappe.model.sync(r.message);
+                        frappe.set_route("Form", "Suspension Form", r.message.name);
+                    }
+                }
+            });
+        },
+        __("Suspension Nature"),
+        __("Create"),
+    );
 }
 
 function make_demotion_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.demotion_form.demotion_form.make_demotion_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating Demotion Form ...")
-    });
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.demotion_form.demotion_form.create_demotion_form",
+        "Demotion Form",
+        "Creating Demotion Form ...",
+    );
 }
 
 function make_pay_deduction_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.make_pay_deduction_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating Pay Deduction Form ...")
-    });
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.pay_deduction_form.pay_deduction_form.create_pay_deduction_form",
+        "Pay Deduction Form",
+        "Creating Pay Deduction Form ...",
+    );
 }
 
 function make_pay_reduction_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.make_pay_reduction_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating Pay Reduction Form ...")
-    });
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.pay_reduction_form.pay_reduction_form.create_pay_reduction_form",
+        "Pay Reduction Form",
+        "Creating Pay Reduction Form ...",
+    );
 }
 
 function make_dismissal_form_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating Dismissal Form ...")
-    });
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+        "Dismissal Form",
+        "Creating Dismissal Form ...",
+    );
 }
 
 function make_vsp_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Creating VSP ...")
+    const source = get_appeal_source(frm);
+    if (!source) return;
+
+    const method_by_doctype = {
+        "Disciplinary Action": "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp",
+        "Incapacity Proceedings": "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_incap",
+        "Poor Performance": "ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.make_vsp_performance",
+    };
+
+    frappe.call({
+        method: method_by_doctype[source.source_doctype],
+        args: { source_name: source.source_name },
+        freeze: true,
+        freeze_message: __("Creating VSP ..."),
+        callback: function(r) {
+            if (!r.exc && r.message) {
+                frappe.model.sync(r.message);
+                frappe.set_route("Form", "Voluntary Seperation Agreement", r.message.name);
+            }
+        }
     });
 }
 
 function cancel_appeal(frm) {
-    frappe.model.open_mapped_doc({
-        method: "ir.industrial_relations.doctype.hearing_cancellation_form.hearing_cancellation_form.cancel_appeal",
-        frm: frm,
-        args: {
-            linked_appeal: frm.doc.name
-        },
-        freeze_message: __("Generating Cancellation Form ...")
-    });
+    // Hearing Cancellation Form is deprecated in favor of No Further Action Form.
+    create_form_from_appeal(
+        frm,
+        "ir.industrial_relations.doctype.no_further_action_form.no_further_action_form.create_no_further_action_form",
+        "No Further Action Form",
+        "Generating Cancellation Form ...",
+        { outcome_type: "CAN" },
+    );
 }

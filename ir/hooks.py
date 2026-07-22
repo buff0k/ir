@@ -280,6 +280,30 @@ doc_events = {
     "Written Outcome": {
         "validate": "ir.permissions.validate_written_outcome",
     },
+    "Warning Form": {
+        "validate": "ir.permissions.validate_warning_form",
+    },
+    "Suspension Form": {
+        "validate": "ir.permissions.validate_suspension_form",
+    },
+    "Dismissal Form": {
+        "validate": "ir.permissions.validate_dismissal_form",
+    },
+    "Demotion Form": {
+        "validate": "ir.permissions.validate_demotion_form",
+    },
+    "Pay Deduction Form": {
+        "validate": "ir.permissions.validate_pay_deduction_form",
+    },
+    "Pay Reduction Form": {
+        "validate": "ir.permissions.validate_pay_reduction_form",
+    },
+    "No Further Action Form": {
+        "validate": "ir.permissions.validate_no_further_action_form",
+    },
+    "Appeal Against Outcome": {
+        "validate": "ir.permissions.validate_appeal_against_outcome",
+    },
 }
 permission_query_conditions = {
     "Contract of Employment": "ir.permissions.contract_of_employment_permission_query_conditions",
@@ -288,6 +312,14 @@ permission_query_conditions = {
     "Poor Performance": "ir.permissions.poor_performance_permission_query_conditions",
     "NTA Enquiry": "ir.permissions.nta_enquiry_permission_query_conditions",
     "Written Outcome": "ir.permissions.written_outcome_permission_query_conditions",
+    "Warning Form": "ir.permissions.warning_form_permission_query_conditions",
+    "Suspension Form": "ir.permissions.suspension_form_permission_query_conditions",
+    "Dismissal Form": "ir.permissions.dismissal_form_permission_query_conditions",
+    "Demotion Form": "ir.permissions.demotion_form_permission_query_conditions",
+    "Pay Deduction Form": "ir.permissions.pay_deduction_form_permission_query_conditions",
+    "Pay Reduction Form": "ir.permissions.pay_reduction_form_permission_query_conditions",
+    "No Further Action Form": "ir.permissions.no_further_action_form_permission_query_conditions",
+    "Appeal Against Outcome": "ir.permissions.appeal_against_outcome_permission_query_conditions",
 }
 has_permission = {
     "Contract of Employment": "ir.permissions.contract_of_employment_has_permission",
@@ -296,4 +328,12 @@ has_permission = {
     "Poor Performance": "ir.permissions.poor_performance_has_permission",
     "NTA Enquiry": "ir.permissions.nta_enquiry_has_permission",
     "Written Outcome": "ir.permissions.written_outcome_has_permission",
+    "Warning Form": "ir.permissions.warning_form_has_permission",
+    "Suspension Form": "ir.permissions.suspension_form_has_permission",
+    "Dismissal Form": "ir.permissions.dismissal_form_has_permission",
+    "Demotion Form": "ir.permissions.demotion_form_has_permission",
+    "Pay Deduction Form": "ir.permissions.pay_deduction_form_has_permission",
+    "Pay Reduction Form": "ir.permissions.pay_reduction_form_has_permission",
+    "No Further Action Form": "ir.permissions.no_further_action_form_has_permission",
+    "Appeal Against Outcome": "ir.permissions.appeal_against_outcome_has_permission",
 }

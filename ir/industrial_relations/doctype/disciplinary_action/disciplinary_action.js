@@ -320,10 +320,11 @@ function make_pay_reduction_form_misc(frm) {
   );
 }
 function make_dismissal_form(frm) {
-  open_legacy_mapped(
+  create_generic_document(
     frm,
-    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.make_dismissal_form",
-    { linked_disciplinary_action: frm.doc.name },
+    "ir.industrial_relations.doctype.dismissal_form.dismissal_form.create_dismissal_form",
+    "Dismissal Form",
+    "Creating Dismissal Form ...",
   );
 }
 function make_vsp(frm) {
@@ -345,8 +346,8 @@ function cancel_disciplinary(frm) {
 function appeal_disciplinary(frm) {
   open_legacy_mapped(
     frm,
-    "ir.industrial_relations.doctype.appeal_against_outcome.appeal_disciplinary",
-    { linked_disciplinary_action: frm.doc.name },
+    "ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.appeal_disciplinary",
+    {},
   );
 }
 

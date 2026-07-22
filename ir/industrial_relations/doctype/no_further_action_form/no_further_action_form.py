@@ -3,11 +3,15 @@
 
 from __future__ import annotations
 
-import re
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
+
+from ir.industrial_relations.utils import (
+    autoname_by_linked_parent,
+    clear_parent_outcome,
+    set_parent_outcome,
+)
 
 
 SUPPORTED_INTERVENTIONS = {
@@ -207,56 +211,6 @@ def _validate_outcome_type(intervention_type: str, outcome_type: str) -> None:
         )
 
 
-def _set_source_outcome(source, outcome_type, outcome_date):
-    old_outcome = source.get("outcome") if _has_field(source.doctype, "outcome") else None
-    old_date = source.get("outcome_date") if _has_field(source.doctype, "outcome_date") else None
-
-    updates = {}
-    if _has_field(source.doctype, "outcome"):
-        updates["outcome"] = outcome_type
-    if _has_field(source.doctype, "outcome_date"):
-        updates["outcome_date"] = outcome_date
-
-    if not updates:
-        frappe.throw(
-            _("{0} does not contain outcome fields that can be updated.").format(
-                source.doctype
-            )
-        )
-
-    for fieldname, value in updates.items():
-        source.db_set(fieldname, value, update_modified=False)
-
-    frappe.get_doc(
-        {
-            "doctype": "Version",
-            "ref_doctype": source.doctype,
-            "docname": source.name,
-            "data": frappe.as_json(
-                {
-                    "changed": [
-                        ["outcome", old_outcome, updates.get("outcome", old_outcome)],
-                        ["outcome_date", old_date, updates.get("outcome_date", old_date)],
-                    ]
-                }
-            ),
-        }
-    ).insert(ignore_permissions=True)
-
-
-def _clear_source_outcome_if_owned(source, outcome_type, outcome_date):
-    current_outcome = source.get("outcome") if _has_field(source.doctype, "outcome") else None
-    current_date = source.get("outcome_date") if _has_field(source.doctype, "outcome_date") else None
-
-    if current_outcome != outcome_type or current_date != outcome_date:
-        return
-
-    if _has_field(source.doctype, "outcome"):
-        source.db_set("outcome", None, update_modified=False)
-    if _has_field(source.doctype, "outcome_date"):
-        source.db_set("outcome_date", None, update_modified=False)
-
-
 def _set_if_present(doc, fieldname: str, value) -> None:
     if _has_field(doc.doctype, fieldname):
         doc.set(fieldname, value)
@@ -287,31 +241,7 @@ def _populate_authorizer_details(doc) -> None:
 
 class NoFurtherActionForm(Document):
     def autoname(self):
-        if not self.linked_intervention:
-            return
-
-        base = f"NFA-{self.linked_intervention}"
-        existing = frappe.get_all(
-            self.doctype,
-            filters={
-                "ir_intervention": self.ir_intervention,
-                "linked_intervention": self.linked_intervention,
-            },
-            pluck="name",
-        )
-
-        if base not in existing:
-            self.name = base
-            return
-
-        pattern = re.compile(rf"^{re.escape(base)}-(\d+)$")
-        revisions = []
-        for name in existing:
-            match = pattern.match(name or "")
-            if match:
-                revisions.append(int(match.group(1)))
-
-        self.name = f"{base}-{(max(revisions) + 1) if revisions else 1}"
+        autoname_by_linked_parent(self, "NFA")
 
     def validate(self):
         if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
@@ -351,12 +281,10 @@ class NoFurtherActionForm(Document):
             frappe.throw(_("You must attach the signed outcome before submitting."))
 
     def on_submit(self):
-        source = frappe.get_doc(self.ir_intervention, self.linked_intervention)
-        _set_source_outcome(source, self.outcome_type, self.outcome_date)
+        set_parent_outcome(self, self.outcome_type, self.outcome_date)
 
     def on_cancel(self):
-        source = frappe.get_doc(self.ir_intervention, self.linked_intervention)
-        _clear_source_outcome_if_owned(source, self.outcome_type, self.outcome_date)
+        clear_parent_outcome(self)
 
 
 @frappe.whitelist()

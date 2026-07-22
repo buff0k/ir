@@ -27,17 +27,34 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
     "Incapacity Proceedings": "accused_pos",
     "Poor Performance": "employee_designation",
     "NTA Enquiry": "position",
-    "Written Outcome": "position",
+    "Written Outcome": "employee_designation",
+    "Warning Form": "position",
+    "Suspension Form": "position",
+    "Dismissal Form": "position",
+    "Demotion Form": "position",
+    "Pay Deduction Form": "position",
+    "Pay Reduction Form": "position",
+    "No Further Action Form": "designation",
+    "Appeal Against Outcome": "position",
 }
 
 # Doctype -> fieldname holding the Employee link whose Employee.branch is checked
 # against a user's "Responsible HR per Branch" (hr_per_branch) rows on IR Role
 # Restrictions. Deliberately does not include External Dispute Resolution (no single
-# branch - it's inherently multi-employee/multi-branch) or NTA Enquiry/Written Outcome.
+# branch - it's inherently multi-employee/multi-branch), NTA Enquiry, or Written
+# Outcome.
 BRANCH_LIMITED_DOCTYPES = {
     "Disciplinary Action": "accused",
     "Incapacity Proceedings": "accused",
     "Poor Performance": "employee",
+    "Warning Form": "employee",
+    "Suspension Form": "employee",
+    "Dismissal Form": "employee",
+    "Demotion Form": "employee",
+    "Pay Deduction Form": "employee",
+    "Pay Reduction Form": "employee",
+    "No Further Action Form": "employee",
+    "Appeal Against Outcome": "employee",
 }
 
 
@@ -223,6 +240,38 @@ def written_outcome_permission_query_conditions(user: str | None = None) -> str:
     return _permission_query("Written Outcome", user)
 
 
+def warning_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Warning Form", user)
+
+
+def suspension_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Suspension Form", user)
+
+
+def dismissal_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Dismissal Form", user)
+
+
+def demotion_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Demotion Form", user)
+
+
+def pay_deduction_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Pay Deduction Form", user)
+
+
+def pay_reduction_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Pay Reduction Form", user)
+
+
+def no_further_action_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("No Further Action Form", user)
+
+
+def appeal_against_outcome_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Appeal Against Outcome", user)
+
+
 # Direct-access permission hooks
 
 def contract_of_employment_has_permission(doc, user=None, ptype=None) -> bool:
@@ -246,6 +295,38 @@ def nta_enquiry_has_permission(doc, user=None, ptype=None) -> bool:
 
 
 def written_outcome_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "employee_designation", user, ptype)
+
+
+def warning_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def suspension_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def dismissal_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def demotion_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def pay_deduction_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def pay_reduction_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "position", user, ptype)
+
+
+def no_further_action_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, "designation", user, ptype)
+
+
+def appeal_against_outcome_has_permission(doc, user=None, ptype=None) -> bool:
     return _has_permission(doc, "position", user, ptype)
 
 
@@ -272,4 +353,36 @@ def validate_nta_enquiry(doc, method=None):
 
 
 def validate_written_outcome(doc, method=None):
+    _validate_designation(doc, "employee_designation")
+
+
+def validate_warning_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_suspension_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_dismissal_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_demotion_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_pay_deduction_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_pay_reduction_form(doc, method=None):
+    _validate_designation(doc, "position")
+
+
+def validate_no_further_action_form(doc, method=None):
+    _validate_designation(doc, "designation")
+
+
+def validate_appeal_against_outcome(doc, method=None):
     _validate_designation(doc, "position")
