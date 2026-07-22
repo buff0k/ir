@@ -180,23 +180,25 @@ def get_data(filters):
 			ON fc.parent = da.name
 		LEFT JOIN (
 			SELECT
-				hcf.linked_disciplinary_action,
-				hcf.reason_for_cancellation
-			FROM `tabHearing Cancellation Form` hcf
+				nfa.linked_intervention,
+				nfa.cancel_reason AS reason_for_cancellation
+			FROM `tabNo Further Action Form` nfa
 			INNER JOIN (
 				SELECT
-					linked_disciplinary_action,
+					linked_intervention,
 					MAX(creation) AS latest_creation
-				FROM `tabHearing Cancellation Form`
-				WHERE IFNULL(linked_disciplinary_action, '') != ''
+				FROM `tabNo Further Action Form`
+				WHERE ir_intervention = 'Disciplinary Action'
+				  AND IFNULL(linked_intervention, '') != ''
 				  AND docstatus = 1
-				GROUP BY linked_disciplinary_action
-			) latest_hcf
-				ON latest_hcf.linked_disciplinary_action = hcf.linked_disciplinary_action
-				AND latest_hcf.latest_creation = hcf.creation
-			WHERE hcf.docstatus = 1
+				GROUP BY linked_intervention
+			) latest_nfa
+				ON latest_nfa.linked_intervention = nfa.linked_intervention
+				AND latest_nfa.latest_creation = nfa.creation
+			WHERE nfa.docstatus = 1
+			  AND nfa.ir_intervention = 'Disciplinary Action'
 		) hcf
-			ON hcf.linked_disciplinary_action = da.name
+			ON hcf.linked_intervention = da.name
 		WHERE {where_clause}
 		ORDER BY da.request_date DESC, da.name DESC
 	"""

@@ -288,7 +288,6 @@ def _linked_doc_mappings():
         ),
         ("Suspensions", "Suspension Form", "linked_disciplinary_action"),
         ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_disciplinary_action"),
-        ("Hearing Cancellations", "Hearing Cancellation Form", "linked_disciplinary_action"),
         ("Appeals", "Appeal Against Outcome", "linked_disciplinary_action"),
     ]
 

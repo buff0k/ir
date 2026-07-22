@@ -1306,6 +1306,16 @@
   align-items: end;
 }
 
+.her-filter-grid [data-filter="branches"] {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.her-filter-grid [data-filter="branches"] .multiselect-list,
+.her-filter-grid [data-filter="branches"] .awesomplete {
+  width: 100%;
+}
+
 .her-filter-actions {
   padding-bottom: 4px;
 }
@@ -2092,6 +2102,57 @@ button.her-mini-list {
   position: sticky;
   top: 0;
   z-index: 1;
+  color: var(--text-color);
+  background: var(--control-bg);
+  text-align: left;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Disciplinary Actions & Outcomes list - fits on one page, no horizontal scroll;
+   Final Charges wraps instead of forcing the table wider. */
+.her-disc-outcomes-table-wrap {
+  overflow: visible;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.her-disc-outcomes-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.her-disc-outcomes-table th,
+.her-disc-outcomes-table td {
+  padding: 8px 9px;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.her-disc-outcomes-table th:nth-child(1) { width: 24%; }
+.her-disc-outcomes-table th:nth-child(2) { width: 14%; }
+.her-disc-outcomes-table th:nth-child(3) { width: 46%; }
+.her-disc-outcomes-table th:nth-child(4) { width: 16%; }
+
+.her-disc-outcomes-table tr:last-child th,
+.her-disc-outcomes-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.her-disc-outcomes-table th:last-child,
+.her-disc-outcomes-table td:last-child {
+  border-right: 0;
+}
+
+.her-disc-outcomes-table thead th {
   color: var(--text-color);
   background: var(--control-bg);
   text-align: left;

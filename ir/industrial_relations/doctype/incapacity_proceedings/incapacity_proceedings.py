@@ -127,11 +127,6 @@ def _linked_doc_mappings():
             "Voluntary Seperation Agreement",
             "linked_incapacity_proceeding",
         ),
-        (
-            "Hearing Cancellations",
-            "Hearing Cancellation Form",
-            "linked_incapacity_proceeding",
-        ),
         ("Appeals", "Appeal Against Outcome", "linked_incapacity_proceeding"),
     ]
 

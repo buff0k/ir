@@ -70,10 +70,6 @@ REQUIRED_LINKS = [
         "link_fieldname": "employee",
     },
     {
-        "link_doctype": "Hearing Cancellation Form",
-        "link_fieldname": "employee",
-    },
-    {
         "link_doctype": "KPI Review Employees",
         "link_fieldname": "employee",
         "parent_doctype": "KPI Review",

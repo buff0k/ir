@@ -58,6 +58,7 @@ class HRExceptionReport {
           <div data-filter="company"></div>
           <div data-filter="from_date"></div>
           <div data-filter="to_date"></div>
+          <div data-filter="branches"></div>
           <div class="her-filter-actions">
             <button class="btn btn-primary btn-sm" data-action="refresh">${__("Refresh")}</button>
           </div>
@@ -99,6 +100,18 @@ class HRExceptionReport {
           label: __("To Date"),
           reqd: 1,
           default: today,
+          change: () => !this.suppress_filter_refresh && this.refresh_debounced(),
+        },
+        render_input: true,
+      }),
+      branches: frappe.ui.form.make_control({
+        parent: this.$filters.find('[data-filter="branches"]'),
+        df: {
+          fieldtype: "MultiSelectList",
+          fieldname: "branches",
+          label: __("Branch"),
+          get_data: (txt) =>
+            frappe.db.get_link_options("Branch", txt),
           change: () => !this.suppress_filter_refresh && this.refresh_debounced(),
         },
         render_input: true,
@@ -182,6 +195,7 @@ class HRExceptionReport {
         </article>
       </div>
       ${this.render_esg_section(d.esg_comparison)}
+      ${this.render_disciplinary_outcomes_section(d.disciplinary_outcomes)}
     `);
 
     this.bind_metric_clicks();
@@ -511,6 +525,44 @@ class HRExceptionReport {
     `;
   }
 
+  render_disciplinary_outcomes_section(disciplinary_outcomes) {
+    const rows = disciplinary_outcomes?.rows || [];
+    return `
+      <section class="her-esg-section">
+        <div class="her-esg-heading">
+          <div>
+            <span>${__("Additional detail")}</span>
+            <h2>${__("Disciplinary Actions and Outcomes in the period")}</h2>
+            <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
+          </div>
+        </div>
+        <div class="her-disc-outcomes-table-wrap">
+          <table class="her-disc-outcomes-table">
+            <thead>
+              <tr>
+                <th>${__("Employee")}</th>
+                <th>${__("Branch")}</th>
+                <th>${__("Final Charges")}</th>
+                <th>${__("Outcome / Status")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.length
+                ? rows.map((row) => `
+                <tr>
+                  <th>${frappe.utils.escape_html(row.employee || "")}</th>
+                  <td>${frappe.utils.escape_html(row.branch || "")}</td>
+                  <td>${frappe.utils.escape_html(row.final_charges || "").replace(/\n/g, "<br>")}</td>
+                  <td>${frappe.utils.escape_html(row.outcome || "")}</td>
+                </tr>`).join("")
+                : `<tr><td colspan="4" class="text-muted">${__("No Disciplinary Actions with an outcome in the selected period.")}</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }
+
   esg_value(value, unit, currency) {
     if (value === null || value === undefined || unit === "Unavailable") {
       return `<span class="her-esg-unavailable">${__("Not available")}</span>`;
@@ -536,6 +588,9 @@ class HRExceptionReport {
   export_new_employee_details() {
     const filters = this.get_filters();
     if (!this.validate_filters(filters)) return;
+    // branches is an array; URLSearchParams would otherwise comma-join it into a
+    // single string, so send it as JSON for the server to parse back into a list.
+    filters.branches = JSON.stringify(filters.branches || []);
     const query = new URLSearchParams(filters).toString();
     window.open(
       `/api/method/ir.industrial_relations.page.hr_exception_report.hr_exception_report.download_new_employee_details?${query}`,
@@ -704,7 +759,6 @@ class HRExceptionReport {
   render_export_slide(d) {
     const workforce = d.workforce;
     const ee = d.employment_equity;
-    const eeSummary = this.ee_summary(ee);
     const processes = [
       [__("Disciplinary"), d.disciplinary],
       [__("Incapacity"), d.incapacity],
@@ -828,7 +882,6 @@ class HRExceptionReport {
                   </tr>`).join("")}
               </tbody>
             </table>
-            <div class="her-x-note">${eeSummary.unmapped ? `${eeSummary.unmapped} ${__("unmapped EE value(s) require review")}` : __("All EE values mapped")}</div>
           </section>
         </main>
 
@@ -1087,16 +1140,6 @@ class HRExceptionReport {
 
       .her-x-ee-summary-row td {
         color: #334155;
-      }
-
-      .her-x-note {
-        margin-top: 8px;
-        padding: 8px 10px;
-        border-radius: 7px;
-        background: #fff7ed;
-        color: #9a3412;
-        font-size: 12px;
-        font-weight: 800;
       }
 
       .her-x-footer {

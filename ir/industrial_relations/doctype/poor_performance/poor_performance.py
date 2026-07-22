@@ -125,11 +125,6 @@ def _linked_doc_mappings():
             "linked_poor_performance",
         ),
         (
-            "Hearing Cancellations",
-            "Hearing Cancellation Form",
-            "linked_poor_performance",
-        ),
-        (
             "Appeals",
             "Appeal Against Outcome",
             "linked_poor_performance",

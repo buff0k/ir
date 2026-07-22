@@ -79,7 +79,7 @@ def _first_existing_field(doctype, candidates, labels=None):
     return None
 
 
-def _validate_filters(company, from_date, to_date):
+def _validate_filters(company, from_date, to_date, branches=None):
     if not company:
         frappe.throw(_("Company is required."))
     if not from_date or not to_date:
@@ -94,7 +94,23 @@ def _validate_filters(company, from_date, to_date):
     if not frappe.db.exists("Company", company):
         frappe.throw(_("Company {0} does not exist.").format(frappe.bold(company)))
 
+    for branch in branches or []:
+        if not frappe.db.exists("Branch", branch):
+            frappe.throw(_("Branch {0} does not exist.").format(frappe.bold(branch)))
+
     return from_date, to_date
+
+
+def _employees_in_branches(company, branches):
+    """Employee names in the given branches, or None if branches is empty (no restriction).
+
+    Branch scoping always resolves through Employee.branch - never through a case
+    doctype's own `branch` field where one exists (e.g. Disciplinary Action's is
+    labelled "Site for Hearing" and is not the employee's actual branch).
+    """
+    if not branches:
+        return None
+    return frappe.get_all("Employee", filters={"company": company, "branch": ["in", branches]}, pluck="name")
 
 
 def _employee_fields():
@@ -253,7 +269,7 @@ def _combine_counts(target, source):
         target[key] += cint(source.get(key))
 
 
-def _build_ee_profile(company, snapshot_date):
+def _build_ee_profile(company, snapshot_date, branches=None):
     employee_fields = _employee_fields()
     designation_level = _designation_level_field()
 
@@ -277,6 +293,12 @@ def _build_ee_profile(company, snapshot_date):
     else:
         selected.append("NULL AS designation_occupational_level")
 
+    values = {"company": company, "snapshot_date": snapshot_date}
+    branch_clause = ""
+    if branches:
+        branch_clause = "AND e.branch IN %(branches)s"
+        values["branches"] = tuple(branches)
+
     rows = frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -285,9 +307,10 @@ def _build_ee_profile(company, snapshot_date):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
+          {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
-        {"company": company, "snapshot_date": snapshot_date},
+        values,
         as_dict=True,
     )
 
@@ -380,11 +403,15 @@ def _build_ee_profile(company, snapshot_date):
     }
 
 
-def _employee_movements(company, from_date, to_date):
+def _employee_movements(company, from_date, to_date, branches=None):
+    base_filters = {"company": company}
+    if branches:
+        base_filters["branch"] = ["in", branches]
+
     new_employees = frappe.get_all(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "date_of_joining": ["between", [from_date, to_date]],
         },
         fields=[
@@ -402,7 +429,7 @@ def _employee_movements(company, from_date, to_date):
     terminated_employees = frappe.get_all(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "relieving_date": ["between", [from_date, to_date]],
         },
         fields=[
@@ -425,7 +452,7 @@ def _employee_movements(company, from_date, to_date):
     opening_headcount = frappe.db.count(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "date_of_joining": ["<", from_date],
             "relieving_date": ["in", [None, ""]],
         },
@@ -433,7 +460,7 @@ def _employee_movements(company, from_date, to_date):
     opening_headcount += frappe.db.count(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "date_of_joining": ["<", from_date],
             "relieving_date": [">=", from_date],
         },
@@ -442,7 +469,7 @@ def _employee_movements(company, from_date, to_date):
     closing_headcount = frappe.db.count(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "date_of_joining": ["<=", to_date],
             "relieving_date": ["in", [None, ""]],
         },
@@ -450,7 +477,7 @@ def _employee_movements(company, from_date, to_date):
     closing_headcount += frappe.db.count(
         "Employee",
         filters={
-            "company": company,
+            **base_filters,
             "date_of_joining": ["<=", to_date],
             "relieving_date": [">", to_date],
         },
@@ -474,7 +501,7 @@ def _employee_movements(company, from_date, to_date):
     }
 
 
-def _process_summary(doctype, employee_field, company, from_date, to_date):
+def _process_summary(doctype, employee_field, company, from_date, to_date, employees=None):
     frappe.has_permission(doctype, "read", throw=True)
     meta = frappe.get_meta(doctype)
     name_field = "employee_name" if meta.get_field("employee_name") else "accused_name"
@@ -499,10 +526,14 @@ def _process_summary(doctype, employee_field, company, from_date, to_date):
     if responsible_field:
         fields.append(responsible_field)
 
+    base_filters = {"company": company}
+    if employees is not None:
+        base_filters[employee_field] = ["in", employees]
+
     opened = frappe.get_all(
         doctype,
         filters={
-            "company": company,
+            **base_filters,
             "docstatus": ["<", 2],
             "request_date": ["between", [from_date, to_date]],
         },
@@ -513,7 +544,7 @@ def _process_summary(doctype, employee_field, company, from_date, to_date):
     closed = frappe.get_all(
         doctype,
         filters={
-            "company": company,
+            **base_filters,
             "docstatus": ["<", 2],
             "outcome_date": ["between", [from_date, to_date]],
         },
@@ -524,7 +555,7 @@ def _process_summary(doctype, employee_field, company, from_date, to_date):
     outstanding = frappe.get_all(
         doctype,
         filters={
-            "company": company,
+            **base_filters,
             "docstatus": 0,
         },
         fields=fields,
@@ -572,7 +603,7 @@ def _outcome_labels():
     }
 
 
-def _poor_performance_summary(company, from_date, to_date):
+def _poor_performance_summary(company, from_date, to_date, employees=None):
     frappe.has_permission("Poor Performance", "read", throw=True)
     labels = _outcome_labels()
     fields = [
@@ -588,9 +619,13 @@ def _poor_performance_summary(company, from_date, to_date):
         "ir_name",
     ]
 
+    filters = {"company": company, "docstatus": ["<", 2]}
+    if employees is not None:
+        filters["employee"] = ["in", employees]
+
     rows = frappe.get_all(
         "Poor Performance",
-        filters={"company": company, "docstatus": ["<", 2]},
+        filters=filters,
         fields=fields,
         order_by="employee asc, creation asc",
     )
@@ -645,6 +680,9 @@ def _poor_performance_summary(company, from_date, to_date):
 
 
 def _external_dispute_summary(company, from_date, to_date):
+    # No branch filtering here by design: External Dispute Resolution has no single
+    # employee-link field (employees are a multi-select table, potentially spanning
+    # several branches at once), so it is intentionally excluded from Branch scoping.
     doctype = "External Dispute Resolution"
     frappe.has_permission(doctype, "read", throw=True)
 
@@ -800,7 +838,7 @@ def _employee_reporting_fields():
     return fields
 
 
-def _employee_snapshot_rows(company, snapshot_date):
+def _employee_snapshot_rows(company, snapshot_date, branches=None):
     reporting_fields = _employee_reporting_fields()
     designation_level = _designation_level_field()
     selected = [
@@ -829,6 +867,12 @@ def _employee_snapshot_rows(company, snapshot_date):
     else:
         selected.append("NULL AS designation_occupational_level")
 
+    values = {"company": company, "snapshot_date": snapshot_date}
+    branch_clause = ""
+    if branches:
+        branch_clause = "AND e.branch IN %(branches)s"
+        values["branches"] = tuple(branches)
+
     rows = frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -837,9 +881,10 @@ def _employee_snapshot_rows(company, snapshot_date):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
+          {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
-        {"company": company, "snapshot_date": snapshot_date},
+        values,
         as_dict=True,
     )
     return rows
@@ -910,8 +955,8 @@ def _employee_flags(row, snapshot_date):
     }
 
 
-def _esg_snapshot(company, snapshot_date):
-    rows = _employee_snapshot_rows(company, snapshot_date)
+def _esg_snapshot(company, snapshot_date, branches=None):
+    rows = _employee_snapshot_rows(company, snapshot_date, branches)
     flags = [(row, _employee_flags(row, snapshot_date)) for row in rows]
     def count(predicate):
         return sum(1 for row, flag in flags if predicate(row, flag))
@@ -959,7 +1004,7 @@ def _metric_matches(metric_key, row, snapshot_date):
     }.get(metric_key, False)
 
 
-def _terminated_reporting_rows(company, from_date, to_date):
+def _terminated_reporting_rows(company, from_date, to_date, branches=None):
     reporting_fields = _employee_reporting_fields()
     designation_level = _designation_level_field()
     selected = [
@@ -973,6 +1018,13 @@ def _terminated_reporting_rows(company, from_date, to_date):
         f"d.`{designation_level}` AS designation_occupational_level"
         if designation_level else "NULL AS designation_occupational_level"
     )
+
+    values = {"company": company, "from_date": from_date, "to_date": to_date}
+    branch_clause = ""
+    if branches:
+        branch_clause = "AND e.branch IN %(branches)s"
+        values["branches"] = tuple(branches)
+
     return frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -980,9 +1032,10 @@ def _terminated_reporting_rows(company, from_date, to_date):
         LEFT JOIN `tabDesignation` d ON d.name = e.designation
         WHERE e.company = %(company)s
           AND e.relieving_date BETWEEN %(from_date)s AND %(to_date)s
+          {branch_clause}
         ORDER BY e.relieving_date, e.employee_name
         """,
-        {"company": company, "from_date": from_date, "to_date": to_date},
+        values,
         as_dict=True,
     )
 
@@ -1000,10 +1053,10 @@ def _format_reduction_reasons(metric_key, terminated_rows, to_date):
     )
 
 
-def _build_esg_comparison(company, from_date, to_date):
-    start = _esg_snapshot(company, from_date)
-    end = _esg_snapshot(company, to_date)
-    terminated_rows = _terminated_reporting_rows(company, from_date, to_date)
+def _build_esg_comparison(company, from_date, to_date, branches=None):
+    start = _esg_snapshot(company, from_date, branches)
+    end = _esg_snapshot(company, to_date, branches)
+    terminated_rows = _terminated_reporting_rows(company, from_date, to_date, branches)
     rows = []
     for key, label, unit in ESG_METRICS:
         start_value = start["values"].get(key)
@@ -1090,7 +1143,7 @@ def _format_new_employee_xlsx(xlsx_bytes):
     output.seek(0)
     return output
 
-def _new_employee_export_rows(company, from_date, to_date):
+def _new_employee_export_rows(company, from_date, to_date, branches=None):
     fields = _employee_reporting_fields()
     designation_level = _designation_level_field()
     selected = [
@@ -1108,6 +1161,13 @@ def _new_employee_export_rows(company, from_date, to_date):
         f"d.`{designation_level}` AS designation_occupational_level"
         if designation_level else "NULL AS designation_occupational_level"
     )
+
+    values = {"company": company, "from_date": from_date, "to_date": to_date}
+    branch_clause = ""
+    if branches:
+        branch_clause = "AND e.branch IN %(branches)s"
+        values["branches"] = tuple(branches)
+
     rows = frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -1115,9 +1175,10 @@ def _new_employee_export_rows(company, from_date, to_date):
         LEFT JOIN `tabDesignation` d ON d.name = e.designation
         WHERE e.company = %(company)s
           AND e.date_of_joining BETWEEN %(from_date)s AND %(to_date)s
+          {branch_clause}
         ORDER BY e.date_of_joining, e.employee_name, e.name
         """,
-        {"company": company, "from_date": from_date, "to_date": to_date},
+        values,
         as_dict=True,
     )
     result = []
@@ -1164,10 +1225,12 @@ def _new_employee_export_rows(company, from_date, to_date):
 
 
 @frappe.whitelist()
-def download_new_employee_details(company, from_date, to_date):
+def download_new_employee_details(company, from_date, to_date, branches=None):
     frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
-    from_date, to_date = _validate_filters(company, from_date, to_date)
+    if isinstance(branches, str):
+        branches = frappe.parse_json(branches) if branches else []
+    from_date, to_date = _validate_filters(company, from_date, to_date, branches)
     headers = [
         "Count / No.", "Nature of employment", "Beneficiary First Name(s)", "Beneficiary Surname",
         "SA ID Number", "Cell / Tel Number", "Physical Address", "Region", "Company Name",
@@ -1176,7 +1239,7 @@ def download_new_employee_details(company, from_date, to_date):
         "Job type", "Person with disability", "Dependants", "Comments", "Tier 1 evidence submitted",
         "Quarter Reported", "Employment in Reporting Period", "Still employed?", "Age", "Youth",
     ]
-    data = [headers, *_new_employee_export_rows(company, from_date, to_date)]
+    data = [headers, *_new_employee_export_rows(company, from_date, to_date, branches)]
     xlsx = make_xlsx(data, "New employee details")
     xlsx = _format_new_employee_xlsx(xlsx.getvalue())
     filename = f"New-Employee-Details-{frappe.scrub(company).replace('_', '-')}-{from_date}-to-{to_date}.xlsx"
@@ -1200,21 +1263,104 @@ def get_page_defaults():
     }
 
 
+def _disciplinary_action_outcomes(company, employees, from_date, to_date):
+    """Disciplinary Action records with an outcome in the reporting period, for the
+    page-only list (Employee, Branch, Final Charges, Outcome/Status).
+
+    Branch is always resolved through the accused Employee's actual branch, never
+    through Disciplinary Action's own `branch` field ("Site for Hearing").
+    """
+    frappe.has_permission("Disciplinary Action", "read", throw=True)
+
+    filters = {
+        "company": company,
+        "docstatus": ["<", 2],
+        "outcome_date": ["between", [from_date, to_date]],
+    }
+    if employees is not None:
+        filters["accused"] = ["in", employees]
+
+    actions = frappe.get_all(
+        "Disciplinary Action",
+        filters=filters,
+        fields=["name", "accused", "accused_name", "outcome", "outcome_date", "docstatus"],
+        order_by="outcome_date asc, name asc",
+    )
+    if not actions:
+        return {"rows": []}
+
+    employee_names = list({row.accused for row in actions if row.accused})
+    branch_by_employee = {}
+    if employee_names:
+        branch_by_employee = {
+            row.name: row.branch
+            for row in frappe.get_all(
+                "Employee", filters={"name": ["in", employee_names]}, fields=["name", "branch"]
+            )
+        }
+
+    outcome_labels = _outcome_labels()
+    cancelled_outcomes = set(frappe.get_all("Offence Outcome", filters={"iscancellation": 1}, pluck="name"))
+
+    rows = []
+    for action in actions:
+        charge_rows = frappe.get_all(
+            "Disciplinary Charges",
+            filters={
+                "parent": action.name,
+                "parenttype": "Disciplinary Action",
+                "parentfield": "final_charges",
+            },
+            fields=["code_item", "charge"],
+            order_by="idx asc",
+        )
+        final_charges = "\n".join(f"({row.code_item}) {row.charge}" for row in charge_rows)
+
+        if not action.outcome:
+            outcome_display = _("Pending")
+        elif action.outcome in cancelled_outcomes:
+            outcome_display = outcome_labels.get(action.outcome) or _("Cancelled")
+        else:
+            outcome_display = outcome_labels.get(action.outcome, action.outcome)
+
+        if action.accused_name and action.accused:
+            employee_display = f"{action.accused_name} ({action.accused})"
+        else:
+            employee_display = action.accused_name or action.accused or ""
+
+        rows.append(
+            {
+                "name": action.name,
+                "employee": employee_display,
+                "branch": branch_by_employee.get(action.accused) or "",
+                "final_charges": final_charges,
+                "outcome": outcome_display,
+                "outcome_date": str(action.outcome_date) if action.outcome_date else "",
+            }
+        )
+
+    return {"rows": rows}
+
+
 @frappe.whitelist()
-def get_report_data(company, from_date, to_date):
+def get_report_data(company, from_date, to_date, branches=None):
     frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
-    from_date, to_date = _validate_filters(company, from_date, to_date)
+    if isinstance(branches, str):
+        branches = frappe.parse_json(branches) if branches else []
+    from_date, to_date = _validate_filters(company, from_date, to_date, branches)
+    employees = _employees_in_branches(company, branches)
 
-    workforce = _employee_movements(company, from_date, to_date)
+    workforce = _employee_movements(company, from_date, to_date, branches)
     disciplinary = _process_summary(
-        "Disciplinary Action", "accused", company, from_date, to_date
+        "Disciplinary Action", "accused", company, from_date, to_date, employees
     )
     incapacity = _process_summary(
-        "Incapacity Proceedings", "accused", company, from_date, to_date
+        "Incapacity Proceedings", "accused", company, from_date, to_date, employees
     )
-    poor_performance = _poor_performance_summary(company, from_date, to_date)
+    poor_performance = _poor_performance_summary(company, from_date, to_date, employees)
     external_disputes = _external_dispute_summary(company, from_date, to_date)
+    disciplinary_outcomes = _disciplinary_action_outcomes(company, employees, from_date, to_date)
 
     opened_total = (
         disciplinary["opened"]["count"]
@@ -1245,12 +1391,13 @@ def get_report_data(company, from_date, to_date):
         "incapacity": incapacity,
         "poor_performance": poor_performance,
         "external_disputes": external_disputes,
+        "disciplinary_outcomes": disciplinary_outcomes,
         "combined": {
             "opened": opened_total,
             "closed": closed_total,
             "outstanding": outstanding_total,
             "net_backlog_change": opened_total - closed_total,
         },
-        "employment_equity": _build_ee_profile(company, to_date),
-        "esg_comparison": _build_esg_comparison(company, from_date, to_date),
+        "employment_equity": _build_ee_profile(company, to_date, branches),
+        "esg_comparison": _build_esg_comparison(company, from_date, to_date, branches),
     }

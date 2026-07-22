@@ -408,16 +408,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Hearing Cancellation Form",
-   "link_count": 0,
-   "link_to": "Hearing Cancellation Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Pay Reduction Form",
    "link_count": 0,
    "link_to": "Pay Reduction Form",
@@ -476,7 +466,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-15 08:48:45.458159",
+ "modified": "2026-07-22 12:18:16.848011",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",

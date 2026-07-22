@@ -140,16 +140,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Hearing Cancellation Form",
-   "link_count": 0,
-   "link_to": "Hearing Cancellation Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Written Outcome",
    "link_count": 0,
    "link_to": "Written Outcome",
@@ -218,7 +208,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-15 08:49:03.906017",
+ "modified": "2026-07-22 12:18:05.463284",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",
