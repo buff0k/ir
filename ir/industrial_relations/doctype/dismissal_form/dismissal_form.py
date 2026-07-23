@@ -6,7 +6,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from ir.industrial_relations.utils import fetch_performance_data
+from ir.industrial_relations.utils import clear_parent_outcome, fetch_performance_data
 
 SUPPORTED_INTERVENTIONS = {
     "Disciplinary Action",
@@ -60,6 +60,21 @@ class DismissalForm(Document):
     def on_submit(self):
         if not getattr(self, "__confirmed_submit", False):
             self.set_source_outcome()
+
+    def on_cancel(self):
+        self._reinstate_employee()
+        clear_parent_outcome(self)
+
+    def _reinstate_employee(self):
+        employee = frappe.get_doc("Employee", self.employee)
+        employee.status = "Active"
+        employee.relieving_date = None
+        employee.save(ignore_permissions=True)
+
+        frappe.msgprint(
+            _("Employee {0} has been reinstated as Active.").format(self.employee),
+            alert=True,
+        )
 
     def _validate_intervention(self):
         if self.ir_intervention not in SUPPORTED_INTERVENTIONS:

@@ -56,6 +56,11 @@ class DemotionForm(Document):
     def on_submit(self):
         self._set_source_outcome()
 
+    def on_cancel(self):
+        if self.demotion_applied and not self.demotion_reversed:
+            restore_employee_position(self, remarks=_("Demotion reversed on cancellation of {0}").format(self.name))
+        clear_parent_outcome(self)
+
     def _validate_intervention(self):
         if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
             frappe.throw(_("Unsupported IR Intervention: {0}").format(self.ir_intervention))
@@ -128,6 +133,67 @@ class DemotionForm(Document):
                 linked.save(ignore_permissions=True)
             else:
                 linked.db_set("outcome_end", None, update_modified=False)
+
+
+def restore_employee_position(demotion, *, reversed_on=None, remarks=None):
+    """Reverse a demotion's Employee-record side effects: restore the pre-demotion
+    designation, append the correcting Internal Work History row, and mark the
+    Demotion Form itself as reversed. Shared by the daily temporary-demotion-expiry
+    job (ir.controllers.demotion_expiry) and on_cancel here (e.g. a successful
+    appeal) - `demotion` may be either a frappe._dict row or a live Document, since
+    only attribute access on the shared fieldnames is needed.
+
+    Returns True if the reversal was applied, False if it was logged for review
+    instead (missing data, or the employee's designation no longer matches what
+    this demotion set it to).
+    """
+    if not demotion.employee or not demotion.position:
+        frappe.log_error(
+            title=f"Demotion reversal requires review: {demotion.name}",
+            message="Employee or original position is missing.",
+        )
+        return False
+
+    employee = frappe.get_doc("Employee", demotion.employee)
+    if employee.designation != demotion.new_position:
+        frappe.log_error(
+            title=f"Demotion reversal requires review: {demotion.name}",
+            message=(
+                f"Employee is currently {employee.designation}, not the demoted "
+                f"position {demotion.new_position}."
+            ),
+        )
+        return False
+
+    old_designation = employee.designation
+    boundary_date = reversed_on or frappe.utils.today()
+
+    append_internal_work_history(
+        employee,
+        designation=demotion.position,
+        from_date=boundary_date,
+    )
+
+    employee.designation = demotion.position
+    employee.status = "Active"
+    _append_employee_audit(
+        employee,
+        fieldname="designation",
+        old_value=old_designation,
+        new_value=demotion.position,
+        reference_doctype="Demotion Form",
+        reference_name=demotion.name,
+        remarks=remarks or _("Demotion reversed"),
+    )
+    employee.save(ignore_permissions=True)
+
+    frappe.db.set_value(
+        "Demotion Form",
+        demotion.name,
+        {"demotion_reversed": 1, "demotion_reversed_on": frappe.utils.today()},
+        update_modified=False,
+    )
+    return True
 
 
 def _append_employee_audit(employee, *, fieldname, old_value, new_value, reference_doctype, reference_name, remarks):

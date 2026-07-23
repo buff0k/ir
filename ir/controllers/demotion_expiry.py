@@ -7,8 +7,7 @@ import frappe
 from frappe import _
 from frappe.utils import today
 
-from ir.industrial_relations.doctype.demotion_form.demotion_form import _append_employee_audit
-from ir.industrial_relations.utils import append_internal_work_history
+from ir.industrial_relations.doctype.demotion_form.demotion_form import restore_employee_position
 
 SETTINGS_DOCTYPE = "Notification Permissions"
 DEFAULT_ROLES = ("IR Manager", "IR Officer", "HR Manager")
@@ -33,56 +32,16 @@ def run_daily():
 
 
 def _restore(demotion):
-    if not demotion.employee or not demotion.position:
-        _log_review(demotion, "Employee or original position is missing.")
-        return
-
-    employee = frappe.get_doc("Employee", demotion.employee)
-    if employee.designation != demotion.new_position:
-        _log_review(
-            demotion,
-            f"Employee is currently {employee.designation}, not the demoted position {demotion.new_position}.",
-        )
-        return
-
-    old_designation = employee.designation
-
-    # Boundary convention matches _apply_demotion: the closed row's to_date equals
-    # the new row's from_date, using the demotion's own defined end date rather than
+    # Boundary convention: the closed work-history row's to_date equals the new
+    # row's from_date, using the demotion's own defined end date rather than
     # whichever day this background job happens to run.
-    append_internal_work_history(
-        employee,
-        designation=demotion.position,
-        from_date=demotion.to_date,
-    )
-
-    employee.designation = demotion.position
-    employee.status = "Active"
-    _append_employee_audit(
-        employee,
-        fieldname="designation",
-        old_value=old_designation,
-        new_value=demotion.position,
-        reference_doctype="Demotion Form",
-        reference_name=demotion.name,
+    reversed_ = restore_employee_position(
+        demotion,
+        reversed_on=demotion.to_date,
         remarks=_("Temporary demotion reversed after expiry on {0}").format(demotion.to_date),
     )
-    employee.save(ignore_permissions=True)
-
-    frappe.db.set_value(
-        "Demotion Form",
-        demotion.name,
-        {"demotion_reversed": 1, "demotion_reversed_on": today()},
-        update_modified=False,
-    )
-    _notify_reversal(demotion)
-
-
-def _log_review(demotion, reason):
-    frappe.log_error(
-        title=f"Demotion reversal requires review: {demotion.name}",
-        message=reason,
-    )
+    if reversed_:
+        _notify_reversal(demotion)
 
 
 def _notify_reversal(demotion):

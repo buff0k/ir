@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url
 
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
 def retirement_age():
@@ -14,7 +14,7 @@ def retirement_age():
         filters={
             "date_of_retirement": ["between", [frappe.utils.today(), frappe.utils.add_days(frappe.utils.today(), 90)]]
         },
-        fields=["name", "employee_name", "date_of_retirement", "branch"]
+        fields=["name", "employee_name", "designation", "date_of_retirement", "branch"]
     )
 
     # Exclude employees where the status is "Left"
@@ -33,50 +33,59 @@ def retirement_age():
         frappe.logger().info("No valid IR report recipients found.")
         return
 
-    # Prepare the email content
     email_subject = "Weekly HR Report: Employee's nearing Retirement Date"
-    email_body = """
-        <p>Dear {name},</p>
-        <p>Please find below the list of employees retiring soon:</p>
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Coy. No.</th>
-                    <th>Employee Name</th>
-                    <th>Retirement Date</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
+    sent_count = 0
 
-    for employee in filtered_employees:
-        employee_url = get_url(f"/app/employee/{employee['name']}")
-        email_body += f"""
-            <tr>
-                <td><a href="{employee_url}">{employee['name']}</a></td>
-                <td>{employee['employee_name']}</td>
-                <td>{employee['date_of_retirement']}</td>
-                <td>{employee['branch']}</td>
-            </tr>
-        """
-
-    email_body += """
-            </tbody>
-        </table>
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
-
-    # Send email to each recipient
     for email in recipient_emails:
+        employees = filter_rows_for_recipient(
+            filtered_employees, email,
+            doctype="Employee",
+            designation_field="designation",
+            employee_field="name",
+        )
+        if not employees:
+            continue
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
-        personalized_email_body = email_body.format(name=first_name)
+
+        email_body = f"""
+            <p>Dear {first_name},</p>
+            <p>Please find below the list of employees retiring soon:</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Coy. No.</th>
+                        <th>Employee Name</th>
+                        <th>Retirement Date</th>
+                        <th>Site</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+
+        for employee in employees:
+            employee_url = get_url(f"/app/employee/{employee['name']}")
+            email_body += f"""
+                <tr>
+                    <td><a href="{employee_url}">{employee['name']}</a></td>
+                    <td>{employee['employee_name']}</td>
+                    <td>{employee['date_of_retirement']}</td>
+                    <td>{employee['branch']}</td>
+                </tr>
+            """
+
+        email_body += """
+                </tbody>
+            </table>
+            <p>Kind regards,<br>Industrial Relations</p>
+        """
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body
+            message=email_body
         )
+        sent_count += 1
 
-    frappe.logger().info(f"Weekly HR report sent to {len(recipient_emails)} recipients.")
+    frappe.logger().info(f"Weekly HR report sent to {sent_count} recipients.")

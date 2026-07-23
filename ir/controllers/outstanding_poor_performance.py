@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url, formatdate
 
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
 TERMINAL_OUTCOMES = {"Performance Improved", "Dismissal"}
@@ -130,71 +130,76 @@ def outstanding_poor_performance():
         return
 
     email_subject = "Weekly HR Report: Outstanding Poor Performance Processes"
-
-    table_rows = ""
-
-    for case in outstanding_cases:
-        case_url = get_url(f"/app/poor-performance/{case.get('name')}")
-        details = case.get("details_of_poor_performance") or ""
-        if len(details) > 250:
-            details = details[:247] + "..."
-
-        table_rows += f"""
-            <tr>
-                <td><a href="{case_url}">{case.get("name") or ""}</a></td>
-                <td>{case.get("employee_name") or ""}</td>
-                <td>{case.get("employee") or ""}</td>
-                <td>{case.get("employee_designation") or ""}</td>
-                <td>{case.get("branch") or ""}</td>
-                <td>{formatdate(case.get("creation")) if case.get("creation") else ""}</td>
-                <td>{case.get("outcome_label") or ""}</td>
-                <td>{case.get("status_reason") or ""}</td>
-                <td>{frappe.utils.escape_html(details)}</td>
-            </tr>
-        """
-
-    email_body_template = """
-        <p>Dear {name},</p>
-
-        <p>The following poor performance processes require attention:</p>
-
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Poor Performance</th>
-                    <th>Employee Name</th>
-                    <th>Employee Coy</th>
-                    <th>Position</th>
-                    <th>Site</th>
-                    <th>Created</th>
-                    <th>Current Outcome</th>
-                    <th>Status Reason</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
-            <tbody>
-                {table_rows}
-            </tbody>
-        </table>
-
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
+    sent_count = 0
 
     for email in recipient_emails:
+        cases = filter_rows_for_recipient(
+            outstanding_cases, email,
+            doctype="Poor Performance",
+            designation_field="employee_designation",
+            employee_field="employee",
+        )
+        if not cases:
+            continue
+
+        table_rows = ""
+        for case in cases:
+            case_url = get_url(f"/app/poor-performance/{case.get('name')}")
+            details = case.get("details_of_poor_performance") or ""
+            if len(details) > 250:
+                details = details[:247] + "..."
+
+            table_rows += f"""
+                <tr>
+                    <td><a href="{case_url}">{case.get("name") or ""}</a></td>
+                    <td>{case.get("employee_name") or ""}</td>
+                    <td>{case.get("employee") or ""}</td>
+                    <td>{case.get("employee_designation") or ""}</td>
+                    <td>{case.get("branch") or ""}</td>
+                    <td>{formatdate(case.get("creation")) if case.get("creation") else ""}</td>
+                    <td>{case.get("outcome_label") or ""}</td>
+                    <td>{case.get("status_reason") or ""}</td>
+                    <td>{frappe.utils.escape_html(details)}</td>
+                </tr>
+            """
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
 
-        personalized_email_body = email_body_template.format(
-            name=first_name,
-            table_rows=table_rows,
-        )
+        email_body = f"""
+            <p>Dear {first_name},</p>
+
+            <p>The following poor performance processes require attention:</p>
+
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Poor Performance</th>
+                        <th>Employee Name</th>
+                        <th>Employee Coy</th>
+                        <th>Position</th>
+                        <th>Site</th>
+                        <th>Created</th>
+                        <th>Current Outcome</th>
+                        <th>Status Reason</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {table_rows}
+                </tbody>
+            </table>
+
+            <p>Kind regards,<br>Industrial Relations</p>
+        """
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body,
+            message=email_body,
         )
+        sent_count += 1
 
     frappe.logger().info(
-        f"Weekly outstanding poor performance report sent to {len(recipient_emails)} recipients."
+        f"Weekly outstanding poor performance report sent to {sent_count} recipients."
     )

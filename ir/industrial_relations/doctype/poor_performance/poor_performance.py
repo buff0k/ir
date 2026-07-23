@@ -117,7 +117,10 @@ def _linked_doc_mappings():
         (
             "Dismissals",
             "Dismissal Form",
-            "linked_poor_performance",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+            },
         ),
         (
             "Voluntary Separations",
@@ -127,7 +130,11 @@ def _linked_doc_mappings():
         (
             "Appeals",
             "Appeal Against Outcome",
-            "linked_poor_performance",
+            {
+                "ir_intervention": "Poor Performance",
+                "linked_intervention": None,
+                "also_match_field": "linked_amended_intervention",
+            },
         ),
     ]
 

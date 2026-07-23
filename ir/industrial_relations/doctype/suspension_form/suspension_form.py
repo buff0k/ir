@@ -54,6 +54,14 @@ class SuspensionForm(Document):
         if self.suspension_nature == "Punitive":
             self._set_source_outcome()
 
+    def on_cancel(self):
+        employee = frappe.get_doc("Employee", self.employee)
+        employee.status = "Active"
+        employee.save(ignore_permissions=True)
+
+        if self.suspension_nature == "Punitive":
+            clear_parent_outcome(self)
+
     def _validate_intervention(self):
         if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
             frappe.throw(_("Select a supported IR Intervention."))

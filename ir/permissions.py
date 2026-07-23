@@ -21,6 +21,19 @@ PROTECTED_PERMISSION_TYPES = {
     "export",
 }
 
+# Cancelling these doctypes directly (bypassing a formal Appeal) is blocked for
+# everyone except System Manager. The sanctioned path is: submit an Appeal
+# Against Outcome with an Upheld/Partially Upheld decision, whose on_submit
+# performs the cancel+amend itself via flags.ignore_permissions - which skips
+# this check entirely (frappe.has_permission short-circuits before this hook
+# is even called when that flag is set).
+CANCEL_RESTRICTED_DOCTYPES = {
+    "Disciplinary Action",
+    "Incapacity Proceedings",
+    "Poor Performance",
+    "Appeal Against Outcome",
+}
+
 DESIGNATION_FIELD_BY_DOCTYPE = {
     "Contract of Employment": "designation",
     "Disciplinary Action": "accused_pos",
@@ -125,10 +138,14 @@ def _employee_branch(employee: str | None) -> str | None:
 def _branch_is_restricted(doctype: str, employee: str | None, user: str | None = None) -> bool:
     """True only if this user has hr_per_branch rows (branch limits apply to them at
     all) AND the employee's branch isn't among them. No rows -> designation-only
-    fallback, per design."""
-    if doctype not in BRANCH_LIMITED_DOCTYPES:
-        return False
+    fallback, per design.
 
+    Doctype-eligibility (whether branch limits apply to a given doctype at all) is
+    the caller's responsibility - existing callers only reach this function via
+    BRANCH_LIMITED_DOCTYPES.get(doctype) truthiness checks already, so nothing here
+    depends on that dict directly. This lets ad-hoc callers (e.g. weekly report
+    filtering via passes_limits) check any doctype/employee pair without needing to
+    register it there too, without changing anything for existing callers."""
     branches = responsible_branches_for_user(user)
     if not branches:
         return False
@@ -170,6 +187,12 @@ def _designation_is_restricted(designation: str | None, user: str | None = None)
 
 def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | None = None) -> bool:
     user = user or frappe.session.user
+    if (
+        ptype == "cancel"
+        and doc.doctype in CANCEL_RESTRICTED_DOCTYPES
+        and "System Manager" not in frappe.get_roles(user)
+    ):
+        return False
     if not effective_ir_role(user):
         return True
     if ptype not in PROTECTED_PERMISSION_TYPES:
@@ -196,22 +219,34 @@ def _validate_designation(doc, fieldname: str, user: str | None = None) -> None:
         )
 
 
+def passes_limits(doctype: str, user: str | None, *, designation: str | None = None, employee: str | None = None) -> bool:
+    """Whether `user` would be permitted to view a `doctype` record with this
+    designation/employee, combining Designation Limits and Branch Limits. Takes
+    explicit values rather than a live Document, so it works equally well for a
+    plain dict/frappe._dict row (e.g. from a weekly report query) as for a real
+    Document. Pass `designation=None`/`employee=None` to skip that dimension
+    entirely (e.g. a doctype with no meaningful single employee/branch)."""
+    if not user or not effective_ir_role(user):
+        return True
+    if designation is not None and _designation_is_restricted(designation, user):
+        return False
+    if employee is not None and _branch_is_restricted(doctype, employee, user):
+        return False
+    return True
+
+
 def recipient_passes_restrictions(doc, user: str | None) -> bool:
     """Whether `user` would be permitted to view `doc`, combining Designation Limits
     and Branch Limits (where applicable). Used to decide whether to include `user` as
     a notification recipient - the same filtering that gates record visibility."""
-    if not user or not effective_ir_role(user):
-        return True
-
     designation_field = DESIGNATION_FIELD_BY_DOCTYPE.get(doc.doctype)
-    if designation_field and _designation_is_restricted(doc.get(designation_field), user):
-        return False
-
     employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
-    if employee_field and _branch_is_restricted(doc.doctype, doc.get(employee_field), user):
-        return False
-
-    return True
+    return passes_limits(
+        doc.doctype,
+        user,
+        designation=doc.get(designation_field) if designation_field else None,
+        employee=doc.get(employee_field) if employee_field else None,
+    )
 
 
 # Permission query hooks

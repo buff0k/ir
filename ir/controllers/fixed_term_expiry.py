@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url
 
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
 def fixed_term_expiry():
@@ -15,7 +15,7 @@ def fixed_term_expiry():
             "end_date": ["between", [frappe.utils.today(), frappe.utils.add_days(frappe.utils.today(), 28)]],
             "has_expiry": 1,
         },
-        fields=["name", "employee", "employee_name", "end_date", "branch"]
+        fields=["name", "employee", "employee_name", "designation", "end_date", "branch"]
     )
 
     # Exclude contracts where the linked Employee's status is "Left"
@@ -51,52 +51,61 @@ def fixed_term_expiry():
         frappe.logger().info("No valid IR report recipients found.")
         return
 
-    # Prepare the email content
     email_subject = "Weekly HR Report: Fixed-Term Contracts Expiring Soon"
-    email_body = """
-        <p>Dear {name},</p>
-        <p>Please find below the list of contracts expiring soon:</p>
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Contract Name</th>
-                    <th>Employee Name</th>
-                    <th>Employee Coy</th>
-                    <th>Contract End Date</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
+    sent_count = 0
 
-    for contract in filtered_contracts:
-        contract_url = get_url(f"/app/contract-of-employment/{contract['name']}")
-        email_body += f"""
-            <tr>
-                <td><a href="{contract_url}">{contract['name']}</a></td>
-                <td>{contract['employee_name']}</td>
-                <td>{contract['employee']}</td>
-                <td>{contract['end_date']}</td>
-                <td>{contract['branch']}</td>
-            </tr>
-        """
-
-    email_body += """
-            </tbody>
-        </table>
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
-
-    # Send email to each recipient
     for email in recipient_emails:
+        contracts = filter_rows_for_recipient(
+            filtered_contracts, email,
+            doctype="Contract of Employment",
+            designation_field="designation",
+            employee_field="employee",
+        )
+        if not contracts:
+            continue
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
-        personalized_email_body = email_body.format(name=first_name)
+
+        email_body = f"""
+            <p>Dear {first_name},</p>
+            <p>Please find below the list of contracts expiring soon:</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Contract Name</th>
+                        <th>Employee Name</th>
+                        <th>Employee Coy</th>
+                        <th>Contract End Date</th>
+                        <th>Site</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+
+        for contract in contracts:
+            contract_url = get_url(f"/app/contract-of-employment/{contract['name']}")
+            email_body += f"""
+                <tr>
+                    <td><a href="{contract_url}">{contract['name']}</a></td>
+                    <td>{contract['employee_name']}</td>
+                    <td>{contract['employee']}</td>
+                    <td>{contract['end_date']}</td>
+                    <td>{contract['branch']}</td>
+                </tr>
+            """
+
+        email_body += """
+                </tbody>
+            </table>
+            <p>Kind regards,<br>Industrial Relations</p>
+        """
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body
+            message=email_body
         )
+        sent_count += 1
 
-    frappe.logger().info(f"Weekly HR report sent to {len(recipient_emails)} recipients.")
+    frappe.logger().info(f"Weekly HR report sent to {sent_count} recipients.")

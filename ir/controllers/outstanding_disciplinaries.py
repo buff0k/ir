@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url, formatdate
 
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
 def outstanding_disciplinaries():
@@ -12,7 +12,7 @@ def outstanding_disciplinaries():
     outstanding_cases = frappe.get_all(
         "Disciplinary Action",
         filters={"outcome": ""},
-        fields=["name", "accused", "accused_name", "creation", "branch"]
+        fields=["name", "accused", "accused_name", "accused_pos", "creation", "branch"]
     )
 
     if not outstanding_cases:
@@ -25,52 +25,61 @@ def outstanding_disciplinaries():
         frappe.logger().info("No valid IR report recipients found.")
         return
 
-    # Prepare the email content
     email_subject = "Weekly HR Report: Outstanding Disciplinary Actions"
-    email_body = """
-        <p>Dear {name},</p>
-        <p>The following disciplinary actions are pending outcomes:</p>
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Disciplinary Action</th>
-                    <th>Employee Name</th>
-                    <th>Employee Coy</th>
-                    <th>Outstanding Since</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
+    sent_count = 0
 
-    for case in outstanding_cases:
-        case_url = get_url(f"/app/disciplinary-action/{case['name']}")
-        email_body += f"""
-            <tr>
-                <td><a href="{case_url}">{case['name']}</a></td>
-                <td>{case['accused_name']}</td>
-                <td>{case['accused']}</td>
-                <td>{formatdate(case['creation'])}</td>
-                <td>{case['branch']}</td>
-            </tr>
-        """
-
-    email_body += """
-            </tbody>
-        </table>
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
-
-    # Send email to each recipient
     for email in recipient_emails:
+        cases = filter_rows_for_recipient(
+            outstanding_cases, email,
+            doctype="Disciplinary Action",
+            designation_field="accused_pos",
+            employee_field="accused",
+        )
+        if not cases:
+            continue
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
-        personalized_email_body = email_body.format(name=first_name)
+
+        email_body = f"""
+            <p>Dear {first_name},</p>
+            <p>The following disciplinary actions are pending outcomes:</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Disciplinary Action</th>
+                        <th>Employee Name</th>
+                        <th>Employee Coy</th>
+                        <th>Outstanding Since</th>
+                        <th>Site</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+
+        for case in cases:
+            case_url = get_url(f"/app/disciplinary-action/{case['name']}")
+            email_body += f"""
+                <tr>
+                    <td><a href="{case_url}">{case['name']}</a></td>
+                    <td>{case['accused_name']}</td>
+                    <td>{case['accused']}</td>
+                    <td>{formatdate(case['creation'])}</td>
+                    <td>{case['branch']}</td>
+                </tr>
+            """
+
+        email_body += """
+                </tbody>
+            </table>
+            <p>Kind regards,<br>Industrial Relations</p>
+        """
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body
+            message=email_body
         )
+        sent_count += 1
 
-    frappe.logger().info(f"Weekly outstanding disciplinary report sent to {len(recipient_emails)} recipients.")
+    frappe.logger().info(f"Weekly outstanding disciplinary report sent to {sent_count} recipients.")

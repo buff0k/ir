@@ -211,55 +211,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "IR Interventions",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incapacity Proceedings",
-   "link_count": 0,
-   "link_to": "Incapacity Proceedings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Anonymous Report",
-   "link_count": 0,
-   "link_to": "Anonymous Report",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Poor Performance",
-   "link_count": 0,
-   "link_to": "Poor Performance",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "General IR Documents",
    "link_count": 6,
    "link_type": "DocType",
@@ -464,9 +415,68 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Interventions",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incapacity Proceedings",
+   "link_count": 0,
+   "link_to": "Incapacity Proceedings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Anonymous Report",
+   "link_count": 0,
+   "link_to": "Anonymous Report",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Poor Performance",
+   "link_count": 0,
+   "link_to": "Poor Performance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appeal Against Outcome",
+   "link_count": 0,
+   "link_to": "Appeal Against Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-22 12:18:16.848011",
+ "modified": "2026-07-23 18:57:56.229181",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",

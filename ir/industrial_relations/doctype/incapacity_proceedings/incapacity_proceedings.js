@@ -13,29 +13,33 @@ frappe.ui.form.on("Incapacity Proceedings", {
     );
 
     if (
-      frappe.user.has_role("IR Manager") ||
-      frappe.user.has_role("IR Officer")
+      (frappe.user.has_role("IR Manager") ||
+        frappe.user.has_role("IR Officer")) &&
+      frm.doc.docstatus !== 2
     ) {
       frm
         .add_custom_button(__("Actions"), function () {}, "Actions")
         .addClass("btn-primary")
         .attr("id", "actions_dropdown");
 
-      add_action(frm, "Issue NTA", make_nta_incap);
-      add_action(frm, "Write Outcome", create_written_outcome);
-      add_action(
-        frm,
-        "Determine Employee Not Incapacitated",
-        create_no_further_action_form,
-      );
-      add_suspension_actions(frm);
-      add_action(frm, "Issue Demotion", make_demotion_form_incap);
-      add_action(frm, "Issue Pay Deduction", make_pay_deduction_form);
-      add_action(frm, "Issue Pay Reduction", make_pay_reduction_form);
-      add_action(frm, "Issue Dismissal", make_dismissal_form_incap);
-      add_action(frm, "Issue VSP", make_vsp_incap);
-      add_action(frm, "Cancel Incapacity Proceeding", cancel_incapacity);
-      add_action(frm, "Appeal Against Outcome", appeal_incapacity);
+      if (frm.doc.docstatus === 0) {
+        add_action(frm, "Issue NTA", make_nta_incap);
+        add_action(frm, "Write Outcome", create_written_outcome);
+        add_action(
+          frm,
+          "Determine Employee Not Incapacitated",
+          create_no_further_action_form,
+        );
+        add_suspension_actions(frm);
+        add_action(frm, "Issue Demotion", make_demotion_form_incap);
+        add_action(frm, "Issue Pay Deduction", make_pay_deduction_form);
+        add_action(frm, "Issue Pay Reduction", make_pay_reduction_form);
+        add_action(frm, "Issue Dismissal", make_dismissal_form_incap);
+        add_action(frm, "Issue VSP", make_vsp_incap);
+        add_action(frm, "Cancel Incapacity Proceeding", cancel_incapacity);
+      } else if (frm.doc.docstatus === 1) {
+        add_action(frm, "Appeal Against Outcome", appeal_incapacity);
+      }
     }
   },
 

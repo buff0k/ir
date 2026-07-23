@@ -82,35 +82,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Disciplinary Action",
-   "link_count": 0,
-   "link_to": "Disciplinary Action",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Disciplinary Action Summary",
-   "link_count": 0,
-   "link_to": "Disciplinary Action Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Disciplinary Action Documents",
    "link_count": 10,
    "link_type": "DocType",
@@ -206,9 +177,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Action",
+   "link_count": 0,
+   "link_to": "Disciplinary Action",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Disciplinary Action Summary",
+   "link_count": 0,
+   "link_to": "Disciplinary Action Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appeal Against Outcome",
+   "link_count": 0,
+   "link_to": "Appeal Against Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-22 12:18:05.463284",
+ "modified": "2026-07-23 19:00:34.257397",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",

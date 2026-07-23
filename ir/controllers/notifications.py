@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.meta import get_meta
 from ir import permissions
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 from collections import defaultdict
 from datetime import date
 from html import escape as html_escape
@@ -622,6 +622,7 @@ def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=Fals
             latest.employee,
             COALESCE(MAX(record.employee_name), MAX(employee.employee_name), latest.employee) AS employee_name,
             COALESCE(MAX(record.branch), MAX(employee.branch)) AS branch,
+            MAX(employee.designation) AS designation,
             latest.training,
             latest.latest_valid_to AS valid_to,
             MIN(record.name) AS record_name
@@ -723,45 +724,58 @@ def _send_training_expiry_email(
     scope_label,
     notification_type,
 ):
-    grouped_rows = _group_training_expiry_rows_by_employee(rows)
-
-    table_rows = []
-
-    for item in grouped_rows:
-        employee = html_escape(item.get("employee") or "")
-        employee_name = html_escape(item.get("employee_name") or "")
-        branch = html_escape(item.get("branch") or "")
-        trainings = "<br>".join(
-            html_escape(training_line)
-            for training_line in item.get("trainings", [])
-        )
-
-        table_rows.append(f"""
-            <tr>
-                <td>{employee_name}</td>
-                <td>{employee}</td>
-                <td>{branch}</td>
-                <td>{trainings}</td>
-            </tr>
-        """)
-
-    table_html = f"""
-        <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th align="left">Employee Name</th>
-                    <th align="left">Employee</th>
-                    <th align="left">Branch</th>
-                    <th align="left">Training / Induction</th>
-                </tr>
-            </thead>
-            <tbody>
-                {''.join(table_rows)}
-            </tbody>
-        </table>
+    """Branch scoping already happened before this is called (global vs
+    trainer_per_branch bucketing - a separate, deliberate mechanism). This still
+    applies Designation Limits per individual recipient, since a trainer can also
+    hold an IR role with restricted designations - so each recipient's own copy
+    of `rows` is filtered before building their table, and a recipient left with
+    nothing to see after that isn't emailed at all.
     """
-
     for email in recipients:
+        recipient_rows = filter_rows_for_recipient(
+            rows, email, doctype="Employee Induction Record", designation_field="designation"
+        )
+        if not recipient_rows:
+            continue
+
+        grouped_rows = _group_training_expiry_rows_by_employee(recipient_rows)
+
+        table_rows = []
+
+        for item in grouped_rows:
+            employee = html_escape(item.get("employee") or "")
+            employee_name = html_escape(item.get("employee_name") or "")
+            branch = html_escape(item.get("branch") or "")
+            trainings = "<br>".join(
+                html_escape(training_line)
+                for training_line in item.get("trainings", [])
+            )
+
+            table_rows.append(f"""
+                <tr>
+                    <td>{employee_name}</td>
+                    <td>{employee}</td>
+                    <td>{branch}</td>
+                    <td>{trainings}</td>
+                </tr>
+            """)
+
+        table_html = f"""
+            <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th align="left">Employee Name</th>
+                        <th align="left">Employee</th>
+                        <th align="left">Branch</th>
+                        <th align="left">Training / Induction</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join(table_rows)}
+                </tbody>
+            </table>
+        """
+
         full_name = name_by_email.get(email) or "Training Team"
 
         message = "<br>".join([
@@ -1029,8 +1043,10 @@ def _get_outstanding_leave_applications():
     return frappe.db.sql(
         """
         SELECT
+            'Leave Application' AS doctype,
             leave_application.name,
             leave_application.employee,
+            employee.designation,
             COALESCE(
                 leave_application.employee_name,
                 employee.employee_name,
@@ -1070,6 +1086,7 @@ def _get_outstanding_status_change_forms():
             'Status Change Form' AS doctype,
             status_change.name,
             status_change.employee,
+            employee.designation,
             COALESCE(
                 status_change.employee_name,
                 employee.employee_name,
@@ -1111,6 +1128,7 @@ def _get_outstanding_site_transfer_forms():
             'Site Transfer Form' AS doctype,
             site_transfer.name,
             site_transfer.employee,
+            employee.designation,
             COALESCE(
                 site_transfer.employee_name,
                 employee.employee_name,
@@ -1161,7 +1179,13 @@ def _send_outstanding_workflow_email(
         IR Role Restrictions > Report Recipients
 
     This deliberately uses get_ir_notification_recipients(), matching the
-    existing weekly IR and HR reports.
+    existing weekly IR and HR reports. Each recipient's row set is narrowed to
+    their own Designation Limits/Branch Limits via filter_rows_for_recipient -
+    rows carry their own "doctype"/"designation"/"employee" fields (each
+    _get_outstanding_*() query selects them), so a mixed-doctype report (e.g.
+    Status Change Form + Site Transfer Form) filters each row against the
+    right doctype. Recipients left with nothing to see after filtering don't
+    receive that report at all.
     """
     if not rows:
         frappe.logger().info(empty_log_message)
@@ -1178,27 +1202,35 @@ def _send_outstanding_workflow_email(
         for header in table_headers
     )
 
-    row_html = "".join(row_builder(row) for row in rows)
-
-    table_html = f"""
-        <table
-            border="1"
-            cellspacing="0"
-            cellpadding="6"
-            style="border-collapse: collapse; width: 100%;"
-        >
-            <thead>
-                <tr>
-                    {header_html}
-                </tr>
-            </thead>
-            <tbody>
-                {row_html}
-            </tbody>
-        </table>
-    """
+    sent_count = 0
 
     for email in recipient_emails:
+        recipient_rows = filter_rows_for_recipient(
+            rows, email, doctype_field="doctype", designation_field="designation", employee_field="employee"
+        )
+        if not recipient_rows:
+            continue
+
+        row_html = "".join(row_builder(row) for row in recipient_rows)
+
+        table_html = f"""
+            <table
+                border="1"
+                cellspacing="0"
+                cellpadding="6"
+                style="border-collapse: collapse; width: 100%;"
+            >
+                <thead>
+                    <tr>
+                        {header_html}
+                    </tr>
+                </thead>
+                <tbody>
+                    {row_html}
+                </tbody>
+            </table>
+        """
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
 
@@ -1222,10 +1254,11 @@ def _send_outstanding_workflow_email(
             subject=subject,
             message=message,
         )
+        sent_count += 1
 
     frappe.logger().info(
         f"Weekly {sent_log_label} report sent to "
-        f"{len(recipient_emails)} recipients."
+        f"{sent_count} recipients."
     )
 
 

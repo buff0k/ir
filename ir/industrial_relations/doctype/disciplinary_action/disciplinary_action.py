@@ -276,19 +276,50 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-        ("Dismissals", "Dismissal Form", "linked_disciplinary_action"),
-        ("Demotions", "Demotion Form", "linked_disciplinary_action"),
-        ("Pay Deductions", "Pay Deduction Form", "linked_disciplinary_action"),
-        ("Pay Reductions", "Pay Reduction Form", "linked_disciplinary_action"),
+        ("Dismissals", "Dismissal Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
+        ("Demotions", "Demotion Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
+        ("Pay Deductions", "Pay Deduction Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
+        ("Pay Reductions", "Pay Reduction Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
         ("No Further Action Forms", "No Further Action Form",
             {
                 "ir_intervention": "Disciplinary Action",
                 "linked_intervention": None,
             },
         ),
-        ("Suspensions", "Suspension Form", "linked_disciplinary_action"),
+        ("Suspensions", "Suspension Form",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+            },
+        ),
         ("Voluntary Separations", "Voluntary Seperation Agreement", "linked_disciplinary_action"),
-        ("Appeals", "Appeal Against Outcome", "linked_disciplinary_action"),
+        ("Appeals", "Appeal Against Outcome",
+            {
+                "ir_intervention": "Disciplinary Action",
+                "linked_intervention": None,
+                "also_match_field": "linked_amended_intervention",
+            },
+        ),
     ]
 
 

@@ -9,6 +9,8 @@ import frappe
 from frappe import _
 from frappe.utils import escape_html, get_url_to_form
 
+from ir import permissions
+
 
 def check_app_permission():
     """Control whether the IR app is shown on the Apps screen."""
@@ -72,6 +74,37 @@ def get_ir_notification_recipients(include_owner: str | None = None):
             name_by_email[owner_email] = owner_full_name or include_owner
 
     return sorted(recipient_emails), name_by_email
+
+
+def filter_rows_for_recipient(
+    rows, user, *, doctype=None, doctype_field="doctype", designation_field=None, employee_field=None
+):
+    """Narrow a weekly-report row list down to what `user`'s Designation Limits and
+    Branch Limits permit, using permissions.passes_limits per row. `user` is a
+    recipient email from get_ir_notification_recipients() - Frappe Users are named
+    by their email in this system, and permissions.effective_ir_role() gracefully
+    treats a non-existent/external "user" (a raw email_address with no linked User
+    account) as having no IR role, so such recipients simply see everything
+    unfiltered, same as today.
+
+    Pass `doctype` when every row belongs to the same doctype; omit it for a
+    mixed-doctype row list (e.g. a combined report) and each row's own
+    `doctype_field` is used instead. designation_field/employee_field name
+    whichever keys a row actually carries them under (often a joined
+    Employee.designation/employee, not a native field on the doctype itself) -
+    pass None for whichever dimension doesn't apply to this report.
+    """
+    if not rows or not user:
+        return rows
+    return [
+        row for row in rows
+        if permissions.passes_limits(
+            doctype or row.get(doctype_field),
+            user,
+            designation=row.get(designation_field) if designation_field else None,
+            employee=row.get(employee_field) if employee_field else None,
+        )
+    ]
 
 
 PARENT_DOCTYPE_BY_FIELD = {
@@ -197,6 +230,76 @@ def set_parent_outcome(doc, outcome, outcome_date=None, outcome_start=None, outc
     )
 
 
+FINAL_OUTCOME_DOCTYPES = (
+    "Dismissal Form",
+    "Warning Form",
+    "Suspension Form",
+    "Demotion Form",
+    "Pay Deduction Form",
+    "Pay Reduction Form",
+    "No Further Action Form",
+)
+
+
+def _cancel_latest_final_outcome(source_doctype, source_name):
+    """Cancel the most recently submitted sanction-outcome document linked to a
+    source record, if one exists. Each of these doctypes has its own on_cancel
+    handler that reverses its Employee-record side effects and resets the
+    source's outcome fields via clear_parent_outcome.
+    """
+    candidates = []
+    for doctype in FINAL_OUTCOME_DOCTYPES:
+        rows = frappe.get_all(
+            doctype,
+            filters={
+                "ir_intervention": source_doctype,
+                "linked_intervention": source_name,
+                "docstatus": 1,
+            },
+            fields=["name", "modified"],
+        )
+        for row in rows:
+            candidates.append((row.modified, doctype, row.name))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda item: item[0])
+    _modified, latest_doctype, latest_name = candidates[-1]
+
+    latest_doc = frappe.get_doc(latest_doctype, latest_name)
+    latest_doc.flags.ignore_permissions = True
+    # The submitting Appeal itself may already be a submitted document linking to
+    # this one (or to the source, further down) - ignore_links skips Frappe's
+    # back-link check that would otherwise block the cancel.
+    latest_doc.flags.ignore_links = True
+    latest_doc.cancel()
+    return latest_name
+
+
+def appeal_and_amend_source(source_doctype, source_name):
+    """Cancel a source record as the result of a successful appeal, and create
+    its amended (-1) copy so a fresh outcome can be issued against it. Any
+    currently-submitted sanction outcome (Dismissal/Warning/Suspension/Demotion/
+    Pay Deduction/Pay Reduction/No Further Action Form) linked to the source is
+    cancelled first - Frappe blocks cancelling a document that a still-submitted
+    document links to, and that cancellation is what reverses the Employee
+    record and resets the source's outcome fields.
+    """
+    _cancel_latest_final_outcome(source_doctype, source_name)
+
+    source = frappe.get_doc(source_doctype, source_name)
+    source.flags.ignore_permissions = True
+    source.flags.ignore_links = True
+    source.cancel()
+
+    amended = frappe.copy_doc(source)
+    amended.amended_from = source.name
+    amended.flags.ignore_permissions = True
+    amended.insert()
+    return amended.name
+
+
 def fetch_company_letter_head(company):
     letter_head = frappe.db.get_value("Company", company, "default_letter_head")
     return {"letter_head": letter_head} if letter_head else {}
@@ -317,7 +420,11 @@ def render_linked_docs_html(source_name, mappings):
     `mappings` is a list of (label, target_doctype, backref) tuples, where `backref`
     is either a plain fieldname (filtered as {backref: source_name}), or a dict of
     extra filters combined with {"linked_intervention": source_name} for the generic
-    intervention model.
+    intervention model. A dict backref may also carry an "also_match_field" key -
+    when present, rows are matched if EITHER "linked_intervention" OR that second
+    field equals source_name (e.g. an Appeal referencing an original source via
+    "linked_intervention" should still show up on that source's amended -1 copy,
+    which the appeal instead references via "linked_amended_intervention").
     """
     if not source_name or source_name.startswith("new-"):
         return _linked_docs_empty_html("Linked documents will appear here once the record is saved.")
@@ -326,9 +433,17 @@ def render_linked_docs_html(source_name, mappings):
     total = 0
 
     for label, target_doctype, backref in mappings:
+        or_filters = None
         if isinstance(backref, dict):
             filters = dict(backref)
+            also_match_field = filters.pop("also_match_field", None)
             filters["linked_intervention"] = source_name
+            if also_match_field:
+                del filters["linked_intervention"]
+                or_filters = [
+                    ["linked_intervention", "=", source_name],
+                    [also_match_field, "=", source_name],
+                ]
         else:
             filters = {backref: source_name}
 
@@ -336,6 +451,7 @@ def render_linked_docs_html(source_name, mappings):
             rows = frappe.get_all(
                 target_doctype,
                 filters=filters,
+                or_filters=or_filters,
                 fields=["name"],
                 order_by="modified desc",
             )

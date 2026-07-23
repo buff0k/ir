@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import get_url, getdate, today
 
-from ir.industrial_relations.utils import get_ir_notification_recipients
+from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
 CONTRACT_DOCTYPE = "Contract of Employment"
@@ -180,6 +180,7 @@ def fixed_term_expiry_lapsed():
             "name",
             "employee",
             "employee_name",
+            "designation",
             "start_date",
             "end_date",
             "branch",
@@ -237,56 +238,66 @@ def fixed_term_expiry_lapsed():
         return
 
     email_subject = "Weekly HR Report: Fixed-Term Contracts Already Expired"
-
-    email_body = """
-        <p>Dear {name},</p>
-        <p>Please find below the list of latest fixed-term contracts that have already expired and do not appear to have been superseded by a later submitted contract:</p>
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
-            <thead>
-                <tr>
-                    <th>Contract Name</th>
-                    <th>Employee Name</th>
-                    <th>Employee Coy</th>
-                    <th>Contract Start Date</th>
-                    <th>Contract End Date</th>
-                    <th>Site</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
-
-    for contract in filtered_contracts:
-        contract_url = get_url(f"/app/contract-of-employment/{contract.name}")
-
-        email_body += f"""
-            <tr>
-                <td><a href="{contract_url}">{contract.name}</a></td>
-                <td>{contract.employee_name or ""}</td>
-                <td>{contract.employee or ""}</td>
-                <td>{contract.start_date or ""}</td>
-                <td>{contract.end_date or ""}</td>
-                <td>{contract.branch or ""}</td>
-            </tr>
-        """
-
-    email_body += """
-            </tbody>
-        </table>
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
+    sent_count = 0
 
     for email in recipient_emails:
+        contracts = filter_rows_for_recipient(
+            filtered_contracts, email,
+            doctype="Contract of Employment",
+            designation_field="designation",
+            employee_field="employee",
+        )
+        if not contracts:
+            continue
+
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
-        personalized_email_body = email_body.format(name=first_name)
+
+        email_body = f"""
+            <p>Dear {first_name},</p>
+            <p>Please find below the list of latest fixed-term contracts that have already expired and do not appear to have been superseded by a later submitted contract:</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Contract Name</th>
+                        <th>Employee Name</th>
+                        <th>Employee Coy</th>
+                        <th>Contract Start Date</th>
+                        <th>Contract End Date</th>
+                        <th>Site</th>
+                    </tr>
+                </thead>
+                <tbody>
+        """
+
+        for contract in contracts:
+            contract_url = get_url(f"/app/contract-of-employment/{contract.name}")
+
+            email_body += f"""
+                <tr>
+                    <td><a href="{contract_url}">{contract.name}</a></td>
+                    <td>{contract.employee_name or ""}</td>
+                    <td>{contract.employee or ""}</td>
+                    <td>{contract.start_date or ""}</td>
+                    <td>{contract.end_date or ""}</td>
+                    <td>{contract.branch or ""}</td>
+                </tr>
+            """
+
+        email_body += """
+                </tbody>
+            </table>
+            <p>Kind regards,<br>Industrial Relations</p>
+        """
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body,
+            message=email_body,
         )
+        sent_count += 1
 
     frappe.logger().info(
-        f"Weekly HR report (lapsed contracts) sent to {len(recipient_emails)} recipients. "
+        f"Weekly HR report (lapsed contracts) sent to {sent_count} recipients. "
         f"Contracts included: {len(filtered_contracts)}."
     )

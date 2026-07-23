@@ -110,9 +110,30 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-        ("Dismissals", "Dismissal Form", "linked_incapacity_proceeding"),
-        ("Demotions", "Demotion Form", "linked_incapacity_proceeding"),
-        ("Pay Reductions", "Pay Reduction Form", "linked_incapacity_proceeding"),
+        (
+            "Dismissals",
+            "Dismissal Form",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Demotions",
+            "Demotion Form",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
+        (
+            "Pay Reductions",
+            "Pay Reduction Form",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
         (
             "No Further Action Forms",
             "No Further Action Form",
@@ -121,13 +142,28 @@ def _linked_doc_mappings():
                 "linked_intervention": None,
             },
         ),
-        ("Suspensions", "Suspension Form", "linked_incapacity_proceeding"),
+        (
+            "Suspensions",
+            "Suspension Form",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+            },
+        ),
         (
             "Voluntary Separations",
             "Voluntary Seperation Agreement",
             "linked_incapacity_proceeding",
         ),
-        ("Appeals", "Appeal Against Outcome", "linked_incapacity_proceeding"),
+        (
+            "Appeals",
+            "Appeal Against Outcome",
+            {
+                "ir_intervention": "Incapacity Proceedings",
+                "linked_intervention": None,
+                "also_match_field": "linked_amended_intervention",
+            },
+        ),
     ]
 
 

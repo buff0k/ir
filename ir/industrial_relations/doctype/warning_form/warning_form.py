@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from ir.industrial_relations.utils import fetch_performance_data
+from ir.industrial_relations.utils import clear_parent_outcome, fetch_performance_data
 
 
 SUPPORTED_INTERVENTIONS = {
@@ -64,6 +64,9 @@ class WarningForm(Document):
 
     def on_submit(self):
         self._set_linked_outcome()
+
+    def on_cancel(self):
+        clear_parent_outcome(self)
 
     def _validate_intervention(self):
         if self.ir_intervention not in SUPPORTED_INTERVENTIONS:
