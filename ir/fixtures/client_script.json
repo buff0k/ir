@@ -9,5 +9,16 @@
   "name": "Auto Populate Occupational Level",
   "script": "frappe.ui.form.on('Employee', {\n  designation: function(frm) {\n    if (!frm.doc.designation) {\n      frm.set_value('za_occupational_level', '');\n      return;\n    }\n\n    frappe.db.get_value('Designation', frm.doc.designation, 'ir_occupational_level')\n      .then(r => {\n        const occupational_level = r.message ? r.message.ir_occupational_level : null;\n        frm.set_value('za_occupational_level', occupational_level || '');\n      });\n  }\n});\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Job Requisition",
+  "enabled": 1,
+  "modified": "2026-07-23 12:00:00.000000",
+  "module": "Industrial Relations",
+  "name": "Auto Populate Job Requisition from Designation",
+  "script": "frappe.ui.form.on('Job Requisition', {\n  designation: function(frm) {\n    if (!frm.doc.designation) {\n      frm.set_value('ir_experience_required', '');\n      frm.set_value('ir_main_duties_and_responsibilities', '');\n      frm.set_value('ir_acceptable_disabilities', '');\n      frm.clear_table('ir_designation_skills');\n      frm.refresh_field('ir_designation_skills');\n      return;\n    }\n\n    frappe.call({\n      method: 'ir.controllers.job_requisition_defaults.get_designation_defaults',\n      args: { designation: frm.doc.designation },\n      callback: function(r) {\n        const defaults = r.message || {};\n        frm.set_value('ir_experience_required', defaults.experience_required || '');\n        frm.set_value('ir_main_duties_and_responsibilities', defaults.main_duties_and_responsibilities || '');\n        frm.set_value('ir_acceptable_disabilities', defaults.acceptable_disabilities || '');\n\n        frm.clear_table('ir_designation_skills');\n        (defaults.skills || []).forEach(function(skill) {\n          const row = frm.add_child('ir_designation_skills');\n          row.skill = skill;\n        });\n        frm.refresh_field('ir_designation_skills');\n      }\n    });\n  }\n});\n",
+  "view": "Form"
  }
 ]
