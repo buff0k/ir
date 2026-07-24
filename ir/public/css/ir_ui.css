@@ -906,6 +906,95 @@
   font-size: 12px;
   opacity: 0.7;
 }
+.so-vacant--spare {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.so-slot.is-spare {
+  border-color: var(--gray-500, #6b7280);
+  background: color-mix(in srgb, var(--gray-500, #6b7280) 14%, transparent);
+  cursor: not-allowed;
+}
+.so-rowlabel.is-spare {
+  border-color: color-mix(in srgb, var(--gray-500, #6b7280) 45%, var(--border-color));
+}
+.so-spare-toggle {
+  margin-top: 6px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background: var(--control-bg);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+.so-spare-toggle.is-active {
+  border-color: color-mix(in srgb, var(--gray-500, #6b7280) 55%, var(--border-color));
+  background: color-mix(in srgb, var(--gray-500, #6b7280) 18%, transparent);
+  opacity: 1;
+}
+
+.so-org-person-row.is-spare {
+  border-color: color-mix(
+    in srgb,
+    var(--gray-500, #6b7280) 45%,
+    var(--border-color)
+  );
+}
+
+.so-summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.so-summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--control-bg);
+  font-size: 11px;
+}
+.so-summary-chip span {
+  opacity: 0.72;
+  font-weight: 700;
+}
+.so-summary-chip b {
+  font-size: 13px;
+}
+.so-summary-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.so-summary-table {
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  padding: 10px;
+  background: var(--card-bg);
+}
+.so-summary-table__title {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.72;
+  margin-bottom: 8px;
+}
+.so-summary-table .so-table {
+  border-spacing: 0 4px;
+}
+.so-summary-table .so-table td {
+  font-size: 11px;
+  padding: 3px 6px;
+}
 
 /* -------------------------------------------------
    Shift Pattern Modeller

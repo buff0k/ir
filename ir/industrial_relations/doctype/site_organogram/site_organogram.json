@@ -132,7 +132,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-10 16:39:27.242734",
+ "modified": "2026-07-24 10:13:21.011115",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",
@@ -161,6 +161,7 @@
    "role": "IR User",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
@@ -173,6 +174,7 @@
    "role": "IR Officer",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
@@ -186,6 +188,7 @@
    "role": "IR Manager",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
