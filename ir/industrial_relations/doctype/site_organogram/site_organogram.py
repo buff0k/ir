@@ -289,6 +289,16 @@ def normalize_mappings(doc):
                 if not _clean(getattr(row, "row_label", None)):
                     row.row_label = "Unlinked Role"
 
+        # A Designation can never be Spare/Swing - only a physical Asset can be.
+        if row.row_type != "Asset":
+            row.spare_swing = 0
+        else:
+            row.spare_swing = _safe_int(getattr(row, "spare_swing", 0), 0)
+
+        if _safe_int(getattr(row, "spare_swing", 0), 0):
+            row.employee = ""
+            row.missing_employee = 0
+
         if _clean(getattr(row, "employee", None)) and _employee_exists(row.employee):
             row.missing_employee = 0
         elif _clean(getattr(row, "employee", None)):
@@ -296,6 +306,23 @@ def normalize_mappings(doc):
             row.missing_employee = 1
         else:
             row.missing_employee = _safe_int(getattr(row, "missing_employee", 0), 0)
+
+    # Spare/Swing is a property of the physical row (one row_key spans one
+    # Site Organogram Mappings record per active shift) - if any shift-row for
+    # a given row_key was marked Spare/Swing, every sibling shift-row for that
+    # same row_key must be too, and any employee left on them must be cleared.
+    rows_by_key = defaultdict(list)
+    for row in rows:
+        row_key = _clean(getattr(row, "row_key", None))
+        if row_key:
+            rows_by_key[row_key].append(row)
+
+    for row_key, key_rows in rows_by_key.items():
+        if any(_safe_int(getattr(r, "spare_swing", 0), 0) for r in key_rows):
+            for row in key_rows:
+                row.spare_swing = 1
+                row.employee = ""
+                row.missing_employee = 0
 
     # Second pass: stable row order per group.
     groups = defaultdict(list)
@@ -590,6 +617,7 @@ def get_site_organogram_template(source_name):
                 "row_order": getattr(r, "row_order", None),
                 "row_label": getattr(r, "row_label", None),
                 "row_type": getattr(r, "row_type", None),
+                "spare_swing": getattr(r, "spare_swing", 0),
                 "missing_asset": getattr(r, "missing_asset", 0),
                 "missing_employee": getattr(r, "missing_employee", 0),
             }
@@ -686,6 +714,86 @@ def _asset_lookup(doc):
         }
 
     return lookup
+
+
+def _get_admin_exceptions(doc):
+    """Employees/Assets allocated somewhere in this organogram whose own
+    Employee.branch / Asset.location record disagrees with this organogram's
+    branch/location - i.e. their admin record says they belong elsewhere.
+    Returns (employee_rows, asset_rows), each a list of plain lists matching
+    the export headers below.
+    """
+    rows = getattr(doc, "shift_mappings", None) or []
+
+    employee_ids = sorted({row.employee for row in rows if row.employee})
+    asset_ids = sorted({
+        row.asset for row in rows
+        if _clean(getattr(row, "row_type", None)) == "Asset" and row.asset
+    })
+
+    employee_rows = []
+    if employee_ids:
+        for emp in frappe.get_all(
+            "Employee",
+            filters={"name": ["in", employee_ids]},
+            fields=["name", "employee_name", "designation", "branch"],
+        ):
+            if (emp.branch or "") != (doc.branch or ""):
+                employee_rows.append([emp.name, emp.employee_name or "", emp.designation or "", emp.branch or ""])
+
+    asset_rows = []
+    if asset_ids:
+        for asset in frappe.get_all(
+            "Asset",
+            filters={"name": ["in", asset_ids]},
+            fields=["name", "item_name", "asset_category", "location"],
+        ):
+            if (asset.location or "") != (doc.location or ""):
+                asset_rows.append([asset.name, asset.item_name or "", asset.asset_category or "", asset.location or ""])
+
+    return employee_rows, asset_rows
+
+
+def _get_vacancy_summary(doc):
+    """Single source of truth for vacancy counting, at shift-slot granularity
+    (each empty shift-cell is one vacancy). A Designation row with no employee
+    is always vacant; an Asset row with no employee is vacant unless it's
+    marked Spare/Swing (a spare asset doesn't need staffing). Returns a dict:
+    {"by_designation": {label: count}, "vacant_assets": [rows...], "total": n}
+    """
+    rows = getattr(doc, "shift_mappings", None) or []
+    assets = _asset_lookup(doc)
+
+    by_designation = defaultdict(int)
+    vacant_assets = []
+
+    for row in rows:
+        if row.employee:
+            continue
+
+        row_type = _clean(getattr(row, "row_type", None))
+
+        if row_type == "Designation":
+            info = _parse_row_key(getattr(row, "row_key", None))
+            label = info.get("designation") or _clean(getattr(row, "row_label", None)) or "Unlinked Role"
+            by_designation[label] += 1
+
+        elif row_type == "Asset" and not _safe_int(getattr(row, "spare_swing", 0), 0):
+            asset = assets.get(row.asset, {})
+            vacant_assets.append([
+                row.asset or "",
+                asset.get("item_name") or "",
+                asset.get("asset_category") or "",
+                row.shift or "",
+            ])
+
+    total = sum(by_designation.values()) + len(vacant_assets)
+
+    return {
+        "by_designation": dict(by_designation),
+        "vacant_assets": vacant_assets,
+        "total": total,
+    }
 
 
 def _mapping_indexes(doc):
@@ -834,7 +942,10 @@ def _write_group(ws, row_no, doc, group_row, shifts, row_keys, by_slot, employee
             employee_id = mapping.employee if mapping and mapping.employee else None
             emp = employees.get(employee_id) if employee_id else None
 
-            if mapping and _safe_int(getattr(mapping, "missing_employee", 0), 0):
+            if mapping and _safe_int(getattr(mapping, "spare_swing", 0), 0):
+                ws.cell(row_no, col, "Spare / Swing")
+                ws.cell(row_no, col + 1, "")
+            elif mapping and _safe_int(getattr(mapping, "missing_employee", 0), 0):
                 ws.cell(row_no, col, "Missing")
                 ws.cell(row_no, col + 1, "")
             else:
@@ -965,6 +1076,56 @@ def export_site_organogram_excel(name):
         styles,
     )
 
+    admin_exception_employee_rows, admin_exception_asset_rows = _get_admin_exceptions(doc)
+
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "ADMIN EXCEPTIONS - EMPLOYEES",
+        ["COY NO", "NAME", "DESIGNATION", "EMPLOYEE'S BRANCH"],
+        admin_exception_employee_rows,
+        styles,
+    )
+
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "ADMIN EXCEPTIONS - ASSETS",
+        ["PLANT NO", "MACHINE MAKE", "ASSET CATEGORY", "ASSET'S LOCATION"],
+        admin_exception_asset_rows,
+        styles,
+    )
+
+    vacancy_summary = _get_vacancy_summary(doc)
+
+    vacant_designation_rows = sorted(vacancy_summary["by_designation"].items(), key=lambda item: item[0])
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "VACANT POSITIONS PER DESIGNATION",
+        ["DESIGNATION", "VACANT COUNT"],
+        [[label, count] for label, count in vacant_designation_rows],
+        styles,
+    )
+
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "VACANT ASSETS (EXCLUDING SPARE / SWING)",
+        ["PLANT NO", "MACHINE MAKE", "ASSET CATEGORY", "SHIFT"],
+        vacancy_summary["vacant_assets"],
+        styles,
+    )
+
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "TOTAL UNFILLED VACANCIES",
+        ["TOTAL"],
+        [[vacancy_summary["total"]]],
+        styles,
+    )
+
     for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
         for cell in row:
             if cell.value is not None:
@@ -1034,7 +1195,7 @@ def _designer_payload(doc):
             getattr(doc, "shift_mappings", None),
             [
                 "group_key", "group", "shift", "employee", "asset",
-                "row_key", "row_order", "row_label", "row_type",
+                "row_key", "row_order", "row_label", "row_type", "spare_swing",
                 "missing_asset", "missing_employee",
             ],
         ),
@@ -1077,6 +1238,45 @@ def get_site_organogram_designer_state(name):
     doc = frappe.get_doc("Site Organogram", name)
     doc.check_permission("read")
     return _designer_payload(doc)
+
+
+@frappe.whitelist()
+def get_site_organogram_report_summary(name):
+    """Live, on-page equivalent of the Excel export's Admin Exception/Vacancy
+    sections, reusing the exact same helpers so the two never drift apart."""
+    if not name:
+        frappe.throw("Site Organogram name is required.")
+
+    doc = frappe.get_doc("Site Organogram", name)
+    doc.check_permission("read")
+    normalize_group_structure(doc)
+    normalize_mappings(doc)
+    normalize_reporting_lines(doc)
+
+    employees = _employee_lookup(doc)
+    assets = _asset_lookup(doc)
+
+    assigned_employees = {row.employee for row in getattr(doc, "shift_mappings", None) or [] if row.employee}
+    assigned_assets = {
+        row.asset
+        for row in getattr(doc, "shift_mappings", None) or []
+        if _clean(getattr(row, "row_type", None)) == "Asset"
+        and row.asset
+        and not _safe_int(getattr(row, "missing_asset", 0), 0)
+    }
+
+    admin_exception_employees, admin_exception_assets = _get_admin_exceptions(doc)
+    vacancy_summary = _get_vacancy_summary(doc)
+
+    return {
+        "unallocated_employee_count": len(set(employees.keys()) - assigned_employees),
+        "unallocated_asset_count": len(set(assets.keys()) - assigned_assets),
+        "admin_exception_employees": admin_exception_employees,
+        "admin_exception_assets": admin_exception_assets,
+        "vacant_by_designation": vacancy_summary["by_designation"],
+        "vacant_assets": vacancy_summary["vacant_assets"],
+        "total_unfilled_vacancies": vacancy_summary["total"],
+    }
 
 
 def _replace_child_table(doc, fieldname, rows, allowed_fields):
@@ -1141,7 +1341,8 @@ def save_site_organogram_designer_state(payload):
         payload.get("shift_mappings"),
         [
             "group_key", "group", "shift", "employee", "asset", "row_key",
-            "row_order", "row_label", "row_type", "missing_asset", "missing_employee",
+            "row_order", "row_label", "row_type", "spare_swing",
+            "missing_asset", "missing_employee",
         ],
     )
     _replace_child_table(

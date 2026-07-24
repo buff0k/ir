@@ -97,6 +97,11 @@ class SiteOrganogramDesigner {
         </div>
 
         <div class="so-section">
+          <div class="so-section__hd"><div class="so-section__title">Report: Unallocated, Admin Exceptions &amp; Vacancies</div><div class="so-section__hint">A live summary of the same sections in the Excel export - save the organogram to refresh.</div></div>
+          <div class="so-section__bd"><div class="so-report-summary"></div></div>
+        </div>
+
+        <div class="so-section">
           <div class="so-section__hd"><div class="so-section__title">Reporting Lines</div><div class="so-section__hint">Reporting relationships are kept separate from the staffing matrix so neither view becomes unreadable.</div></div>
           <div class="so-section__bd"><div class="so-reporting"></div></div>
         </div>
@@ -593,7 +598,55 @@ class SiteOrganogramDesigner {
     this.render_selected_asset_categories();
     this.render_groups();
     this.render_planner();
+    this.render_report_summary();
     this.render_reporting();
+  }
+
+  async render_report_summary() {
+    const $w = this.$main.find(".so-report-summary");
+    if (!$w.length) return;
+
+    if (!this.state.name) {
+      $w.html('<div class="so-empty">Save the organogram to see the unallocated/exception/vacancy report.</div>');
+      return;
+    }
+
+    let summary;
+    try {
+      const r = await frappe.call({ method: `${SO_PY}.get_site_organogram_report_summary`, args: { name: this.state.name } });
+      summary = r.message || {};
+    } catch (_) {
+      $w.html('<div class="so-empty">Could not load the report summary.</div>');
+      return;
+    }
+
+    const chip = (label, count) => `<div class="so-summary-chip"><span>${this.esc(label)}</span><b>${count}</b></div>`;
+
+    const designationRows = Object.entries(summary.vacant_by_designation || {}).sort((a, b) => a[0].localeCompare(b[0]));
+    const adminEmployeeRows = summary.admin_exception_employees || [];
+    const adminAssetRows = summary.admin_exception_assets || [];
+
+    $w.html(`
+      <div class="so-summary-chips">
+        ${chip("Unallocated Employees", summary.unallocated_employee_count || 0)}
+        ${chip("Unallocated Assets", summary.unallocated_asset_count || 0)}
+        ${chip("Total Unfilled Vacancies", summary.total_unfilled_vacancies || 0)}
+      </div>
+      <div class="so-summary-tables">
+        <div class="so-summary-table">
+          <div class="so-summary-table__title">Vacant Positions per Designation</div>
+          ${designationRows.length ? `<table class="so-table"><tbody>${designationRows.map(([label, count]) => `<tr><td>${this.esc(label)}</td><td>${count}</td></tr>`).join("")}</tbody></table>` : '<div class="so-empty">None.</div>'}
+        </div>
+        <div class="so-summary-table">
+          <div class="so-summary-table__title">Admin Exceptions — Employees</div>
+          ${adminEmployeeRows.length ? `<table class="so-table"><tbody>${adminEmployeeRows.map(row => `<tr><td>${this.esc(row[0])}</td><td>${this.esc(row[1])}</td><td>${this.esc(row[2])}</td><td>Branch: ${this.esc(row[3])}</td></tr>`).join("")}</tbody></table>` : '<div class="so-empty">None.</div>'}
+        </div>
+        <div class="so-summary-table">
+          <div class="so-summary-table__title">Admin Exceptions — Assets</div>
+          ${adminAssetRows.length ? `<table class="so-table"><tbody>${adminAssetRows.map(row => `<tr><td>${this.esc(row[0])}</td><td>${this.esc(row[1])}</td><td>${this.esc(row[2])}</td><td>Location: ${this.esc(row[3])}</td></tr>`).join("")}</tbody></table>` : '<div class="so-empty">None.</div>'}
+        </div>
+      </div>
+    `);
   }
 
   render_groups() {
@@ -698,8 +751,8 @@ class SiteOrganogramDesigner {
   employee_card(e,type,payload) { return `<div class="so-card" draggable="true" data-drag-type="${type}" data-employee="${this.esc(e.employee)}" ${payload?`data-payload='${this.esc(JSON.stringify(payload))}'`:""}><div class="so-card__title">${this.esc(e.employee_name||e.employee)} (${this.esc(e.employee)})</div><div class="so-card__meta">${this.esc(e.designation||"")}</div></div>`; }
   asset_card(a) { return `<div class="so-card" draggable="true" data-drag-type="asset" data-asset="${this.esc(a.asset)}"><div class="so-card__title">${this.esc(a.asset)}</div><div class="so-card__meta">${this.esc(a.item_name||a.asset_category||"")}</div></div>`; }
   designation_card(d) { return `<div class="so-card" draggable="true" data-drag-type="designation" data-designation="${this.esc(d)}"><div class="so-card__title">${this.esc(d)}</div></div>`; }
-  row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); return `<div class="so-rowlabel"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
-  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const e=r?.employee?this.employee_by_id(r.employee):null; return `<div class="so-slot ${e?"is-filled":"is-empty"}" data-drop="cell" data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):'<span class="so-vacant">Vacant</span>'}</div>`; }
+  row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); const spare=!!r.spare_swing; return `<div class="so-rowlabel ${spare?"is-spare":""}"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div><button type="button" class="so-spare-toggle ${spare?"is-active":""}" data-action="toggle-spare" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Mark this Asset as Spare / Swing — it won't accept Employees")}">${spare?__("Spare / Swing"):__("Mark Spare / Swing")}</button></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
+  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const spare=!!r?.spare_swing; const e=r?.employee?this.employee_by_id(r.employee):null; const stateClass=spare?"is-spare":e?"is-filled":"is-empty"; const dropAttr=spare?"":`data-drop="cell"`; return `<div class="so-slot ${stateClass}" ${dropAttr} data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):spare?'<span class="so-vacant so-vacant--spare">Spare</span>':'<span class="so-vacant">Vacant</span>'}</div>`; }
 
   bind_planner_events($w) {
     $w.find("[data-pool-mode]").on("click",e=>{this.pool_mode=e.currentTarget.dataset.poolMode;this.render_planner();});
@@ -720,6 +773,7 @@ class SiteOrganogramDesigner {
       if(type==="cell"&&p.type==="employee")this.assign_employee(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.shift,e.currentTarget.dataset.rowKey,p.employee,p.from);
       if(type==="pool"){if(p.type==="assigned"&&p.from)this.unassign(p.from);if(p.type==="row")this.remove_row(p.group_key,p.row_key);}
     });
+    $w.find('[data-action="toggle-spare"]').on("click",e=>{e.stopPropagation();this.toggle_spare_swing(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey);});
   }
 
   add_row(groupKey,type,value) {
@@ -728,17 +782,30 @@ class SiteOrganogramDesigner {
     if(this.state.shift_mappings.some(r=>r.group_key===groupKey&&r.row_key===rowKey))return;
     const asset=type==="Asset"?this.asset_by_id(value):null;
     const order=this.mapping_rows_for_group(g).length+1;
-    for(const shift of this.shifts_for_group(g))this.state.shift_mappings.push({group_key:g.group_key,group:g.group,shift,employee:"",asset:type==="Asset"?value:"",row_key:rowKey,row_order:order,row_label:type==="Asset"?[value,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — "):value,row_type:type,missing_asset:0,missing_employee:0});
+    for(const shift of this.shifts_for_group(g))this.state.shift_mappings.push({group_key:g.group_key,group:g.group,shift,employee:"",asset:type==="Asset"?value:"",row_key:rowKey,row_order:order,row_label:type==="Asset"?[value,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — "):value,row_type:type,spare_swing:0,missing_asset:0,missing_employee:0});
     this.mark_dirty();this.render_planner();
   }
 
   assign_employee(groupKey,shift,rowKey,employee,from) {
+    const target=this.find_mapping(groupKey,shift,rowKey); if(!target||target.spare_swing)return;
     if(from)this.unassign(from,false);
-    const r=this.find_mapping(groupKey,shift,rowKey); if(!r)return;
-    r.employee=employee;r.missing_employee=0;this.mark_dirty();this.render_planner();
+    target.employee=employee;target.missing_employee=0;this.mark_dirty();this.render_planner();
   }
   unassign(from,render=true){const r=this.find_mapping(from.group_key,from.shift,from.row_key);if(r){r.employee="";r.missing_employee=0;this.mark_dirty();if(render)this.render_planner();}}
   remove_row(groupKey,rowKey){this.state.shift_mappings=this.state.shift_mappings.filter(r=>!(r.group_key===groupKey&&r.row_key===rowKey));this.mark_dirty();this.render_planner();}
+
+  toggle_spare_swing(groupKey,rowKey) {
+    const rows=this.state.shift_mappings.filter(r=>r.group_key===groupKey&&r.row_key===rowKey&&r.row_type==="Asset");
+    if(!rows.length)return;
+    const turningOn=!rows[0].spare_swing;
+    const hadEmployees=turningOn&&rows.some(r=>r.employee);
+    for(const r of rows){
+      r.spare_swing=turningOn?1:0;
+      if(turningOn){r.employee="";r.missing_employee=0;}
+    }
+    if(hadEmployees)frappe.show_alert({message:__("Employees unassigned — row marked Spare/Swing"),indicator:"orange"});
+    this.mark_dirty();this.render_planner();
+  }
 
   organogram_blocks() {
     const groups = (this.state.group_headings || []).filter(
@@ -814,13 +881,14 @@ class SiteOrganogramDesigner {
         employee_name:
           employee?.employee_name ||
           employee?.employee ||
-          (mapping.missing_employee ? "Missing" : "Vacant"),
+          (mapping.missing_employee ? "Missing" : mapping.spare_swing ? "Spare" : "Vacant"),
         employee_id: employee?.employee || "",
         designation:
           employee?.designation ||
           (mapping.missing_employee ? "" : mapping.row_label || ""),
         missing: !!mapping.missing_employee,
-        vacant: !employee && !mapping.missing_employee,
+        spare: !!mapping.spare_swing,
+        vacant: !employee && !mapping.missing_employee && !mapping.spare_swing,
       });
     }
 
@@ -991,6 +1059,8 @@ class SiteOrganogramDesigner {
             <div class="so-org-person-row ${
               row.missing
                 ? "is-missing"
+                : row.spare
+                ? "is-spare"
                 : row.vacant
                 ? "is-vacant"
                 : "is-filled"

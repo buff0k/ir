@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-07-10 10:07:38.347029",
+ "modified": "2026-07-24 10:12:40.027682",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "ir-organogram-design",
@@ -19,6 +19,9 @@
   },
   {
    "role": "IR Officer"
+  },
+  {
+   "role": "IR User"
   }
  ],
  "script": null,
