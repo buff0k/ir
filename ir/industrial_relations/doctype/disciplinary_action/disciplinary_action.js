@@ -362,7 +362,7 @@ frappe.ui.form.on("List of Offences", {
 
     row.offence_code = row.code_item || "";
     frm.refresh_field("offences");
-    sync_offences_and_render_sanctions(frm, row.idx);
+    sync_offences_and_render_sanctions(frm);
   },
 
   offences_remove(frm) {
@@ -374,26 +374,19 @@ frappe.ui.form.on("List of Offences", {
   },
 });
 
-function sync_offences_and_render_sanctions(frm, changed_idx = null) {
-  if (!frm.fields_dict.offences || !frm.fields_dict.final_charges) return;
-
-  if (frm.doc.docstatus !== 0) {
-    render_offence_sanction_summary(frm);
-    return;
-  }
+function sync_offences_and_render_sanctions(frm) {
+  if (!frm.fields_dict.offences) return;
 
   const offences = frm.doc.offences || [];
-  const charges = frm.doc.final_charges || [];
-  const code_items = offences.map((row) => row.code_item).filter(Boolean);
 
   offences.forEach((row) => {
     row.offence_code = row.code_item || "";
   });
   frm.refresh_field("offences");
 
+  const code_items = offences.map((row) => row.code_item).filter(Boolean);
+
   if (!code_items.length) {
-    frm.clear_table("final_charges");
-    frm.refresh_field("final_charges");
     render_offence_sanction_summary(frm);
     return;
   }
@@ -408,38 +401,47 @@ function sync_offences_and_render_sanctions(frm, changed_idx = null) {
     },
     callback(r) {
       const data = r.message || {};
-      const offence_data = data.offences || {};
-
-      offences.forEach((offence, index) => {
-        let charge = charges[index];
-        if (!charge) {
-          charge = frm.add_child("final_charges");
-        }
-
-        const old_code = charge.code_item || "";
-        const new_code = offence.code_item || "";
-        const description =
-          (offence_data[new_code] || {}).offence_description || "";
-        const code_changed = old_code !== new_code;
-
-        charge.code_item = new_code;
-        if (code_changed || !charge.charge || changed_idx === offence.idx) {
-          charge.charge = description;
-        }
-      });
-
-      while ((frm.doc.final_charges || []).length > offences.length) {
-        frm.doc.final_charges.pop();
-      }
-
-      (frm.doc.final_charges || []).forEach((row, index) => {
-        row.idx = index + 1;
-      });
-
-      frm.refresh_field("final_charges");
       render_offence_sanction_summary(frm, data.html || "");
+
+      if (frm.doc.docstatus === 0 && frm.fields_dict.final_charges) {
+        seed_new_offence_charges(frm, offences, data.offences || {});
+      }
     },
   });
+}
+
+function seed_new_offence_charges(frm, offences, offence_data) {
+  // Client-side mirror of disciplinary_action.py's
+  // _sync_offence_codes_and_final_charges: gives an instant preview in the
+  // browser (a newly added Offence immediately gets a matching Charges row)
+  // without waiting for a save round-trip, using the exact same per-row
+  // `charge_created` marker the server checks. Because the marker lives on
+  // the Offence row itself, it travels with the document either way -
+  // whichever side (this, or the server's validate() on save) processes an
+  // Offence first sets it, and the other then correctly sees it as already
+  // handled. This is what makes it safe to add Offences and start editing
+  // Charges without saving in between: nothing can double-create a charge,
+  // and nothing here ever touches a Charges row once created.
+  let added = false;
+
+  offences.forEach((offence) => {
+    if (cint(offence.charge_created) || !offence.code_item) {
+      return;
+    }
+
+    const description =
+      (offence_data[offence.code_item] || {}).offence_description || "";
+    const charge = frm.add_child("final_charges");
+    charge.code_item = offence.code_item;
+    charge.charge = description;
+    offence.charge_created = 1;
+    added = true;
+  });
+
+  if (added) {
+    frm.refresh_field("final_charges");
+    frm.dirty();
+  }
 }
 
 function render_offence_sanction_summary(frm, supplied_html = null) {
