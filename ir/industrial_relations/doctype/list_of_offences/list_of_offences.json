@@ -11,7 +11,8 @@
   "offence_code",
   "code_item",
   "offence_datetime",
-  "incident_details"
+  "incident_details",
+  "charge_created"
  ],
  "fields": [
   {
@@ -53,6 +54,15 @@
    "in_list_view": 1,
    "label": "Offence Code",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "Internal bookkeeping: whether a Charges row has already been generated from this Offence. Never shown or edited by users - once set, this Offence is never re-synced into Charges again, no matter what happens to Offences or Charges afterwards.",
+   "fieldname": "charge_created",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Charge Created",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -64,7 +74,7 @@
    "link_fieldname": "offence_description"
   }
  ],
- "modified": "2026-07-16 13:58:17.872476",
+ "modified": "2026-07-27 11:58:16.808575",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "List of Offences",

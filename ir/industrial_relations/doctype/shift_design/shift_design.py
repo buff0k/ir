@@ -25,6 +25,10 @@ class ShiftDesign(Document):
 		self.validate_date_overrides()
 
 	def remove_blank_child_rows(self):
+		self.shift_types = [
+			row for row in self.shift_types or [] if _clean(row.shift_type)
+		]
+
 		self.teams = [
 			row
 			for row in self.teams or []
@@ -39,7 +43,6 @@ class ShiftDesign(Document):
 					_clean(row.team_key),
 					cint(row.pattern_day),
 					_clean(row.assignment),
-					_clean(row.shift_type),
 				]
 			)
 		]
@@ -52,8 +55,8 @@ class ShiftDesign(Document):
 					_clean(row.rule_type),
 					_clean(row.day_of_week),
 					_clean(row.action),
-					flt(getattr(row, "day_shift_hours", 0)),
-					flt(getattr(row, "night_shift_hours", 0)),
+					_clean(getattr(row, "target_shift_type", "")),
+					flt(getattr(row, "hours_override", 0)),
 				]
 			)
 		]
@@ -66,7 +69,6 @@ class ShiftDesign(Document):
 					row.date,
 					_clean(row.team_key),
 					_clean(row.assignment),
-					_clean(row.shift_type),
 					_clean(row.reason),
 				]
 			)
@@ -96,9 +98,6 @@ class ShiftDesign(Document):
 
 		if not flt(self.ordinary_hours_limit):
 			self.ordinary_hours_limit = 195
-
-		if not self.sunday_rule:
-			self.sunday_rule = "Follow Pattern"
 
 	def ensure_team_keys(self):
 		for row in self.teams or []:
@@ -160,14 +159,24 @@ class ShiftDesign(Document):
 			frappe.throw(_("Cycle Length cannot exceed 366 days."))
 
 	def validate_shift_types(self):
-		if self.status != "Active":
-			return
+		seen = set()
 
-		if not self.day_shift_type:
-			frappe.throw(_("Active Shift Designs require a Day Shift Type."))
+		for row in self.shift_types or []:
+			shift_type = _clean(row.shift_type)
 
-		if not self.night_shift_type:
-			frappe.throw(_("Active Shift Designs require a Night Shift Type."))
+			if shift_type in seen:
+				frappe.throw(
+					_("Shift Type '{0}' is added more than once.").format(shift_type)
+				)
+
+			seen.add(shift_type)
+
+	def configured_shift_types(self):
+		return {
+			_clean(row.shift_type)
+			for row in self.shift_types or []
+			if _clean(row.shift_type)
+		}
 
 	def validate_teams(self):
 		seen_keys = set()
@@ -219,6 +228,7 @@ class ShiftDesign(Document):
 			for row in self.teams or []
 			if _clean(row.team_key)
 		}
+		shift_types = self.configured_shift_types()
 		seen_cells = set()
 
 		for row in self.pattern or []:
@@ -237,8 +247,13 @@ class ShiftDesign(Document):
 					).format(row.idx, cint(self.cycle_length))
 				)
 
-			if _clean(row.assignment) not in {"Day", "Night", "Off"}:
-				frappe.throw(_("Pattern row {0} has an invalid Assignment.").format(row.idx))
+			assignment = _clean(row.assignment)
+			if assignment and assignment not in shift_types:
+				frappe.throw(
+					_(
+						"Pattern row {0} refers to a Shift Type not configured on this Design."
+					).format(row.idx)
+				)
 
 			cell_key = (team_key, pattern_day)
 			if cell_key in seen_cells:
@@ -251,17 +266,29 @@ class ShiftDesign(Document):
 			seen_cells.add(cell_key)
 
 	def validate_calendar_rules(self):
+		# Note: target_shift_type is intentionally NOT required to be one of this
+		# Design's rotating `shift_types` - a Calendar Rule may invoke a distinct,
+		# special-purpose Shift Type (e.g. a "Sunday Day" shift with its own
+		# hours) that never appears in the normal rotation at all. The Link
+		# field itself already guarantees it's a real Shift Type record.
+		actions_needing_target = {"Restrict to Shift Type", "Continue Previous Shift Team"}
+
 		for row in self.calendar_rules or []:
 			if _clean(row.rule_type) == "Weekday" and not _clean(row.day_of_week):
 				frappe.throw(
 					_("Calendar Rule row {0} requires a Day of Week.").format(row.idx)
 				)
 
-			if flt(getattr(row, "day_shift_hours", 0)) < 0:
-				frappe.throw(_("Day Shift Hours cannot be negative."))
+			action = _clean(row.action)
+			target_shift_type = _clean(getattr(row, "target_shift_type", ""))
 
-			if flt(getattr(row, "night_shift_hours", 0)) < 0:
-				frappe.throw(_("Night Shift Hours cannot be negative."))
+			if action in actions_needing_target and not target_shift_type:
+				frappe.throw(
+					_("Calendar Rule row {0} requires a Target Shift Type.").format(row.idx)
+				)
+
+			if flt(getattr(row, "hours_override", 0)) < 0:
+				frappe.throw(_("Hours Override cannot be negative."))
 
 	def validate_date_overrides(self):
 		team_keys = {
@@ -269,6 +296,7 @@ class ShiftDesign(Document):
 			for row in self.teams or []
 			if _clean(row.team_key)
 		}
+		shift_types = self.configured_shift_types()
 		seen = set()
 
 		for row in self.date_overrides or []:
@@ -277,6 +305,14 @@ class ShiftDesign(Document):
 			if team_key and team_key not in team_keys:
 				frappe.throw(
 					_("Date Override row {0} refers to an unknown Team Key.").format(row.idx)
+				)
+
+			assignment = _clean(row.assignment)
+			if assignment and assignment not in shift_types:
+				frappe.throw(
+					_(
+						"Date Override row {0} refers to a Shift Type not configured on this Design."
+					).format(row.idx)
 				)
 
 			key = (getdate(row.date), team_key)
@@ -288,16 +324,6 @@ class ShiftDesign(Document):
 					)
 				)
 			seen.add(key)
-
-
-@frappe.whitelist()
-def get_site_organogram_import_data(site_organogram):
-	"""Compatibility endpoint for the standard form: Branch and teams only."""
-	from ir.industrial_relations.page.ir_shift_design.ir_shift_design import (
-		import_organogram_teams,
-	)
-
-	return import_organogram_teams(site_organogram)
 
 
 def _clean(value):

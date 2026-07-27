@@ -13,6 +13,7 @@ from frappe.utils import getdate
 
 SHIFT_DESIGN = "Shift Design"
 TABLE_FIELDS = (
+	"shift_types",
 	"teams",
 	"pattern",
 	"calendar_rules",
@@ -33,6 +34,7 @@ def get_bootstrap():
 			ptype="create",
 		),
 		"parent_fields": _fieldnames(SHIFT_DESIGN),
+		"shift_type_fields": _child_fieldnames(SHIFT_DESIGN, "shift_types"),
 		"team_fields": _child_fieldnames(SHIFT_DESIGN, "teams"),
 		"pattern_fields": _child_fieldnames(SHIFT_DESIGN, "pattern"),
 		"calendar_rule_fields": _child_fieldnames(
@@ -155,37 +157,6 @@ def delete_design(name):
 
 
 @frappe.whitelist()
-def import_organogram_teams(site_organogram):
-	"""Import Branch and actual rotating team names only."""
-	if not site_organogram:
-		frappe.throw(_("Site Organogram is required."))
-
-	if not frappe.db.exists("Site Organogram", site_organogram):
-		frappe.throw(_("Site Organogram does not exist."))
-
-	organogram = frappe.get_doc("Site Organogram", site_organogram)
-	organogram.check_permission("read")
-
-	team_names = _organogram_team_names(organogram)
-
-	return {
-		"site_organogram": organogram.name,
-		"branch": organogram.branch,
-		"number_of_teams": len(team_names),
-		"teams": [
-			{
-				"team_key": f"TEAM::{frappe.generate_hash(length=10)}",
-				"team_name": team_name,
-				"display_order": index,
-				"pattern_offset": 0,
-				"enabled": 1,
-			}
-			for index, team_name in enumerate(team_names, start=1)
-		],
-	}
-
-
-@frappe.whitelist()
 def get_sa_public_holidays(start_date, end_date):
 	if not start_date or not end_date:
 		return []
@@ -222,56 +193,6 @@ def get_sa_public_holidays(start_date, end_date):
 				"Original error: {0}"
 			).format(exc)
 		)
-
-
-def _organogram_team_names(organogram):
-	valid_names = {
-		"Shift A",
-		"Shift B",
-		"Shift C",
-		"Shift D",
-		"Shift E",
-	}
-	found = set()
-
-	for row in organogram.shift_mappings or []:
-		shift_name = _clean(row.shift)
-		if shift_name in valid_names:
-			found.add(shift_name)
-
-	if found:
-		return sorted(found, key=_shift_sort_key)
-
-	configured_count = int(organogram.shifts or 0)
-	if configured_count < 1:
-		configured_count = 1
-
-	return [
-		f"Shift {_alpha_label(index)}"
-		for index in range(configured_count)
-	]
-
-
-def _shift_sort_key(value):
-	return _alpha_number(value.replace("Shift ", "", 1))
-
-
-def _alpha_label(index):
-	value = index + 1
-	label = ""
-	while value > 0:
-		value -= 1
-		label = chr(65 + value % 26) + label
-		value //= 26
-	return label
-
-
-def _alpha_number(value):
-	result = 0
-	for character in str(value or "").upper():
-		if "A" <= character <= "Z":
-			result = result * 26 + ord(character) - 64
-	return result
 
 
 def _serialize(doc):
@@ -330,7 +251,7 @@ def _shift_type_options():
 
 	meta = frappe.get_meta("Shift Type")
 	fields = ["name"]
-	for fieldname in ("start_time", "end_time"):
+	for fieldname in ("start_time", "end_time", "color"):
 		if meta.has_field(fieldname):
 			fields.append(fieldname)
 
@@ -346,6 +267,7 @@ def _shift_type_options():
 			"name": row.name,
 			"start_time": str(row.get("start_time") or ""),
 			"end_time": str(row.get("end_time") or ""),
+			"color": row.get("color") or "",
 			"hours": _duration_hours(
 				row.get("start_time"),
 				row.get("end_time"),

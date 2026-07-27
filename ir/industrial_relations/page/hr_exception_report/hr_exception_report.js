@@ -195,7 +195,24 @@ class HRExceptionReport {
         </article>
       </div>
       ${this.render_esg_section(d.esg_comparison)}
-      ${this.render_disciplinary_outcomes_section(d.disciplinary_outcomes)}
+      ${this.render_case_outcomes_section(
+        __("Disciplinary Actions and Outcomes in the period"),
+        d.disciplinary_outcomes?.rows,
+        __("Final Charges"),
+        __("No Disciplinary Actions with an outcome or pending in the selected period."),
+      )}
+      ${this.render_case_outcomes_section(
+        __("Incapacity Proceedings and Outcomes in the period"),
+        d.incapacity_outcomes?.rows,
+        __("Type of Incapacity"),
+        __("No Incapacity Proceedings with an outcome or pending in the selected period."),
+      )}
+      ${this.render_case_outcomes_section(
+        __("Poor Performance Matters and Outcomes in the period"),
+        d.poor_performance_outcomes?.rows,
+        __("Details of Poor Performance"),
+        __("No Poor Performance matters with an outcome or pending in the selected period."),
+      )}
     `);
 
     this.bind_metric_clicks();
@@ -525,14 +542,14 @@ class HRExceptionReport {
     `;
   }
 
-  render_disciplinary_outcomes_section(disciplinary_outcomes) {
-    const rows = disciplinary_outcomes?.rows || [];
+  render_case_outcomes_section(heading, rows, detailLabel, emptyMessage) {
+    rows = rows || [];
     return `
       <section class="her-esg-section">
         <div class="her-esg-heading">
           <div>
             <span>${__("Additional detail")}</span>
-            <h2>${__("Disciplinary Actions and Outcomes in the period")}</h2>
+            <h2>${heading}</h2>
             <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
           </div>
         </div>
@@ -542,20 +559,29 @@ class HRExceptionReport {
               <tr>
                 <th>${__("Employee")}</th>
                 <th>${__("Branch")}</th>
-                <th>${__("Final Charges")}</th>
+                <th>${detailLabel}</th>
                 <th>${__("Outcome / Status")}</th>
               </tr>
             </thead>
             <tbody>
               ${rows.length
-                ? rows.map((row) => `
+                ? rows.map((row) => {
+                    const url = row.doctype && row.name
+                      ? frappe.utils.get_form_link(row.doctype, row.name)
+                      : "";
+                    const employeeCell = url
+                      ? `<a href="${url}">${frappe.utils.escape_html(row.employee || "")}</a>`
+                      : frappe.utils.escape_html(row.employee || "");
+
+                    return `
                 <tr>
-                  <th>${frappe.utils.escape_html(row.employee || "")}</th>
+                  <th>${employeeCell}</th>
                   <td>${frappe.utils.escape_html(row.branch || "")}</td>
-                  <td>${frappe.utils.escape_html(row.final_charges || "").replace(/\n/g, "<br>")}</td>
+                  <td>${frappe.utils.escape_html(row.detail || "").replace(/\n/g, "<br>")}</td>
                   <td>${frappe.utils.escape_html(row.outcome || "")}</td>
-                </tr>`).join("")
-                : `<tr><td colspan="4" class="text-muted">${__("No Disciplinary Actions with an outcome in the selected period.")}</td></tr>`}
+                </tr>`;
+                  }).join("")
+                : `<tr><td colspan="4" class="text-muted">${emptyMessage}</td></tr>`}
             </tbody>
           </table>
         </div>
