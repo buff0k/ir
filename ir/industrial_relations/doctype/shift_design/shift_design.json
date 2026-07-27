@@ -14,12 +14,9 @@
   "branch",
   "identity_column",
   "company",
-  "day_shift_type",
-  "night_shift_type",
   "pay_period_start_day",
   "pay_period_end_day",
   "ordinary_hours_limit",
-  "sunday_rule",
   "validity_section",
   "status",
   "enabled",
@@ -32,6 +29,8 @@
   "cycle_column",
   "anchor_date",
   "default_assignment_horizon",
+  "shift_types_tab",
+  "shift_types",
   "teams_tab",
   "teams",
   "pattern_tab",
@@ -68,13 +67,13 @@
    "reqd": 1
   },
   {
+   "description": "Leave blank if this Shift Design applies across multiple/all branches rather than one specific site.",
    "fieldname": "branch",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Branch",
-   "options": "Branch",
-   "reqd": 1
+   "options": "Branch"
   },
   {
    "fieldname": "identity_column",
@@ -255,18 +254,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "day_shift_type",
-   "fieldtype": "Link",
-   "label": "Day Shift Type",
-   "options": "Shift Type"
-  },
-  {
-   "fieldname": "night_shift_type",
-   "fieldtype": "Link",
-   "label": "Night Shift Type",
-   "options": "Shift Type"
-  },
-  {
    "default": "1",
    "fieldname": "pay_period_start_day",
    "fieldtype": "Int",
@@ -291,18 +278,23 @@
    "reqd": 1
   },
   {
-   "default": "Follow Pattern",
-   "fieldname": "sunday_rule",
-   "fieldtype": "Select",
-   "label": "Sunday Rule",
-   "options": "Follow Pattern\nExtend Saturday Day Team",
+   "fieldname": "shift_types_tab",
+   "fieldtype": "Tab Break",
+   "label": "Shift Types"
+  },
+  {
+   "description": "The real Shift Types this Design rotates between (e.g. Day + Night, or Morning + Afternoon + Night). Order determines display order in the pattern generator.",
+   "fieldname": "shift_types",
+   "fieldtype": "Table",
+   "label": "Shift Types",
+   "options": "Shift Design Shift Type",
    "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-15 19:52:23.393811",
+ "modified": "2026-07-24 14:14:21.565332",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Shift Design",

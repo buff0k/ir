@@ -4,7 +4,7 @@
 import frappe
 import json
 from frappe.model.document import Document
-from frappe.utils import getdate, today, add_months, escape_html, get_url_to_form
+from frappe.utils import cint, getdate, today, add_months, escape_html, get_url_to_form
 
 from ir.industrial_relations import utils
 
@@ -14,12 +14,37 @@ class DisciplinaryAction(Document):
         self._sync_offence_codes_and_final_charges()
 
     def _sync_offence_codes_and_final_charges(self):
-        """Keep offence display codes and final charges aligned without altering child schemas."""
-        offences = list(self.offences or [])
-        charges = list(self.final_charges or [])
+        """Keep the offence display code current, and create exactly one
+        Charges row per Offence, the first time each Offence appears - never
+        touch Charges again after that, no matter what happens to either
+        table afterwards.
 
+        Offences is the preliminary request, captured once by the reporting
+        user (who may save the record several times while still adding to
+        it). Charges is the IR practitioner's independent legal opinion,
+        seeded from Offences purely as a convenience so they don't have to
+        re-type it - it may end up identical, a subset, a superset, or
+        entirely different, and is freely added to/edited/removed from that
+        point on with zero interference from Offences.
+
+        A plain Offences-vs-Charges *count* comparison can't tell "this
+        Offence was already synced" from "the IR practitioner deliberately
+        removed a Charges row" - both look like "fewer charges than
+        offences" - so each Offence row instead carries its own permanent
+        `charge_created` marker, set once a Charges row has been generated
+        for it and never touched again after that.
+        """
+        offences = list(self.offences or [])
+
+        for offence in offences:
+            offence.offence_code = offence.code_item or ""
+
+        new_offences = [row for row in offences if not cint(row.charge_created)]
+        if not new_offences:
+            return
+
+        code_items = {row.code_item for row in new_offences if row.code_item}
         descriptions = {}
-        code_items = {row.code_item for row in offences if row.code_item}
         if code_items:
             descriptions = {
                 row.name: row.offence_description or ""
@@ -30,26 +55,15 @@ class DisciplinaryAction(Document):
                 )
             }
 
-        for index, offence in enumerate(offences):
-            offence.offence_code = offence.code_item or ""
-
-            if index < len(charges):
-                charge = charges[index]
-                code_changed = (charge.code_item or "") != (offence.code_item or "")
-                charge.code_item = offence.code_item or ""
-                if code_changed or not charge.charge:
-                    charge.charge = descriptions.get(offence.code_item, "")
-            else:
-                self.append(
-                    "final_charges",
-                    {
-                        "code_item": offence.code_item or "",
-                        "charge": descriptions.get(offence.code_item, ""),
-                    },
-                )
-
-        while len(self.final_charges or []) > len(offences):
-            self.remove(self.final_charges[-1])
+        for offence in new_offences:
+            self.append(
+                "final_charges",
+                {
+                    "code_item": offence.code_item or "",
+                    "charge": descriptions.get(offence.code_item, ""),
+                },
+            )
+            offence.charge_created = 1
 
 
 @frappe.whitelist()

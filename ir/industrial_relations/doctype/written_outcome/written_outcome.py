@@ -21,19 +21,9 @@ def _normalise_text(value):
     return (value or "").strip()
 
 
-def _normalise_charge(value):
-    return re.sub(r"\s+", " ", _normalise_text(value)).casefold()
-
-
-def _written_outcome_charges(doc):
-    return [
-        _normalise_text(row.get("indiv_charge"))
-        for row in (doc.get("final_charges") or [])
-        if _normalise_text(row.get("indiv_charge"))
-    ]
-
-
-def _source_disciplinary_charges(doc):
+def _charge_texts(doc):
+    # Written Outcome's final_charges uses the same "Disciplinary Charges"
+    # child schema as the source Disciplinary Action (code_item + charge).
     return [
         _normalise_text(row.get("charge"))
         for row in (doc.get("final_charges") or [])
@@ -67,10 +57,7 @@ def _get_linked_update_state(written_outcome):
     if intervention_type == "Disciplinary Action":
         result["source_field"] = "final_charges"
         result["source_label"] = _("Final Charges")
-        result["changed"] = (
-            _written_outcome_charges(written_outcome)
-            != _source_disciplinary_charges(source)
-        )
+        result["changed"] = _charge_texts(written_outcome) != _charge_texts(source)
     elif intervention_type == "Incapacity Proceedings":
         result["source_field"] = "details_of_incapacity"
         result["source_label"] = _("Details of Incapacity")
@@ -90,47 +77,19 @@ def _get_linked_update_state(written_outcome):
 
 
 def _replace_disciplinary_final_charges(source, written_outcome):
-    desired = _written_outcome_charges(written_outcome)
-    current = list(source.get("final_charges") or [])
-    offences = list(source.get("offences") or [])
-
-    current_by_charge = {}
-    for row in current:
-        key = _normalise_charge(row.get("charge"))
-        if key:
-            current_by_charge.setdefault(key, []).append(row)
-
-    replacement = []
-    used_names = set()
-
-    for index, charge in enumerate(desired):
-        code_item = None
-        key = _normalise_charge(charge)
-
-        for row in current_by_charge.get(key, []):
-            if row.name not in used_names:
-                code_item = row.get("code_item")
-                used_names.add(row.name)
-                break
-
-        if not code_item and index < len(current):
-            code_item = current[index].get("code_item")
-
-        if not code_item and index < len(offences):
-            code_item = offences[index].get("code_item")
-
-        if not code_item:
-            frappe.throw(_(
-                'Cannot update Disciplinary Action {0}: the charge "{1}" '
-                'has no Disciplinary Code Item to preserve. Add or correct '
-                'the corresponding charge on the source Disciplinary Action first.'
-            ).format(source.name, charge))
-
-        replacement.append({"code_item": code_item, "charge": charge})
-
+    # Written Outcome's final_charges and Disciplinary Action's final_charges
+    # are both "Disciplinary Charges" rows (code_item + charge), so this is a
+    # direct replace - no need to reverse-engineer a code_item by matching
+    # charge text.
     source.set("final_charges", [])
-    for row in replacement:
-        source.append("final_charges", row)
+    for row in written_outcome.get("final_charges") or []:
+        charge = _normalise_text(row.get("charge"))
+        if not charge:
+            continue
+        source.append(
+            "final_charges",
+            {"code_item": row.get("code_item") or "", "charge": charge},
+        )
 
 
 @frappe.whitelist()
@@ -386,6 +345,19 @@ def create_written_outcome(source_name=None, source_doctype=None):
         doc.complainant = source.complainant
         doc.complainant_name = source.compl_name
         doc.employee_branch = source.branch
+
+        # Final Charges starts out as a copy of the Disciplinary Action's
+        # current Charges - the IR practitioner then edits/formulates them
+        # independently within the Written Outcome from here on, and the
+        # source is only updated back from this on submit.
+        for row in source.get("final_charges") or []:
+            charge = (row.charge or "").strip()
+            if not charge:
+                continue
+            doc.append(
+                "final_charges",
+                {"code_item": row.code_item or "", "charge": charge},
+            )
 
     elif source_doctype == "Incapacity Proceedings":
         doc.employee = source.accused

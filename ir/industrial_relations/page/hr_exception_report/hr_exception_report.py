@@ -1263,33 +1263,61 @@ def get_page_defaults():
     }
 
 
-def _disciplinary_action_outcomes(company, employees, from_date, to_date):
-    """Disciplinary Action records with an outcome in the reporting period, for the
-    page-only list (Employee, Branch, Final Charges, Outcome/Status).
+def _case_detail_rows(
+    doctype, employee_field, name_field, detail_field,
+    company, employees, from_date, to_date, detail_formatter=None,
+):
+    """Shared builder for the page-only 'Actions and Outcomes' detail tables.
 
-    Branch is always resolved through the accused Employee's actual branch, never
-    through Disciplinary Action's own `branch` field ("Site for Hearing").
+    Includes every case with an outcome in the reporting period, plus every
+    still-outstanding (docstatus 0, i.e. Pending) case *opened* in the
+    reporting period (Request Date within period - the same definition
+    `_process_summary`'s "opened" bucket already uses), so open matters
+    aren't silently dropped just because they haven't reached an outcome
+    yet, without flooding every period's report with the entire evergreen
+    backlog regardless of when it was actually opened.
+
+    Branch is always resolved through the accused/employee's actual branch,
+    never through the source doctype's own `branch` field (which for e.g.
+    Disciplinary Action represents "Site for Hearing", not home branch).
     """
-    frappe.has_permission("Disciplinary Action", "read", throw=True)
+    frappe.has_permission(doctype, "read", throw=True)
 
-    filters = {
-        "company": company,
-        "docstatus": ["<", 2],
-        "outcome_date": ["between", [from_date, to_date]],
-    }
+    base_filters = {"company": company, "docstatus": ["<", 2]}
     if employees is not None:
-        filters["accused"] = ["in", employees]
+        base_filters[employee_field] = ["in", employees]
 
-    actions = frappe.get_all(
-        "Disciplinary Action",
-        filters=filters,
-        fields=["name", "accused", "accused_name", "outcome", "outcome_date", "docstatus"],
-        order_by="outcome_date asc, name asc",
+    fields = ["name", employee_field, name_field, "request_date", "outcome", "outcome_date", "docstatus"]
+    if detail_field:
+        fields.append(detail_field)
+
+    closed = frappe.get_all(
+        doctype,
+        filters={**base_filters, "outcome_date": ["between", [from_date, to_date]]},
+        fields=fields,
     )
-    if not actions:
+    outstanding = frappe.get_all(
+        doctype,
+        filters={
+            **base_filters,
+            "docstatus": 0,
+            "request_date": ["between", [from_date, to_date]],
+        },
+        fields=fields,
+    )
+
+    seen = set()
+    cases = []
+    for case in [*closed, *outstanding]:
+        if case.name in seen:
+            continue
+        seen.add(case.name)
+        cases.append(case)
+
+    if not cases:
         return {"rows": []}
 
-    employee_names = list({row.accused for row in actions if row.accused})
+    employee_names = list({case.get(employee_field) for case in cases if case.get(employee_field)})
     branch_by_employee = {}
     if employee_names:
         branch_by_employee = {
@@ -1303,43 +1331,73 @@ def _disciplinary_action_outcomes(company, employees, from_date, to_date):
     cancelled_outcomes = set(frappe.get_all("Offence Outcome", filters={"iscancellation": 1}, pluck="name"))
 
     rows = []
-    for action in actions:
+    for case in cases:
+        if not case.outcome:
+            outcome_display = _("Pending")
+        elif case.outcome in cancelled_outcomes:
+            outcome_display = outcome_labels.get(case.outcome) or _("Cancelled")
+        else:
+            outcome_display = outcome_labels.get(case.outcome, case.outcome)
+
+        employee_value = case.get(employee_field)
+        employee_name_value = case.get(name_field)
+        if employee_name_value and employee_value:
+            employee_display = f"{employee_name_value} ({employee_value})"
+        else:
+            employee_display = employee_name_value or employee_value or ""
+
+        detail_value = case.get(detail_field) if detail_field else ""
+        if detail_formatter:
+            detail_value = detail_formatter(case, detail_value)
+
+        rows.append(
+            {
+                "name": case.name,
+                "doctype": doctype,
+                "employee": employee_display,
+                "branch": branch_by_employee.get(employee_value) or "",
+                "detail": detail_value or "",
+                "outcome": outcome_display,
+                "outcome_date": str(case.outcome_date) if case.outcome_date else "",
+            }
+        )
+
+    rows.sort(key=lambda row: (row["outcome_date"] or "9999-99-99", row["name"]))
+    return {"rows": rows}
+
+
+def _disciplinary_action_outcomes(company, employees, from_date, to_date):
+    def charges_detail(case, _value):
         charge_rows = frappe.get_all(
             "Disciplinary Charges",
             filters={
-                "parent": action.name,
+                "parent": case.name,
                 "parenttype": "Disciplinary Action",
                 "parentfield": "final_charges",
             },
             fields=["code_item", "charge"],
             order_by="idx asc",
         )
-        final_charges = "\n".join(f"({row.code_item}) {row.charge}" for row in charge_rows)
+        return "\n".join(f"({row.code_item}) {row.charge}" for row in charge_rows)
 
-        if not action.outcome:
-            outcome_display = _("Pending")
-        elif action.outcome in cancelled_outcomes:
-            outcome_display = outcome_labels.get(action.outcome) or _("Cancelled")
-        else:
-            outcome_display = outcome_labels.get(action.outcome, action.outcome)
+    return _case_detail_rows(
+        "Disciplinary Action", "accused", "accused_name", None,
+        company, employees, from_date, to_date, detail_formatter=charges_detail,
+    )
 
-        if action.accused_name and action.accused:
-            employee_display = f"{action.accused_name} ({action.accused})"
-        else:
-            employee_display = action.accused_name or action.accused or ""
 
-        rows.append(
-            {
-                "name": action.name,
-                "employee": employee_display,
-                "branch": branch_by_employee.get(action.accused) or "",
-                "final_charges": final_charges,
-                "outcome": outcome_display,
-                "outcome_date": str(action.outcome_date) if action.outcome_date else "",
-            }
-        )
+def _incapacity_proceedings_outcomes(company, employees, from_date, to_date):
+    return _case_detail_rows(
+        "Incapacity Proceedings", "accused", "accused_name", "type_of_incapacity",
+        company, employees, from_date, to_date,
+    )
 
-    return {"rows": rows}
+
+def _poor_performance_outcomes(company, employees, from_date, to_date):
+    return _case_detail_rows(
+        "Poor Performance", "employee", "employee_name", "details_of_poor_performance",
+        company, employees, from_date, to_date,
+    )
 
 
 @frappe.whitelist()
@@ -1361,6 +1419,8 @@ def get_report_data(company, from_date, to_date, branches=None):
     poor_performance = _poor_performance_summary(company, from_date, to_date, employees)
     external_disputes = _external_dispute_summary(company, from_date, to_date)
     disciplinary_outcomes = _disciplinary_action_outcomes(company, employees, from_date, to_date)
+    incapacity_outcomes = _incapacity_proceedings_outcomes(company, employees, from_date, to_date)
+    poor_performance_outcomes = _poor_performance_outcomes(company, employees, from_date, to_date)
 
     opened_total = (
         disciplinary["opened"]["count"]
@@ -1392,6 +1452,8 @@ def get_report_data(company, from_date, to_date, branches=None):
         "poor_performance": poor_performance,
         "external_disputes": external_disputes,
         "disciplinary_outcomes": disciplinary_outcomes,
+        "incapacity_outcomes": incapacity_outcomes,
+        "poor_performance_outcomes": poor_performance_outcomes,
         "combined": {
             "opened": opened_total,
             "closed": closed_total,

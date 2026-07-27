@@ -30,10 +30,6 @@ frappe.ui.form.on("Written Outcome", {
     ).addClass("btn-primary");
   },
 
-  after_save(frm) {
-    schedule_linked_intervention_update_check(frm);
-  },
-
   on_submit(frm) {
     schedule_linked_intervention_update_check(frm);
   },
@@ -291,27 +287,11 @@ function set_performance_history(frm, rows) {
 }
 
 
-function final_charges_are_empty(frm) {
-  return !(frm.doc.final_charges || []).some(
-    (row) => (row.indiv_charge || "").trim()
-  );
-}
-
 function set_initial_final_values(frm, data) {
-  if (
-    frm.doc.ir_intervention === "Disciplinary Action" &&
-    frm.fields_dict.final_charges &&
-    final_charges_are_empty(frm)
-  ) {
-    frm.clear_table("final_charges");
-    (data.nta_charges || []).forEach((row) => {
-      const value = (row.indiv_charge || "").trim();
-      if (!value) return;
-      const child = frm.add_child("final_charges");
-      child.indiv_charge = value;
-    });
-    frm.refresh_field("final_charges");
-  }
+  // Final Charges for a Disciplinary Action outcome is seeded server-side
+  // from the source Disciplinary Action's own Charges when the Written
+  // Outcome is created (see create_written_outcome) - it is deliberately
+  // not re-derived from the NTA here.
 
   if (
     frm.doc.ir_intervention === "Incapacity Proceedings" &&
