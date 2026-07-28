@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import re
 import frappe
+from bs4 import BeautifulSoup, Tag
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import escape_html, get_url_to_form, formatdate
+from frappe.utils import escape_html, get_url_to_form
+from frappe.utils import markdown as render_markdown
 
 
 SUPPORTED_LINKED_INTERVENTIONS = {
@@ -183,6 +185,30 @@ class WrittenOutcome(Document):
 
         next_rev = (max(revs) + 1) if revs else 1
         self.name = f"{base}-{next_rev}"
+
+    def validate(self):
+        self._assign_annexure_letters()
+
+    def _assign_annexure_letters(self):
+        # Single continuous sequence across both tables (complainant rows
+        # first) so "[Annexure C]" typed into a summary field unambiguously
+        # identifies one evidence row regardless of which side submitted it.
+        # Recomputed on every save so it stays correct after rows are
+        # added/removed/reordered - this is what makes the client-side
+        # read-only grid toggle safe rather than merely cosmetic.
+        rows = list(self.get("complainant_evidence") or []) + list(self.get("accused_evidence") or [])
+        for i, row in enumerate(rows):
+            row.evidence_annexure = f"Annexure {_excel_style_letters(i)}"
+
+
+def _excel_style_letters(index: int) -> str:
+    """0 -> A, 1 -> B, ..., 25 -> Z, 26 -> AA, 27 -> AB, ... (bijective base-26)."""
+    index += 1
+    letters = ""
+    while index > 0:
+        index, remainder = divmod(index - 1, 26)
+        letters = chr(65 + remainder) + letters
+    return letters
 
 
 def _get_request_arg(key, default=None):
@@ -558,47 +584,145 @@ def get_nta_details(nta_name, intervention_type=None, linked_intervention=None):
     return _get_nta_payload(nta_name, intervention_type)
 
 
-@frappe.whitelist()
-def normalize_headings(content):
-    if not content:
-        return content
-    return re.sub(r"^(#{1,})\s*(\S.*)", r"### \2", content, flags=re.MULTILINE)
+OUTCOME_MARKDOWN_FIELDS = {
+    "summary_introduction": "Introduction",
+    "summary_complainant": "Complainant's Case",
+    "summary_accused": "Accused Employee Case",
+    "summary_analysis": "Analysis of Evidence",
+    "summary_finding": "Finding by Chairperson",
+    "summary_mitigation": "Mitigating Considerations",
+    "summary_aggravation": "Aggravating Considerations",
+    "summary_outcome": "Outcome",
+}
+
+ANNEXURE_REFERENCE_RE = re.compile(r"\[([^\[\]]+)\]")
+
+# A line starting with one or more ">" marks a sub-point of the point above
+# it - "&gt;" -> [parent.n], "&gt;&gt;" -> [parent.child.n], etc - rather than
+# relying on markdown's own indentation-sensitive nested-list syntax, which
+# is easy to get wrong by hand in a plain-text editor (missing/miscounted
+# leading spaces silently produces a flat list instead of a nested one).
+LEVEL_PREFIX_RE = re.compile(r"^\s*(>+)\s*")
+
+HEADING_TAG_RE = re.compile(r"^h[1-6]$")
 
 
-@frappe.whitelist()
-def compile_outcome(docname):
-    doc = frappe.get_doc("Written Outcome", docname)
+def get_outcome_body(doc):
+    """
+    Render the Chairperson Summary sections as continuously numbered points
+    (South African judgment style: [1], [2], ..., with ">"/"&gt;&gt;"-prefixed
+    lines becoming hierarchical sub-points [n.n]/[n.n.n]), converting inline
+    "[Annexure Name]" references into superscript footnote markers.
 
-    chair = doc.get("chairperson_name") or doc.get("chairperson") or ""
-    enquiry_date = doc.get("enquiry_date")
+    Returns (html, footnotes) where footnotes is an ordered list of
+    {number, annexure, description, attach} dicts, first-appearance order.
 
-    compiled = (
-        "| **Field** | **Value** |\n"
-        "|------------------------------------|-----------------------------------|\n"
-        f"| **Employee Name** | {doc.get('employee_name') or ''} ({doc.get('employee_branch') or ''}) |\n"
-        f"| **Chairperson** | {chair} |\n"
-        f"| **Date of Enquiry** | {formatdate(enquiry_date, 'd MMMM YYYY') if enquiry_date else ''} |\n\n"
-    )
-
-    markdown_fields = {
-        "summary_introduction": "Introduction",
-        "summary_complainant": "Complainant's Case",
-        "summary_accused": "Accused Employee Case",
-        "summary_analysis": "Analysis of Evidence",
-        "summary_finding": "Finding by Chairperson",
-        "summary_mitigation": "Mitigating Considerations",
-        "summary_aggravation": "Aggravating Considerations",
-        "summary_outcome": "Outcome",
+    Registered as a Jinja method (see ir/hooks.py) so the Written Outcome
+    print format can call it directly at render time.
+    """
+    annexure_lookup = {
+        row.evidence_annexure: row
+        for row in list(doc.get("complainant_evidence") or []) + list(doc.get("accused_evidence") or [])
+        if row.evidence_annexure
     }
 
-    for field, heading in markdown_fields.items():
-        content = doc.get(field)
-        if content:
-            compiled += f"### {heading}\n\n{normalize_headings(content)}\n\n"
+    footnote_no_by_annexure = {}
+    footnotes = []
+    counters = [0]
+    sections = []
 
-    doc.complete_outcome = compiled
-    doc.save(ignore_permissions=True)
-    return {"ok": True}
+    for field, heading in OUTCOME_MARKDOWN_FIELDS.items():
+        content = doc.get(field)
+        if not content:
+            continue
+
+        parts = [f"<h4>{escape_html(heading)}</h4>"]
+
+        for raw_line in content.split("\n"):
+            match = LEVEL_PREFIX_RE.match(raw_line)
+            level = len(match.group(1)) if match else 0
+            line_text = (raw_line[match.end():] if match else raw_line).lstrip(" \t")
+            if not line_text.strip():
+                continue
+
+            # Render this one line's own markdown (bold/italic/links/a bare
+            # "1. " list marker, etc.) in isolation, then unwrap whatever
+            # single block element it produced - the numbering/indentation
+            # here is ours, not markdown's.
+            line_soup = BeautifulSoup(render_markdown(line_text), "html.parser")
+            top_nodes = [n for n in line_soup.contents if isinstance(n, Tag)]
+            if not top_nodes:
+                continue
+            node = top_nodes[0]
+
+            if node.name in ("ol", "ul"):
+                # A bare "1. " / "- " line renders as a single-item list on
+                # its own - unwrap to that one <li>, since the numbering and
+                # indentation here are ours, not the list's.
+                node = node.find("li") or node
+
+            _linkify_annexure_refs(node, annexure_lookup, footnote_no_by_annexure, footnotes)
+
+            if HEADING_TAG_RE.match(node.name or ""):
+                parts.append(str(node))
+                continue
+
+            number = _advance_counters(counters, level)
+            parts.append(
+                f'<div class="numbered-para level-{level}">'
+                f'<span class="para-number">[{number}]</span>'
+                f'<span class="para-text">{node.decode_contents()}</span>'
+                f"</div>"
+            )
+
+        sections.append("\n".join(parts))
+
+    return "\n".join(sections), footnotes
+
+
+def _advance_counters(counters, level):
+    """Advance a legal-style hierarchical counter (1, 1.1, 1.1.1, 2, 2.1, ...).
+
+    Any counter deeper than `level` is dropped, since a new point at this
+    level starts a fresh run of sub-points beneath it.
+    """
+    while len(counters) <= level:
+        counters.append(0)
+    counters[level] += 1
+    del counters[level + 1:]
+    return ".".join(str(c) for c in counters[: level + 1])
+
+
+def _linkify_annexure_refs(node, annexure_lookup, footnote_no_by_annexure, footnotes):
+    """Replace "[Annexure Name]" text tokens with superscript footnote markers, in place.
+
+    Only brackets whose contents exactly match a real Annexure Name on this
+    doc are touched, so ordinary markdown links ("[text](url)") and other
+    incidental bracket text are left untouched.
+    """
+    for text_node in list(node.find_all(string=True)):
+        original = str(text_node)
+        if "[" not in original:
+            continue
+
+        def _replace(match):
+            token = match.group(1)
+            row = annexure_lookup.get(token)
+            if not row:
+                return match.group(0)
+            if token not in footnote_no_by_annexure:
+                footnote_no_by_annexure[token] = len(footnotes) + 1
+                footnotes.append({
+                    "number": footnote_no_by_annexure[token],
+                    "annexure": token,
+                    "description": row.evidence_description or "",
+                    "attach": row.evidence_attach or "",
+                })
+            return f'<sup class="footnote-ref">{footnote_no_by_annexure[token]}</sup>'
+
+        replaced = ANNEXURE_REFERENCE_RE.sub(_replace, original)
+        if replaced != original:
+            text_node.replace_with(*BeautifulSoup(replaced, "html.parser").contents)
 
 
 def _empty_block(msg: str) -> str:

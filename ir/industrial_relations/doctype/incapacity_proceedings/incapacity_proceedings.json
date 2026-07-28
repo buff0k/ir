@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "INCAP-.######",
@@ -10,6 +11,7 @@
  "field_order": [
   "request_action_tab",
   "section_break_mqkd",
+  "amended_from",
   "company",
   "letter_head",
   "details_of_accused_employee_section",
@@ -47,8 +49,7 @@
   "outcome_start",
   "outcome_end",
   "section_break_xdgl",
-  "linked_docs",
-  "amended_from"
+  "linked_docs"
  ],
  "fields": [
   {
@@ -134,7 +135,7 @@
    "fieldname": "responsible_ir",
    "fieldtype": "Link",
    "label": "Responsible IR",
-   "link_filters": "[[\"User\",\"role\",\"in\",[\"IR Manager\",\"IR User\"]]]",
+   "link_filters": "[[\"User\",\"role\",\"in\",[\"IR Officer\",\"IR Manager\"]]]",
    "options": "User"
   },
   {
@@ -314,7 +315,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-04 13:29:22.276415",
+ "modified": "2026-07-28 14:39:30.673217",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity Proceedings",

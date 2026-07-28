@@ -23,11 +23,20 @@ frappe.ui.form.on("Written Outcome", {
 
     frm.trigger("render_linked_sections");
 
-    frm.add_custom_button(
-      __("Compile Outcome"),
-      () => frm.trigger("compile_outcome"),
-      __("Actions")
-    ).addClass("btn-primary");
+    // Annexure Name is auto-generated server-side (validate()) so that
+    // "[Annexure X]" tokens typed into the summary fields unambiguously
+    // resolve at print time - lock the column here rather than on the
+    // shared "Attach Evidence" doctype, since that doctype is also used
+    // by Anonymous Report where it must stay freely editable.
+    ["complainant_evidence", "accused_evidence"].forEach((fieldname) => {
+      if (frm.fields_dict[fieldname]) {
+        frm.fields_dict[fieldname].grid.update_docfield_property(
+          "evidence_annexure",
+          "read_only",
+          1
+        );
+      }
+    });
   },
 
   on_submit(frm) {
@@ -199,20 +208,6 @@ frappe.ui.form.on("Written Outcome", {
       callback(r) {
         const out = r.message || {};
         rulings_wrapper.html(out.linked_rulings || "");
-      },
-    });
-  },
-
-  compile_outcome(frm) {
-    frappe.call({
-      method:
-        "ir.industrial_relations.doctype.written_outcome.written_outcome.compile_outcome",
-      args: { docname: frm.doc.name },
-      callback(r) {
-        if (r.message && r.message.ok) {
-          frappe.msgprint(__("Outcome compiled successfully."));
-          frm.reload_doc();
-        }
       },
     });
   },

@@ -24,12 +24,15 @@ def fetch_kpi_reviews_for_area(docname):
 
     for row in area_doc.branches:
         branch = row.branch
-        review = frappe.get_all("KPI Review", filters={
-            "branch": branch,
-            "date_under_review": (">=", start),
-            "date_under_review": ("<=", end),
-            "docstatus": ["in", [0, 1]]
-        }, fields=["name", "branch", "kpi_template", "score"], limit=1)
+        # A dict can only hold one "date_under_review" key, so the two bounds
+        # must be expressed as separate list-form conditions instead - a dict
+        # here would silently drop the ">= start" bound entirely.
+        review = frappe.get_all("KPI Review", filters=[
+            ["branch", "=", branch],
+            ["date_under_review", ">=", start],
+            ["date_under_review", "<=", end],
+            ["docstatus", "in", [0, 1]],
+        ], fields=["name", "branch", "kpi_template", "score"], limit=1)
 
         if review:
             review = review[0]

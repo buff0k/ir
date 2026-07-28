@@ -55,9 +55,7 @@
   "previous_performance_outcomes",
   "summary_aggravation",
   "summary_outcome",
-  "outcome",
-  "tab_output",
-  "complete_outcome"
+  "outcome"
  ],
  "fields": [
   {
@@ -241,13 +239,13 @@
    "label": "Chairperson Summary"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_introduction",
    "fieldtype": "Markdown Editor",
    "label": "Introduction"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_complainant",
    "fieldtype": "Markdown Editor",
    "label": "Complainant Case"
@@ -259,7 +257,7 @@
    "options": "Attach Evidence"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_accused",
    "fieldtype": "Markdown Editor",
    "label": "Accused Case"
@@ -271,13 +269,13 @@
    "options": "Attach Evidence"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_analysis",
    "fieldtype": "Markdown Editor",
    "label": "Analysis of Evidence"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_finding",
    "fieldtype": "Markdown Editor",
    "label": "Finding"
@@ -299,7 +297,7 @@
    "read_only": 1
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_outcome",
    "fieldtype": "Markdown Editor",
    "label": "Outcome"
@@ -332,24 +330,13 @@
    "label": "User Form"
   },
   {
-   "fieldname": "tab_output",
-   "fieldtype": "Tab Break",
-   "label": "Compiled Output"
-  },
-  {
-   "fieldname": "complete_outcome",
-   "fieldtype": "Markdown Editor",
-   "label": "Complete Outcome",
-   "read_only": 1
-  },
-  {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_mitigation",
    "fieldtype": "Markdown Editor",
    "label": "Mitigating Considerations"
   },
   {
-   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*, 1. Format list level 1 item 1, (Four Spaces)1. Format List level 2 item 1",
+   "description": "This is a Markdown Field, therefore use # Headings, **bold**, *italic*. Each new line becomes its own numbered point [n] in the printed outcome. Start a line with > for a sub-point [n.n], or >> for a sub-sub-point [n.n.n]. Type [Annexure X] (matching an Annexure Name exactly as shown in the Complainant/Accused Evidence table below) to insert a numbered footnote reference to that piece of evidence.",
    "fieldname": "summary_aggravation",
    "fieldtype": "Markdown Editor",
    "label": "Aggravating Considerations"
@@ -405,7 +392,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-07-27 10:51:35.645260",
+ "modified": "2026-07-28 15:44:24.690642",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
