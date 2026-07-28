@@ -206,6 +206,11 @@ fixtures = [
         "PRED"
 	]]]}
 ]
+jinja = {
+	"methods": [
+		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_outcome_body",
+	],
+}
 scheduler_events = {
 	"weekly": [
     	"ir.controllers.fixed_term_expiry.fixed_term_expiry",

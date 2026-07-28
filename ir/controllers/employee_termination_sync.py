@@ -60,7 +60,7 @@ def run_daily():
         if emp.get("user_id"):
             _disable_user(emp["user_id"])
 
-    frappe.db.commit()
+    frappe.db.commit()  # nosemgrep: frappe-manual-commit -- scheduled daily job (hooks.py scheduler_events), not a web request, so there is no end-of-request auto-commit to rely on.
 
 
 def _safe_get_date(value):
