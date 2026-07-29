@@ -272,6 +272,7 @@ def normalize_mappings(doc):
             row.row_type = "Designation"
             row.asset = ""
             row.missing_asset = 0
+            row.designation = ""
 
             if not _clean(getattr(row, "row_label", None)):
                 row.row_label = info.get("designation") or "Unlinked Role"
@@ -286,6 +287,7 @@ def normalize_mappings(doc):
                 row.row_type = "Designation"
                 row.asset = ""
                 row.missing_asset = 0
+                row.designation = ""
                 if not _clean(getattr(row, "row_label", None)):
                     row.row_label = "Unlinked Role"
 
@@ -323,6 +325,22 @@ def normalize_mappings(doc):
                 row.spare_swing = 1
                 row.employee = ""
                 row.missing_employee = 0
+
+    # Default Designation is likewise a property of the physical row, not of
+    # any one shift-slot - if any sibling shift-row for a given Asset row_key
+    # has a Designation set, every sibling shift-row for that same row_key
+    # must carry the same one.
+    for row_key, key_rows in rows_by_key.items():
+        designations = {
+            _clean(getattr(r, "designation", None))
+            for r in key_rows
+            if _clean(getattr(r, "row_type", None)) == "Asset" and _clean(getattr(r, "designation", None))
+        }
+        if designations:
+            designation = sorted(designations)[0]
+            for row in key_rows:
+                if _clean(getattr(row, "row_type", None)) == "Asset":
+                    row.designation = designation
 
     # Second pass: stable row order per group.
     groups = defaultdict(list)
@@ -575,12 +593,11 @@ def get_site_organogram_template(source_name):
 
     return {
         "location": getattr(doc, "location", None),
-        "shifts": getattr(doc, "shifts", None),
         "group_headings": [
             {
                 "group_key": getattr(r, "group_key", None),
                 "group": r.group,
-                "shifts": r.shifts,
+                "shift_design": getattr(r, "shift_design", None),
             }
             for r in (getattr(doc, "group_headings", None) or [])
         ],
@@ -613,6 +630,7 @@ def get_site_organogram_template(source_name):
                 "shift": r.shift,
                 "employee": r.employee,
                 "asset": r.asset,
+                "designation": getattr(r, "designation", None),
                 "row_key": getattr(r, "row_key", None),
                 "row_order": getattr(r, "row_order", None),
                 "row_label": getattr(r, "row_label", None),
@@ -648,22 +666,18 @@ def get_site_organogram_template(source_name):
 # Excel export
 # -------------------------------------------------------------------
 
-def _active_shift_labels(doc):
-    count = _safe_int(getattr(doc, "shifts", None), 0)
-    count = max(0, min(5, count))
-    return [f"Shift {x}" for x in ["A", "B", "C", "D", "E"][:count]]
+SHIFT_LETTERS = [chr(65 + i) for i in range(20)]
+
+
+def _shift_design_team_count(shift_design):
+    if not shift_design:
+        return 0
+    return _safe_int(frappe.db.get_value("Shift Design", shift_design, "number_of_teams"), 0)
 
 
 def _group_shift_labels(doc, group_row):
-    mode = _clean(getattr(group_row, "shifts", None))
-
-    if mode == "Day Shift Only":
-        return ["Day Shift"]
-
-    if mode == "Night Shift Only":
-        return ["Night Shift"]
-
-    return _active_shift_labels(doc)
+    count = max(0, min(20, _shift_design_team_count(getattr(group_row, "shift_design", None))))
+    return [f"Shift {x}" for x in SHIFT_LETTERS[:count]]
 
 
 def _split_employee_name(full_name):
@@ -758,14 +772,20 @@ def _get_vacancy_summary(doc):
     """Single source of truth for vacancy counting, at shift-slot granularity
     (each empty shift-cell is one vacancy). A Designation row with no employee
     is always vacant; an Asset row with no employee is vacant unless it's
-    marked Spare/Swing (a spare asset doesn't need staffing). Returns a dict:
-    {"by_designation": {label: count}, "vacant_assets": [rows...], "total": n}
+    marked Spare/Swing (a spare asset doesn't need staffing). An Asset row
+    with a Designation set counts toward that Designation too - it's still
+    listed in vacant_assets (which specific asset), on top of by_designation
+    (how many of that role overall) - the two answer different questions, so
+    a vacant Asset can appear in both, but `total` counts each vacant
+    shift-cell exactly once regardless of how many buckets it lands in.
+    Returns: {"by_designation": {label: count}, "vacant_assets": [rows...], "total": n}
     """
     rows = getattr(doc, "shift_mappings", None) or []
     assets = _asset_lookup(doc)
 
     by_designation = defaultdict(int)
     vacant_assets = []
+    total = 0
 
     for row in rows:
         if row.employee:
@@ -777,6 +797,7 @@ def _get_vacancy_summary(doc):
             info = _parse_row_key(getattr(row, "row_key", None))
             label = info.get("designation") or _clean(getattr(row, "row_label", None)) or "Unlinked Role"
             by_designation[label] += 1
+            total += 1
 
         elif row_type == "Asset" and not _safe_int(getattr(row, "spare_swing", 0), 0):
             asset = assets.get(row.asset, {})
@@ -787,7 +808,11 @@ def _get_vacancy_summary(doc):
                 row.shift or "",
             ])
 
-    total = sum(by_designation.values()) + len(vacant_assets)
+            designation = _clean(getattr(row, "designation", None))
+            if designation:
+                by_designation[designation] += 1
+
+            total += 1
 
     return {
         "by_designation": dict(by_designation),
@@ -1023,7 +1048,11 @@ def export_site_organogram_excel(name):
     }
 
     row_no = 1
-    heading_cols = max(8, 2 + len(_active_shift_labels(doc)) * 2)
+    max_shift_count = max(
+        (len(_group_shift_labels(doc, row)) for row in getattr(doc, "group_headings", None) or []),
+        default=0,
+    )
+    heading_cols = max(8, 2 + max_shift_count * 2)
 
     ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=heading_cols)
     ws.cell(row_no, 1, (doc.branch or doc.name or "SITE ORGANOGRAM").upper())
@@ -1174,14 +1203,13 @@ def _designer_payload(doc):
         "modified": str(doc.modified or ""),
         "branch": getattr(doc, "branch", None),
         "location": getattr(doc, "location", None),
-        "shifts": getattr(doc, "shifts", None),
         "asset_categories": _designer_child_rows(
             getattr(doc, "asset_categories", None),
             ["asset_cateogories"],
         ),
         "group_headings": _designer_child_rows(
             getattr(doc, "group_headings", None),
-            ["group_key", "group", "shifts"],
+            ["group_key", "group", "shift_design"],
         ),
         "employees": _designer_child_rows(
             getattr(doc, "employees", None),
@@ -1194,7 +1222,7 @@ def _designer_payload(doc):
         "shift_mappings": _designer_child_rows(
             getattr(doc, "shift_mappings", None),
             [
-                "group_key", "group", "shift", "employee", "asset",
+                "group_key", "group", "shift", "employee", "asset", "designation",
                 "row_key", "row_order", "row_label", "row_type", "spare_swing",
                 "missing_asset", "missing_employee",
             ],
@@ -1224,7 +1252,7 @@ def list_site_organograms_for_designer(branch=None, limit=100):
     return frappe.get_all(
         "Site Organogram",
         filters=filters,
-        fields=["name", "branch", "location", "shifts", "docstatus", "modified"],
+        fields=["name", "branch", "location", "docstatus", "modified"],
         order_by="modified desc",
         limit_page_length=limit,
     )
@@ -1318,21 +1346,17 @@ def save_site_organogram_designer_state(payload):
 
     branch = _clean(payload.get("branch"))
     location = _clean(payload.get("location"))
-    shifts = _clean(payload.get("shifts"))
 
     if not branch:
         frappe.throw("Site is required.")
     if not location:
         frappe.throw("Location is required.")
-    if shifts not in ("1", "2", "3", "4", "5"):
-        frappe.throw("Shift Teams must be between 1 and 5.")
 
     doc.branch = branch
     doc.location = location
-    doc.shifts = shifts
 
     _replace_child_table(doc, "asset_categories", payload.get("asset_categories"), ["asset_cateogories"])
-    _replace_child_table(doc, "group_headings", payload.get("group_headings"), ["group_key", "group", "shifts"])
+    _replace_child_table(doc, "group_headings", payload.get("group_headings"), ["group_key", "group", "shift_design"])
     _replace_child_table(doc, "employees", payload.get("employees"), ["employee", "employee_name", "designation"])
     _replace_child_table(doc, "assets", payload.get("assets"), ["asset", "item_name", "asset_category"])
     _replace_child_table(
@@ -1340,7 +1364,7 @@ def save_site_organogram_designer_state(payload):
         "shift_mappings",
         payload.get("shift_mappings"),
         [
-            "group_key", "group", "shift", "employee", "asset", "row_key",
+            "group_key", "group", "shift", "employee", "asset", "designation", "row_key",
             "row_order", "row_label", "row_type", "spare_swing",
             "missing_asset", "missing_employee",
         ],

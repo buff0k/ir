@@ -9,7 +9,7 @@
  "field_order": [
   "group_key",
   "group",
-  "shifts"
+  "shift_design"
  ],
  "fields": [
   {
@@ -21,12 +21,12 @@
    "reqd": 1
   },
   {
-   "fieldname": "shifts",
-   "fieldtype": "Select",
+   "fieldname": "shift_design",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Working Hours",
-   "options": "\nShift Pattern\nDay Shift Only\nNight Shift Only",
+   "label": "Shift Design",
+   "options": "Shift Design",
    "reqd": 1
   },
   {
@@ -41,7 +41,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-10 11:04:50.902569",
+ "modified": "2026-07-29 10:17:59.896825",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Groups",

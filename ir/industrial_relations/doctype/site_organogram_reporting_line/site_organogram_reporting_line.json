@@ -50,7 +50,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Source Shift",
-   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nDay Shift\nNight Shift"
+   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nShift F\nShift G\nShift H\nShift I\nShift J\nShift K\nShift L\nShift M\nShift N\nShift O\nShift P\nShift Q\nShift R\nShift S\nShift T\nDay Shift\nNight Shift"
   },
   {
    "fieldname": "target_group_key",
@@ -80,7 +80,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Target Shift",
-   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nDay Shift\nNight Shift"
+   "options": "\nShift A\nShift B\nShift C\nShift D\nShift E\nShift F\nShift G\nShift H\nShift I\nShift J\nShift K\nShift L\nShift M\nShift N\nShift O\nShift P\nShift Q\nShift R\nShift S\nShift T\nDay Shift\nNight Shift"
   },
   {
    "default": "Solid",
@@ -121,7 +121,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-10 11:04:11.066953",
+ "modified": "2026-07-29 09:14:55.938021",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Reporting Line",

@@ -5,7 +5,14 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "shift_type"
+  "shift_type",
+  "applies_monday",
+  "applies_tuesday",
+  "applies_wednesday",
+  "applies_thursday",
+  "applies_friday",
+  "applies_saturday",
+  "applies_sunday"
  ],
  "fields": [
   {
@@ -15,13 +22,62 @@
    "label": "Shift Type",
    "options": "Shift Type",
    "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_monday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Mon"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_tuesday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Tue"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_wednesday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Wed"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_thursday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Thu"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_friday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Fri"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_saturday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Sat"
+  },
+  {
+   "default": "1",
+   "fieldname": "applies_sunday",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Sun"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-24 14:14:21.565332",
+ "modified": "2026-07-28 17:37:00.912963",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Shift Design Shift Type",

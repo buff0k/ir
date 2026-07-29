@@ -33,6 +33,7 @@ class SiteOrganogramDesigner {
     this.suppress_control_events = false;
     this._control_load_timer = null;
     this._recovery_prompt_key = "";
+    this.shift_designs = [];
   }
 
   blank_state() {
@@ -42,7 +43,6 @@ class SiteOrganogramDesigner {
       docstatus: 0,
       branch: "",
       location: "",
-      shifts: "3",
       asset_categories: [],
       group_headings: [],
       employees: [],
@@ -55,7 +55,7 @@ class SiteOrganogramDesigner {
   async init() {
     this.build_shell();
     this.build_page_actions();
-    await this.load_designations();
+    await Promise.all([this.load_designations(), this.load_shift_designs()]);
     this.render_all();
   }
 
@@ -72,7 +72,6 @@ class SiteOrganogramDesigner {
               <div data-control="organogram"></div>
               <div data-control="branch"></div>
               <div data-control="location"></div>
-              <div data-control="shifts"></div>
               <div class="so-config-asset-categories" data-control="asset_categories"></div>
               <div class="so-selected-categories">
                 <div class="so-selected-categories__label">Selected Asset Categories</div>
@@ -128,11 +127,6 @@ class SiteOrganogramDesigner {
       df: { fieldtype: "Link", label: "Location", options: "Location", fieldname: "location", reqd: 1 },
       render_input: true,
     });
-    this.controls.shifts = frappe.ui.form.make_control({
-      parent: this.$main.find('[data-control="shifts"]'),
-      df: { fieldtype: "Select", label: "Shift Teams", options: "\n1\n2\n3\n4\n5", fieldname: "shifts", reqd: 1 },
-      render_input: true,
-    });
     this.controls.asset_categories = frappe.ui.form.make_control({
       parent: this.$main.find('[data-control="asset_categories"]'),
       df: { fieldtype: "MultiSelectList", label: "Applicable Asset Categories", fieldname: "asset_categories", get_data: txt => frappe.db.get_link_options("Asset Category", txt) },
@@ -159,17 +153,6 @@ class SiteOrganogramDesigner {
       if (location === this.state.location) return;
       this.state.location = location;
       this.mark_dirty();
-    });
-
-    this.bind_control_change(this.controls.shifts, () => {
-      if (this.suppress_control_events) return;
-      const shifts = this.controls.shifts.get_value() || "";
-      if (shifts === String(this.state.shifts || "")) return;
-      this.state.shifts = shifts;
-      this.reconcile_shifts();
-      this.mark_dirty();
-      this.render_planner();
-      this.render_reporting();
     });
 
     this.bind_control_change(this.controls.asset_categories, () => {
@@ -296,6 +279,18 @@ class SiteOrganogramDesigner {
     }
   }
 
+  async load_shift_designs() {
+    try {
+      this.shift_designs = await frappe.db.get_list("Shift Design", {
+        fields: ["name", "number_of_teams"],
+        order_by: "name asc",
+        limit: 0,
+      });
+    } catch (e) {
+      this.shift_designs = [];
+    }
+  }
+
   async load_document(name) {
     name = String(name || "").trim();
     if (!name) return;
@@ -359,7 +354,6 @@ class SiteOrganogramDesigner {
       this.controls.organogram.set_value(this.state.name || "");
       this.controls.branch.set_value(this.state.branch || "");
       this.controls.location.set_value(this.state.location || "");
-      this.controls.shifts.set_value(String(this.state.shifts || "3"));
       this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean));
       this.render_selected_asset_categories();
     } finally {
@@ -484,14 +478,13 @@ class SiteOrganogramDesigner {
     this.state.docstatus = 0;
     this.state.branch = branch;
     this.state.location = location;
-    this.state.shifts = String(template.shifts || this.state.shifts || "3");
     this.state.asset_categories = (template.asset_categories || []).map(row => ({
       asset_cateogories: row.asset_cateogories || "",
     })).filter(row => row.asset_cateogories);
     this.state.group_headings = (template.group_headings || []).map(row => ({
       group_key: row.group_key || this.new_group_key(),
       group: row.group || "",
-      shifts: row.shifts || "Shift Pattern",
+      shift_design: row.shift_design || "",
     }));
     this.state.employees = (template.employees || []).map(row => ({ ...row }));
     this.state.assets = (template.assets || []).map(row => ({ ...row }));
@@ -566,8 +559,16 @@ class SiteOrganogramDesigner {
 
   new_group_key() { return `GRP::${frappe.utils.get_random(10)}`; }
   new_designation_key(label) { return `DESIG::${label || "Unlinked Role"}::${frappe.utils.get_random(6)}`; }
-  active_shifts() { return ["A","B","C","D","E"].slice(0, Math.max(0, Math.min(5, Number(this.state.shifts || 0)))).map(x => `Shift ${x}`); }
-  shifts_for_group(g) { return g.shifts === "Day Shift Only" ? ["Day Shift"] : g.shifts === "Night Shift Only" ? ["Night Shift"] : this.active_shifts(); }
+  shift_design_team_count(designName) {
+    const row = (this.shift_designs || []).find(d => d.name === designName);
+    return row ? Math.max(0, Number(row.number_of_teams) || 0) : 0;
+  }
+  slots_for_count(count) {
+    return Array.from({ length: Math.max(0, Math.min(20, count)) }, (_, i) => `Shift ${String.fromCharCode(65 + i)}`);
+  }
+  shifts_for_group(g) {
+    return this.slots_for_count(this.shift_design_team_count(g.shift_design));
+  }
 
   sync_group_references() {
     const byKey = new Map(this.state.group_headings.map(g => [g.group_key, g]));
@@ -656,8 +657,9 @@ class SiteOrganogramDesigner {
       ${rows.length ? `<table class="so-table"><tbody>${rows.map((g,i) => `
         <tr data-group-index="${i}">
           <td><input class="form-control" data-group-field="group" value="${this.esc(g.group || "")}" placeholder="Heading name"></td>
-          <td><select class="form-control" data-group-field="shifts">
-            ${["Shift Pattern","Day Shift Only","Night Shift Only"].map(v => `<option ${g.shifts===v?"selected":""}>${v}</option>`).join("")}
+          <td><select class="form-control" data-group-field="shift_design">
+            <option value="">${this.esc("Select Shift Design")}</option>
+            ${(this.shift_designs || []).map(d => `<option value="${this.esc(d.name)}" ${g.shift_design===d.name?"selected":""}>${this.esc(d.name)} (${d.number_of_teams})</option>`).join("")}
           </select></td>
           <td class="so-group-remove-cell"><button class="so-icon-btn" data-group-action="remove" title="Remove">×</button></td>
         </tr>`).join("")}</tbody></table>` : '<div class="so-empty">No group headings configured.</div>'}
@@ -665,7 +667,7 @@ class SiteOrganogramDesigner {
     `);
 
     $w.find('[data-group-action="add"]').on("click", () => {
-      this.state.group_headings.push({ group_key:this.new_group_key(), group:"", shifts:"Shift Pattern" });
+      this.state.group_headings.push({ group_key:this.new_group_key(), group:"", shift_design:"" });
       this.mark_dirty(); this.render_groups(); this.render_planner(); this.render_reporting();
     });
     $w.find('[data-group-action="remove"]').on("click", async ev => {
@@ -710,6 +712,15 @@ class SiteOrganogramDesigner {
 
   render_planner() {
     const $w = this.$main.find(".so-planner");
+
+    // The pool search input is rebuilt from scratch below (debounced on
+    // every keystroke) - a plain $w.html() replace drops focus from under
+    // the user after the very first character. Capture focus/cursor state
+    // beforehand and restore it onto the freshly-rendered input afterwards.
+    const searchEl = $w.find("[data-pool-search]").get(0);
+    const searchHadFocus = !!searchEl && document.activeElement === searchEl;
+    const searchSelection = searchHadFocus ? [searchEl.selectionStart, searchEl.selectionEnd] : null;
+
     const assignedEmployees = new Set(this.state.shift_mappings.map(r=>r.employee).filter(Boolean));
     const assignedAssets = new Set(this.state.shift_mappings.filter(r=>r.row_type==="Asset"&&r.asset).map(r=>r.asset));
     const q = this.pool_query.toLowerCase();
@@ -725,7 +736,7 @@ class SiteOrganogramDesigner {
       const shifts = this.shifts_for_group(g);
       const rows = this.mapping_rows_for_group(g);
       return `<div class="so-group">
-        <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div><div class="so-group__mode">${this.esc(g.shifts)}</div></div>
+        <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div><div class="so-group__mode">${this.esc(g.shift_design)}</div></div>
         <div class="so-gridwrap"><div class="so-grid" data-drop="grid" data-group-key="${this.esc(g.group_key)}">
           <div class="so-grid__hdr"><div class="so-hcell so-h-left">Asset / Designation</div>${shifts.map(s=>`<div class="so-hcell so-h-slot">${this.esc(s)}</div>`).join("")}</div>
           ${rows.length ? rows.map(identity => `<div class="so-grid__row so-rowdrag" draggable="true" data-drag-type="row" data-group-key="${this.esc(g.group_key)}" data-row-key="${this.esc(identity.row_key)}">
@@ -746,12 +757,20 @@ class SiteOrganogramDesigner {
       </div></div></div>`);
 
     this.bind_planner_events($w);
+
+    if (searchHadFocus) {
+      const newSearchEl = $w.find("[data-pool-search]").get(0);
+      if (newSearchEl) {
+        newSearchEl.focus();
+        newSearchEl.setSelectionRange(searchSelection[0], searchSelection[1]);
+      }
+    }
   }
 
   employee_card(e,type,payload) { return `<div class="so-card" draggable="true" data-drag-type="${type}" data-employee="${this.esc(e.employee)}" ${payload?`data-payload='${this.esc(JSON.stringify(payload))}'`:""}><div class="so-card__title">${this.esc(e.employee_name||e.employee)} (${this.esc(e.employee)})</div><div class="so-card__meta">${this.esc(e.designation||"")}</div></div>`; }
   asset_card(a) { return `<div class="so-card" draggable="true" data-drag-type="asset" data-asset="${this.esc(a.asset)}"><div class="so-card__title">${this.esc(a.asset)}</div><div class="so-card__meta">${this.esc(a.item_name||a.asset_category||"")}</div></div>`; }
   designation_card(d) { return `<div class="so-card" draggable="true" data-drag-type="designation" data-designation="${this.esc(d)}"><div class="so-card__title">${this.esc(d)}</div></div>`; }
-  row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); const spare=!!r.spare_swing; return `<div class="so-rowlabel ${spare?"is-spare":""}"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div><button type="button" class="so-spare-toggle ${spare?"is-active":""}" data-action="toggle-spare" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Mark this Asset as Spare / Swing — it won't accept Employees")}">${spare?__("Spare / Swing"):__("Mark Spare / Swing")}</button></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
+  row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); const spare=!!r.spare_swing; return `<div class="so-rowlabel ${spare?"is-spare":""}"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div><button type="button" class="so-spare-toggle ${spare?"is-active":""}" data-action="toggle-spare" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Mark this Asset as Spare / Swing — it won't accept Employees")}">${spare?__("Spare / Swing"):__("Mark Spare / Swing")}</button><button type="button" class="so-designation-toggle ${r.designation?"is-active":""}" data-action="set-designation" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Set the default Designation for this Asset — used to count vacancies by role")}">${this.esc(r.designation||__("Set Designation"))}</button></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
   slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const spare=!!r?.spare_swing; const e=r?.employee?this.employee_by_id(r.employee):null; const stateClass=spare?"is-spare":e?"is-filled":"is-empty"; const dropAttr=spare?"":`data-drop="cell"`; return `<div class="so-slot ${stateClass}" ${dropAttr} data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):spare?'<span class="so-vacant so-vacant--spare">Spare</span>':'<span class="so-vacant">Vacant</span>'}</div>`; }
 
   bind_planner_events($w) {
@@ -774,6 +793,37 @@ class SiteOrganogramDesigner {
       if(type==="pool"){if(p.type==="assigned"&&p.from)this.unassign(p.from);if(p.type==="row")this.remove_row(p.group_key,p.row_key);}
     });
     $w.find('[data-action="toggle-spare"]').on("click",e=>{e.stopPropagation();this.toggle_spare_swing(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey);});
+    $w.find('[data-action="set-designation"]').on("click",e=>{e.stopPropagation();this.prompt_row_designation(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey);});
+  }
+
+  prompt_row_designation(groupKey,rowKey) {
+    const rows=this.state.shift_mappings.filter(r=>r.group_key===groupKey&&r.row_key===rowKey&&r.row_type==="Asset");
+    if(!rows.length)return;
+    const dialog=frappe.prompt(
+      [{ fieldname:"designation", fieldtype:"Link", options:"Designation", label:__("Designation"), default:rows[0].designation||"" }],
+      values=>this.set_row_designation(groupKey,rowKey,values.designation||""),
+      __("Set Default Designation"),
+      __("Set"),
+    );
+    // This bench's Frappe build always treats a Dialog containing a Link
+    // field as if its awesomplete suggestion list is open, so it swallows
+    // the *first* Escape press (closing only on a second one) - until then
+    // the dialog is still genuinely open, and its modal-backdrop silently
+    // blocks every click/drag on the page underneath, including dragging
+    // rows in the planner below. Force a real close on the first Escape
+    // instead of waiting on Frappe's own handling.
+    const forceCloseOnEscape=e=>{
+      if((e.key==="Escape"||e.keyCode===27)&&dialog.display)dialog.hide();
+    };
+    document.addEventListener("keydown",forceCloseOnEscape,true);
+    dialog.onhide=()=>document.removeEventListener("keydown",forceCloseOnEscape,true);
+  }
+
+  set_row_designation(groupKey,rowKey,value) {
+    const rows=this.state.shift_mappings.filter(r=>r.group_key===groupKey&&r.row_key===rowKey&&r.row_type==="Asset");
+    if(!rows.length)return;
+    for(const r of rows)r.designation=value;
+    this.mark_dirty();this.render_planner();
   }
 
   add_row(groupKey,type,value) {
@@ -782,7 +832,7 @@ class SiteOrganogramDesigner {
     if(this.state.shift_mappings.some(r=>r.group_key===groupKey&&r.row_key===rowKey))return;
     const asset=type==="Asset"?this.asset_by_id(value):null;
     const order=this.mapping_rows_for_group(g).length+1;
-    for(const shift of this.shifts_for_group(g))this.state.shift_mappings.push({group_key:g.group_key,group:g.group,shift,employee:"",asset:type==="Asset"?value:"",row_key:rowKey,row_order:order,row_label:type==="Asset"?[value,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — "):value,row_type:type,spare_swing:0,missing_asset:0,missing_employee:0});
+    for(const shift of this.shifts_for_group(g))this.state.shift_mappings.push({group_key:g.group_key,group:g.group,shift,employee:"",asset:type==="Asset"?value:"",designation:"",row_key:rowKey,row_order:order,row_label:type==="Asset"?[value,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — "):value,row_type:type,spare_swing:0,missing_asset:0,missing_employee:0});
     this.mark_dirty();this.render_planner();
   }
 
@@ -825,7 +875,6 @@ class SiteOrganogramDesigner {
           shift,
           shift_order: shiftOrder,
           group_order: groupOrder,
-          group_mode: group.shifts || "",
           rows: this.organogram_block_rows(group, shift),
         };
         blocks.push(block);

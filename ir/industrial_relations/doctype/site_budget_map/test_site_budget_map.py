@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 
-class IntegrationTestShiftPlan(IntegrationTestCase):
+class IntegrationTestSiteBudgetMap(IntegrationTestCase):
 	"""
-	Integration tests for ShiftPlan.
+	Integration tests for SiteBudgetMap.
 	Use this class for testing interactions between multiple components.
 	"""
 
