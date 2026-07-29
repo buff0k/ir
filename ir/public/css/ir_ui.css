@@ -937,6 +937,27 @@
   background: color-mix(in srgb, var(--gray-500, #6b7280) 18%, transparent);
   opacity: 1;
 }
+.so-designation-toggle {
+  margin-top: 4px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background: var(--control-bg);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 6px;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.so-designation-toggle.is-active {
+  border-color: color-mix(in srgb, var(--blue-500, #3b82f6) 55%, var(--border-color));
+  background: color-mix(in srgb, var(--blue-500, #3b82f6) 16%, transparent);
+  opacity: 1;
+  text-transform: none;
+}
 
 .so-org-person-row.is-spare {
   border-color: color-mix(
@@ -1232,6 +1253,9 @@
 .sdm-summary-table th:first-child,
 .sdm-summary-table td:first-child {
   text-align: left;
+}
+.sdm-summary-table .sdm-team-cell {
+  text-align: left;
   font-weight: 900;
 }
 .sdm-rules-table th,
@@ -1381,6 +1405,10 @@
   opacity: 0.55;
   background: var(--control-bg);
 }
+.sdm-mini--conflict {
+  outline: 2px dashed var(--orange-500, #f59e0b);
+  outline-offset: 1px;
+}
 .sdm-empty {
   padding: 18px;
   border: 1px dashed var(--border-color);
@@ -1397,9 +1425,6 @@
   .sdm-group-row {
     grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
-  .sdm-month-grid {
-    grid-template-columns: repeat(4, minmax(140px, 1fr));
-  }
   .sdm-cycle-kpis,
   .sdm-kpis {
     grid-template-columns: repeat(2, minmax(150px, 1fr));
@@ -1410,7 +1435,6 @@
   .sdm-generator-grid,
   .sdm-simulation-grid,
   .sdm-group-row,
-  .sdm-month-grid,
   .sdm-cycle-kpis,
   .sdm-kpis {
     grid-template-columns: 1fr;
@@ -1421,6 +1445,51 @@
   }
   .sdm-save-state {
     margin-left: 0;
+  }
+}
+
+/* The calendar is always a 7-day week - unlike the form grids above, it must
+   never drop below 7 columns (that breaks the weekday-header alignment).
+   Narrow viewports shrink the column floor and text instead. */
+@media (max-width: 1200px) {
+  .sdm-month-grid {
+    grid-template-columns: repeat(7, minmax(90px, 1fr));
+    gap: 4px;
+  }
+  .sdm-date {
+    min-height: 90px;
+    padding: 5px;
+  }
+  .sdm-mini {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 900px) {
+  .sdm-month-grid {
+    grid-template-columns: repeat(7, minmax(60px, 1fr));
+    gap: 3px;
+  }
+  .sdm-date {
+    min-height: 70px;
+    padding: 4px;
+  }
+  .sdm-date__head {
+    font-size: 9px;
+  }
+  .sdm-date__head b {
+    font-size: 12px;
+  }
+  .sdm-holiday {
+    display: none;
+  }
+  .sdm-mini {
+    font-size: 8px;
+    padding: 2px 3px;
+  }
+  .sdm-weekday-head {
+    font-size: 9px;
   }
 }
 

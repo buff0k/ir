@@ -171,6 +171,22 @@ class ShiftDesign(Document):
 
 			seen.add(shift_type)
 
+			# Shift Types are the sole provider of shift-length hours (there is
+			# no fallback-hours mechanism), so a Shift Type that can't compute
+			# a duration would silently contribute 0 hours everywhere it's
+			# used - reject it here instead of saving that quietly.
+			start_time, end_time = frappe.db.get_value(
+				"Shift Type", shift_type, ["start_time", "end_time"]
+			) or (None, None)
+
+			if not start_time or not end_time:
+				frappe.throw(
+					_(
+						"Shift Type '{0}' has no Start Time/End Time set, so its hours "
+						"cannot be computed. Set both on the Shift Type before using it here."
+					).format(shift_type)
+				)
+
 	def configured_shift_types(self):
 		return {
 			_clean(row.shift_type)
@@ -271,7 +287,7 @@ class ShiftDesign(Document):
 		# special-purpose Shift Type (e.g. a "Sunday Day" shift with its own
 		# hours) that never appears in the normal rotation at all. The Link
 		# field itself already guarantees it's a real Shift Type record.
-		actions_needing_target = {"Restrict to Shift Type", "Continue Previous Shift Team"}
+		actions_needing_target = {"Continue Previous Shift Team"}
 
 		for row in self.calendar_rules or []:
 			if _clean(row.rule_type) == "Weekday" and not _clean(row.day_of_week):

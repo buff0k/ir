@@ -14,7 +14,6 @@
   "asset_categories",
   "column_break_qkkw",
   "location",
-  "shifts",
   "group_headings",
   "employees_tab",
   "employees",
@@ -51,14 +50,6 @@
    "fieldtype": "Table MultiSelect",
    "label": "Applicable Asset Categories",
    "options": "Site Organogram Asset Categories",
-   "reqd": 1
-  },
-  {
-   "fieldname": "shifts",
-   "fieldtype": "Select",
-   "label": "Shift Teams",
-   "non_negative": 1,
-   "options": "\n1\n2\n3\n4\n5",
    "reqd": 1
   },
   {
@@ -132,7 +123,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-24 10:13:21.011115",
+ "modified": "2026-07-29 09:12:23.280567",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",

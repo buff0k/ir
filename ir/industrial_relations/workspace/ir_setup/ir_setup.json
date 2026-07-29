@@ -243,7 +243,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -317,9 +317,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Budget Map",
+   "link_count": 0,
+   "link_to": "Site Budget Map",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-24 07:26:51.234544",
+ "modified": "2026-07-29 12:38:21.590181",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

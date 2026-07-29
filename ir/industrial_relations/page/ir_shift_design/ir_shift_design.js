@@ -18,6 +18,33 @@ const SHIFT_TYPE_COLORS = {
 };
 const SHIFT_TYPE_FALLBACK_COLOR = "#64748b";
 
+// Deterministic per-team colors (there's no "team color" field - Teams are
+// just rows in a Design's own table, so color is assigned by table position).
+const TEAM_COLORS = [
+  "#3b82f6",
+  "#22c55e",
+  "#f59e0b",
+  "#d946ef",
+  "#06b6d4",
+  "#ef4444",
+  "#84cc16",
+  "#8b5cf6",
+  "#ec4899",
+  "#eab308",
+];
+
+// Indexed by moment().day() (Sun=0..Sat=6) - which "Shift Design Shift Type"
+// weekday-applicability field to check for a given real date.
+const WEEKDAY_APPLIES_FIELDS = [
+  "applies_sunday",
+  "applies_monday",
+  "applies_tuesday",
+  "applies_wednesday",
+  "applies_thursday",
+  "applies_friday",
+  "applies_saturday",
+];
+
 frappe.pages["ir-shift-design"].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
     parent: wrapper,
@@ -78,7 +105,6 @@ class ShiftPatternModeller {
       stagger_method: "Evenly Stagger",
       simulation_start: start,
       simulation_end: frappe.datetime.add_months(start, 3),
-      default_hours: 12,
     };
   }
 
@@ -152,7 +178,6 @@ class ShiftPatternModeller {
               <div class="sdm-shift-type-runs"></div>
               <div data-sim-control="off_runs"></div>
               <div data-sim-control="stagger_method"></div>
-              <div data-sim-control="default_hours"></div>
             </div>
 
             <div class="sdm-actions">
@@ -320,7 +345,6 @@ class ShiftPatternModeller {
     });
     this.controls.company = this.control("company", "Link", __("Company"), {
       options: "Company",
-      reqd: 1,
     });
     this.controls.design_name = this.control(
       "design_name",
@@ -384,12 +408,6 @@ class ShiftPatternModeller {
       __("Team Stagger"),
       { options: "Evenly Stagger\nSequential Blocks" },
     );
-    this.sim_controls.default_hours = this.sim_control(
-      "default_hours",
-      "Float",
-      __("Fallback Hours"),
-      { description: __("Used only if a Shift Type has no computable duration.") },
-    );
     this.sim_controls.simulation_start = this.sim_control(
       "simulation_start",
       "Date",
@@ -452,7 +470,7 @@ class ShiftPatternModeller {
 
     for (const [fieldname, control] of Object.entries(this.sim_controls)) {
       this.bind_control(control, (value) => {
-        if (["off_runs", "default_hours"].includes(fieldname)) {
+        if (["off_runs"].includes(fieldname)) {
           value = flt(value);
         }
 
@@ -719,6 +737,25 @@ class ShiftPatternModeller {
     return SHIFT_TYPE_COLORS[row?.color] || SHIFT_TYPE_FALLBACK_COLOR;
   }
 
+  team_color(teamKey) {
+    const teams = this.state.teams || [];
+    const index = teams.findIndex((row) => row.team_key === teamKey);
+    return TEAM_COLORS[index >= 0 ? index % TEAM_COLORS.length : 0];
+  }
+
+  is_allowed_on_weekday(shiftTypeName, date) {
+    if (!shiftTypeName) return true;
+
+    const row = (this.state.shift_types || []).find(
+      (item) => item.shift_type === shiftTypeName,
+    );
+    if (!row) return true;
+
+    const fieldname = WEEKDAY_APPLIES_FIELDS[moment(date).day()];
+    const value = row[fieldname];
+    return value === undefined || value === null || !!cint(value);
+  }
+
   render_shift_type_controls() {
     const shiftTypes = this.state.shift_types || [];
 
@@ -751,6 +788,9 @@ class ShiftPatternModeller {
         fieldtype: "Link",
         label: __("Shift Type"),
         options: "Shift Type",
+        // Add as soon as a value is picked/confirmed - no separate button
+        // click needed. The button stays as a fallback/no-op-safe re-trigger.
+        onchange: () => this.add_shift_type(),
       },
       render_input: true,
     });
@@ -842,9 +882,9 @@ class ShiftPatternModeller {
       "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
     ];
     const actions = [
-      "Follow Pattern", "No Work", "Restrict to Shift Type", "Continue Previous Shift Team",
+      "Follow Pattern", "No Work", "Continue Previous Shift Team",
     ];
-    const actionsNeedingTarget = new Set(["Restrict to Shift Type", "Continue Previous Shift Team"]);
+    const actionsNeedingTarget = new Set(["Continue Previous Shift Team"]);
 
     const rows = rules
       .map((rule, index) => {
@@ -1061,9 +1101,11 @@ class ShiftPatternModeller {
           `;
         }
 
+        const teamColor = this.team_color(team.team_key);
+
         return `
           <tr>
-            <td class="sdm-team-name">
+            <td class="sdm-team-name" style="border-left:3px solid ${teamColor}">
               ${frappe.utils.escape_html(team.team_name)}
             </td>
             ${cells}
@@ -1222,14 +1264,26 @@ class ShiftPatternModeller {
             .map((team) => {
               const assignment = assignments[team.team_key] || "";
               const isOff = !assignment;
-              const color = isOff ? "" : this.shift_type_color(assignment);
+              // Color by team here (not shift type) - teams are already
+              // listed in the same top-to-bottom order everywhere else
+              // (pattern grid, hours tables), so a consistent team color
+              // lets the shift name itself convey which team is on it.
+              const color = isOff ? "" : this.team_color(team.team_key);
               const style = isOff
                 ? ""
                 : `style="background:color-mix(in srgb, ${color} 20%, transparent)"`;
+              const isConflict =
+                !isOff && !this.is_allowed_on_weekday(assignment, date);
+              const label = this.assignment_label(assignment, team.team_name);
+              // Full label always in a title, since narrow viewports
+              // ellipsis-truncate the visible text (see ir_ui.css).
+              const titleText = isConflict
+                ? __("{0} - not configured to apply on this weekday.", [label])
+                : label;
 
               return `
-                <span class="sdm-mini ${isOff ? "sdm-mini--off" : ""}" ${style}>
-                  ${this.assignment_label(assignment, team.team_name)}
+                <span class="sdm-mini ${isOff ? "sdm-mini--off" : ""} ${isConflict ? "sdm-mini--conflict" : ""}" ${style} title="${this.attr(titleText)}">
+                  ${label}
                 </span>
               `;
             })
@@ -1278,7 +1332,7 @@ class ShiftPatternModeller {
     const ordinaryUsed = {};
 
     teams.forEach((team) => {
-      totals[team.team_key] = this.empty_hours_row(team.team_name);
+      totals[team.team_key] = this.empty_hours_row(team.team_key, team.team_name);
     });
 
     for (const date of dates) {
@@ -1299,7 +1353,7 @@ class ShiftPatternModeller {
         const hours = this.hours_for(assignment, date);
         const totalRow = totals[team.team_key];
         const periodRows = periods[period.key].rows;
-        periodRows[team.team_key] ||= this.empty_hours_row(team.team_name);
+        periodRows[team.team_key] ||= this.empty_hours_row(team.team_key, team.team_name);
         const periodRow = periodRows[team.team_key];
 
         this.add_assignment_hours(totalRow, assignment, hours);
@@ -1338,8 +1392,9 @@ class ShiftPatternModeller {
     this.render_coverage(teams, dates);
   }
 
-  empty_hours_row(teamName) {
+  empty_hours_row(teamKey, teamName) {
     return {
+      team_key: teamKey,
       team: teamName,
       ordinary: 0,
       overtime: 0,
@@ -1386,22 +1441,7 @@ class ShiftPatternModeller {
               index === 0
                 ? `<td rowspan="${rows.length}">${frappe.utils.escape_html(period.label)}</td>`
                 : "";
-            const typeCells = shiftTypeNames
-              .map((name) => `<td>${this.num(row.by_type[name] || 0)}</td>`)
-              .join("");
-
-            return `
-              <tr>
-                ${periodCell}
-                <td>${frappe.utils.escape_html(row.team)}</td>
-                <td>${this.num(row.ordinary)}</td>
-                <td>${this.num(row.overtime)}</td>
-                <td>${this.num(row.sunday)}</td>
-                <td>${this.num(row.holiday)}</td>
-                <td>${this.num(row.total)}</td>
-                ${typeCells}
-              </tr>
-            `;
+            return this.hours_table_row(row, true, shiftTypeNames, periodCell);
           })
           .join("");
       })
@@ -1439,15 +1479,16 @@ class ShiftPatternModeller {
     `;
   }
 
-  hours_table_row(row, includePeriod, shiftTypeNames) {
+  hours_table_row(row, includePeriod, shiftTypeNames, periodCell) {
     const typeCells = (shiftTypeNames || [])
       .map((name) => `<td>${this.num(row.by_type[name] || 0)}</td>`)
       .join("");
+    const teamColor = this.team_color(row.team_key);
 
     return `
       <tr>
-        ${includePeriod ? `<td>${frappe.utils.escape_html(row.period || "")}</td>` : ""}
-        <td>${frappe.utils.escape_html(row.team)}</td>
+        ${includePeriod ? (periodCell ?? `<td>${frappe.utils.escape_html(row.period || "")}</td>`) : ""}
+        <td class="sdm-team-cell" style="border-left:3px solid ${teamColor}">${frappe.utils.escape_html(row.team)}</td>
         <td>${this.num(row.ordinary)}</td>
         <td>${this.num(row.overtime)}</td>
         <td>${this.num(row.sunday)}</td>
@@ -1578,15 +1619,6 @@ class ShiftPatternModeller {
 
     if (action === "No Work") {
       for (const team of teams) result[team.team_key] = "";
-      return result;
-    }
-
-    if (action === "Restrict to Shift Type") {
-      for (const team of teams) {
-        if (result[team.team_key] !== rule.target_shift_type) {
-          result[team.team_key] = "";
-        }
-      }
       return result;
     }
 
@@ -1736,7 +1768,6 @@ class ShiftPatternModeller {
 
   validate() {
     if (!this.state.design_name) return __("Design Name is required.");
-    if (!this.state.company) return __("Company is required.");
     if (!this.state.effective_from) return __("Effective From is required.");
     if (!this.state.anchor_date) return __("Cycle Anchor Date is required.");
     if (!this.state.shift_types.length) return __("At least one Shift Type is required.");
@@ -1797,7 +1828,10 @@ class ShiftPatternModeller {
       (row) => row.name === assignment,
     );
 
-    return flt(shiftType?.hours) || flt(this.simulation.default_hours);
+    // No fallback: Shift Types are the sole provider of shift-length hours,
+    // and validate_shift_types() on save rejects any Shift Type that can't
+    // compute a duration, so this should always be a real number.
+    return flt(shiftType?.hours);
   }
 
   pattern_date(day) {
