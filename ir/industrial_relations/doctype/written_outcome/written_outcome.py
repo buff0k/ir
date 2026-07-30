@@ -8,7 +8,7 @@ import frappe
 from bs4 import BeautifulSoup, Tag
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import escape_html, get_url_to_form
+from frappe.utils import escape_html, formatdate, get_url_to_form
 from frappe.utils import markdown as render_markdown
 
 
@@ -607,6 +607,56 @@ ANNEXURE_REFERENCE_RE = re.compile(r"\[([^\[\]]+)\]")
 LEVEL_PREFIX_RE = re.compile(r"^\s*(>+)\s*")
 
 HEADING_TAG_RE = re.compile(r"^h[1-6]$")
+
+
+def _person_line(name, coy_no, designation):
+    """"Full Name (Coy) - Designation", omitting whichever parts are blank."""
+    text = _normalise_text(name)
+    if coy_no:
+        text = f"{text} ({coy_no})".strip()
+    if designation:
+        text = f"{text} - {designation}".strip()
+    return escape_html(text) if text else ""
+
+
+def get_case_details_html(doc):
+    """
+    Render the fixed "who/when" block shown above Introduction: Employee,
+    Complainant and Chairperson (Full Name (Coy) - Designation), plus the
+    Enquiry and Outcome dates. Plain labelled facts, not part of the
+    numbered-paragraph sequence produced by get_outcome_body().
+
+    Registered as a Jinja method (see ir/hooks.py) so the Written Outcome
+    print format can call it directly at render time.
+    """
+    complainant_designation = (
+        frappe.db.get_value("Employee", doc.get("complainant"), "designation")
+        if doc.get("complainant")
+        else None
+    )
+    chairperson_designation = (
+        frappe.db.get_value("Employee", doc.get("chairperson"), "designation")
+        if doc.get("chairperson")
+        else None
+    )
+
+    rows = [
+        ("Employee", _person_line(doc.get("employee_name"), doc.get("employee"), doc.get("employee_designation"))),
+        ("Complainant", _person_line(doc.get("complainant_name"), doc.get("complainant"), complainant_designation)),
+        ("Chairperson", _person_line(doc.get("chairperson_name"), doc.get("chairperson"), chairperson_designation)),
+        ("Date of Enquiry", escape_html(formatdate(doc.get("enquiry_date"))) if doc.get("enquiry_date") else ""),
+        ("Date of Outcome", escape_html(formatdate(doc.get("outcome_date"))) if doc.get("outcome_date") else ""),
+    ]
+
+    items = "".join(
+        f'<div class="case-details__row">'
+        f'<span class="case-details__label">{escape_html(label)}:</span>'
+        f'<span class="case-details__value">{value}</span>'
+        f"</div>"
+        for label, value in rows
+        if value
+    )
+    return f'<div class="case-details">{items}</div>' if items else ""
 
 
 def get_outcome_body(doc):

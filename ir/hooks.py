@@ -209,6 +209,7 @@ fixtures = [
 jinja = {
 	"methods": [
 		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_outcome_body",
+		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_case_details_html",
 	],
 }
 scheduler_events = {
