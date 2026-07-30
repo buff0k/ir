@@ -271,17 +271,19 @@ def _get_nta_payload(nta_name: str | None, intervention_type: str | None) -> dic
     return out
 
 
-def _get_disciplinary_history_charges(action_doc) -> str:
-    charges = []
-
-    for row in action_doc.get("final_charges") or []:
+def _charge_lines(doc, fieldname: str) -> list[str]:
+    lines = []
+    for row in doc.get(fieldname) or []:
         charge = _normalise_text(row.get("charge"))
         if not charge:
             continue
-
         code_item = _normalise_text(row.get("code_item"))
-        charges.append(f"({code_item}) {charge}" if code_item else charge)
+        lines.append(f"({code_item}) {charge}" if code_item else charge)
+    return lines
 
+
+def _get_disciplinary_history_charges(action_doc) -> str:
+    charges = _charge_lines(action_doc, "final_charges")
     return "\n".join(charges) if charges else "No charges recorded"
 
 
@@ -633,51 +635,164 @@ def get_outcome_body(doc):
 
     for field, heading in OUTCOME_MARKDOWN_FIELDS.items():
         content = doc.get(field)
-        if not content:
-            continue
+        if content:
+            parts = [f"<h4>{escape_html(heading)}</h4>"]
 
-        parts = [f"<h4>{escape_html(heading)}</h4>"]
+            for raw_line in content.split("\n"):
+                match = LEVEL_PREFIX_RE.match(raw_line)
+                level = len(match.group(1)) if match else 0
+                line_text = (raw_line[match.end():] if match else raw_line).lstrip(" \t")
+                if not line_text.strip():
+                    continue
 
-        for raw_line in content.split("\n"):
-            match = LEVEL_PREFIX_RE.match(raw_line)
-            level = len(match.group(1)) if match else 0
-            line_text = (raw_line[match.end():] if match else raw_line).lstrip(" \t")
-            if not line_text.strip():
-                continue
+                # Render this one line's own markdown (bold/italic/links/a bare
+                # "1. " list marker, etc.) in isolation, then unwrap whatever
+                # single block element it produced - the numbering/indentation
+                # here is ours, not markdown's.
+                line_soup = BeautifulSoup(render_markdown(line_text), "html.parser")
+                top_nodes = [n for n in line_soup.contents if isinstance(n, Tag)]
+                if not top_nodes:
+                    continue
+                node = top_nodes[0]
 
-            # Render this one line's own markdown (bold/italic/links/a bare
-            # "1. " list marker, etc.) in isolation, then unwrap whatever
-            # single block element it produced - the numbering/indentation
-            # here is ours, not markdown's.
-            line_soup = BeautifulSoup(render_markdown(line_text), "html.parser")
-            top_nodes = [n for n in line_soup.contents if isinstance(n, Tag)]
-            if not top_nodes:
-                continue
-            node = top_nodes[0]
+                if node.name in ("ol", "ul"):
+                    # A bare "1. " / "- " line renders as a single-item list on
+                    # its own - unwrap to that one <li>, since the numbering and
+                    # indentation here are ours, not the list's.
+                    node = node.find("li") or node
 
-            if node.name in ("ol", "ul"):
-                # A bare "1. " / "- " line renders as a single-item list on
-                # its own - unwrap to that one <li>, since the numbering and
-                # indentation here are ours, not the list's.
-                node = node.find("li") or node
+                _linkify_annexure_refs(node, annexure_lookup, footnote_no_by_annexure, footnotes)
 
-            _linkify_annexure_refs(node, annexure_lookup, footnote_no_by_annexure, footnotes)
+                if HEADING_TAG_RE.match(node.name or ""):
+                    parts.append(str(node))
+                    continue
 
-            if HEADING_TAG_RE.match(node.name or ""):
-                parts.append(str(node))
-                continue
+                number = _advance_counters(counters, level)
+                parts.append(
+                    f'<div class="numbered-para level-{level}">'
+                    f'<span class="para-number">[{number}]</span>'
+                    f'<span class="para-text">{node.decode_contents()}</span>'
+                    f"</div>"
+                )
 
-            number = _advance_counters(counters, level)
-            parts.append(
-                f'<div class="numbered-para level-{level}">'
-                f'<span class="para-number">[{number}]</span>'
-                f'<span class="para-text">{node.decode_contents()}</span>'
-                f"</div>"
-            )
+            sections.append("\n".join(parts))
 
-        sections.append("\n".join(parts))
+        # These two fixed-position sections pull from the linked NTA / final
+        # charge fields rather than a Markdown Editor field, so they aren't
+        # part of OUTCOME_MARKDOWN_FIELDS - they're spliced in here, after
+        # Introduction and after Finding, sharing the same `counters` state
+        # so the numbering continues seamlessly around them.
+        if field == "summary_introduction":
+            nta_section = _nta_background_points(doc)
+            if nta_section:
+                heading, points = nta_section
+                section_html = _render_points_section(
+                    heading, points, counters, annexure_lookup, footnote_no_by_annexure, footnotes
+                )
+                if section_html:
+                    sections.append(section_html)
+        elif field == "summary_finding":
+            final_section = _final_details_points(doc)
+            if final_section:
+                heading, points = final_section
+                section_html = _render_points_section(
+                    heading, points, counters, annexure_lookup, footnote_no_by_annexure, footnotes
+                )
+                if section_html:
+                    sections.append(section_html)
 
     return "\n".join(sections), footnotes
+
+
+def _render_points_section(heading, points, counters, annexure_lookup, footnote_no_by_annexure, footnotes):
+    """Render a fixed heading + a short run of numbered points from plain
+    (non-Markdown) field values, advancing the same counters/footnote state
+    the main Markdown-field loop in get_outcome_body() uses, so it numbers
+    continuously with the sections around it.
+    """
+    if not heading or not points:
+        return ""
+
+    parts = [f"<h4>{escape_html(heading)}</h4>"]
+    for level, text in points:
+        node = BeautifulSoup(f"<span>{escape_html(text)}</span>", "html.parser").find("span")
+        _linkify_annexure_refs(node, annexure_lookup, footnote_no_by_annexure, footnotes)
+        number = _advance_counters(counters, level)
+        parts.append(
+            f'<div class="numbered-para level-{level}">'
+            f'<span class="para-number">[{number}]</span>'
+            f'<span class="para-text">{node.decode_contents()}</span>'
+            f"</div>"
+        )
+    return "\n".join(parts)
+
+
+def _nta_background_points(doc):
+    """Points for the "as per NTA" section inserted after Introduction."""
+    intervention = doc.get("ir_intervention")
+
+    if intervention == "Disciplinary Action":
+        charges = [
+            _normalise_text(row.get("indiv_charge"))
+            for row in (doc.get("nta_charges") or [])
+            if _normalise_text(row.get("indiv_charge"))
+        ]
+        if not charges:
+            return None
+        if len(charges) == 1:
+            return "Charges as per NTA", [(0, charges[0])]
+        points = [(0, "The Employee was charged as per the Notice to Attend as follows:")]
+        points += [(1, charge) for charge in charges]
+        return "Charges as per NTA", points
+
+    if intervention == "Incapacity Proceedings":
+        incap_type = _normalise_text(doc.get("incap_type_nta"))
+        details = _normalise_text(doc.get("incapacity_details_nta"))
+        if not incap_type and not details:
+            return None
+        points = []
+        if incap_type:
+            points.append((0, f"Type of Incapacity: {incap_type}"))
+        if details:
+            points.append((1 if incap_type else 0, f"Details of Incapacity: {details}"))
+        return "Type of Incapacity and Details of Incapacity", points
+
+    if intervention == "Poor Performance":
+        details = _normalise_text(doc.get("performance_details_nta"))
+        if not details:
+            return None
+        return "Details of Poor Performance as per NTA", [(0, details)]
+
+    return None
+
+
+def _final_details_points(doc):
+    """Points for the "Final ..." section inserted after Finding by Chairperson."""
+    intervention = doc.get("ir_intervention")
+
+    if intervention == "Disciplinary Action":
+        charges = _charge_lines(doc, "final_charges")
+        if not charges:
+            return None
+        if len(charges) == 1:
+            return "Final Charges", [(0, charges[0])]
+        points = [(0, "The final charges against the Employee were as follows:")]
+        points += [(1, charge) for charge in charges]
+        return "Final Charges", points
+
+    if intervention == "Incapacity Proceedings":
+        details = _normalise_text(doc.get("final_incapacity_details"))
+        if not details:
+            return None
+        return "Final Incapacity Details", [(0, details)]
+
+    if intervention == "Poor Performance":
+        details = _normalise_text(doc.get("final_performance_details"))
+        if not details:
+            return None
+        return "Final Poor Performance Details", [(0, details)]
+
+    return None
 
 
 def _advance_counters(counters, level):
