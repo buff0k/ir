@@ -8,6 +8,21 @@ frappe.ui.form.on("Site Budget Map", {
 	salary_structure(frm) {
 		render_salary_structure_preview(frm);
 	},
+	site_specific_allowances_add(frm) {
+		render_salary_structure_preview(frm);
+	},
+	site_specific_allowances_remove(frm) {
+		render_salary_structure_preview(frm);
+	},
+});
+
+frappe.ui.form.on("Site Budget Map Allowance", {
+	salary_component(frm) {
+		render_salary_structure_preview(frm);
+	},
+	amount(frm) {
+		render_salary_structure_preview(frm);
+	},
 });
 
 function render_salary_structure_preview(frm) {
@@ -17,8 +32,11 @@ function render_salary_structure_preview(frm) {
 		return;
 	}
 	frappe.call({
-		method: "ir.industrial_relations.doctype.site_budget_map.site_budget_map.get_salary_structure_preview",
-		args: { salary_structure: frm.doc.salary_structure },
+		method: "ir.industrial_relations.doctype.site_budget_map.site_budget_map.get_site_budget_map_preview",
+		args: {
+			salary_structure: frm.doc.salary_structure,
+			site_specific_allowances: frm.doc.site_specific_allowances || [],
+		},
 		callback(r) {
 			$wrapper.html(r.message || "");
 		},
