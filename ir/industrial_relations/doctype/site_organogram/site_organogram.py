@@ -821,6 +821,136 @@ def _get_vacancy_summary(doc):
     }
 
 
+def _iter_designation_slots(doc):
+    """Yield one dict per staffable FTE slot - a Designation row, or an
+    Asset row with a default Designation set (Spare/Swing Asset rows are
+    excluded, same as _get_vacancy_summary()'s semantics: a spare asset
+    isn't a staffing requirement). Asset rows with no Designation set are
+    skipped too - there's nothing to attribute them to.
+
+    Single shared row-classification used by get_designation_headcounts(),
+    get_designation_mismatches() and get_designation_slots_by_group(), so
+    "what counts as this row's Designation" is defined in exactly one place.
+    Yields: {group_key, group, shift, row_label, employee, designation}
+    """
+    for row in getattr(doc, "shift_mappings", None) or []:
+        row_type = _clean(getattr(row, "row_type", None))
+
+        if row_type == "Designation":
+            info = _parse_row_key(getattr(row, "row_key", None))
+            designation = info.get("designation") or _clean(getattr(row, "row_label", None)) or "Unlinked Role"
+        elif row_type == "Asset":
+            if _safe_int(getattr(row, "spare_swing", 0), 0):
+                continue
+            designation = _clean(getattr(row, "designation", None))
+            if not designation:
+                continue
+        else:
+            continue
+
+        yield {
+            "group_key": getattr(row, "group_key", None) or "",
+            "group": row.group or "",
+            "shift": row.shift or "",
+            "row_label": row.row_label or "",
+            "employee": row.employee or "",
+            "designation": designation,
+        }
+
+
+def get_designation_headcounts(doc):
+    """Per-Designation FTE headcount (filled/vacant/total) across the whole
+    Organogram - drives Site Budget's Designation costing table.
+    Returns: {designation: {"filled": n, "vacant": n, "total": n}}
+    """
+    counts = defaultdict(lambda: {"filled": 0, "vacant": 0, "total": 0})
+
+    for slot in _iter_designation_slots(doc):
+        bucket = counts[slot["designation"]]
+        bucket["total"] += 1
+        if slot["employee"]:
+            bucket["filled"] += 1
+        else:
+            bucket["vacant"] += 1
+
+    return {label: dict(values) for label, values in counts.items()}
+
+
+def get_designation_mismatches(doc):
+    """Filled slots where the assigned Employee's actual Designation doesn't
+    match the role's expected Designation - e.g. a Multi-Skilled Operator
+    assigned against a Dozer whose Designation is set to Dozer Operator.
+    """
+    employees = _employee_lookup(doc)
+    mismatches = []
+
+    for slot in _iter_designation_slots(doc):
+        if not slot["employee"]:
+            continue
+
+        employee_info = employees.get(slot["employee"], {})
+        actual = _clean(employee_info.get("designation"))
+
+        if actual and actual != slot["designation"]:
+            mismatches.append({
+                "group": slot["group"],
+                "shift": slot["shift"],
+                "row_label": slot["row_label"],
+                "employee": slot["employee"],
+                "employee_name": employee_info.get("employee_name") or slot["employee"],
+                "expected_designation": slot["designation"],
+                "actual_designation": actual,
+            })
+
+    return mismatches
+
+
+def get_designation_slots_by_group(doc):
+    """Every staffable slot, grouped by heading (group_key) with that
+    heading's own Shift Design - Site Budget uses this to cost each
+    Designation per-heading, since different headings can carry different
+    Shift Designs with different pay periods.
+
+    Also broken down by `shift` ("Shift A"/"Shift B"/...) within each group,
+    since Site Budget's overtime estimate needs to know which specific team
+    within that heading's Shift Design each slot belongs to (team order ==
+    shift-letter order, same as everywhere else in the app) - a slot's
+    overtime hours differ by team, not just by heading.
+
+    Returns: {group_key: {"shift_design": x, "designation_counts": {designation: count},
+    "by_shift": {shift: {designation: count}}}}
+    """
+    group_shift_design = {
+        row.group_key: row.shift_design
+        for row in getattr(doc, "group_headings", None) or []
+    }
+
+    by_group = defaultdict(
+        lambda: {
+            "shift_design": "",
+            "designation_counts": defaultdict(int),
+            "by_shift": defaultdict(lambda: defaultdict(int)),
+        }
+    )
+
+    for slot in _iter_designation_slots(doc):
+        bucket = by_group[slot["group_key"]]
+        bucket["shift_design"] = group_shift_design.get(slot["group_key"], "")
+        bucket["designation_counts"][slot["designation"]] += 1
+        bucket["by_shift"][slot["shift"]][slot["designation"]] += 1
+
+    return {
+        group_key: {
+            "shift_design": value["shift_design"],
+            "designation_counts": dict(value["designation_counts"]),
+            "by_shift": {
+                shift: dict(designation_counts) for shift, designation_counts in value["by_shift"].items()
+            },
+        }
+        for group_key, value in by_group.items()
+    }
+
+
 def _mapping_indexes(doc):
     by_slot = {}
     row_keys_by_group = defaultdict(OrderedDict)

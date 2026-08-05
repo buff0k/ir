@@ -9,9 +9,19 @@
   "section_break_yg7k",
   "amended_from",
   "site_organogram",
-  "shift_design",
   "from_date",
-  "end_date"
+  "end_date",
+  "section_overtime",
+  "overtime_type_normal",
+  "overtime_type_saturday",
+  "column_break_ot01",
+  "overtime_type_sunday",
+  "overtime_type_public_holiday",
+  "section_costing",
+  "designation_costs",
+  "budget_summary_preview",
+  "section_roster_calendar",
+  "roster_calendar_preview"
  ],
  "fields": [
   {
@@ -37,14 +47,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "shift_design",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Shift Design",
-   "options": "Shift Design",
-   "reqd": 1
-  },
-  {
    "fieldname": "from_date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -57,13 +59,76 @@
    "in_list_view": 1,
    "label": "End Date",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_overtime",
+   "fieldtype": "Section Break",
+   "label": "Overtime Configuration"
+  },
+  {
+   "description": "Applied to simulated weekday overtime hours (beyond each Shift Design's Ordinary Hours Limit). Left blank means weekday overtime is not costed.",
+   "fieldname": "overtime_type_normal",
+   "fieldtype": "Link",
+   "label": "Normal Overtime Type",
+   "options": "Overtime Type"
+  },
+  {
+   "description": "Applied to simulated Saturday overtime hours. Left blank means Saturday overtime is not costed.",
+   "fieldname": "overtime_type_saturday",
+   "fieldtype": "Link",
+   "label": "Saturday Overtime Type",
+   "options": "Overtime Type"
+  },
+  {
+   "fieldname": "column_break_ot01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Applied to simulated Sunday overtime hours. Left blank means Sunday overtime is not costed.",
+   "fieldname": "overtime_type_sunday",
+   "fieldtype": "Link",
+   "label": "Sunday Overtime Type",
+   "options": "Overtime Type"
+  },
+  {
+   "description": "Applied to simulated Public Holiday overtime hours (takes precedence over Saturday/Sunday). Left blank means Public Holiday overtime is not costed.",
+   "fieldname": "overtime_type_public_holiday",
+   "fieldtype": "Link",
+   "label": "Public Holiday Overtime Type",
+   "options": "Overtime Type"
+  },
+  {
+   "fieldname": "section_costing",
+   "fieldtype": "Section Break",
+   "label": "Designation Costing"
+  },
+  {
+   "fieldname": "designation_costs",
+   "fieldtype": "Table",
+   "label": "Designation to Salary Structure",
+   "options": "Site Budget Designation"
+  },
+  {
+   "fieldname": "budget_summary_preview",
+   "fieldtype": "HTML",
+   "label": "Budget Summary"
+  },
+  {
+   "fieldname": "section_roster_calendar",
+   "fieldtype": "Section Break",
+   "label": "Shift Roster Calendar"
+  },
+  {
+   "fieldname": "roster_calendar_preview",
+   "fieldtype": "HTML",
+   "label": "Shift Roster Calendar"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-29 12:40:58.382863",
+ "modified": "2026-08-01 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Budget",
