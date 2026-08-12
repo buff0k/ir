@@ -195,6 +195,7 @@ class HRExceptionReport {
         </article>
       </div>
       ${this.render_esg_section(d.esg_comparison)}
+      ${this.render_outcome_summary_section(d)}
       ${this.render_case_outcomes_section(
         __("Disciplinary Actions and Outcomes in the period"),
         d.disciplinary_outcomes?.rows,
@@ -538,6 +539,51 @@ class HRExceptionReport {
           <strong>${__("Calculation notes")}</strong>
           <ul>${(esg.assumptions || []).map((note) => `<li>${frappe.utils.escape_html(note)}</li>`).join("")}</ul>
         </div>
+      </section>
+    `;
+  }
+
+  outcome_counts(rows) {
+    const counts = new Map();
+    for (const row of rows || []) {
+      const label = row.outcome || __("Pending");
+      counts.set(label, (counts.get(label) || 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }
+
+  render_outcome_summary_section(d) {
+    const sources = [
+      [__("Disciplinary Actions"), d.disciplinary_outcomes?.rows],
+      [__("Incapacity Proceedings"), d.incapacity_outcomes?.rows],
+      [__("Poor Performance"), d.poor_performance_outcomes?.rows],
+    ];
+
+    const cards = sources.map(([label, rows]) => {
+      const counts = this.outcome_counts(rows);
+      const total = (rows || []).length;
+      return `
+        <div class="her-outcome-summary-card">
+          <div class="her-outcome-summary-card__title">${frappe.utils.escape_html(label)} <span class="her-outcome-summary-card__total">(${total})</span></div>
+          ${counts.length
+            ? `<table class="her-outcome-summary-table"><tbody>
+                ${counts.map(([outcome, count]) => `<tr><th>${frappe.utils.escape_html(outcome)}</th><td>${count}</td></tr>`).join("")}
+              </tbody></table>`
+            : `<div class="her-outcome-summary-empty">${__("No cases in the selected period.")}</div>`}
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <section class="her-esg-section">
+        <div class="her-esg-heading">
+          <div>
+            <span>${__("Additional detail")}</span>
+            <h2>${__("Outcome summary by source action")}</h2>
+            <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
+          </div>
+        </div>
+        <div class="her-outcome-summary-grid">${cards}</div>
       </section>
     `;
   }

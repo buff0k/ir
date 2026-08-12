@@ -2441,6 +2441,70 @@ button.her-mini-list {
   text-transform: uppercase;
 }
 
+/* Outcome summary by source action - page-only, not part of the PNG export. */
+.her-outcome-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.her-outcome-summary-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--control-bg);
+}
+
+.her-outcome-summary-card__title {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+
+.her-outcome-summary-card__total {
+  opacity: 0.65;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.her-outcome-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.her-outcome-summary-table th,
+.her-outcome-summary-table td {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.her-outcome-summary-table tr:last-child th,
+.her-outcome-summary-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.her-outcome-summary-table th {
+  font-weight: 600;
+}
+
+.her-outcome-summary-table td {
+  text-align: right;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.her-outcome-summary-empty {
+  font-size: 11px;
+  opacity: 0.65;
+  padding: 4px 0;
+}
+
 .her-esg-table tbody th {
   min-width: 300px;
   text-align: left;

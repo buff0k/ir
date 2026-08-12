@@ -410,7 +410,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General IR Documents",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -494,9 +494,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Plan Designer",
+   "link_count": 0,
+   "link_to": "ir-site-plan-design",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-29 12:51:56.475851",
+ "modified": "2026-08-07 11:43:11.156929",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
