@@ -137,12 +137,13 @@ def _employee_fields():
         "disabled": _first_existing_field(
             "Employee",
             [
+                "za_is_disabled",
                 "custom_disabled_employee",
                 "custom_disability",
                 "disabled_employee",
                 "person_with_disability",
             ],
-            labels=["Disabled Employee", "Disability", "Person with Disability"],
+            labels=["Is Disabled", "Disabled Employee", "Disability", "Person with Disability"],
         ),
         "nationality": _first_existing_field(
             "Employee", ["nationality", "custom_nationality", "country"], labels=["Nationality"]
