@@ -314,10 +314,15 @@ def _build_ee_profile(company, snapshot_date, branches=None):
         as_dict=True,
     )
 
-    all_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
-    disabled_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
-    temporary_all = _empty_ee_counts()
-    temporary_disabled = _empty_ee_counts()
+    # Temporary employees are still classified by Occupational Level, same as
+    # Permanent - EEA13 reports both employment types broken down by level,
+    # not Temporary as if it were itself a level. Employment type (Permanent
+    # vs Temporary) is a second, independent dimension, so every level gets
+    # its own permanent bucket *and* its own temporary bucket.
+    permanent_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
+    temporary_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
+    permanent_disabled_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
+    temporary_disabled_levels = {level: _empty_ee_counts() for level in EE_LEVELS}
     disabled_matrix = _empty_ee_counts()
     foreign_matrix = _empty_ee_counts()
     unclassified_levels = []
@@ -352,8 +357,8 @@ def _build_ee_profile(company, snapshot_date, branches=None):
             )
             continue
 
-        target = temporary_all if temporary else all_levels[level]
-        _add_ee_person(target, row.get("gender"), race, foreign)
+        level_target = (temporary_levels if temporary else permanent_levels)[level]
+        _add_ee_person(level_target, row.get("gender"), race, foreign)
 
         if not foreign and not race:
             unclassified_demographics.append(
@@ -366,29 +371,40 @@ def _build_ee_profile(company, snapshot_date, branches=None):
             )
 
         if disabled:
-            disability_target = temporary_disabled if temporary else disabled_levels[level]
+            disability_target = (temporary_disabled_levels if temporary else permanent_disabled_levels)[level]
             _add_ee_person(disability_target, row.get("gender"), race, foreign)
 
-    def table(level_data, temporary_data):
+    def table(permanent_level_data, temporary_level_data):
         permanent_total = _empty_ee_counts()
         for level in EE_LEVELS:
-            _combine_counts(permanent_total, level_data[level])
+            _combine_counts(permanent_total, permanent_level_data[level])
+
+        temporary_total = _empty_ee_counts()
+        for level in EE_LEVELS:
+            _combine_counts(temporary_total, temporary_level_data[level])
 
         grand_total = _empty_ee_counts()
         _combine_counts(grand_total, permanent_total)
-        _combine_counts(grand_total, temporary_data)
+        _combine_counts(grand_total, temporary_total)
+
+        combined_level_data = {level: _empty_ee_counts() for level in EE_LEVELS}
+        for level in EE_LEVELS:
+            _combine_counts(combined_level_data[level], permanent_level_data[level])
+            _combine_counts(combined_level_data[level], temporary_level_data[level])
 
         return {
-            "levels": [{"level": level, **level_data[level]} for level in EE_LEVELS],
+            "levels": [{"level": level, **permanent_level_data[level]} for level in EE_LEVELS],
+            "temporary_levels": [{"level": level, **temporary_level_data[level]} for level in EE_LEVELS],
+            "combined_levels": [{"level": level, **combined_level_data[level]} for level in EE_LEVELS],
             "total_permanent": permanent_total,
-            "temporary": temporary_data,
+            "temporary": temporary_total,
             "grand_total": grand_total,
         }
 
     return {
         "snapshot_date": str(snapshot_date),
-        "all_employees": table(all_levels, temporary_all),
-        "people_with_disabilities": table(disabled_levels, temporary_disabled),
+        "all_employees": table(permanent_levels, temporary_levels),
+        "people_with_disabilities": table(permanent_disabled_levels, temporary_disabled_levels),
         "special_rows": {
             "people_with_disabilities": disabled_matrix,
             "foreign_nationals": foreign_matrix,
@@ -1359,6 +1375,7 @@ def _case_detail_rows(
                 "detail": detail_value or "",
                 "outcome": outcome_display,
                 "outcome_date": str(case.outcome_date) if case.outcome_date else "",
+                "request_date": str(case.request_date) if case.request_date else "",
             }
         )
 

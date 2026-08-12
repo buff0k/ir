@@ -14,6 +14,11 @@ class HRExceptionReport {
       single_column: true,
     });
     this.data = null;
+    // Outcome tables/summary include closed cases by outcome_date, which can
+    // mean the underlying action was *opened* before the reporting period -
+    // legitimate ("what concluded this period"), but the page offers a
+    // toggle to narrow to actions also opened within the period.
+    this.include_pre_period_outcomes = true;
     this.build();
   }
 
@@ -198,19 +203,19 @@ class HRExceptionReport {
       ${this.render_outcome_summary_section(d)}
       ${this.render_case_outcomes_section(
         __("Disciplinary Actions and Outcomes in the period"),
-        d.disciplinary_outcomes?.rows,
+        this.filter_outcome_rows(d.disciplinary_outcomes?.rows, d),
         __("Final Charges"),
         __("No Disciplinary Actions with an outcome or pending in the selected period."),
       )}
       ${this.render_case_outcomes_section(
         __("Incapacity Proceedings and Outcomes in the period"),
-        d.incapacity_outcomes?.rows,
+        this.filter_outcome_rows(d.incapacity_outcomes?.rows, d),
         __("Type of Incapacity"),
         __("No Incapacity Proceedings with an outcome or pending in the selected period."),
       )}
       ${this.render_case_outcomes_section(
         __("Poor Performance Matters and Outcomes in the period"),
-        d.poor_performance_outcomes?.rows,
+        this.filter_outcome_rows(d.poor_performance_outcomes?.rows, d),
         __("Details of Poor Performance"),
         __("No Poor Performance matters with an outcome or pending in the selected period."),
       )}
@@ -218,6 +223,16 @@ class HRExceptionReport {
 
     this.bind_metric_clicks();
     this.$content.off("click.her-esg", '[data-action="export-new-employees"]').on("click.her-esg", '[data-action="export-new-employees"]', () => this.export_new_employee_details());
+    this.$content.off("change.her-outcome-toggle", '[data-action="toggle-pre-period-outcomes"]').on("change.her-outcome-toggle", '[data-action="toggle-pre-period-outcomes"]', (event) => {
+      this.include_pre_period_outcomes = event.currentTarget.checked;
+      this.render();
+    });
+  }
+
+  filter_outcome_rows(rows, d) {
+    rows = rows || [];
+    if (this.include_pre_period_outcomes) return rows;
+    return rows.filter((row) => !row.request_date || row.request_date >= d.from_date);
   }
 
   render_header(d) {
@@ -378,7 +393,26 @@ class HRExceptionReport {
               </div>`;
           }).join("")}
         </div>
+        ${this.render_average_days_strip(d)}
       </section>
+    `;
+  }
+
+  render_average_days_strip(d) {
+    const rows = [
+      [__("Disciplinary"), d.disciplinary.average_days_to_close],
+      [__("Incapacity"), d.incapacity.average_days_to_close],
+      [__("Poor performance"), d.poor_performance.average_days_to_close],
+      [__("External disputes"), d.external_disputes.average_days_to_close],
+    ];
+
+    return `
+      <div class="her-avg-days">
+        <div class="her-avg-days__title">${__("Average days to conclude in the period")}</div>
+        <div class="her-combined-strip her-combined-strip--v4">
+          ${rows.map(([label, value]) => `<div><span>${label}</span><b>${value}</b></div>`).join("")}
+        </div>
+      </div>
     `;
   }
 
@@ -425,9 +459,14 @@ class HRExceptionReport {
 
   render_ee_table(table, specialRows = {}) {
     const rows = [
+      { level: __("Permanent employees"), row_class: "is-section", is_section: true },
       ...table.levels.map((row) => ({ ...row, row_class: "" })),
       { level: __("TOTAL PERMANENT"), ...table.total_permanent, row_class: "is-total" },
-      { level: __("Temporary employees"), ...table.temporary, row_class: "is-subtotal" },
+      { level: __("Temporary employees"), row_class: "is-section", is_section: true },
+      ...(table.temporary_levels || []).map((row) => ({ ...row, row_class: "" })),
+      { level: __("TOTAL TEMPORARY"), ...table.temporary, row_class: "is-subtotal" },
+      { level: __("Combined (Permanent + Temporary)"), row_class: "is-section", is_section: true },
+      ...(table.combined_levels || []).map((row) => ({ ...row, row_class: "" })),
       { level: __("GRAND TOTAL"), ...table.grand_total, row_class: "is-grand-total" },
       { level: __("People with disabilities"), ...(specialRows.people_with_disabilities || {}), row_class: "is-special" },
       { level: __("Foreign nationals"), ...(specialRows.foreign_nationals || {}), row_class: "is-special" },
@@ -443,14 +482,16 @@ class HRExceptionReport {
               <th colspan="4">${__("Female")}</th>
               <th rowspan="2">${__("Total")}</th>
             </tr>
-            <tr><th>A</th><th>I</th><th>C</th><th>W</th><th>A</th><th>I</th><th>C</th><th>W</th></tr>
+            <tr><th>A</th><th>C</th><th>I</th><th>W</th><th>A</th><th>C</th><th>I</th><th>W</th></tr>
           </thead>
           <tbody>
-            ${rows.map((row) => `
+            ${rows.map((row) => row.is_section
+              ? `<tr class="${row.row_class}"><th colspan="10">${frappe.utils.escape_html(this.compact_level_label(row.level))}</th></tr>`
+              : `
               <tr class="${row.row_class}">
                 <th>${frappe.utils.escape_html(this.compact_level_label(row.level))}</th>
-                <td>${row.african_male || 0}</td><td>${row.indian_male || 0}</td><td>${row.coloured_male || 0}</td><td>${row.white_male || 0}</td>
-                <td>${row.african_female || 0}</td><td>${row.indian_female || 0}</td><td>${row.coloured_female || 0}</td><td>${row.white_female || 0}</td>
+                <td>${row.african_male || 0}</td><td>${row.coloured_male || 0}</td><td>${row.indian_male || 0}</td><td>${row.white_male || 0}</td>
+                <td>${row.african_female || 0}</td><td>${row.coloured_female || 0}</td><td>${row.indian_female || 0}</td><td>${row.white_female || 0}</td>
                 <td>${row.total || 0}</td>
               </tr>`).join("")}
           </tbody>
@@ -467,8 +508,11 @@ class HRExceptionReport {
       [__("Skilled Technical and Academically Qualified Workers, Junior Management, Supervisors, Foremen and Superintendents")]: __("Skilled Technical / Junior Mgmt / Supervisors"),
       [__("Semi-Skilled and Discretionary Decision Making")]: __("Semi-Skilled") ,
       [__("Unskilled and Defined Decision Making")]: __("Unskilled"),
+      [__("Permanent employees")]: __("Permanent employees"),
       [__("TOTAL PERMANENT")]: __("TOTAL PERMANENT"),
       [__("Temporary employees")]: __("Temporary employees"),
+      [__("TOTAL TEMPORARY")]: __("TOTAL TEMPORARY"),
+      [__("Combined (Permanent + Temporary)")]: __("Combined (Permanent + Temporary)"),
       [__("GRAND TOTAL")]: __("GRAND TOTAL"),
     };
     return map[level] || level;
@@ -554,9 +598,9 @@ class HRExceptionReport {
 
   render_outcome_summary_section(d) {
     const sources = [
-      [__("Disciplinary Actions"), d.disciplinary_outcomes?.rows],
-      [__("Incapacity Proceedings"), d.incapacity_outcomes?.rows],
-      [__("Poor Performance"), d.poor_performance_outcomes?.rows],
+      [__("Disciplinary Actions"), this.filter_outcome_rows(d.disciplinary_outcomes?.rows, d)],
+      [__("Incapacity Proceedings"), this.filter_outcome_rows(d.incapacity_outcomes?.rows, d)],
+      [__("Poor Performance"), this.filter_outcome_rows(d.poor_performance_outcomes?.rows, d)],
     ];
 
     const cards = sources.map(([label, rows]) => {
@@ -583,6 +627,10 @@ class HRExceptionReport {
             <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
           </div>
         </div>
+        <label class="her-outcome-toggle">
+          <input type="checkbox" data-action="toggle-pre-period-outcomes" ${this.include_pre_period_outcomes ? "checked" : ""}>
+          ${__("Include actions opened before the reporting period (a case can be opened earlier but conclude within it). Also applies to the detail tables below.")}
+        </label>
         <div class="her-outcome-summary-grid">${cards}</div>
       </section>
     `;
@@ -934,8 +982,8 @@ class HRExceptionReport {
                   <th rowspan="2">${__("Total")}</th>
                 </tr>
                 <tr>
-                  <th>A</th><th>I</th><th>C</th><th>W</th>
-                  <th>A</th><th>I</th><th>C</th><th>W</th>
+                  <th>A</th><th>C</th><th>I</th><th>W</th>
+                  <th>A</th><th>C</th><th>I</th><th>W</th>
                 </tr>
               </thead>
               <tbody>
@@ -943,12 +991,12 @@ class HRExceptionReport {
                   <tr class="${row.row_class}">
                     <th>${frappe.utils.escape_html(this.compact_level_label(row.level))}</th>
                     <td>${row.african_male || 0}</td>
-                    <td>${row.indian_male || 0}</td>
                     <td>${row.coloured_male || 0}</td>
+                    <td>${row.indian_male || 0}</td>
                     <td>${row.white_male || 0}</td>
                     <td>${row.african_female || 0}</td>
-                    <td>${row.indian_female || 0}</td>
                     <td>${row.coloured_female || 0}</td>
+                    <td>${row.indian_female || 0}</td>
                     <td>${row.white_female || 0}</td>
                     <td>${row.total || 0}</td>
                   </tr>`).join("")}

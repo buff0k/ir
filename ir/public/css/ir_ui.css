@@ -1995,6 +1995,19 @@ button.her-mini-list {
   font-weight: 900;
 }
 
+.her-avg-days {
+  margin-top: 12px;
+}
+
+.her-avg-days__title {
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
 .her-ee-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2074,6 +2087,19 @@ button.her-mini-list {
 .her-ee-table tr.is-grand-total td {
   font-weight: 900;
   background: rgba(59, 130, 246, 0.1);
+}
+
+.her-ee-table tr.is-section th {
+  padding-top: 8px;
+  background: transparent;
+  border-left: 0;
+  border-right: 0;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.65;
 }
 
 .her-ee-warning {
@@ -2503,6 +2529,22 @@ button.her-mini-list {
   font-size: 11px;
   opacity: 0.65;
   padding: 4px 0;
+}
+
+.her-outcome-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 2px 0 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.her-outcome-toggle input {
+  margin-top: 2px;
+  cursor: pointer;
 }
 
 .her-esg-table tbody th {
