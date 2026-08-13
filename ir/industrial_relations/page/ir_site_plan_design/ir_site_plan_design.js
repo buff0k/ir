@@ -177,7 +177,14 @@ class SitePlanDesigner {
   }
 
   async load_plan(name) {
-    const response = await frappe.call({ method: `${SP_API}.get_plan`, args: { name } });
+    // this.bootstrap.shift_designs is fetched once at page load - refreshed
+    // alongside the load so a Shift Design created after this tab was first
+    // opened is already known before render_all() below works out each
+    // group's shift columns (and reporting-line row counts) from it.
+    const [response] = await Promise.all([
+      frappe.call({ method: `${SP_API}.get_plan`, args: { name } }),
+      this.load_bootstrap(),
+    ]);
     this.state = { ...this.blank_state(), ...(response.message || {}) };
     this.dirty = false;
     await this.sync_controls();
@@ -634,41 +641,71 @@ class SitePlanDesigner {
     const rootInset = columnWidth / 2;
     const branchSpineInset = 18;
 
+    // A branch with zero descendant rows (e.g. "Engineering" reporting
+    // straight to the root, nothing below it) shouldn't draw *any* "drops
+    // down further" connector - the old code drew one unconditionally for
+    // every branch, producing a stub hanging off branches that connect to
+    // nothing. Same idea per-row below: a branch's spine should only cover
+    // rows up to and including its own last row with a node in it, not the
+    // full height of every level row that happens to exist for *other*
+    // branches.
+    const lastRowIndexByBranch = new Map();
+    layout.branches.forEach((branch) => {
+      let last = -1;
+      layout.rowDefs.forEach((row, idx) => {
+        if (layout.branchRows.get(branch.key)?.has(row.group_key)) last = idx;
+      });
+      lastRowIndexByBranch.set(branch.key, last);
+    });
+
     const branchRow = layout.branches
-      .map(
-        (branch) => `
-        <div class="so-org-grid__cell so-org-grid__cell--branch" style="--branch-spine-x:${branchSpineInset}px;">
+      .map((branch) => {
+        const hasDescendants = lastRowIndexByBranch.get(branch.key) >= 0;
+        return `
+        <div class="so-org-grid__cell so-org-grid__cell--branch${hasDescendants ? " has-descendants" : ""}" style="--branch-spine-x:${branchSpineInset}px;">
           ${this.plan_block_html(this.reporting_present_node(branch))}
-        </div>`,
-      )
+        </div>`;
+      })
       .join("");
 
     const levelRows = layout.rowDefs
-      .map(
-        (row) => `
-        <div class="so-org-grid__row so-org-grid__row--level" style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
-          ${layout.branches
-            .map((branch) => {
-              const node = layout.branchRows.get(branch.key)?.get(row.group_key);
-              return `
+      .map((row, rowIndex) => {
+        const guides = layout.branches
+          .map((branch, index) => {
+            const lastIdx = lastRowIndexByBranch.get(branch.key);
+            if (lastIdx < 0 || rowIndex > lastIdx) return "";
+            const spineX = index * (columnWidth + columnGap) + branchSpineInset;
+            const isTerminal = rowIndex === lastIdx;
+            return `<span class="so-org-descendants__row-spine${isTerminal ? " is-terminal" : ""}" style="left:${spineX}px"></span>`;
+          })
+          .join("");
+
+        const cells = layout.branches
+          .map((branch) => {
+            const node = layout.branchRows.get(branch.key)?.get(row.group_key);
+            return `
                 <div class="so-org-grid__cell ${node ? "has-node" : "is-empty"}" style="--branch-spine-x:${branchSpineInset}px;">
                   ${node ? '<div class="so-org-grid__cell-connector"></div>' : ""}
                   ${node ? this.plan_block_html(this.reporting_present_node(node)) : '<div class="so-org-grid__placeholder"></div>'}
                 </div>`;
-            })
-            .join("")}
-        </div>`,
-      )
+          })
+          .join("");
+
+        return `
+        <div class="so-org-grid__row so-org-grid__row--level" style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
+          <div class="so-org-grid__row-guides">${guides}</div>
+          ${cells}
+        </div>`;
+      })
       .join("");
 
     const branchGuides = layout.branches
       .map((branch, index) => {
+        if (lastRowIndexByBranch.get(branch.key) < 0) return "";
         const columnLeft = index * (columnWidth + columnGap);
         const centreX = columnLeft + columnWidth / 2;
         const spineX = columnLeft + branchSpineInset;
-        return `
-          <span class="so-org-descendants__spine" style="left:${spineX}px"></span>
-          <span class="so-org-descendants__branch-start" style="left:${spineX}px; width:${centreX - spineX}px"></span>`;
+        return `<span class="so-org-descendants__branch-start" style="left:${spineX}px; width:${centreX - spineX}px"></span>`;
       })
       .join("");
 
