@@ -58,11 +58,13 @@
    "reqd": 1
   },
   {
-   "description": "The reusable structure (Group Headings, Slots, Reporting Lines) this Organogram was built from. Optional - an Organogram can still be authored directly without one.",
+   "description": "The reusable structure (Group Headings, Slots, Reporting Lines) this Organogram was built from. Required - every Site Organogram must be populated from a Site Plan.",
    "fieldname": "site_plan",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Site Plan",
-   "options": "Site Plan"
+   "options": "Site Plan",
+   "reqd": 1
   },
   {
    "fieldname": "validity_section",

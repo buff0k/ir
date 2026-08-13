@@ -1,6 +1,8 @@
 // Copyright (c) 2026, BuFf0k and contributors
 // For license information, please see license.txt
 
+const SHIFT_DESIGN_PY = "ir.industrial_relations.page.ir_shift_design.ir_shift_design";
+
 frappe.ui.form.on("Shift Design", {
   onload(frm) {
     set_defaults(frm);
@@ -44,6 +46,27 @@ function add_buttons(frm) {
     () => generate_team_rows(frm),
     __("Setup"),
   );
+
+  frm.add_custom_button(
+    __("Export Excel"),
+    () => export_excel(frm),
+    __("Shift Design"),
+  );
+}
+
+function export_excel(frm) {
+  if (frm.is_new()) {
+    frappe.msgprint(__("Save the Shift Design before exporting."));
+    return;
+  }
+  if (frm.is_dirty()) {
+    frappe.msgprint(__("Save the Shift Design so the export includes the latest changes."));
+    return;
+  }
+  const url =
+    `/api/method/${SHIFT_DESIGN_PY}.export_shift_design_excel` +
+    `?name=${encodeURIComponent(frm.doc.name)}`;
+  window.open(url, "_blank");
 }
 
 function generate_team_rows(frm) {

@@ -376,6 +376,17 @@ class SiteOrganogramDesigner {
       this.state.location = template.location;
     }
 
+    // Asset Categories is required to save, and the Plan's Asset-type Slots
+    // are exactly what determines which categories this Organogram actually
+    // needs - merge them into whatever's already selected (never remove an
+    // already-chosen category the user added by hand).
+    const existingCategories = this.normalize_asset_category_values(this.controls.asset_categories.get_value());
+    const mergedCategories = [...new Set([...existingCategories, ...(template.asset_categories || [])])];
+    const addedCategories = mergedCategories.length - existingCategories.length;
+    this.controls.asset_categories.set_value(mergedCategories);
+    this.sync_asset_categories_from_control();
+    this.render_selected_asset_categories();
+
     this.ensure_state_keys();
     this.reconcile_shifts();
     this.push_controls();
@@ -383,7 +394,7 @@ class SiteOrganogramDesigner {
     this.render_all();
 
     frappe.show_alert({
-      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s) added.`,
+      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s), ${addedCategories} asset categor${addedCategories === 1 ? "y" : "ies"} added.`,
       indicator: "green",
     });
   }
@@ -1797,6 +1808,7 @@ class SiteOrganogramDesigner {
     return JSON.stringify(this.state);
   }
   async save(){
+    if(!this.state.site_plan)return frappe.msgprint("Site Plan is required. Populate from a Site Plan before saving.");
     if(!this.state.branch)return frappe.msgprint("Site is required.");
     if(!this.state.location)return frappe.msgprint("Location is required.");
     if(!this.state.effective_from)return frappe.msgprint("Effective From is required.");
