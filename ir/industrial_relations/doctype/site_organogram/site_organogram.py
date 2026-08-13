@@ -695,6 +695,12 @@ def get_site_plan_template(site_plan_name):
     group_names = {row.group_key: row.group for row in groups}
     shift_counts = {row.group_key: _shift_design_team_count(row.shift_design) for row in groups}
 
+    asset_categories = sorted({
+        _clean(slot.asset_category)
+        for slot in (plan.slots or [])
+        if slot.row_type == "Asset" and _clean(slot.asset_category)
+    })
+
     shift_mappings = []
     for slot in (plan.slots or []):
         count = max(0, min(20, shift_counts.get(slot.group_key, 0)))
@@ -745,6 +751,7 @@ def get_site_plan_template(site_plan_name):
         "plan_name": plan.plan_name,
         "branch": plan.branch,
         "location": plan.location,
+        "asset_categories": asset_categories,
         "group_headings": [
             {
                 "group_key": row.group_key,
@@ -1301,6 +1308,20 @@ def export_site_organogram_excel(name):
     ws.cell(row_no, 1, (doc.branch or doc.name or "SITE ORGANOGRAM").upper())
     ws.cell(row_no, 1).font = styles["title_font"]
     ws.cell(row_no, 1).alignment = styles["center"]
+    row_no += 1
+
+    ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=heading_cols)
+    ws.cell(
+        row_no,
+        1,
+        "Site Plan: {}  |  Location: {}  |  Effective: {} to {}".format(
+            doc.site_plan or "-",
+            doc.location or "-",
+            doc.effective_from or "-",
+            doc.effective_until or "indefinite",
+        ),
+    )
+    ws.cell(row_no, 1).alignment = styles["center"]
     row_no += 2
 
     groups = [row for row in getattr(doc, "group_headings", None) or [] if row.group]
@@ -1592,7 +1613,12 @@ def save_site_organogram_designer_state(payload):
 
     branch = _clean(payload.get("branch"))
     location = _clean(payload.get("location"))
+    site_plan = _clean(payload.get("site_plan"))
 
+    if not site_plan:
+        frappe.throw("Site Plan is required. Every Site Organogram must be populated from a Site Plan.")
+    if not frappe.db.exists("Site Plan", site_plan):
+        frappe.throw(f"Site Plan {site_plan} does not exist.")
     if not branch:
         frappe.throw("Site is required.")
     if not location:
@@ -1602,7 +1628,7 @@ def save_site_organogram_designer_state(payload):
 
     doc.branch = branch
     doc.location = location
-    doc.site_plan = _clean(payload.get("site_plan")) or None
+    doc.site_plan = site_plan
     doc.effective_from = payload.get("effective_from") or None
     doc.effective_until = payload.get("effective_until") or None
 

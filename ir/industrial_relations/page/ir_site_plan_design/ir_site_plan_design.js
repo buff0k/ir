@@ -2,6 +2,7 @@
 // Site Plan Designer Page
 
 const SP_API = "ir.industrial_relations.page.ir_site_plan_design.ir_site_plan_design";
+const SITE_PLAN_PY = "ir.industrial_relations.doctype.site_plan.site_plan";
 
 frappe.pages["ir-site-plan-design"].on_page_load = function (wrapper) {
   const page = frappe.ui.make_app_page({
@@ -45,6 +46,7 @@ class SitePlanDesigner {
   async init() {
     this.build_shell();
     this.page.set_primary_action(__("Save Site Plan"), () => this.save());
+    this.page.add_menu_item(__("Export Excel"), () => this.export_excel());
     this.page.add_menu_item(__("Delete Site Plan"), () => this.delete_plan());
 
     this.bind_events();
@@ -871,6 +873,19 @@ class SitePlanDesigner {
       await frappe.call({ method: `${SP_API}.delete_plan`, args: { name: this.state.name } });
       this.new_plan();
     });
+  }
+
+  export_excel() {
+    if (!this.state.name) {
+      frappe.msgprint(__("Save the Site Plan before exporting."));
+      return;
+    }
+    if (this.dirty) {
+      frappe.msgprint(__("Save the Site Plan so the export includes the latest changes."));
+      return;
+    }
+    const url = `/api/method/${SITE_PLAN_PY}.export_site_plan_excel?name=${encodeURIComponent(this.state.name)}`;
+    window.open(url, "_blank");
   }
 
   mark_dirty() {

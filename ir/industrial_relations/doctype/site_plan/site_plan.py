@@ -106,3 +106,152 @@ def _new_group_key():
 
 def _new_slot_key():
 	return f"SLOT::{frappe.generate_hash(length=10)}"
+
+
+def _team_count(shift_design):
+	if not shift_design:
+		return 0
+	try:
+		return max(0, int(frappe.db.get_value("Shift Design", shift_design, "number_of_teams") or 0))
+	except (TypeError, ValueError):
+		return 0
+
+
+# -------------------------------------------------------------------
+# Excel export
+# -------------------------------------------------------------------
+
+@frappe.whitelist()
+def export_site_plan_excel(name):
+	if not name:
+		frappe.throw(_("Site Plan is required."))
+
+	doc = frappe.get_doc("Site Plan", name)
+	doc.check_permission("read")
+
+	try:
+		from openpyxl import Workbook
+		from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+		from openpyxl.utils import get_column_letter
+	except ImportError:
+		frappe.throw(_("openpyxl is required for this export but is not installed."))
+
+	from collections import defaultdict
+	from io import BytesIO
+
+	wb = Workbook()
+	ws = wb.active
+	ws.title = (doc.plan_name or "Site Plan")[:31]
+
+	thin_side = Side(style="thin", color="000000")
+	styles = {
+		"title_font": Font(bold=True, size=14),
+		"section_font": Font(bold=True, size=12),
+		"header_font": Font(bold=True, size=10),
+		"section_fill": PatternFill("solid", fgColor="D9EAD3"),
+		"header_fill": PatternFill("solid", fgColor="E7E6E6"),
+		"center": Alignment(horizontal="center", vertical="center", wrap_text=True),
+		"wrap": Alignment(vertical="top", wrap_text=True),
+		"thin_border": Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side),
+	}
+
+	row_no = 1
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=3)
+	title_cell = ws.cell(row_no, 1, (doc.plan_name or doc.name or "SITE PLAN").upper())
+	title_cell.font = styles["title_font"]
+	title_cell.alignment = styles["center"]
+	row_no += 1
+
+	period = f"{doc.effective_from or ''} to {doc.effective_until or 'indefinite'}"
+	ws.cell(row_no, 1, f"Effective: {period}")
+	row_no += 1
+	if doc.branch or doc.location:
+		ws.cell(row_no, 1, f"Default Branch / Location: {doc.branch or '-'} / {doc.location or '-'}")
+		row_no += 1
+	row_no += 1
+
+	groups = [row for row in doc.groups or [] if row.group]
+	shift_counts = {row.group_key: _team_count(row.shift_design) for row in groups}
+
+	row_no = _write_table(
+		ws, row_no, "GROUP HEADINGS",
+		["GROUP", "SHIFT DESIGN", "SHIFT TEAMS"],
+		[[row.group, row.shift_design or "", shift_counts.get(row.group_key, 0)] for row in groups],
+		styles,
+	)
+
+	# A required headcount/asset count is the Slot multiplied by however many
+	# shift teams its group's linked Shift Design has - the same expansion
+	# get_site_plan_template() (ir.industrial_relations.doctype.site_organogram
+	# .site_organogram) uses to build one vacant Organogram row per shift
+	# column, kept independent here rather than importing across doctypes.
+	designation_totals = defaultdict(int)
+	category_totals = defaultdict(int)
+	for slot in doc.slots or []:
+		count = shift_counts.get(slot.group_key, 0)
+		if slot.row_type == "Designation" and slot.designation:
+			designation_totals[slot.designation] += count
+		elif slot.row_type == "Asset" and slot.asset_category:
+			category_totals[slot.asset_category] += count
+
+	row_no = _write_table(
+		ws, row_no, "TOTAL EMPLOYEES REQUIRED BY DESIGNATION",
+		["DESIGNATION", "REQUIRED COUNT"],
+		sorted(([label, count] for label, count in designation_totals.items()), key=lambda r: r[0]),
+		styles,
+	)
+
+	row_no = _write_table(
+		ws, row_no, "TOTAL ASSETS REQUIRED BY ASSET CATEGORY",
+		["ASSET CATEGORY", "REQUIRED COUNT"],
+		sorted(([label, count] for label, count in category_totals.items()), key=lambda r: r[0]),
+		styles,
+	)
+
+	for col_idx in range(1, ws.max_column + 1):
+		letter = get_column_letter(col_idx)
+		ws.column_dimensions[letter].width = 28 if col_idx == 1 else 20
+
+	out = BytesIO()
+	wb.save(out)
+	out.seek(0)
+
+	filename = f"{frappe.scrub(doc.name or 'site_plan')}.xlsx"
+	frappe.local.response.filename = filename
+	frappe.local.response.filecontent = out.getvalue()
+	frappe.local.response.type = "binary"
+
+
+def _write_table(ws, row_no, title, headers, rows, styles):
+	total_cols = max(1, len(headers))
+
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	title_cell = ws.cell(row_no, 1, title)
+	title_cell.font = styles["section_font"]
+	title_cell.alignment = styles["center"]
+	title_cell.fill = styles["section_fill"]
+	row_no += 1
+
+	for idx, header in enumerate(headers, start=1):
+		cell = ws.cell(row_no, idx, header)
+		cell.font = styles["header_font"]
+		cell.fill = styles["header_fill"]
+		cell.alignment = styles["center"]
+	row_no += 1
+	data_start = row_no
+
+	if rows:
+		for item in rows:
+			for idx, value in enumerate(item, start=1):
+				cell = ws.cell(row_no, idx, value)
+				cell.alignment = styles["wrap"]
+			row_no += 1
+	else:
+		ws.cell(row_no, 1, "None")
+		row_no += 1
+
+	for row in ws.iter_rows(min_row=data_start - 2, max_row=row_no - 1, min_col=1, max_col=total_cols):
+		for cell in row:
+			cell.border = styles["thin_border"]
+
+	return row_no + 1

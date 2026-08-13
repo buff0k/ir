@@ -8,7 +8,7 @@ from datetime import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import cint, getdate
 
 
 SHIFT_DESIGN = "Shift Design"
@@ -193,6 +193,198 @@ def get_sa_public_holidays(start_date, end_date):
 				"Original error: {0}"
 			).format(exc)
 		)
+
+
+@frappe.whitelist()
+def export_shift_design_excel(name):
+	if not name:
+		frappe.throw(_("Shift Design is required."))
+
+	doc = frappe.get_doc(SHIFT_DESIGN, name)
+	doc.check_permission("read")
+
+	try:
+		from openpyxl import Workbook
+		from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+		from openpyxl.utils import get_column_letter
+	except ImportError:
+		frappe.throw(_("openpyxl is required for this export but is not installed."))
+
+	from io import BytesIO
+
+	wb = Workbook()
+	ws = wb.active
+	ws.title = (doc.design_name or "Shift Design")[:31]
+
+	thin_side = Side(style="thin", color="000000")
+	styles = {
+		"title_font": Font(bold=True, size=14),
+		"section_font": Font(bold=True, size=12),
+		"header_font": Font(bold=True, size=10),
+		"section_fill": PatternFill("solid", fgColor="D9EAD3"),
+		"header_fill": PatternFill("solid", fgColor="E7E6E6"),
+		"center": Alignment(horizontal="center", vertical="center", wrap_text=True),
+		"wrap": Alignment(vertical="top", wrap_text=True),
+		"thin_border": Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side),
+	}
+
+	row_no = 1
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=4)
+	title_cell = ws.cell(row_no, 1, (doc.design_name or doc.name or "SHIFT DESIGN").upper())
+	title_cell.font = styles["title_font"]
+	title_cell.alignment = styles["center"]
+	row_no += 1
+
+	period = f"{doc.effective_from or ''} to {doc.effective_until or 'indefinite'}"
+	ws.cell(row_no, 1, f"Effective: {period}  |  Status: {doc.status or ''}  |  Branch: {doc.branch or '-'}")
+	row_no += 1
+	ws.cell(
+		row_no, 1,
+		f"Cycle Length: {doc.cycle_length}  |  Anchor Date: {doc.anchor_date or '-'}  |  "
+		f"Pay Period: day {doc.pay_period_start_day} to day {doc.pay_period_end_day}  |  "
+		f"Ordinary Hours Limit: {doc.ordinary_hours_limit}",
+	)
+	row_no += 2
+
+	teams = sorted(
+		[row for row in doc.teams or [] if cint(row.enabled)],
+		key=lambda row: cint(row.display_order),
+	)
+
+	# Shift Type is a Link - the actual start/end time and colour live on the
+	# real "Shift Type" doctype record, not on this Design's own child row.
+	shift_type_names = [row.shift_type for row in doc.shift_types or [] if row.shift_type]
+	shift_type_info = {}
+	if shift_type_names:
+		shift_type_info = {
+			row.name: row
+			for row in frappe.get_all(
+				"Shift Type",
+				filters={"name": ["in", shift_type_names]},
+				fields=["name", "start_time", "end_time", "color"],
+			)
+		}
+
+	row_no = _write_table(
+		ws, row_no, "SHIFT TYPES",
+		["SHIFT TYPE", "START", "END", "HOURS", "COLOUR"],
+		[
+			[
+				row.shift_type,
+				str(shift_type_info.get(row.shift_type, {}).get("start_time") or ""),
+				str(shift_type_info.get(row.shift_type, {}).get("end_time") or ""),
+				_duration_hours(
+					shift_type_info.get(row.shift_type, {}).get("start_time"),
+					shift_type_info.get(row.shift_type, {}).get("end_time"),
+				),
+				shift_type_info.get(row.shift_type, {}).get("color") or "",
+			]
+			for row in doc.shift_types or []
+		],
+		styles,
+	)
+
+	row_no = _write_table(
+		ws, row_no, "SHIFT TEAMS",
+		["TEAM", "DISPLAY ORDER", "PATTERN OFFSET"],
+		[[row.team_name or row.team_key, row.display_order, row.pattern_offset] for row in teams],
+		styles,
+	)
+
+	pattern_by_team_day = {
+		(row.team_key, cint(row.pattern_day)): row.assignment or ""
+		for row in doc.pattern or []
+	}
+	cycle_length = max(cint(doc.cycle_length), 1)
+	pattern_rows = [
+		[f"Day {day}"] + [pattern_by_team_day.get((team.team_key, day), "") or "Off" for team in teams]
+		for day in range(1, cycle_length + 1)
+	]
+	row_no = _write_table(
+		ws, row_no, "ROTATION PATTERN",
+		["CYCLE DAY"] + [team.team_name or team.team_key for team in teams],
+		pattern_rows,
+		styles,
+	)
+
+	row_no = _write_table(
+		ws, row_no, "CALENDAR RULES",
+		["RULE TYPE", "DAY OF WEEK", "ACTION", "TARGET SHIFT TYPE", "HOURS OVERRIDE", "PRIORITY", "ENABLED"],
+		[
+			[
+				row.rule_type, row.day_of_week or "", row.action,
+				row.target_shift_type or "", row.hours_override or "",
+				row.priority, "Yes" if cint(row.enabled if row.enabled is not None else 1) else "No",
+			]
+			for row in doc.calendar_rules or []
+		],
+		styles,
+	)
+
+	date_overrides = doc.date_overrides or []
+	if date_overrides:
+		row_no = _write_table(
+			ws, row_no, "DATE OVERRIDES",
+			["DATE", "TEAM", "ASSIGNMENT", "REASON"],
+			[
+				[
+					str(row.date) if row.date else "",
+					next((t.team_name or t.team_key for t in teams if t.team_key == row.team_key), row.team_key or ""),
+					row.assignment or "Off",
+					row.reason or "",
+				]
+				for row in date_overrides
+			],
+			styles,
+		)
+
+	for col_idx in range(1, ws.max_column + 1):
+		letter = get_column_letter(col_idx)
+		ws.column_dimensions[letter].width = 26 if col_idx == 1 else 16
+
+	out = BytesIO()
+	wb.save(out)
+	out.seek(0)
+
+	filename = f"{frappe.scrub(doc.name or 'shift_design')}.xlsx"
+	frappe.local.response.filename = filename
+	frappe.local.response.filecontent = out.getvalue()
+	frappe.local.response.type = "binary"
+
+
+def _write_table(ws, row_no, title, headers, rows, styles):
+	total_cols = max(1, len(headers))
+
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	title_cell = ws.cell(row_no, 1, title)
+	title_cell.font = styles["section_font"]
+	title_cell.alignment = styles["center"]
+	title_cell.fill = styles["section_fill"]
+	row_no += 1
+
+	for idx, header in enumerate(headers, start=1):
+		cell = ws.cell(row_no, idx, header)
+		cell.font = styles["header_font"]
+		cell.fill = styles["header_fill"]
+		cell.alignment = styles["center"]
+	row_no += 1
+	data_start = row_no
+
+	if rows:
+		for item in rows:
+			for idx, value in enumerate(item, start=1):
+				cell = ws.cell(row_no, idx, value)
+				cell.alignment = styles["wrap"]
+			row_no += 1
+	else:
+		ws.cell(row_no, 1, "None")
+		row_no += 1
+
+	for row in ws.iter_rows(min_row=data_start - 2, max_row=row_no - 1, min_col=1, max_col=total_cols):
+		for cell in row:
+			cell.border = styles["thin_border"]
+
+	return row_no + 1
 
 
 def _serialize(doc):

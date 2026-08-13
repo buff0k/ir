@@ -111,6 +111,7 @@ class ShiftPatternModeller {
   async init() {
     this.build_shell();
     this.page.set_primary_action(__("Save Shift Design"), () => this.save());
+    this.page.add_menu_item(__("Export Excel"), () => this.export_excel());
     this.page.add_menu_item(__("Delete Shift Design"), () =>
       this.delete_design(),
     );
@@ -1780,6 +1781,19 @@ class ShiftPatternModeller {
     }
 
     return "";
+  }
+
+  export_excel() {
+    if (!this.state.name) {
+      frappe.msgprint(__("Save the Shift Design before exporting."));
+      return;
+    }
+    if (this.dirty) {
+      frappe.msgprint(__("Save the Shift Design so the export includes the latest changes."));
+      return;
+    }
+    const url = `/api/method/${SD_API}.export_shift_design_excel?name=${encodeURIComponent(this.state.name)}`;
+    window.open(url, "_blank");
   }
 
   async delete_design() {
