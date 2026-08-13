@@ -751,6 +751,8 @@ def get_site_plan_template(site_plan_name):
         "plan_name": plan.plan_name,
         "branch": plan.branch,
         "location": plan.location,
+        "effective_from": plan.effective_from,
+        "effective_until": plan.effective_until,
         "asset_categories": asset_categories,
         "group_headings": [
             {

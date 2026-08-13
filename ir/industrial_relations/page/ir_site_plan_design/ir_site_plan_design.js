@@ -47,6 +47,7 @@ class SitePlanDesigner {
     this.build_shell();
     this.page.set_primary_action(__("Save Site Plan"), () => this.save());
     this.page.add_menu_item(__("Export Excel"), () => this.export_excel());
+    this.page.add_menu_item(__("Export Diagram PNG"), () => this.export_reporting_png());
     this.page.add_menu_item(__("Delete Site Plan"), () => this.delete_plan());
 
     this.bind_events();
@@ -886,6 +887,175 @@ class SitePlanDesigner {
     }
     const url = `/api/method/${SITE_PLAN_PY}.export_site_plan_excel?name=${encodeURIComponent(this.state.name)}`;
     window.open(url, "_blank");
+  }
+
+  async ensure_html2canvas() {
+    if (window.html2canvas) return;
+    await frappe.require("/assets/ir/js/vendor/html2canvas.min.js");
+    if (!window.html2canvas) {
+      throw new Error(__("html2canvas could not be loaded."));
+    }
+  }
+
+  // A clone rendered off-screen in the *live* document (e.g. left:-20000px)
+  // gets laid out by html2canvas relative to that huge negative offset -
+  // it tries to rasterise the whole span between there and the origin,
+  // which is either extremely slow or effectively hangs. An iframe sidesteps
+  // this entirely: its own document has its own 0,0 origin regardless of
+  // where the iframe itself sits on the parent page.
+  create_capture_frame() {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    Object.assign(iframe.style, {
+      position: "fixed",
+      left: "-20000px",
+      top: "0",
+      width: "4000px",
+      height: "3000px",
+      border: "0",
+      opacity: "0",
+      pointerEvents: "none",
+    });
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
+    doc.open();
+    doc.write("<!doctype html><html><head></head><body></body></html>");
+    doc.close();
+    doc.body.style.margin = "0";
+    doc.body.style.background = "#ffffff";
+    return { iframe, doc };
+  }
+
+  // Colours computed from ir_ui.css's color-mix() rules don't serialise back
+  // from getComputedStyle() as plain rgb()/rgba() the way a normal declared
+  // colour would - this Chromium reports them back as CSS Color 4's
+  // `color(srgb r g b)` form (components 0-1), which html2canvas 1.4.1's own
+  // (much older) CSS parser doesn't understand either, throwing "unsupported
+  // color function". A canvas fillStyle round-trip does *not* normalise this
+  // form back to rgb() (tried - it just echoes color(srgb ...) unchanged),
+  // so it's parsed directly here instead: the three components are already
+  // plain 0-1 sRGB, so this is just *255 and round, no colour-engine needed.
+  normalize_color(value) {
+    if (!value || value === "none" || value === "transparent") return value;
+    const m = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)$/.exec(value);
+    if (!m) return value;
+    const [r, g, b] = [m[1], m[2], m[3]].map((n) => Math.round(parseFloat(n) * 255));
+    const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+    return a < 1 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
+  }
+
+  // getComputedStyle() on the *live* elements has already resolved every
+  // class rule (color-mix() included) - baking those resolved values in as
+  // inline styles on the clone reproduces exactly what's on screen without
+  // html2canvas ever needing to parse ir_ui.css (or any class rule) at all.
+  // box-shadow is deliberately dropped rather than baked - a color-mix()
+  // shadow colour hits the exact same unsupported-function wall, and a
+  // missing drop-shadow is a trivial cosmetic loss compared to that.
+  bake_computed_styles(sourceRoot, cloneRoot) {
+    const COLOR_PROPS = ["backgroundColor", "color", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor"];
+    const PLAIN_PROPS = [
+      "backgroundImage",
+      "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+      "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle",
+      "borderTopLeftRadius", "borderTopRightRadius", "borderBottomLeftRadius", "borderBottomRightRadius",
+      "fontWeight", "fontSize", "fontFamily", "lineHeight", "letterSpacing", "textTransform",
+      "padding", "margin", "display", "position", "top", "left", "right", "bottom",
+      "width", "height", "minWidth", "minHeight", "textAlign", "opacity", "whiteSpace", "overflow",
+      "flexDirection", "flexWrap", "flex", "alignItems", "justifyContent", "alignSelf", "justifySelf",
+      "gap", "rowGap", "columnGap", "zIndex", "boxSizing",
+      // The diagram leans heavily on CSS Grid (group headings, person-row's
+      // own two-column layout, the reporting matrix) - without these too,
+      // every grid child collapses into a single implicit column/row and
+      // rows visibly overlap.
+      "gridTemplateColumns", "gridTemplateRows", "gridTemplateAreas",
+      "gridColumn", "gridRow", "gridArea", "gridAutoFlow", "gridAutoColumns", "gridAutoRows",
+    ];
+    const srcEls = [sourceRoot, ...sourceRoot.querySelectorAll("*")];
+    const cloneEls = [cloneRoot, ...cloneRoot.querySelectorAll("*")];
+    srcEls.forEach((srcEl, i) => {
+      const cloneEl = cloneEls[i];
+      if (!cloneEl || !cloneEl.style) return;
+      const computed = window.getComputedStyle(srcEl);
+      let css = "box-shadow:none;";
+      for (const prop of COLOR_PROPS) {
+        const value = this.normalize_color(computed[prop]);
+        if (value) css += `${prop.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${value};`;
+      }
+      for (const prop of PLAIN_PROPS) {
+        const value = computed[prop];
+        if (value) css += `${prop.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase())}:${value};`;
+      }
+      cloneEl.style.cssText = css;
+    });
+  }
+
+  async export_reporting_png() {
+    const $forest = this.$main.find(".so-org-forest");
+    if (!$forest.length || !$forest.find(".so-org-block").length) {
+      frappe.msgprint(__("Add Group Headings and Reporting Lines before exporting a diagram."));
+      return;
+    }
+
+    let iframe;
+    try {
+      await this.ensure_html2canvas();
+
+      const frame = this.create_capture_frame();
+      iframe = frame.iframe;
+      const doc = frame.doc;
+
+      const wrapper = doc.createElement("div");
+      wrapper.style.cssText = "display:inline-block; padding:24px; background:#fff;";
+
+      const title = doc.createElement("div");
+      title.style.cssText = "font:700 20px/1.4 Arial, sans-serif; margin-bottom:14px; color:#1a1a1a;";
+      title.textContent = this.png_title();
+      wrapper.appendChild(title);
+
+      const forestClone = $forest.get(0).cloneNode(true);
+      this.bake_computed_styles($forest.get(0), forestClone);
+      wrapper.appendChild(forestClone);
+      doc.body.appendChild(wrapper);
+
+      const canvas = await window.html2canvas(wrapper, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 4000,
+        windowHeight: 3000,
+      });
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(__("PNG creation failed.")))), "image/png")
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${this.png_filename()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
+    } finally {
+      if (iframe) iframe.remove();
+    }
+  }
+
+  png_title() {
+    const name = this.state.plan_name || this.state.name || "Site Plan";
+    const eff = this.state.effective_from ? frappe.datetime.str_to_user(this.state.effective_from) : "";
+    return eff ? `${name} — Reporting Structure (Effective ${eff})` : `${name} — Reporting Structure`;
+  }
+
+  png_filename() {
+    return `Site-Plan-${this.slug(this.state.plan_name || this.state.name)}-Reporting-Structure`;
+  }
+
+  slug(value) {
+    return String(value || "site-plan").trim().replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   }
 
   mark_dirty() {
