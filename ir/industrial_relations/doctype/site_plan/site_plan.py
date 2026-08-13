@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import getdate
+from frappe.utils import cint, getdate
 
 
 class SitePlan(Document):
@@ -180,26 +180,32 @@ def export_site_plan_excel(name):
 		styles,
 	)
 
-	# A required headcount/asset count is the Slot multiplied by however many
-	# shift teams its group's linked Shift Design has - the same expansion
+	# An Asset slot is *one* physical asset that gets a row in every shift
+	# column of its group - a different Designation/Employee operates it in
+	# each shift (rotation), but it's still the same single machine, so the
+	# Asset Category total counts the Slot itself once, never multiplied by
+	# the group's shift-team count. A Designation slot (or the Designation
+	# attached to an Asset slot - the role that operates it) is the opposite:
+	# a *different* person is needed for every shift the group runs, so that
+	# total *is* multiplied by the shift-team count, the same expansion
 	# get_site_plan_template() (ir.industrial_relations.doctype.site_organogram
 	# .site_organogram) uses to build one vacant Organogram row per shift
 	# column, kept independent here rather than importing across doctypes.
+	# A Spare/Swing Asset is a backup unit that's never staffed, so it counts
+	# toward the Asset total but never toward the Designation/headcount total
+	# even if a Designation value happens to be set on it.
 	designation_totals = defaultdict(int)
 	category_totals = defaultdict(int)
 	for slot in doc.slots or []:
 		count = shift_counts.get(slot.group_key, 0)
-		# A Designation-type slot counts only toward the headcount total. An
-		# Asset-type slot counts toward its Asset Category *and*, if a
-		# Designation was also set on it (the role that should operate that
-		# Asset), toward the headcount total too - the two aren't mutually
-		# exclusive, so this can't be an if/elif.
+		is_spare = cint(slot.spare_swing)
+
 		if slot.row_type == "Designation" and slot.designation:
 			designation_totals[slot.designation] += count
 		if slot.row_type == "Asset":
 			if slot.asset_category:
-				category_totals[slot.asset_category] += count
-			if slot.designation:
+				category_totals[slot.asset_category] += 1
+			if slot.designation and not is_spare:
 				designation_totals[slot.designation] += count
 
 	row_no = _write_table(

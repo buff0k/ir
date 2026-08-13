@@ -485,13 +485,14 @@ class SiteOrganogramDesigner {
     this.dirty = false;
     this.line_mode = false;
     this.line_source = null;
-    this.push_controls();
+    await this.push_controls();
+    this.dirty = false;
     this.render_all();
   }
 
   async reload() {
     if (this.state.name) return this.load_document(this.state.name);
-    this.new_document();
+    await this.new_document();
   }
 
   async start_new_document() {
@@ -500,32 +501,42 @@ class SiteOrganogramDesigner {
       if (!ok) return;
     }
 
-    this.new_document();
+    await this.new_document();
   }
 
-  new_document() {
+  async new_document() {
     this.state = this.blank_state();
     this.dirty = false;
     this.line_mode = false;
     this.line_source = null;
     this._recovery_prompt_key = "";
-    this.push_controls();
+    await this.push_controls();
+    this.dirty = false;
     this.render_all();
   }
 
-  push_controls() {
+  async push_controls() {
+    // Link controls' set_value() does a real server round-trip (validating
+    // the value) before it resolves and its own 'change' event fires - a
+    // bare setTimeout(0) restores suppress_control_events long before that
+    // round-trip completes, so the just-loaded record's own control sync
+    // ends up re-marking itself dirty via the normal change handlers. Every
+    // set_value() call is awaited here instead, so suppression only lifts
+    // once every control has genuinely finished settling.
     this.suppress_control_events = true;
     try {
-      this.controls.organogram.set_value(this.state.name || "");
-      this.controls.branch.set_value(this.state.branch || "");
-      this.controls.location.set_value(this.state.location || "");
-      this.controls.site_plan.set_value(this.state.site_plan || "");
-      this.controls.effective_from.set_value(this.state.effective_from || "");
-      this.controls.effective_until.set_value(this.state.effective_until || "");
-      this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean));
+      await Promise.all([
+        this.controls.organogram.set_value(this.state.name || ""),
+        this.controls.branch.set_value(this.state.branch || ""),
+        this.controls.location.set_value(this.state.location || ""),
+        this.controls.site_plan.set_value(this.state.site_plan || ""),
+        this.controls.effective_from.set_value(this.state.effective_from || ""),
+        this.controls.effective_until.set_value(this.state.effective_until || ""),
+        this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean)),
+      ]);
       this.render_selected_asset_categories();
     } finally {
-      setTimeout(() => { this.suppress_control_events = false; }, 0);
+      this.suppress_control_events = false;
     }
   }
 
@@ -1854,7 +1865,7 @@ class SiteOrganogramDesigner {
     if(!this.state.asset_categories.length)return frappe.msgprint("Select at least one Applicable Asset Category.");
     if(!this.state.group_headings.some(g=>g.group))return frappe.msgprint("Add at least one Group Heading.");
     const r=await frappe.call({method:`${SO_PY}.save_site_organogram_designer_state`,args:{payload:this.payload()},freeze:true,freeze_message:"Saving organogram..."});
-    this.state=Object.assign(this.blank_state(),r.message||{});this.dirty=false;this.push_controls();this.render_all();frappe.show_alert({message:"Site Organogram saved.",indicator:"green"});
+    this.state=Object.assign(this.blank_state(),r.message||{});this.dirty=false;await this.push_controls();this.dirty=false;this.render_all();frappe.show_alert({message:"Site Organogram saved.",indicator:"green"});
   }
   ensure_saved_for_output(actionLabel) {
     if (!this.state.name) {
@@ -1943,6 +1954,24 @@ class SiteOrganogramDesigner {
     return a < 1 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
   }
 
+  // Frappe's theme CSS variables key off `[data-theme]` on <html> - flipping
+  // it to "light" for the duration of `fn` (always restored, even on error)
+  // makes every getComputedStyle() call inside `fn` resolve exactly as it
+  // would in light mode, with no separate hardcoded export palette to keep
+  // in sync with the real one.
+  with_forced_light_theme(fn) {
+    const root = document.documentElement;
+    const had = root.hasAttribute("data-theme");
+    const original = root.getAttribute("data-theme");
+    root.setAttribute("data-theme", "light");
+    try {
+      return fn();
+    } finally {
+      if (had) root.setAttribute("data-theme", original);
+      else root.removeAttribute("data-theme");
+    }
+  }
+
   // getComputedStyle() on the *live* elements has already resolved every
   // class rule (color-mix() included) - baking those resolved values in as
   // inline styles on the clone reproduces exactly what's on screen without
@@ -1968,6 +1997,11 @@ class SiteOrganogramDesigner {
       // rows visibly overlap.
       "gridTemplateColumns", "gridTemplateRows", "gridTemplateAreas",
       "gridColumn", "gridRow", "gridArea", "gridAutoFlow", "gridAutoColumns", "gridAutoRows",
+      // The "Unlinked Blocks" masonry layout uses CSS multi-column
+      // (column-width) - without these too, that declaration is silently
+      // dropped in the capture iframe (no stylesheet there to fall back on)
+      // and every block collapses back into a single stacked column.
+      "columnWidth", "columnCount", "breakInside",
     ];
     const srcEls = [sourceRoot, ...sourceRoot.querySelectorAll("*")];
     const cloneEls = [cloneRoot, ...cloneRoot.querySelectorAll("*")];
@@ -2012,7 +2046,15 @@ class SiteOrganogramDesigner {
       wrapper.appendChild(title);
 
       const forestClone = $forest.get(0).cloneNode(true);
-      this.bake_computed_styles($forest.get(0), forestClone);
+      // The exported file is meant to be shared/printed outside Desk, so it
+      // should look the same regardless of whichever theme the exporting
+      // user happens to have their own Desk set to - only the live HTML
+      // page should ever render dark. bake_computed_styles() just mirrors
+      // whatever's on screen at the moment it runs, so forcing light theme
+      // for that one synchronous walk (then restoring immediately after -
+      // the clone's colours are now hardcoded inline either way) is enough;
+      // nothing async needs to sit inside the forced-theme window.
+      this.with_forced_light_theme(() => this.bake_computed_styles($forest.get(0), forestClone));
       wrapper.appendChild(forestClone);
       doc.body.appendChild(wrapper);
 

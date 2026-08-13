@@ -296,6 +296,14 @@
 .so-table .form-control {
   min-height: 34px;
 }
+/* Designation-type Slot rows don't use Asset Category - `visibility:hidden`
+   (not `display:none`) keeps this <td> occupying its column exactly the way
+   an Asset-type row's does, so the table's column widths and row heights
+   stay identical across mixed row types instead of drifting out of
+   alignment (display:none on only some rows in a column breaks that). */
+.so-slot-category-cell.is-hidden {
+  visibility: hidden;
+}
 .so-icon-btn {
   border: 1px solid var(--border-color);
   background: var(--control-bg);
@@ -531,6 +539,14 @@
 }
 
 .so-org-forest {
+  /* A dedicated, bolder token for the org-chart's own structural lines -
+     var(--text-muted) is meant for de-emphasised secondary text (low
+     contrast by design), which read as barely-visible hairlines once
+     stretched across a tall diagram. This blends the theme's own text
+     colour at a much higher strength so the lines stay clearly legible in
+     both light and dark mode without hardcoding a colour that would look
+     wrong in one of them. */
+  --so-line-color: color-mix(in srgb, var(--text-color, #1a1a1a) 55%, transparent);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -565,7 +581,7 @@
   left: 50%;
   width: 0;
   height: 30px;
-  border-left: 2px solid var(--text-muted);
+  border-left: 2.5px solid var(--so-line-color);
 }
 
 .so-org-root-links__line {
@@ -574,7 +590,7 @@
   left: var(--root-line-inset);
   right: var(--root-line-inset);
   height: 0;
-  border-top: 2px solid var(--text-muted);
+  border-top: 2.5px solid var(--so-line-color);
 }
 
 .so-org-root-links__drop {
@@ -582,7 +598,7 @@
   top: 30px;
   width: 0;
   height: 34px;
-  border-left: 2px solid var(--text-muted);
+  border-left: 2.5px solid var(--so-line-color);
   transform: translateX(-50%);
 }
 
@@ -615,8 +631,8 @@
   bottom: 0;
   width: calc(50% - var(--branch-spine-x));
   height: 28px;
-  border-bottom: 2px solid var(--text-muted);
-  border-right: 2px solid var(--text-muted);
+  border-bottom: 2.5px solid var(--so-line-color);
+  border-right: 2.5px solid var(--so-line-color);
   border-radius: 0 0 8px 0;
   box-sizing: border-box;
 }
@@ -640,8 +656,8 @@
   left: var(--branch-spine-x);
   width: calc(50% - var(--branch-spine-x));
   height: 26px;
-  border-top: 2px solid var(--text-muted);
-  border-right: 2px solid var(--text-muted);
+  border-top: 2.5px solid var(--so-line-color);
+  border-right: 2.5px solid var(--so-line-color);
   border-radius: 0 8px 0 0;
   box-sizing: border-box;
 }
@@ -668,15 +684,15 @@
   top: 0;
   bottom: 8px;
   width: 0;
-  border-left: 2px solid var(--text-muted);
+  border-left: 2.5px solid var(--so-line-color);
 }
 
 .so-org-descendants__branch-start {
   position: absolute;
   top: 0;
   height: 22px;
-  border-top: 2px solid var(--text-muted);
-  border-right: 2px solid var(--text-muted);
+  border-top: 2.5px solid var(--so-line-color);
+  border-right: 2.5px solid var(--so-line-color);
   border-radius: 0 8px 0 0;
   box-sizing: border-box;
 }
@@ -821,11 +837,20 @@
   opacity: 0.72;
 }
 
+/* flex-wrap put wildly different-height blocks (a 3-row block next to a
+   30-row one) on the same wrapped row, leaving huge ragged gaps and making
+   the whole list look broken - CSS columns instead flows each block down
+   its own column independently (like a newspaper layout / masonry), so a
+   tall block only affects its own column's height, not its neighbours'. */
 .so-org-unlinked__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  justify-content: center;
+  columns: 320px;
+  column-gap: 18px;
+}
+
+.so-org-unlinked__list .so-org-block {
+  break-inside: avoid;
+  margin: 0 0 18px;
+  width: 100%;
 }
 
 @media (max-width: 1400px) {

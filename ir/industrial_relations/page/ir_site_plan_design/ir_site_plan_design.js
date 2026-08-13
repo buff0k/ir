@@ -155,7 +155,10 @@ class SitePlanDesigner {
     control.$input.off(namespace);
     control.$input.on(
       `change${namespace} awesomplete-selectcomplete${namespace}`,
-      () => Promise.resolve(handler(control.get_value())).catch((error) => this.error(error)),
+      () => {
+        if (this.suppress_control_events) return;
+        Promise.resolve(handler(control.get_value())).catch((error) => this.error(error));
+      },
     );
   }
 
@@ -163,11 +166,12 @@ class SitePlanDesigner {
     this.$main.on("click", '[data-action="new"]', () => this.new_plan());
   }
 
-  new_plan(render = true) {
+  async new_plan(render = true) {
     this.state = this.blank_state();
     this.dirty = false;
     if (render) {
-      this.sync_controls();
+      await this.sync_controls();
+      this.dirty = false;
       this.render_all();
     }
   }
@@ -176,17 +180,28 @@ class SitePlanDesigner {
     const response = await frappe.call({ method: `${SP_API}.get_plan`, args: { name } });
     this.state = { ...this.blank_state(), ...(response.message || {}) };
     this.dirty = false;
-    this.sync_controls();
+    await this.sync_controls();
+    this.dirty = false;
     this.render_all();
   }
 
-  sync_controls() {
-    for (const [fieldname, control] of Object.entries(this.controls)) {
-      if (fieldname === "plan") {
-        control.set_value(this.state.name || "");
-      } else {
-        control.set_value(this.state[fieldname] ?? "");
-      }
+  // Link controls' set_value() does a real server round-trip (validating the
+  // value) before it resolves and its own 'change' event fires - syncing
+  // every control here is what a load/reset needs to do, but without
+  // suppression each of those set_value() calls re-fires the normal change
+  // handler above and immediately re-marks a freshly-loaded record dirty.
+  // Awaiting every set_value() before lifting suppression is what actually
+  // closes that race, not just deferring it by a tick.
+  async sync_controls() {
+    this.suppress_control_events = true;
+    try {
+      await Promise.all(
+        Object.entries(this.controls).map(([fieldname, control]) =>
+          control.set_value(fieldname === "plan" ? this.state.name || "" : this.state[fieldname] ?? ""),
+        ),
+      );
+    } finally {
+      this.suppress_control_events = false;
     }
   }
 
@@ -321,7 +336,7 @@ class SitePlanDesigner {
                   <option value="">${this.esc(__("(none)"))}</option>
                   ${designationOptions.map((d) => `<option value="${this.esc(d)}" ${r.designation === d ? "selected" : ""}>${this.esc(d)}</option>`).join("")}
                 </select></td>
-                <td class="so-slot-category-cell" style="${r.row_type === "Asset" ? "" : "display:none"}">
+                <td class="so-slot-category-cell${r.row_type === "Asset" ? "" : " is-hidden"}">
                   <select class="form-control" data-slot-field="asset_category">
                     <option value="">${this.esc(__("(none)"))}</option>
                     ${categoryOptions.map((c) => `<option value="${this.esc(c)}" ${r.asset_category === c ? "selected" : ""}>${this.esc(c)}</option>`).join("")}
@@ -853,7 +868,8 @@ class SitePlanDesigner {
 
     this.state = { ...this.blank_state(), ...(response.message.plan || {}) };
     this.dirty = false;
-    this.sync_controls();
+    await this.sync_controls();
+    this.dirty = false;
     this.render_all();
 
     frappe.show_alert({ message: __("Site Plan saved."), indicator: "green" });
@@ -872,7 +888,7 @@ class SitePlanDesigner {
     if (!this.state.name) return;
     frappe.confirm(__("Delete {0}?", [this.state.name]), async () => {
       await frappe.call({ method: `${SP_API}.delete_plan`, args: { name: this.state.name } });
-      this.new_plan();
+      await this.new_plan();
     });
   }
 
@@ -944,6 +960,24 @@ class SitePlanDesigner {
     return a < 1 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
   }
 
+  // Frappe's theme CSS variables key off `[data-theme]` on <html> - flipping
+  // it to "light" for the duration of `fn` (always restored, even on error)
+  // makes every getComputedStyle() call inside `fn` resolve exactly as it
+  // would in light mode, with no separate hardcoded export palette to keep
+  // in sync with the real one.
+  with_forced_light_theme(fn) {
+    const root = document.documentElement;
+    const had = root.hasAttribute("data-theme");
+    const original = root.getAttribute("data-theme");
+    root.setAttribute("data-theme", "light");
+    try {
+      return fn();
+    } finally {
+      if (had) root.setAttribute("data-theme", original);
+      else root.removeAttribute("data-theme");
+    }
+  }
+
   // getComputedStyle() on the *live* elements has already resolved every
   // class rule (color-mix() included) - baking those resolved values in as
   // inline styles on the clone reproduces exactly what's on screen without
@@ -969,6 +1003,11 @@ class SitePlanDesigner {
       // rows visibly overlap.
       "gridTemplateColumns", "gridTemplateRows", "gridTemplateAreas",
       "gridColumn", "gridRow", "gridArea", "gridAutoFlow", "gridAutoColumns", "gridAutoRows",
+      // The "Unlinked Headings" masonry layout uses CSS multi-column
+      // (column-width) - without these too, that declaration is silently
+      // dropped in the capture iframe (no stylesheet there to fall back on)
+      // and every block collapses back into a single stacked column.
+      "columnWidth", "columnCount", "breakInside",
     ];
     const srcEls = [sourceRoot, ...sourceRoot.querySelectorAll("*")];
     const cloneEls = [cloneRoot, ...cloneRoot.querySelectorAll("*")];
@@ -1013,7 +1052,11 @@ class SitePlanDesigner {
       wrapper.appendChild(title);
 
       const forestClone = $forest.get(0).cloneNode(true);
-      this.bake_computed_styles($forest.get(0), forestClone);
+      // The exported file is meant to be shared/printed outside Desk, so it
+      // should look the same regardless of whichever theme the exporting
+      // user happens to have their own Desk set to - only the live HTML
+      // page should ever render dark.
+      this.with_forced_light_theme(() => this.bake_computed_styles($forest.get(0), forestClone));
       wrapper.appendChild(forestClone);
       doc.body.appendChild(wrapper);
 
