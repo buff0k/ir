@@ -14,6 +14,11 @@
   "asset_categories",
   "column_break_qkkw",
   "location",
+  "site_plan",
+  "validity_section",
+  "effective_from",
+  "validity_column",
+  "effective_until",
   "group_headings",
   "employees_tab",
   "employees",
@@ -51,6 +56,37 @@
    "label": "Applicable Asset Categories",
    "options": "Site Organogram Asset Categories",
    "reqd": 1
+  },
+  {
+   "description": "The reusable structure (Group Headings, Slots, Reporting Lines) this Organogram was built from. Optional - an Organogram can still be authored directly without one.",
+   "fieldname": "site_plan",
+   "fieldtype": "Link",
+   "label": "Site Plan",
+   "options": "Site Plan"
+  },
+  {
+   "fieldname": "validity_section",
+   "fieldtype": "Section Break",
+   "label": "Validity"
+  },
+  {
+   "description": "A Site Organogram is a static point-in-time structure, same as Site Plan and Shift Design. This is when it takes effect.",
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Effective From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "validity_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave blank for an Organogram that applies indefinitely until superseded.",
+   "fieldname": "effective_until",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Effective Until"
   },
   {
    "fieldname": "employees",
