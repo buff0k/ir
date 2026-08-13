@@ -1,0 +1,54 @@
+name: Sync version-16 into main
+
+on:
+  push:
+    branches:
+      - version-16
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Attempt fast merge of version-16 into main
+        id: merge
+        run: |
+          git checkout main
+          git fetch origin version-16
+          if git merge origin/version-16 --no-edit; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            git merge --abort
+          fi
+
+      - name: Push merged main
+        if: steps.merge.outputs.conflict == 'false'
+        run: git push origin main
+
+      - name: Open PR when merge conflicts
+        if: steps.merge.outputs.conflict == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: sync-version-16-into-main
+          base: main
+          title: "Sync version-16 into main (conflicts need manual resolution)"
+          body: |
+            Automatic merge of `version-16` into `main` hit a conflict
+            and needs manual resolution.
+          commit-message: "Merge version-16 into main"
