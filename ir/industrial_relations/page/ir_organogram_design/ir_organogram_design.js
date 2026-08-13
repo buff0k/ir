@@ -43,6 +43,9 @@ class SiteOrganogramDesigner {
       docstatus: 0,
       branch: "",
       location: "",
+      site_plan: "",
+      effective_from: "",
+      effective_until: "",
       asset_categories: [],
       group_headings: [],
       employees: [],
@@ -72,6 +75,9 @@ class SiteOrganogramDesigner {
               <div data-control="organogram"></div>
               <div data-control="branch"></div>
               <div data-control="location"></div>
+              <div data-control="site_plan"></div>
+              <div data-control="effective_from"></div>
+              <div data-control="effective_until"></div>
               <div class="so-config-asset-categories" data-control="asset_categories"></div>
               <div class="so-selected-categories">
                 <div class="so-selected-categories__label">Selected Asset Categories</div>
@@ -81,6 +87,7 @@ class SiteOrganogramDesigner {
             <div class="so-config-actions">
               <button class="btn btn-sm btn-default" data-action="new">New Organogram</button>
               <button class="btn btn-sm btn-default" data-action="sync">Refresh Employees and Assets</button>
+              <button class="btn btn-sm btn-primary" data-action="populate-from-plan">Populate from Plan</button>
             </div>
           </div>
         </div>
@@ -131,6 +138,37 @@ class SiteOrganogramDesigner {
       parent: this.$main.find('[data-control="asset_categories"]'),
       df: { fieldtype: "MultiSelectList", label: "Applicable Asset Categories", fieldname: "asset_categories", get_data: txt => frappe.db.get_link_options("Asset Category", txt) },
       render_input: true,
+    });
+    this.controls.site_plan = frappe.ui.form.make_control({
+      parent: this.$main.find('[data-control="site_plan"]'),
+      df: { fieldtype: "Link", label: "Site Plan", options: "Site Plan", fieldname: "site_plan" },
+      render_input: true,
+    });
+    this.controls.effective_from = frappe.ui.form.make_control({
+      parent: this.$main.find('[data-control="effective_from"]'),
+      df: { fieldtype: "Date", label: "Effective From", fieldname: "effective_from", reqd: 1 },
+      render_input: true,
+    });
+    this.controls.effective_until = frappe.ui.form.make_control({
+      parent: this.$main.find('[data-control="effective_until"]'),
+      df: { fieldtype: "Date", label: "Effective Until (blank = indefinite)", fieldname: "effective_until" },
+      render_input: true,
+    });
+
+    this.bind_control_change(this.controls.site_plan, () => {
+      if (this.suppress_control_events) return;
+      this.state.site_plan = this.controls.site_plan.get_value() || "";
+      this.mark_dirty();
+    });
+    this.bind_control_change(this.controls.effective_from, () => {
+      if (this.suppress_control_events) return;
+      this.state.effective_from = this.controls.effective_from.get_value() || "";
+      this.mark_dirty();
+    });
+    this.bind_control_change(this.controls.effective_until, () => {
+      if (this.suppress_control_events) return;
+      this.state.effective_until = this.controls.effective_until.get_value() || "";
+      this.mark_dirty();
     });
 
     this.bind_control_change(this.controls.organogram, async () => {
@@ -268,6 +306,86 @@ class SiteOrganogramDesigner {
   bind_shell_events() {
     this.$main.on("click", '[data-action="new"]', () => this.start_new_document());
     this.$main.on("click", '[data-action="sync"]', () => this.sync_pools(true));
+    this.$main.on("click", '[data-action="populate-from-plan"]', () => this.populate_from_plan());
+  }
+
+  async populate_from_plan() {
+    const sitePlan = this.controls.site_plan.get_value() || this.state.site_plan;
+    if (!sitePlan) {
+      frappe.msgprint("Select a Site Plan first.");
+      return;
+    }
+    this.state.site_plan = sitePlan;
+
+    const r = await frappe.call({
+      method: `${SO_PY}.get_site_plan_template`,
+      args: { site_plan_name: sitePlan },
+      freeze: true,
+      freeze_message: "Populating from Site Plan...",
+    });
+
+    const template = r.message || {};
+
+    // Groups: add any not already present (matched by group_key). Existing
+    // headings are left alone so a re-populate never disturbs something
+    // already customised.
+    const existingGroupKeys = new Set(this.state.group_headings.map(g => g.group_key));
+    let addedGroups = 0;
+    for (const g of (template.group_headings || [])) {
+      if (!g.group_key || existingGroupKeys.has(g.group_key)) continue;
+      this.state.group_headings.push({ group_key: g.group_key, group: g.group || "", shift_design: g.shift_design || "" });
+      existingGroupKeys.add(g.group_key);
+      addedGroups++;
+    }
+
+    // Slots -> shift_mappings: add any (group_key, shift, row_key) combination
+    // not already present. A Plan Slot's row_key is stable (server-generated
+    // once, on the Plan), so re-running this after an earlier populate never
+    // re-adds - and never touches - a row that's since been assigned.
+    const rowKey = (row) => `${row.group_key}::${row.shift}::${row.row_key}`;
+    const existingRowKeys = new Set(this.state.shift_mappings.map(rowKey));
+    let addedRows = 0;
+    for (const row of (template.shift_mappings || [])) {
+      const key = rowKey(row);
+      if (existingRowKeys.has(key)) continue;
+      this.state.shift_mappings.push({ ...row });
+      existingRowKeys.add(key);
+      addedRows++;
+    }
+
+    // Reporting lines: add any not already present (matched on source/target
+    // group_key + scope + shift).
+    const lineKey = (l) => `${l.source_group_key}::${l.source_scope}::${l.source_shift || ""}=>${l.target_group_key}::${l.target_scope}::${l.target_shift || ""}`;
+    const existingLineKeys = new Set(this.state.reporting_lines.map(lineKey));
+    let addedLines = 0;
+    for (const line of (template.reporting_lines || [])) {
+      const key = lineKey(line);
+      if (existingLineKeys.has(key)) continue;
+      this.state.reporting_lines.push({ ...line, line_order: this.state.reporting_lines.length + 1 });
+      existingLineKeys.add(key);
+      addedLines++;
+    }
+
+    // A brand new organogram with no Branch/Location chosen yet can take the
+    // Plan's own defaults as a starting point - never overwrites a
+    // already-chosen Branch/Location.
+    if (!this.state.branch && template.branch) {
+      await this.on_branch_change(template.branch);
+    }
+    if (!this.state.location && template.location) {
+      this.state.location = template.location;
+    }
+
+    this.ensure_state_keys();
+    this.reconcile_shifts();
+    this.push_controls();
+    this.mark_dirty();
+    this.render_all();
+
+    frappe.show_alert({
+      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s) added.`,
+      indicator: "green",
+    });
   }
 
   async load_designations() {
@@ -354,6 +472,9 @@ class SiteOrganogramDesigner {
       this.controls.organogram.set_value(this.state.name || "");
       this.controls.branch.set_value(this.state.branch || "");
       this.controls.location.set_value(this.state.location || "");
+      this.controls.site_plan.set_value(this.state.site_plan || "");
+      this.controls.effective_from.set_value(this.state.effective_from || "");
+      this.controls.effective_until.set_value(this.state.effective_until || "");
       this.controls.asset_categories.set_value((this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean));
       this.render_selected_asset_categories();
     } finally {
@@ -1678,6 +1799,8 @@ class SiteOrganogramDesigner {
   async save(){
     if(!this.state.branch)return frappe.msgprint("Site is required.");
     if(!this.state.location)return frappe.msgprint("Location is required.");
+    if(!this.state.effective_from)return frappe.msgprint("Effective From is required.");
+    if(this.state.effective_until && moment(this.state.effective_until).isBefore(this.state.effective_from,"day"))return frappe.msgprint("Effective Until cannot be before Effective From.");
     this.sync_asset_categories_from_control();
     this.render_selected_asset_categories();
     if(!this.state.asset_categories.length)return frappe.msgprint("Select at least one Applicable Asset Category.");

@@ -7,11 +7,14 @@ from collections import OrderedDict, defaultdict
 from io import BytesIO
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import getdate
 
 
 class SiteOrganogram(Document):
     def validate(self):
+        self.validate_effective_dates()
         normalize_group_structure(self)
         normalize_mappings(self)
         normalize_reporting_lines(self)
@@ -20,6 +23,14 @@ class SiteOrganogram(Document):
         normalize_group_structure(self)
         normalize_mappings(self)
         normalize_reporting_lines(self)
+
+    def validate_effective_dates(self):
+        if (
+            self.effective_from
+            and self.effective_until
+            and getdate(self.effective_until) < getdate(self.effective_from)
+        ):
+            frappe.throw(_("Effective Until cannot be before Effective From."))
 
 
 # -------------------------------------------------------------------
@@ -658,6 +669,108 @@ def get_site_organogram_template(source_name):
                 "line_order": getattr(r, "line_order", None),
             }
             for r in (getattr(doc, "reporting_lines", None) or [])
+        ],
+    }
+
+
+@frappe.whitelist()
+def get_site_plan_template(site_plan_name):
+    """Return a Site Plan's structure (Groups, Slots, Reporting Lines) shaped for
+    the Organogram Designer to merge into its own state.
+
+    Unlike get_site_organogram_template (which clones another *Organogram*,
+    including its real Employee/Asset assignments), a Site Plan carries no
+    Employees or Assets by design - only the shape (Group Headings and
+    Reporting Lines) and Slots (what should exist: a Designation, or an Asset
+    of a given Category). Slots are expanded here into one blank/vacant
+    mapping row per shift column of their group, mirroring add_row()'s own
+    per-shift expansion in the JS, so the caller can merge them straight into
+    shift_mappings without any further shift-expansion logic of its own.
+    """
+    if not site_plan_name:
+        return {}
+
+    plan = frappe.get_doc("Site Plan", site_plan_name)
+    groups = plan.groups or []
+    group_names = {row.group_key: row.group for row in groups}
+    shift_counts = {row.group_key: _shift_design_team_count(row.shift_design) for row in groups}
+
+    shift_mappings = []
+    for slot in (plan.slots or []):
+        count = max(0, min(20, shift_counts.get(slot.group_key, 0)))
+
+        # normalize_mappings() (run on every save) parses row_key to decide a
+        # row's kind and *overwrites* row_type/designation/row_label from
+        # that parse - it only recognises its own ASSET::/DESIG:: formats, so
+        # a Plan Slot's own SLOT::<hash> key must be translated into one of
+        # those here, not passed through as-is, or the row loses its
+        # designation/label on the very first save. The hash suffix of the
+        # Slot's own row_key is reused as the token, so this stays stable
+        # (and idempotent for the caller's own re-populate dedup) across
+        # repeated calls for the same Slot.
+        token = (slot.row_key or "").split("::")[-1] or frappe.generate_hash(length=6)
+
+        if slot.row_type == "Designation":
+            label = slot.designation or slot.row_label or "Unlinked Role"
+            row_key = _row_key_for_designation(label, token=token)
+            row_label = label
+        else:
+            # No real Asset exists yet, so there is no ASSET::<id> to form -
+            # this lands in normalize_mappings()'s existing "unresolved Asset
+            # row" fallback (missing_asset=1) the same way a row whose linked
+            # Asset was since deleted would, until a real Asset is assigned.
+            row_key = f"MISSING_ASSET::{token}"
+            row_label = slot.row_label or slot.asset_category or "Missing"
+
+        for shift in (f"Shift {x}" for x in SHIFT_LETTERS[:count]):
+            shift_mappings.append(
+                {
+                    "group_key": slot.group_key,
+                    "group": group_names.get(slot.group_key, ""),
+                    "shift": shift,
+                    "employee": "",
+                    "asset": "",
+                    "designation": slot.designation if slot.row_type == "Asset" else "",
+                    "row_key": row_key,
+                    "row_order": slot.row_order,
+                    "row_label": row_label,
+                    "row_type": slot.row_type,
+                    "spare_swing": slot.spare_swing,
+                    "missing_asset": 0,
+                    "missing_employee": 0,
+                }
+            )
+
+    return {
+        "plan_name": plan.plan_name,
+        "branch": plan.branch,
+        "location": plan.location,
+        "group_headings": [
+            {
+                "group_key": row.group_key,
+                "group": row.group,
+                "shift_design": row.shift_design,
+            }
+            for row in groups
+        ],
+        "shift_mappings": shift_mappings,
+        "reporting_lines": [
+            {
+                "source_group_key": row.source_group_key,
+                "source_group": row.source_group,
+                "source_scope": row.source_scope,
+                "source_shift": row.source_shift,
+                "target_group_key": row.target_group_key,
+                "target_group": row.target_group,
+                "target_scope": row.target_scope,
+                "target_shift": row.target_shift,
+                "line_type": row.line_type,
+                "label": row.label,
+                "source_anchor": row.source_anchor,
+                "target_anchor": row.target_anchor,
+                "line_order": row.line_order,
+            }
+            for row in (plan.reporting_lines or [])
         ],
     }
 
@@ -1333,6 +1446,9 @@ def _designer_payload(doc):
         "modified": str(doc.modified or ""),
         "branch": getattr(doc, "branch", None),
         "location": getattr(doc, "location", None),
+        "site_plan": getattr(doc, "site_plan", None),
+        "effective_from": str(doc.effective_from) if getattr(doc, "effective_from", None) else None,
+        "effective_until": str(doc.effective_until) if getattr(doc, "effective_until", None) else None,
         "asset_categories": _designer_child_rows(
             getattr(doc, "asset_categories", None),
             ["asset_cateogories"],
@@ -1481,9 +1597,14 @@ def save_site_organogram_designer_state(payload):
         frappe.throw("Site is required.")
     if not location:
         frappe.throw("Location is required.")
+    if not payload.get("effective_from"):
+        frappe.throw("Effective From is required.")
 
     doc.branch = branch
     doc.location = location
+    doc.site_plan = _clean(payload.get("site_plan")) or None
+    doc.effective_from = payload.get("effective_from") or None
+    doc.effective_until = payload.get("effective_until") or None
 
     _replace_child_table(doc, "asset_categories", payload.get("asset_categories"), ["asset_cateogories"])
     _replace_child_table(doc, "group_headings", payload.get("group_headings"), ["group_key", "group", "shift_design"])
