@@ -155,10 +155,18 @@ class SiteOrganogramDesigner {
       render_input: true,
     });
 
-    this.bind_control_change(this.controls.site_plan, () => {
+    this.bind_control_change(this.controls.site_plan, async () => {
       if (this.suppress_control_events) return;
-      this.state.site_plan = this.controls.site_plan.get_value() || "";
+      const value = this.controls.site_plan.get_value() || "";
+      this.state.site_plan = value;
       this.mark_dirty();
+      // Selecting a Site Plan *is* the workflow now (it's the only way to
+      // populate an Organogram) - populate immediately instead of making the
+      // user find and press the separate button too. The button stays, for
+      // re-pulling after the Plan itself is edited later.
+      if (value) {
+        await this.populate_from_plan();
+      }
     });
     this.bind_control_change(this.controls.effective_from, () => {
       if (this.suppress_control_events) return;
@@ -295,6 +303,7 @@ class SiteOrganogramDesigner {
     this.page.add_inner_button("New Organogram", () => this.start_new_document());
     this.page.add_inner_button("Print", () => this.print_organogram(), "Actions");
     this.page.add_inner_button("Export Excel", () => this.export_excel(), "Actions");
+    this.page.add_inner_button("Export Diagram PNG", () => this.export_reporting_png(), "Actions");
 
     this.page.add_menu_item("Reload", () => this.reload());
     this.page.add_menu_item("Open DocType Record", () => {
@@ -341,15 +350,33 @@ class SiteOrganogramDesigner {
     // Slots -> shift_mappings: add any (group_key, shift, row_key) combination
     // not already present. A Plan Slot's row_key is stable (server-generated
     // once, on the Plan), so re-running this after an earlier populate never
-    // re-adds - and never touches - a row that's since been assigned.
+    // re-adds - and never touches live assignment data (employee/asset/
+    // spare_swing) on - a row that's since been assigned.
+    //
+    // The Slot's own Designation (the role that should operate an Asset row,
+    // used purely for vacancy counting) is structural Plan data though, not
+    // a live assignment - if it was added to the Plan *after* this row was
+    // first populated, an already-present row needs to pick it up too, or a
+    // re-populate can never actually bring in that change. Only backfills an
+    // empty designation - a designation the designer's own "Set Designation"
+    // button already set on this row is a deliberate per-Organogram override
+    // and is never clobbered.
     const rowKey = (row) => `${row.group_key}::${row.shift}::${row.row_key}`;
-    const existingRowKeys = new Set(this.state.shift_mappings.map(rowKey));
+    const existingRowsByKey = new Map(this.state.shift_mappings.map(r => [rowKey(r), r]));
     let addedRows = 0;
+    let refreshedDesignations = 0;
     for (const row of (template.shift_mappings || [])) {
       const key = rowKey(row);
-      if (existingRowKeys.has(key)) continue;
+      const existing = existingRowsByKey.get(key);
+      if (existing) {
+        if (existing.row_type === "Asset" && !existing.designation && row.designation) {
+          existing.designation = row.designation;
+          refreshedDesignations++;
+        }
+        continue;
+      }
       this.state.shift_mappings.push({ ...row });
-      existingRowKeys.add(key);
+      existingRowsByKey.set(key, row);
       addedRows++;
     }
 
@@ -375,6 +402,15 @@ class SiteOrganogramDesigner {
     if (!this.state.location && template.location) {
       this.state.location = template.location;
     }
+    // The Plan's own validity window is a sensible default for a brand new
+    // Organogram - never overwrites dates the user has already set (e.g. a
+    // shorter tenure than the Plan's own window, or re-populating later).
+    if (!this.state.effective_from && template.effective_from) {
+      this.state.effective_from = template.effective_from;
+    }
+    if (!this.state.effective_until && template.effective_until) {
+      this.state.effective_until = template.effective_until;
+    }
 
     // Asset Categories is required to save, and the Plan's Asset-type Slots
     // are exactly what determines which categories this Organogram actually
@@ -394,7 +430,7 @@ class SiteOrganogramDesigner {
     this.render_all();
 
     frappe.show_alert({
-      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s), ${addedCategories} asset categor${addedCategories === 1 ? "y" : "ies"} added.`,
+      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s), ${addedCategories} asset categor${addedCategories === 1 ? "y" : "ies"} added${refreshedDesignations ? `, ${refreshedDesignations} designation(s) refreshed` : ""}.`,
       indicator: "green",
     });
   }
@@ -1851,6 +1887,176 @@ class SiteOrganogramDesigner {
     const printUrl = `/app/print/${encodeURIComponent("Site Organogram")}/${encodeURIComponent(this.state.name)}`;
     window.open(printUrl, "_blank");
   }
+
+  async ensure_html2canvas() {
+    if (window.html2canvas) return;
+    await frappe.require("/assets/ir/js/vendor/html2canvas.min.js");
+    if (!window.html2canvas) {
+      throw new Error(__("html2canvas could not be loaded."));
+    }
+  }
+
+  // A clone rendered off-screen in the *live* document (e.g. left:-20000px)
+  // gets laid out by html2canvas relative to that huge negative offset -
+  // it tries to rasterise the whole span between there and the origin,
+  // which is either extremely slow or effectively hangs. An iframe sidesteps
+  // this entirely: its own document has its own 0,0 origin regardless of
+  // where the iframe itself sits on the parent page.
+  create_capture_frame() {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    Object.assign(iframe.style, {
+      position: "fixed",
+      left: "-20000px",
+      top: "0",
+      width: "4000px",
+      height: "3000px",
+      border: "0",
+      opacity: "0",
+      pointerEvents: "none",
+    });
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
+    doc.open();
+    doc.write("<!doctype html><html><head></head><body></body></html>");
+    doc.close();
+    doc.body.style.margin = "0";
+    doc.body.style.background = "#ffffff";
+    return { iframe, doc };
+  }
+
+  // Colours computed from ir_ui.css's color-mix() rules don't serialise back
+  // from getComputedStyle() as plain rgb()/rgba() the way a normal declared
+  // colour would - this Chromium reports them back as CSS Color 4's
+  // `color(srgb r g b)` form (components 0-1), which html2canvas 1.4.1's own
+  // (much older) CSS parser doesn't understand either, throwing "unsupported
+  // color function". A canvas fillStyle round-trip does *not* normalise this
+  // form back to rgb() (tried - it just echoes color(srgb ...) unchanged),
+  // so it's parsed directly here instead: the three components are already
+  // plain 0-1 sRGB, so this is just *255 and round, no colour-engine needed.
+  normalize_color(value) {
+    if (!value || value === "none" || value === "transparent") return value;
+    const m = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)$/.exec(value);
+    if (!m) return value;
+    const [r, g, b] = [m[1], m[2], m[3]].map(n => Math.round(parseFloat(n) * 255));
+    const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+    return a < 1 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
+  }
+
+  // getComputedStyle() on the *live* elements has already resolved every
+  // class rule (color-mix() included) - baking those resolved values in as
+  // inline styles on the clone reproduces exactly what's on screen without
+  // html2canvas ever needing to parse ir_ui.css (or any class rule) at all.
+  // box-shadow is deliberately dropped rather than baked - a color-mix()
+  // shadow colour hits the exact same unsupported-function wall, and a
+  // missing drop-shadow is a trivial cosmetic loss compared to that.
+  bake_computed_styles(sourceRoot, cloneRoot) {
+    const COLOR_PROPS = ["backgroundColor", "color", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor"];
+    const PLAIN_PROPS = [
+      "backgroundImage",
+      "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+      "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle",
+      "borderTopLeftRadius", "borderTopRightRadius", "borderBottomLeftRadius", "borderBottomRightRadius",
+      "fontWeight", "fontSize", "fontFamily", "lineHeight", "letterSpacing", "textTransform",
+      "padding", "margin", "display", "position", "top", "left", "right", "bottom",
+      "width", "height", "minWidth", "minHeight", "textAlign", "opacity", "whiteSpace", "overflow",
+      "flexDirection", "flexWrap", "flex", "alignItems", "justifyContent", "alignSelf", "justifySelf",
+      "gap", "rowGap", "columnGap", "zIndex", "boxSizing",
+      // The diagram leans heavily on CSS Grid (group headings, person-row's
+      // own two-column layout, the reporting matrix) - without these too,
+      // every grid child collapses into a single implicit column/row and
+      // rows visibly overlap.
+      "gridTemplateColumns", "gridTemplateRows", "gridTemplateAreas",
+      "gridColumn", "gridRow", "gridArea", "gridAutoFlow", "gridAutoColumns", "gridAutoRows",
+    ];
+    const srcEls = [sourceRoot, ...sourceRoot.querySelectorAll("*")];
+    const cloneEls = [cloneRoot, ...cloneRoot.querySelectorAll("*")];
+    srcEls.forEach((srcEl, i) => {
+      const cloneEl = cloneEls[i];
+      if (!cloneEl || !cloneEl.style) return;
+      const computed = window.getComputedStyle(srcEl);
+      let css = "box-shadow:none;";
+      for (const prop of COLOR_PROPS) {
+        const value = this.normalize_color(computed[prop]);
+        if (value) css += `${prop.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}:${value};`;
+      }
+      for (const prop of PLAIN_PROPS) {
+        const value = computed[prop];
+        if (value) css += `${prop.replace(/[A-Z]/g, m => "-" + m.toLowerCase())}:${value};`;
+      }
+      cloneEl.style.cssText = css;
+    });
+  }
+
+  async export_reporting_png() {
+    const $forest = this.$main.find(".so-org-forest");
+    if (!$forest.length || !$forest.find(".so-org-block").length) {
+      frappe.msgprint(__("Add Group Headings, mappings and Reporting Lines before exporting a diagram."));
+      return;
+    }
+
+    let iframe;
+    try {
+      await this.ensure_html2canvas();
+
+      const frame = this.create_capture_frame();
+      iframe = frame.iframe;
+      const doc = frame.doc;
+
+      const wrapper = doc.createElement("div");
+      wrapper.style.cssText = "display:inline-block; padding:24px; background:#fff;";
+
+      const title = doc.createElement("div");
+      title.style.cssText = "font:700 20px/1.4 Arial, sans-serif; margin-bottom:14px; color:#1a1a1a;";
+      title.textContent = this.png_title();
+      wrapper.appendChild(title);
+
+      const forestClone = $forest.get(0).cloneNode(true);
+      this.bake_computed_styles($forest.get(0), forestClone);
+      wrapper.appendChild(forestClone);
+      doc.body.appendChild(wrapper);
+
+      const canvas = await window.html2canvas(wrapper, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 4000,
+        windowHeight: 3000,
+      });
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob(b => (b ? resolve(b) : reject(new Error(__("PNG creation failed.")))), "image/png")
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${this.png_filename()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
+    } finally {
+      if (iframe) iframe.remove();
+    }
+  }
+
+  png_title() {
+    const name = this.state.name || this.state.branch || "Site Organogram";
+    const eff = this.state.effective_from ? frappe.datetime.str_to_user(this.state.effective_from) : "";
+    return eff ? `${name} — Reporting Structure (Effective ${eff})` : `${name} — Reporting Structure`;
+  }
+
+  png_filename() {
+    return `Site-Organogram-${this.slug(this.state.name || this.state.branch)}-Reporting-Structure`;
+  }
+
+  slug(value) {
+    return String(value || "organogram").trim().replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
   confirm(message){return new Promise(resolve=>frappe.confirm(message,()=>resolve(true),()=>resolve(false)));}
   esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
   debounce(fn,wait=200){let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait);};}

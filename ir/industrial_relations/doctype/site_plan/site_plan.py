@@ -189,10 +189,18 @@ def export_site_plan_excel(name):
 	category_totals = defaultdict(int)
 	for slot in doc.slots or []:
 		count = shift_counts.get(slot.group_key, 0)
+		# A Designation-type slot counts only toward the headcount total. An
+		# Asset-type slot counts toward its Asset Category *and*, if a
+		# Designation was also set on it (the role that should operate that
+		# Asset), toward the headcount total too - the two aren't mutually
+		# exclusive, so this can't be an if/elif.
 		if slot.row_type == "Designation" and slot.designation:
 			designation_totals[slot.designation] += count
-		elif slot.row_type == "Asset" and slot.asset_category:
-			category_totals[slot.asset_category] += count
+		if slot.row_type == "Asset":
+			if slot.asset_category:
+				category_totals[slot.asset_category] += count
+			if slot.designation:
+				designation_totals[slot.designation] += count
 
 	row_no = _write_table(
 		ws, row_no, "TOTAL EMPLOYEES REQUIRED BY DESIGNATION",
