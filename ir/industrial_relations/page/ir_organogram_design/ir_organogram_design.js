@@ -326,6 +326,15 @@ class SiteOrganogramDesigner {
     }
     this.state.site_plan = sitePlan;
 
+    // this.shift_designs is fetched once, at page load - a Shift Design (or
+    // Site Plan) created *after* this Designer tab was first opened simply
+    // isn't in it. reconcile_shifts() below treats "not in the cache" the
+    // same as "0 shift teams", which silently deletes every just-populated
+    // row for any group using that Shift Design - not a display glitch, an
+    // actual data-loss bug. Refreshing right before that matters most closes
+    // it without needing every caller to remember to do so.
+    await this.load_shift_designs();
+
     const r = await frappe.call({
       method: `${SO_PY}.get_site_plan_template`,
       args: { site_plan_name: sitePlan },
@@ -469,12 +478,18 @@ class SiteOrganogramDesigner {
       }
     }
 
-    const r = await frappe.call({
-      method: `${SO_PY}.get_site_organogram_designer_state`,
-      args: { name },
-      freeze: true,
-      freeze_message: "Loading organogram...",
-    });
+    const [r] = await Promise.all([
+      frappe.call({
+        method: `${SO_PY}.get_site_organogram_designer_state`,
+        args: { name },
+        freeze: true,
+        freeze_message: "Loading organogram...",
+      }),
+      // Refreshed alongside the load so a Shift Design created after this
+      // tab was first opened is already known before render_all() below
+      // works out each group's shift columns from it.
+      this.load_shift_designs(),
+    ]);
 
     if (!r.message || !r.message.name) {
       frappe.throw(`No Site Organogram data was returned for ${name}.`);
@@ -643,12 +658,17 @@ class SiteOrganogramDesigner {
   }
 
   async apply_previous_organogram(sourceName, branch, location) {
-    const result = await frappe.call({
-      method: `${SO_PY}.get_site_organogram_template`,
-      args: { source_name: sourceName },
-      freeze: true,
-      freeze_message: "Recovering previous organogram...",
-    });
+    const [result] = await Promise.all([
+      frappe.call({
+        method: `${SO_PY}.get_site_organogram_template`,
+        args: { source_name: sourceName },
+        freeze: true,
+        freeze_message: "Recovering previous organogram...",
+      }),
+      // Same reconcile_shifts() staleness risk as populate_from_plan() -
+      // this also calls it further down, on whatever's in this.shift_designs.
+      this.load_shift_designs(),
+    ]);
 
     const template = result.message || {};
 
@@ -1502,23 +1522,51 @@ class SiteOrganogramDesigner {
     const rootInset = columnWidth / 2;
     const branchSpineInset = 18;
 
+    // A branch with zero descendant rows (e.g. a heading reporting straight
+    // to the root with nothing below it) shouldn't draw *any* "drops down
+    // further" connector - the old code drew one unconditionally for every
+    // branch, producing a stub hanging off branches that connect to
+    // nothing. Same idea per-row below: a branch's spine should only cover
+    // rows up to and including its own last row with a node in it, not the
+    // full height of every level row that happens to exist for *other*
+    // branches.
+    const lastRowIndexByBranch = new Map();
+    layout.branches.forEach(branch => {
+      let last = -1;
+      layout.rowDefs.forEach((row, idx) => {
+        if (layout.branchRows.get(branch.key)?.has(row.group_key)) last = idx;
+      });
+      lastRowIndexByBranch.set(branch.key, last);
+    });
+
     const branchRow = layout.branches
-      .map((branch, index) => `
-        <div class="so-org-grid__cell so-org-grid__cell--branch"
+      .map((branch, index) => {
+        const hasDescendants = lastRowIndexByBranch.get(branch.key) >= 0;
+        return `
+        <div class="so-org-grid__cell so-org-grid__cell--branch${hasDescendants ? " has-descendants" : ""}"
              style="--branch-spine-x:${branchSpineInset}px;">
           ${this.organogram_block_html(this.reporting_present_node(branch))}
         </div>
-      `)
+      `;
+      })
       .join("");
 
     const levelRows = layout.rowDefs
-      .map(row => `
-        <div class="so-org-grid__row so-org-grid__row--level"
-             style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
-          ${layout.branches
-            .map(branch => {
-              const node = layout.branchRows.get(branch.key)?.get(row.group_key);
-              return `
+      .map((row, rowIndex) => {
+        const guides = layout.branches
+          .map((branch, index) => {
+            const lastIdx = lastRowIndexByBranch.get(branch.key);
+            if (lastIdx < 0 || rowIndex > lastIdx) return "";
+            const spineX = index * (columnWidth + columnGap) + branchSpineInset;
+            const isTerminal = rowIndex === lastIdx;
+            return `<span class="so-org-descendants__row-spine${isTerminal ? " is-terminal" : ""}" style="left:${spineX}px"></span>`;
+          })
+          .join("");
+
+        const cells = layout.branches
+          .map(branch => {
+            const node = layout.branchRows.get(branch.key)?.get(row.group_key);
+            return `
                 <div class="so-org-grid__cell ${node ? "has-node" : "is-empty"}"
                      style="--branch-spine-x:${branchSpineInset}px;">
                   ${node ? '<div class="so-org-grid__cell-connector"></div>' : ''}
@@ -1529,23 +1577,26 @@ class SiteOrganogramDesigner {
                   }
                 </div>
               `;
-            })
-            .join("")}
+          })
+          .join("");
+
+        return `
+        <div class="so-org-grid__row so-org-grid__row--level"
+             style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
+          <div class="so-org-grid__row-guides">${guides}</div>
+          ${cells}
         </div>
-      `)
+      `;
+      })
       .join("");
 
     const branchGuides = layout.branches
       .map((branch, index) => {
+        if (lastRowIndexByBranch.get(branch.key) < 0) return "";
         const columnLeft = index * (columnWidth + columnGap);
         const centreX = columnLeft + columnWidth / 2;
         const spineX = columnLeft + branchSpineInset;
-        return `
-          <span class="so-org-descendants__spine"
-                style="left:${spineX}px"></span>
-          <span class="so-org-descendants__branch-start"
-                style="left:${spineX}px; width:${centreX - spineX}px"></span>
-        `;
+        return `<span class="so-org-descendants__branch-start" style="left:${spineX}px; width:${centreX - spineX}px"></span>`;
       })
       .join("");
 

@@ -624,7 +624,10 @@
   padding-bottom: 28px;
 }
 
-.so-org-grid__cell--branch::after {
+/* Only a branch with at least one descendant row gets this "drops down
+   further" hook - drawing it unconditionally left a stub hanging off any
+   branch that connects to nothing (e.g. a heading with no children). */
+.so-org-grid__cell--branch.has-descendants::after {
   content: "";
   position: absolute;
   left: var(--branch-spine-x);
@@ -679,12 +682,31 @@
   pointer-events: none;
 }
 
-.so-org-descendants__spine {
+/* One segment per (branch, level-row) instead of one overlay spanning the
+   whole descendants block - a branch that stops partway down (its last
+   descendant is row 2 of 4, say) simply has no segment for rows 3-4, rather
+   than a spine that keeps going with nothing left to connect to. Regular
+   segments bridge into the row's own margin-bottom gap so the line reads as
+   continuous into the next row; .is-terminal stops inside the row instead,
+   at the same height the cell's own corner-connector starts from, so the
+   line visibly ends where the branch's last block actually is. */
+.so-org-grid__row-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.so-org-descendants__row-spine {
   position: absolute;
   top: 0;
-  bottom: 8px;
+  bottom: -16px;
   width: 0;
   border-left: 2.5px solid var(--so-line-color);
+}
+
+.so-org-descendants__row-spine.is-terminal {
+  bottom: auto;
+  height: 26px;
 }
 
 .so-org-descendants__branch-start {
