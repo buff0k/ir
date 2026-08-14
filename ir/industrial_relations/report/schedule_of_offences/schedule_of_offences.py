@@ -7,14 +7,17 @@ import frappe
 def execute(filters=None):
     columns, data = [], []
 
-    # Define the columns, with `name` as `Data` to simplify header styling
+    # Define the columns, with `name` as `Data` to simplify header styling.
+    # `name` only ever holds a short code (A1, K11...) so it can be narrow;
+    # the description/sanction columns hold real sentences and were
+    # truncating hard at their old widths even with wrapping enabled.
     columns = [
-        {"fieldname": "name", "label": "Document Name", "fieldtype": "Data", "width": 150},
-        {"fieldname": "offence_description", "label": "Offence Description and Notes", "fieldtype": "Data", "width": 300},
-        {"fieldname": "sanction_on_first_offence", "label": "First Offence Sanction", "fieldtype": "Data", "width": 150},
-        {"fieldname": "sanction_on_second_offence", "label": "Second Offence Sanction", "fieldtype": "Data", "width": 150},
-        {"fieldname": "sanction_on_third_offence", "label": "Third Offence Sanction", "fieldtype": "Data", "width": 150},
-        {"fieldname": "sanction_on_fourth_offence", "label": "Fourth Offence Sanction", "fieldtype": "Data", "width": 150}
+        {"fieldname": "name", "label": "Document Name", "fieldtype": "Data", "width": 80},
+        {"fieldname": "offence_description", "label": "Offence Description and Notes", "fieldtype": "Data", "width": 420},
+        {"fieldname": "sanction_on_first_offence", "label": "First Offence Sanction", "fieldtype": "Data", "width": 190},
+        {"fieldname": "sanction_on_second_offence", "label": "Second Offence Sanction", "fieldtype": "Data", "width": 190},
+        {"fieldname": "sanction_on_third_offence", "label": "Third Offence Sanction", "fieldtype": "Data", "width": 190},
+        {"fieldname": "sanction_on_fourth_offence", "label": "Fourth Offence Sanction", "fieldtype": "Data", "width": 190}
     ]
 
     offences = frappe.get_all(
