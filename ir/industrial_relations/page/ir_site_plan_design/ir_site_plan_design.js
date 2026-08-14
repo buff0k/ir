@@ -332,9 +332,10 @@ class SitePlanDesigner {
         const rows = this.slots_for_group(g);
         return `<div class="so-group">
           <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div></div>
-          <div class="so-gridwrap"><table class="so-table" data-slot-group-key="${this.esc(g.group_key)}"><tbody>
+          <div class="so-gridwrap"><table class="so-table" data-slot-group-key="${this.esc(g.group_key)}"><tbody class="so-slots-tbody" data-group-key="${this.esc(g.group_key)}" data-group="${this.esc(g.group)}">
             ${rows.length ? rows.map((r) => `
               <tr data-slot-key="${this.esc(r.row_key)}">
+                <td class="so-slot-drag-cell"><span class="so-slot-drag-handle" title="${__("Drag to reorder, or drag into another heading below to move it there")}">⠿</span></td>
                 <td><select class="form-control" data-slot-field="row_type">
                   <option value="Designation" ${r.row_type === "Designation" ? "selected" : ""}>${__("Designation")}</option>
                   <option value="Asset" ${r.row_type === "Asset" ? "selected" : ""}>${__("Asset")}</option>
@@ -351,9 +352,12 @@ class SitePlanDesigner {
                 </td>
                 <td><input class="form-control" data-slot-field="row_label" value="${this.esc(r.row_label || "")}" placeholder="${__("Label")}"></td>
                 <td class="so-slot-spare-cell"><label><input type="checkbox" data-slot-field="spare_swing" ${r.spare_swing ? "checked" : ""}> ${__("Spare / Swing")}</label></td>
-                <td class="so-group-remove-cell"><button class="so-icon-btn" data-slot-action="remove" title="${__("Remove")}">×</button></td>
+                <td class="so-group-remove-cell so-slot-actions-cell">
+                  <button class="so-icon-btn" data-slot-action="duplicate" title="${__("Duplicate this row")}">⧉</button>
+                  <button class="so-icon-btn" data-slot-action="remove" title="${__("Remove")}">×</button>
+                </td>
               </tr>
-            `).join("") : `<tr><td colspan="6"><div class="so-empty">${__("No slots yet.")}</div></td></tr>`}
+            `).join("") : `<tr class="so-slots-empty-row"><td colspan="7"><div class="so-empty">${__("No slots yet.")}</div></td></tr>`}
           </tbody></table></div>
           <button class="btn btn-sm btn-default" data-slot-action="add" data-group-key="${this.esc(g.group_key)}">${__("Add Slot")}</button>
         </div>`;
@@ -361,6 +365,7 @@ class SitePlanDesigner {
       .join("");
 
     $w.html(groupsHtml);
+    this.bind_slots_sortable($w);
 
     $w.find('[data-slot-action="add"]').on("click", (ev) => {
       const groupKey = $(ev.currentTarget).data("group-key");
@@ -386,6 +391,11 @@ class SitePlanDesigner {
       this.render_slots();
     });
 
+    $w.find('[data-slot-action="duplicate"]').on("click", (ev) => {
+      const rowKey = $(ev.currentTarget).closest("tr").data("slot-key");
+      this.duplicate_slot(rowKey);
+    });
+
     $w.find("[data-slot-field]").on("change", (ev) => {
       const $tr = $(ev.currentTarget).closest("tr");
       const rowKey = $tr.data("slot-key");
@@ -398,6 +408,88 @@ class SitePlanDesigner {
         this.render_slots();
       }
     });
+  }
+
+  // A copy-paste-from-CSV workflow for a large repetitive Slot list (many
+  // near-identical Asset rows, say) is exactly what produced the duplicate
+  // row_key bug found in production - this is the safe alternative: every
+  // duplicate gets its own fresh row_key, so there's never a reason to hand-
+  // edit row_key (a field the UI doesn't even expose) to work around it.
+  duplicate_slot(rowKey) {
+    const idx = this.state.slots.findIndex((r) => r.row_key === rowKey);
+    if (idx < 0) return;
+    const source = this.state.slots[idx];
+    const clone = { ...source, row_key: this.new_slot_key() };
+    this.state.slots.splice(idx + 1, 0, clone);
+    this.renumber_group(source.group_key);
+    this.mark_dirty();
+    this.render_slots();
+  }
+
+  // row_order only needs to be sequential *within* a group - re-deriving it
+  // from this.state.slots' own array order (relative order among rows that
+  // share a group_key) after any insert/move keeps it simple and avoids
+  // fractional/duplicate order values.
+  renumber_group(groupKey) {
+    let order = 1;
+    for (const row of this.state.slots) {
+      if (row.group_key === groupKey) row.row_order = order++;
+    }
+  }
+
+  // One Sortable instance per heading's <tbody>, all sharing the same
+  // `group` name - that's what SortableJS uses to allow dragging a row from
+  // one heading's table into another's, not just reordering within one.
+  bind_slots_sortable($w) {
+    if (!window.Sortable) return;
+    if (this._slotsSortables) {
+      this._slotsSortables.forEach((s) => s.destroy());
+    }
+    this._slotsSortables = $w.find(".so-slots-tbody").toArray().map((tbody) =>
+      new Sortable(tbody, {
+        group: "site-plan-slots",
+        handle: ".so-slot-drag-handle",
+        animation: 150,
+        filter: ".so-slots-empty-row",
+        onEnd: () => this.handle_slots_reordered(),
+      })
+    );
+  }
+
+  // Fired after any drag ends, whether it reordered rows within one heading
+  // or moved a row into another - re-derives group_key/group/row_order for
+  // every Slot from the DOM's current tbody membership and row order, which
+  // is simplest single source of truth once the user has finished dragging.
+  handle_slots_reordered() {
+    const byRowKey = new Map(this.state.slots.map((r) => [r.row_key, r]));
+    const seen = new Set();
+    const reordered = [];
+
+    this.$main.find(".so-slots-tbody").each((_, tbody) => {
+      const $tbody = $(tbody);
+      const groupKey = $tbody.attr("data-group-key");
+      const group = $tbody.attr("data-group");
+      let order = 1;
+      $tbody.find("tr[data-slot-key]").each((_, tr) => {
+        const row = byRowKey.get($(tr).attr("data-slot-key"));
+        if (!row) return;
+        row.group_key = groupKey;
+        row.group = group;
+        row.row_order = order++;
+        seen.add(row);
+        reordered.push(row);
+      });
+    });
+
+    // Defensive: a Slot that somehow isn't currently rendered (shouldn't
+    // happen) keeps its place at the end rather than silently vanishing.
+    for (const row of this.state.slots) {
+      if (!seen.has(row)) reordered.push(row);
+    }
+
+    this.state.slots = reordered;
+    this.mark_dirty();
+    this.render_slots();
   }
 
   // ---------------------------------------------------------------------

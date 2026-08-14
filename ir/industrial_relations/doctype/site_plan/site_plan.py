@@ -9,9 +9,10 @@ from frappe.utils import cint, getdate
 
 class SitePlan(Document):
 	def before_validate(self):
+		self.ensure_group_keys()
+		self.resolve_group_keys_by_label()
 		self.remove_blank_child_rows()
 		self.set_defaults()
-		self.ensure_group_keys()
 		self.ensure_slot_keys()
 		self.populate_display_values()
 
@@ -48,10 +49,46 @@ class SitePlan(Document):
 			if not _clean(row.group_key):
 				row.group_key = _new_group_key()
 
-	def ensure_slot_keys(self):
+	def resolve_group_keys_by_label(self):
+		"""A Slot/Reporting Line saved by anything other than the Designer's
+		own UI - a raw Data Import in particular, since the exported CSV
+		template has no group_key column at all, only the human-readable
+		group label - only carries a group *label*. remove_blank_child_rows()
+		right after this treats a missing group_key as "orphaned" and
+		silently deletes the row, so this has to backfill the key from the
+		label first, or every such row vanishes the moment the document is
+		saved with no error raised at all.
+		"""
+		by_label = {_clean(row.group): row.group_key for row in self.groups or [] if _clean(row.group)}
+
 		for row in self.slots or []:
-			if not _clean(row.row_key):
+			if not _clean(row.group_key):
+				match = by_label.get(_clean(row.group))
+				if match:
+					row.group_key = match
+
+		for row in self.reporting_lines or []:
+			for prefix in ("source", "target"):
+				key_field = f"{prefix}_group_key"
+				label_field = f"{prefix}_group"
+				if not _clean(getattr(row, key_field, None)):
+					match = by_label.get(_clean(getattr(row, label_field, None)))
+					if match:
+						setattr(row, key_field, match)
+
+	def ensure_slot_keys(self):
+		# A blank row_key gets a fresh one, same as before - but a row_key
+		# that *collides* with an earlier Slot's (seen in real imported data:
+		# many Asset slots sharing the exact same row_key) needs exactly the
+		# same repair, or every Slot after the first with that key silently
+		# merges into one another downstream, wherever row_key is used as a
+		# uniqueness key (Site Organogram population in particular).
+		seen = set()
+		for row in self.slots or []:
+			key = _clean(row.row_key)
+			if not key or key in seen:
 				row.row_key = _new_slot_key()
+			seen.add(_clean(row.row_key))
 
 	def populate_display_values(self):
 		group_names = {

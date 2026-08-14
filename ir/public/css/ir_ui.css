@@ -940,6 +940,43 @@
   width: 42px;
 }
 
+/* Slots table specifically has two per-row actions (Duplicate, Remove), so
+   it needs more width than the single-button Group Headings table's own
+   .so-group-remove-cell - kept as a separate modifier rather than widening
+   that shared rule, which would misalign the Group Headings table too. */
+.so-slot-actions-cell {
+  width: auto;
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+}
+
+.so-slot-drag-cell {
+  width: 28px;
+  text-align: center;
+}
+
+.so-slot-drag-handle {
+  cursor: grab;
+  opacity: 0.55;
+  font-size: 16px;
+  user-select: none;
+  display: inline-block;
+  padding: 4px 2px;
+}
+
+.so-slot-drag-handle:hover {
+  opacity: 1;
+}
+
+.so-slots-tbody tr.sortable-ghost {
+  opacity: 0.4;
+}
+
+.so-slots-tbody tr.sortable-chosen .so-slot-drag-handle {
+  cursor: grabbing;
+}
+
 .so-group__mode {
   font-size: 11px;
   opacity: 0.7;
