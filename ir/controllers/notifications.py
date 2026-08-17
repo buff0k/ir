@@ -4,6 +4,14 @@
 import frappe
 from frappe.model.meta import get_meta
 from ir import permissions
+from ir.industrial_relations.email_style import (
+    EMAIL_STYLE_BLOCK,
+    email_header,
+    greeting,
+    intro,
+    signoff,
+    view_link,
+)
 from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 from collections import defaultdict
 from datetime import date
@@ -25,7 +33,8 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             doc, action,
             subject_template="Termination form for {requested_for_names} ({requested_for}) {action}",
             body_template="A Termination Form for {requested_for_names} ({requested_for}) at {requested_for_site} has been {action} by {actor}.",
-            changed_fields=changed_fields
+            changed_fields=changed_fields,
+            severity="urgent",
         )
     elif doc.doctype == "NTA Enquiry":
         # An NTA Enquiry is the hearing notice for a Disciplinary Action,
@@ -41,20 +50,23 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             body_template="A Notice to Attend for {names} ({employee}) at {venue} has been {action} by {actor}.",
             changed_fields=changed_fields,
             recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
+            severity="urgent",
         )
     elif doc.doctype == "Status Change Form":
         return handle_notification(
             doc, action,
             subject_template="A Status Change for {employee_name} ({employee}) {action}",
             body_template="A Status Change for {employee_name} ({employee}) has been {action} by {actor}.",
-            changed_fields=changed_fields
+            changed_fields=changed_fields,
+            severity="info",
         )
     elif doc.doctype == "Site Transfer Form":
         return handle_notification(
             doc, action,
             subject_template="A Site Transfer for {employee_name} ({employee}) {action}",
             body_template="A Site Transfer for {employee_name} ({employee}) has been {action} by {actor}.",
-            changed_fields=changed_fields
+            changed_fields=changed_fields,
+            severity="info",
         )
 
 
@@ -116,33 +128,24 @@ def handle_anonymous_report_create(doc, method=None):
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "Colleague"
 
-        lines = [
-            f"Dear {full_name}",
-            "",
-            "A new Anonymous Report has been submitted.",
-            f"Reference: {doc.name}",
-        ]
-
-        # Optional: include category if the field exists
+        details = [f"Reference: {doc.name}"]
         if hasattr(doc, "report_category") and doc.report_category:
-            lines.append(f"Category: {doc.report_category}")
-
-        # Optional: include submission timestamp
+            details.append(f"Category: {doc.report_category}")
         if getattr(doc, "creation", None):
-            lines.append(f"Submitted On: {doc.creation}")
+            details.append(f"Submitted On: {doc.creation}")
 
-        lines.extend([
-            "",
-            "Please review it in the system.",
-            f'<a href="{url}">Click here to view</a>'
-        ])
-
-        message = "<br>".join(lines)
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro("A new Anonymous Report has been submitted.")
+        message += f'<p class="ir-email-intro">{"<br>".join(details)}</p>'
+        message += intro("Please review it in the system.")
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent"),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )
@@ -194,7 +197,9 @@ def _collect_anonymous_report_recipients():
 
 # ---------- Existing helpers ----------
 
-def handle_notification(doc, action, subject_template, body_template, changed_fields=None, recipient_filter=None):
+def handle_notification(
+    doc, action, subject_template, body_template, changed_fields=None, recipient_filter=None, severity="info"
+):
     recipient_emails, name_by_email = _collect_recipients(doc)
     if recipient_filter:
         recipient_emails = [email for email in recipient_emails if recipient_filter(email)]
@@ -210,34 +215,31 @@ def handle_notification(doc, action, subject_template, body_template, changed_fi
 
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
-        lines = [
-            f"Dear {full_name}",
-            "",
-            body_template.format(**doc.as_dict(), action=action, actor=actor_fullname),
-            ""
-        ]
+
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(body_template.format(**doc.as_dict(), action=action, actor=actor_fullname))
 
         if action == "updated" and changed_fields:
             meta = frappe.get_meta(doc.doctype)
-            lines.append("Fields changed:")
+            change_lines = []
             for fieldname, (old, new) in changed_fields.items():
                 label = meta.get_label(fieldname) or fieldname
                 if isinstance(new, list):  # this is a child table diff
-                    lines.append(f"• {label}:")
+                    change_lines.append(f"<strong>{label}</strong>:")
                     for line in new:
-                        lines.append(f"&nbsp;&nbsp;– {line}")
+                        change_lines.append(f"&nbsp;&nbsp;– {line}")
                 else:
-                    lines.append(f"• {label}: {old} → {new}")
-            lines.append("")
+                    change_lines.append(f"<strong>{label}</strong>: {old} → {new}")
+            message += f'<p class="ir-email-intro">{"<br>".join(change_lines)}</p>'
 
-        lines.append(f'<a href="{url}">Click here to view</a>')
-
-        message = "<br>".join(lines)
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, severity),
         )
 
 
@@ -332,24 +334,18 @@ def handle_disciplinary_action_create(doc, method=None):
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
 
-        lines = [
-            f"Dear {full_name}",
-            "",
-            f"A new Disciplinary Action has been created for {accused_name} ({accused_coy}) at {branch}.",
-            "",
-            shop_steward_line,
-            "",
-            "Please attend to this matter urgently.",
-            "",
-            f'<a href="{url}">Click here to view</a>',
-        ]
-
-        message = "<br>".join(lines)
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(f"A new Disciplinary Action has been created for {accused_name} ({accused_coy}) at {branch}.")
+        message += intro(shop_steward_line)
+        message += intro("Please attend to this matter urgently.")
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent"),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )
@@ -457,22 +453,17 @@ def handle_incapacity_proceedings_create(doc, method=None):
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
 
-        lines = [
-            f"Dear {full_name}",
-            "",
-            f"A new Incapacity Proceedings has been created for {accused_name} ({accused_coy}) at {branch}.",
-            "",
-            "Please attend to this matter urgently.",
-            "",
-            f'<a href="{url}">Click here to view</a>',
-        ]
-
-        message = "<br>".join(lines)
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(f"A new Incapacity Proceedings has been created for {accused_name} ({accused_coy}) at {branch}.")
+        message += intro("Please attend to this matter urgently.")
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent"),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )
@@ -492,22 +483,17 @@ def handle_poor_performance_create(doc, method=None):
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
 
-        lines = [
-            f"Dear {full_name}",
-            "",
-            f"A new Poor Performance record has been created for {employee_name} at {branch}.",
-            "",
-            "Please attend to this matter urgently.",
-            "",
-            f'<a href="{url}">Click here to view</a>',
-        ]
-
-        message = "<br>".join(lines)
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(f"A new Poor Performance record has been created for {employee_name} at {branch}.")
+        message += intro("Please attend to this matter urgently.")
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent"),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )
@@ -529,22 +515,17 @@ def handle_external_dispute_resolution_create(doc, method=None):
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "IR Team"
 
-        lines = [
-            f"Dear {full_name}",
-            "",
-            f"A new External Dispute Resolution matter has been created ({forum}), case number {case_no}.",
-            "",
-            "Please attend to this matter urgently.",
-            "",
-            f'<a href="{url}">Click here to view</a>',
-        ]
-
-        message = "<br>".join(lines)
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(f"A new External Dispute Resolution matter has been created ({forum}), case number {case_no}.")
+        message += intro("Please attend to this matter urgently.")
+        message += view_link(url)
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent"),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )
@@ -776,13 +757,13 @@ def _send_training_expiry_email(
             """)
 
         table_html = f"""
-            <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+            <table class="ir-email-table">
                 <thead>
                     <tr>
-                        <th align="left">Employee Name</th>
-                        <th align="left">Employee</th>
-                        <th align="left">Branch</th>
-                        <th align="left">Training / Induction</th>
+                        <th>Employee Name</th>
+                        <th>Employee</th>
+                        <th>Branch</th>
+                        <th>Training / Induction</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -793,22 +774,22 @@ def _send_training_expiry_email(
 
         full_name = name_by_email.get(email) or "Training Team"
 
-        message = "<br>".join([
-            f"Dear {html_escape(full_name)}",
-            "",
-            html_escape(intro),
-            "",
-            f"Scope: {html_escape(scope_label)}",
-            "",
-            table_html,
-            "",
-            "Please attend to the relevant renewals urgently.",
-        ])
+        # `intro` here is this function's own text parameter, not the
+        # email_style.intro() helper - shadowed deliberately, so the paragraph
+        # is built directly instead of through that helper.
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += f'<p class="ir-email-intro">{html_escape(intro)}</p>'
+        message += f'<p class="ir-email-intro">Scope: {html_escape(scope_label)}</p>'
+        message += table_html
+        message += '<p class="ir-email-intro">Please attend to the relevant renewals urgently.</p>'
+        message += signoff()
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, "urgent" if notification_type == "expired" else "attention"),
         )
 
 
@@ -1190,6 +1171,7 @@ def _send_outstanding_workflow_email(
     row_builder,
     empty_log_message,
     sent_log_label,
+    severity="info",
 ):
     """
     Send one personalised weekly report to each configured report recipient.
@@ -1217,8 +1199,8 @@ def _send_outstanding_workflow_email(
         return
 
     header_html = "".join(
-        f'<th align="left">{html_escape(str(header))}</th>'
-        for header in table_headers
+        f'<th>{html_escape(str(column_label))}</th>'
+        for column_label in table_headers
     )
 
     sent_count = 0
@@ -1233,12 +1215,7 @@ def _send_outstanding_workflow_email(
         row_html = "".join(row_builder(row) for row in recipient_rows)
 
         table_html = f"""
-            <table
-                border="1"
-                cellspacing="0"
-                cellpadding="6"
-                style="border-collapse: collapse; width: 100%;"
-            >
+            <table class="ir-email-table">
                 <thead>
                     <tr>
                         {header_html}
@@ -1253,25 +1230,20 @@ def _send_outstanding_workflow_email(
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = full_name.split(" ")[0] if full_name else "Valued IR Team"
 
-        message = f"""
-            <p>Dear {html_escape(first_name)},</p>
-
-            <p>{html_escape(intro)}</p>
-
-            {table_html}
-
-            <p>Please review and attend to the outstanding documents.</p>
-
-            <p>
-                Kind regards,<br>
-                Industrial Relations
-            </p>
-        """
+        # `intro` here is this function's own text parameter, not the
+        # email_style.intro() helper - shadowed deliberately.
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(first_name)
+        message += f'<p class="ir-email-intro">{html_escape(intro)}</p>'
+        message += table_html
+        message += '<p class="ir-email-intro">Please review and attend to the outstanding documents.</p>'
+        message += signoff()
 
         frappe.sendmail(
             recipients=[email],
             subject=subject,
             message=message,
+            header=email_header(subject, severity),
         )
         sent_count += 1
 

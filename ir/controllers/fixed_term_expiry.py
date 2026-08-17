@@ -4,6 +4,7 @@
 import frappe
 from frappe.utils import get_url
 
+from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header, greeting, intro, signoff
 from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
@@ -55,10 +56,14 @@ def fixed_term_expiry():
     sent_count = 0
 
     for email in recipient_emails:
+        # Branch-scoped only - unlike the disciplinary/incapacity/performance
+        # reports, Designation Limits deliberately don't apply here: which
+        # designations may see a Contract of Employment isn't the same question
+        # as whose contract they're allowed to manage administratively.
         contracts = filter_rows_for_recipient(
             filtered_contracts, email,
             doctype="Contract of Employment",
-            designation_field="designation",
+            designation_field=None,
             employee_field="employee",
         )
         if not contracts:
@@ -67,10 +72,11 @@ def fixed_term_expiry():
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
 
-        email_body = f"""
-            <p>Dear {first_name},</p>
-            <p>Please find below the list of contracts expiring soon:</p>
-            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+        email_body = EMAIL_STYLE_BLOCK
+        email_body += greeting(first_name)
+        email_body += intro("Please find below the list of contracts expiring soon:")
+        email_body += """
+            <table class="ir-email-table">
                 <thead>
                     <tr>
                         <th>Contract Name</th>
@@ -95,16 +101,14 @@ def fixed_term_expiry():
                 </tr>
             """
 
-        email_body += """
-                </tbody>
-            </table>
-            <p>Kind regards,<br>Industrial Relations</p>
-        """
+        email_body += "</tbody></table>"
+        email_body += signoff()
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=email_body
+            message=email_body,
+            header=email_header(email_subject, "attention"),
         )
         sent_count += 1
 
