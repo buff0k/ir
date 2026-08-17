@@ -57,6 +57,7 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
 # branch - it's inherently multi-employee/multi-branch), NTA Enquiry, or Written
 # Outcome.
 BRANCH_LIMITED_DOCTYPES = {
+    "Contract of Employment": "employee",
     "Disciplinary Action": "accused",
     "Incapacity Proceedings": "accused",
     "Poor Performance": "employee",

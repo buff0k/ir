@@ -7,10 +7,10 @@ import frappe
 from frappe import _
 from frappe.utils import today
 
+from ir import permissions
 from ir.industrial_relations.doctype.demotion_form.demotion_form import restore_employee_position
-
-SETTINGS_DOCTYPE = "Notification Permissions"
-DEFAULT_ROLES = ("IR Manager", "IR Officer", "HR Manager")
+from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header
+from ir.industrial_relations.utils import get_ir_notification_recipients
 
 
 def run_daily():
@@ -45,83 +45,63 @@ def _restore(demotion):
 
 
 def _notify_reversal(demotion):
-    recipients = _get_recipients()
+    recipients = _get_recipients(demotion)
     if not recipients:
         return
 
     employee_name = demotion.names or frappe.db.get_value("Employee", demotion.employee, "employee_name") or demotion.employee
     subject = _("Demotion reversed: {0}").format(employee_name)
-    message = frappe.render_template(
+    message = EMAIL_STYLE_BLOCK + frappe.render_template(
         """
-        <p>The temporary demotion for <strong>{{ employee_name }}</strong>
+        <p class="ir-email-intro">The temporary demotion for <strong>{{ employee_name }}</strong>
         ({{ employee }}) has been reversed.</p>
-        <table>
-          <tr><td><strong>Demotion Form</strong></td><td>{{ demotion_name }}</td></tr>
-          <tr><td><strong>Demoted Position</strong></td><td>{{ new_position }}</td></tr>
-          <tr><td><strong>Restored Position</strong></td><td>{{ position }}</td></tr>
-          <tr><td><strong>Demotion End Date</strong></td><td>{{ to_date }}</td></tr>
+        <table class="ir-email-table">
+          <tbody>
+            <tr><td><strong>Demotion Form</strong></td><td><a href="{{ demotion_url }}">{{ demotion_name }}</a></td></tr>
+            <tr><td><strong>Demoted Position</strong></td><td>{{ new_position }}</td></tr>
+            <tr><td><strong>Restored Position</strong></td><td>{{ position }}</td></tr>
+            <tr><td><strong>Demotion End Date</strong></td><td>{{ to_date }}</td></tr>
+          </tbody>
         </table>
         """,
         {
             "employee_name": employee_name,
             "employee": demotion.employee,
             "demotion_name": demotion.name,
+            "demotion_url": frappe.utils.get_url(f"/app/demotion-form/{demotion.name}"),
             "new_position": demotion.new_position,
             "position": demotion.position,
             "to_date": demotion.to_date,
         },
     )
-    frappe.sendmail(recipients=recipients, subject=subject, message=message, reference_doctype="Demotion Form", reference_name=demotion.name)
-
-
-def _get_recipients():
-    """Resolve enabled users whose roles are allowed by Notification Permissions.
-
-    Expected singleton configuration:
-      - optional Check: notify_demotion_reversal
-      - optional child table: demotion_reversal_roles, with a Link field named role
-
-    For compatibility with older deployments, any table field containing both
-    'demotion' and 'role' is accepted. When the singleton or configured rows do
-    not exist, the conservative fallback roles are IR Manager, IR Officer and
-    HR Manager.
-    """
-    roles = set()
-    enabled = True
-    if frappe.db.exists("DocType", SETTINGS_DOCTYPE):
-        settings = frappe.get_single(SETTINGS_DOCTYPE)
-        if settings.meta.has_field("notify_demotion_reversal"):
-            enabled = bool(settings.get("notify_demotion_reversal"))
-        if not enabled:
-            return []
-
-        table_fields = [
-            df for df in settings.meta.fields
-            if df.fieldtype == "Table" and "demotion" in df.fieldname and "role" in df.fieldname
-        ]
-        if settings.meta.has_field("demotion_reversal_roles"):
-            table_fields = [settings.meta.get_field("demotion_reversal_roles")] + table_fields
-        seen = set()
-        for df in table_fields:
-            if not df or df.fieldname in seen:
-                continue
-            seen.add(df.fieldname)
-            for row in settings.get(df.fieldname) or []:
-                role = row.get("role") or row.get("allowed_role") or row.get("notification_role")
-                if role:
-                    roles.add(role)
-
-    if not roles:
-        roles.update(DEFAULT_ROLES)
-
-    users = frappe.get_all(
-        "Has Role",
-        filters={"role": ["in", sorted(roles)], "parenttype": "User"},
-        pluck="parent",
+    frappe.sendmail(
+        recipients=recipients,
+        subject=subject,
+        message=message,
+        header=email_header(subject, "info"),
+        reference_doctype="Demotion Form",
+        reference_name=demotion.name,
     )
-    recipients = set()
-    for user in users:
-        enabled, email = frappe.db.get_value("User", user, ["enabled", "email"]) or (0, None)
-        if enabled and email:
-            recipients.add(email)
-    return sorted(recipients)
+
+
+def _get_recipients(demotion):
+    """Resolve report_recipients (IR Role Restrictions), narrowed to whoever's own
+    Designation Limits/Branch Limits actually permit seeing this Demotion Form -
+    same recipient pool and same filtering primitive every other IR notification
+    uses, replacing the old dead "Notification Permissions" singleton lookup
+    (that doctype never existed, so this always silently fell back to mailing
+    every enabled IR Manager/IR Officer/HR Manager, unfiltered).
+
+    Demotion Form is already fully wired in DESIGNATION_FIELD_BY_DOCTYPE/
+    BRANCH_LIMITED_DOCTYPES (governs opening the document itself) - this just
+    brings the reversal email in line with that existing restriction.
+    """
+    recipient_emails, _name_by_email = get_ir_notification_recipients()
+    return [
+        email for email in recipient_emails
+        if permissions.passes_limits(
+            "Demotion Form", email,
+            designation=demotion.get("position"),
+            employee=demotion.get("employee"),
+        )
+    ]

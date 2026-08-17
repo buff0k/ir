@@ -4,6 +4,7 @@
 import frappe
 from frappe.utils import get_url, formatdate
 
+from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header, greeting, intro, signoff
 from ir.industrial_relations.utils import get_ir_notification_recipients
 
 
@@ -25,12 +26,12 @@ def outstanding_external_disputes():
         frappe.logger().info("No valid IR report recipients found.")
         return
 
-    # Prepare the email content
+    # The table content is identical for every recipient (no Designation/Branch
+    # filtering here - see permissions.py's BRANCH_LIMITED_DOCTYPES comment), so
+    # it's built once and reused; only the greeting is personalised per recipient.
     email_subject = "Weekly HR Report: Outstanding External Dispute Resolution Matters"
-    email_body = """
-        <p>Dear {name},</p>
-        <p>The following external dispute resolution matters are pending outcomes:</p>
-        <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+    table_html = """
+        <table class="ir-email-table">
             <thead>
                 <tr>
                     <th>Case No.:</th>
@@ -44,7 +45,7 @@ def outstanding_external_disputes():
 
     for case in outstanding_cases:
         case_url = get_url(f"/app/external-dispute-resolution/{case['name']}")
-        email_body += f"""
+        table_html += f"""
             <tr>
                 <td><a href="{case_url}">{case['name']}</a></td>
                 <td>{case['applicant_external']}</td>
@@ -53,22 +54,24 @@ def outstanding_external_disputes():
             </tr>
         """
 
-    email_body += """
-            </tbody>
-        </table>
-        <p>Kind regards,<br>Industrial Relations</p>
-    """
+    table_html += "</tbody></table>"
 
     # Send email to each recipient
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
-        personalized_email_body = email_body.format(name=first_name)
+
+        email_body = EMAIL_STYLE_BLOCK
+        email_body += greeting(first_name)
+        email_body += intro("The following external dispute resolution matters are pending outcomes:")
+        email_body += table_html
+        email_body += signoff()
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=personalized_email_body
+            message=email_body,
+            header=email_header(email_subject, "urgent"),
         )
 
     frappe.logger().info(f"Weekly outstanding external dispute resolution report sent to {len(recipient_emails)} recipients.")

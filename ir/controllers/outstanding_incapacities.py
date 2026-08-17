@@ -4,6 +4,7 @@
 import frappe
 from frappe.utils import get_url, formatdate
 
+from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header, greeting, intro, signoff
 from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_notification_recipients
 
 
@@ -41,10 +42,11 @@ def outstanding_incapacities():
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")
 
-        email_body = f"""
-            <p>Dear {first_name},</p>
-            <p>The following incapacity processes are pending outcomes:</p>
-            <table border="1" cellspacing="0" cellpadding="5" style="border-collapse: collapse; width: 100%;">
+        email_body = EMAIL_STYLE_BLOCK
+        email_body += greeting(first_name)
+        email_body += intro("The following incapacity processes are pending outcomes:")
+        email_body += """
+            <table class="ir-email-table">
                 <thead>
                     <tr>
                         <th>Incapacity Proceeding</th>
@@ -69,16 +71,14 @@ def outstanding_incapacities():
                 </tr>
             """
 
-        email_body += """
-                </tbody>
-            </table>
-            <p>Kind regards,<br>Industrial Relations</p>
-        """
+        email_body += "</tbody></table>"
+        email_body += signoff()
 
         frappe.sendmail(
             recipients=[email],
             subject=email_subject,
-            message=email_body
+            message=email_body,
+            header=email_header(email_subject, "urgent"),
         )
         sent_count += 1
 
