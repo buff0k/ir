@@ -28,11 +28,19 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             changed_fields=changed_fields
         )
     elif doc.doctype == "NTA Enquiry":
+        # An NTA Enquiry is the hearing notice for a Disciplinary Action,
+        # Incapacity Proceedings, or Poor Performance case, and names the
+        # accused employee and their position directly in the email - so it
+        # carries the exact same sensitivity as those source cases and must
+        # respect the same Designation Limits. Unlike Termination/Status
+        # Change/Site Transfer (deliberately unfiltered - different workflow),
+        # this one needs recipient_filter.
         return handle_notification(
             doc, action,
             subject_template="A Notice to Attend for {names} ({employee}) {action}",
             body_template="A Notice to Attend for {names} ({employee}) at {venue} has been {action} by {actor}.",
             changed_fields=changed_fields,
+            recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
         )
     elif doc.doctype == "Status Change Form":
         return handle_notification(
@@ -186,8 +194,10 @@ def _collect_anonymous_report_recipients():
 
 # ---------- Existing helpers ----------
 
-def handle_notification(doc, action, subject_template, body_template, changed_fields=None):
+def handle_notification(doc, action, subject_template, body_template, changed_fields=None, recipient_filter=None):
     recipient_emails, name_by_email = _collect_recipients(doc)
+    if recipient_filter:
+        recipient_emails = [email for email in recipient_emails if recipient_filter(email)]
     if not recipient_emails:
         return
 
@@ -412,7 +422,12 @@ def _collect_recipients_from_table(parentfield, doc=None):
         if doc is not None and row_user and not permissions.recipient_passes_restrictions(doc, row_user):
             continue
 
-        email = row.get("email_address") or (user_doc.email if user_doc else None)
+        # A linked User's own email is the live source of truth - row.email_address
+        # is only a snapshot from whenever the row was last saved, and goes stale
+        # forever if the User is later renamed/its email changes. Prefer the fresh
+        # value; email_address is only actually needed as the primary source for
+        # rows with no linked user at all.
+        email = (user_doc.email if user_doc else None) or row.get("email_address")
         if not email:
             continue
 
@@ -889,7 +904,9 @@ def _collect_trainer_recipients_by_branch():
         if row.get("user") and not user_doc:
             continue
 
-        email = row.get("email_address") or (user_doc.email if user_doc else None)
+        # See _collect_recipients_from_table - the live User email always wins
+        # over the row's own (possibly stale) email_address snapshot.
+        email = (user_doc.email if user_doc else None) or row.get("email_address")
         if not email:
             continue
 
@@ -918,7 +935,9 @@ def _resolve_user_recipients(rows):
         if row.get("user") and not user_doc:
             continue
 
-        email = row.get("email_address") or (user_doc.email if user_doc else None)
+        # See _collect_recipients_from_table - the live User email always wins
+        # over the row's own (possibly stale) email_address snapshot.
+        email = (user_doc.email if user_doc else None) or row.get("email_address")
         if not email:
             continue
 

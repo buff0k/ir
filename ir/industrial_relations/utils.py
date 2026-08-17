@@ -57,7 +57,13 @@ def get_ir_notification_recipients(include_owner: str | None = None):
             ) or (0, None, None)
             if not enabled:
                 continue
-            email = email or user_email
+            # A linked User is the live source of truth for their own email - the
+            # row's stored email_address is only ever a snapshot taken whenever
+            # that row was last saved, and goes silently stale forever if the
+            # User's email later changes (e.g. a domain migration or account
+            # rename). Prefer the fresh value; only fall back to the stored one
+            # if the User record itself has no email on file.
+            email = user_email or email
             if email:
                 recipient_emails.add(email)
                 name_by_email[email] = full_name or user
