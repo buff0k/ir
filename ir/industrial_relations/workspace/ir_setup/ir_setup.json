@@ -243,7 +243,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General",
-   "link_count": 11,
+   "link_count": 12,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -357,9 +357,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Payroll Cost Settings",
+   "link_count": 0,
+   "link_to": "IR Payroll Cost Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-08-07 11:42:28.411668",
+ "modified": "2026-08-18 09:07:48.998211",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",

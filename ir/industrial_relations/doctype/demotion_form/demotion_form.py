@@ -79,7 +79,6 @@ class DemotionForm(Document):
 
     def _apply_demotion(self):
         employee = frappe.get_doc("Employee", self.employee)
-        old_designation = employee.designation
 
         append_internal_work_history(
             employee,
@@ -89,15 +88,6 @@ class DemotionForm(Document):
 
         employee.designation = self.new_position
         employee.status = "Active"
-        _append_employee_audit(
-            employee,
-            fieldname="designation",
-            old_value=old_designation,
-            new_value=self.new_position,
-            reference_doctype=self.doctype,
-            reference_name=self.name,
-            remarks=_("Demotion applied from {0}").format(self.from_date),
-        )
         employee.save(ignore_permissions=True)
 
         self.demotion_applied = 1
@@ -165,7 +155,6 @@ def restore_employee_position(demotion, *, reversed_on=None, remarks=None):
         )
         return False
 
-    old_designation = employee.designation
     boundary_date = reversed_on or frappe.utils.today()
 
     append_internal_work_history(
@@ -176,15 +165,6 @@ def restore_employee_position(demotion, *, reversed_on=None, remarks=None):
 
     employee.designation = demotion.position
     employee.status = "Active"
-    _append_employee_audit(
-        employee,
-        fieldname="designation",
-        old_value=old_designation,
-        new_value=demotion.position,
-        reference_doctype="Demotion Form",
-        reference_name=demotion.name,
-        remarks=remarks or _("Demotion reversed"),
-    )
     employee.save(ignore_permissions=True)
 
     frappe.db.set_value(
@@ -194,46 +174,6 @@ def restore_employee_position(demotion, *, reversed_on=None, remarks=None):
         update_modified=False,
     )
     return True
-
-
-def _append_employee_audit(employee, *, fieldname, old_value, new_value, reference_doctype, reference_name, remarks):
-    """Append to the custom Employee audit table when that table exists.
-
-    The app's deployed audit child DocType has changed over time, so this helper
-    fills recognised field names dynamically instead of hard-coding one schema.
-    Standard Employee Version history is also created by employee.save() where
-    Employee Track Changes is enabled.
-    """
-    if not employee.meta.has_field("ir_employee_audit"):
-        return
-
-    table_field = employee.meta.get_field("ir_employee_audit")
-    if not table_field or not table_field.options:
-        return
-
-    child_meta = frappe.get_meta(table_field.options)
-    row = employee.append("ir_employee_audit", {})
-    values = {
-        "change_date": frappe.utils.now_datetime(),
-        "date": frappe.utils.today(),
-        "modified_on": frappe.utils.now_datetime(),
-        "changed_by": frappe.session.user,
-        "user": frappe.session.user,
-        "fieldname": fieldname,
-        "field_name": fieldname,
-        "field": fieldname,
-        "old_value": old_value,
-        "previous_value": old_value,
-        "new_value": new_value,
-        "reference_doctype": reference_doctype,
-        "reference_name": reference_name,
-        "reference_document": reference_name,
-        "remarks": remarks,
-        "description": remarks,
-    }
-    for key, value in values.items():
-        if child_meta.has_field(key):
-            row.set(key, value)
 
 
 @frappe.whitelist()
