@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-18 06:52:38.441945",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_wage_components_help",
+  "basic_wage_components"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_wage_components_help",
+   "fieldtype": "HTML",
+   "options": "<p>Salary Components listed here count as <strong>Basic/Wages</strong> in Site Budget's cost breakdown (e.g. Basic, Basic Salary, Hourly Earnings). Every other Earning-type component on a Salary Structure (Housing Allowance, Shift Allowance, Safety Bonus, etc.) is treated as an <strong>Allowance</strong> by default - nothing needs to be listed here for that. Employer-side Company Contribution components (SDL Contribution, Employer Provident Fund, etc.) are identified automatically from the Salary Structure's own Employer Contributions table and don't need listing here either.</p>"
+  },
+  {
+   "description": "Earning-type Salary Components that represent Basic/Wages (Hourly paid or Basic Salary), not an Allowance.",
+   "fieldname": "basic_wage_components",
+   "fieldtype": "Table",
+   "label": "Basic/Wages Components",
+   "options": "IR Payroll Cost Component"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-18 06:52:38.441945",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "IR Payroll Cost Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Officer",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -15,6 +15,7 @@ from xlsxwriter.utility import xl_col_to_name, xl_rowcol_to_cell
 
 from ir.industrial_relations.doctype.shift_design.shift_design import (
 	count_pay_periods_for_shift_design,
+	expand_range_to_pay_periods_for_shift_design,
 	get_ordered_team_keys,
 	get_roster_calendar_data,
 	simulate_team_hours_by_month,
@@ -124,7 +125,9 @@ def _compute_designation_costs(doc):
 	allowances_cache = {}
 	team_hours_cache = {}
 	team_keys_cache = {}
-	fixed_cost_by_designation = defaultdict(float)
+	basic_cost_by_designation = defaultdict(float)
+	allowance_cost_by_designation = defaultdict(float)
+	employer_contribution_cost_by_designation = defaultdict(float)
 	hourly_rate_by_designation = {}
 	missing_designations = set()
 	hours_by_month_designation = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
@@ -138,7 +141,17 @@ def _compute_designation_costs(doc):
 		)
 
 		if shift_design and shift_design not in team_hours_cache:
-			team_hours_cache[shift_design] = simulate_team_hours_by_month(shift_design, doc.from_date, doc.end_date)
+			# Each Shift Design may run its own, possibly non-calendar-aligned
+			# pay cycle - simulate every day of every pay period touching the
+			# requested range (not just the literal typed dates), so hours
+			# near a period boundary (and the Ordinary Hours Limit carry-over
+			# within a period) are complete. Matches the whole-period count
+			# count_pay_periods_for_shift_design() already uses above for the
+			# fixed-cost side.
+			expanded_start, expanded_end = expand_range_to_pay_periods_for_shift_design(
+				shift_design, doc.from_date, doc.end_date
+			)
+			team_hours_cache[shift_design] = simulate_team_hours_by_month(shift_design, expanded_start, expanded_end)
 			team_keys_cache[shift_design] = get_ordered_team_keys(shift_design)
 
 		team_hours_by_key = team_hours_cache.get(shift_design, {})
@@ -179,11 +192,18 @@ def _compute_designation_costs(doc):
 
 				structure_totals = totals_cache[salary_structure]
 
-				# Fixed earnings + Site Specific Allowances recur every pay
-				# period - unrelated to hours, so tracked separately from
-				# the hourly-rate-driven NT/Overtime Type cost.
-				fixed_net_pay = structure_totals["net_pay"] + allowances_cache[designation]
-				fixed_cost_by_designation[designation] += fixed_net_pay * count * pay_periods
+				# Basic/Wages, Allowances and Company Contributions all recur
+				# every pay period - unrelated to hours, so tracked separately
+				# from the hourly-rate-driven NT/Overtime Type cost (the
+				# hourly portion of Basic/Wages is added in once hours are
+				# known - see get_site_budget_summary_html()).
+				basic_cost_by_designation[designation] += structure_totals["basic_total"] * count * pay_periods
+				allowance_cost_by_designation[designation] += (
+					(structure_totals["allowance_total"] + allowances_cache[designation]) * count * pay_periods
+				)
+				employer_contribution_cost_by_designation[designation] += (
+					structure_totals["employer_contribution_total"] * count * pay_periods
+				)
 				hourly_rate_by_designation[designation] = structure_totals["hour_rate"]
 
 	currency_by_designation = {
@@ -203,7 +223,9 @@ def _compute_designation_costs(doc):
 		"currency_by_designation": currency_by_designation,
 		"has_hourly_structure": has_hourly_structure,
 		"missing_designations": missing_designations,
-		"fixed_cost_by_designation": dict(fixed_cost_by_designation),
+		"basic_cost_by_designation": dict(basic_cost_by_designation),
+		"allowance_cost_by_designation": dict(allowance_cost_by_designation),
+		"employer_contribution_cost_by_designation": dict(employer_contribution_cost_by_designation),
 		"hourly_rate_by_designation": hourly_rate_by_designation,
 		"hours_by_month_designation": {
 			month_key: {designation: dict(buckets) for designation, buckets in by_designation.items()}
@@ -238,26 +260,39 @@ def get_site_budget_summary_html(site_budget):
 		return _notice("Link a Site Organogram to see the budget summary.")
 
 	total_hours = _total_hours_by_designation(data["hours_by_month_designation"])
-	ordinary_cost_by_designation = {}
+	basic_cost_by_designation = dict(data["basic_cost_by_designation"])
 	overtime_cost_by_designation = {}
 	for designation, buckets in total_hours.items():
 		rate = data["hourly_rate_by_designation"].get(designation, 0.0)
-		fixed_cost = data["fixed_cost_by_designation"].get(designation, 0.0)
-		ordinary_cost_by_designation[designation] = fixed_cost + buckets.get("NT", 0.0) * rate
+		# The hourly-paid portion of Basic/Wages (timesheet-based structures)
+		# is a rate x simulated Ordinary hours, so it's only known once hours
+		# are - folded in here, on top of the fixed Basic/Wages amount.
+		basic_cost_by_designation[designation] = (
+			basic_cost_by_designation.get(designation, 0.0) + buckets.get("NT", 0.0) * rate
+		)
 		overtime_cost_by_designation[designation] = sum(
 			hours * rate * data["overtime_type_multiplier"].get(bucket, 0.0)
 			for bucket, hours in buckets.items()
 			if bucket != "NT"
 		)
-	# A Designation can have a fixed cost but zero simulated hours at all
-	# (e.g. no Shift Design linked to its group) - still needs to show up.
-	for designation, fixed_cost in data["fixed_cost_by_designation"].items():
-		ordinary_cost_by_designation.setdefault(designation, fixed_cost)
 
+	allowance_cost_by_designation = data["allowance_cost_by_designation"]
+	employer_contribution_cost_by_designation = data["employer_contribution_cost_by_designation"]
+
+	all_designations = (
+		set(basic_cost_by_designation)
+		| set(overtime_cost_by_designation)
+		| set(allowance_cost_by_designation)
+		| set(employer_contribution_cost_by_designation)
+	)
 	cost_by_designation = {
-		designation: ordinary_cost_by_designation.get(designation, 0.0)
-		+ overtime_cost_by_designation.get(designation, 0.0)
-		for designation in set(ordinary_cost_by_designation) | set(overtime_cost_by_designation)
+		designation: (
+			basic_cost_by_designation.get(designation, 0.0)
+			+ overtime_cost_by_designation.get(designation, 0.0)
+			+ allowance_cost_by_designation.get(designation, 0.0)
+			+ employer_contribution_cost_by_designation.get(designation, 0.0)
+		)
+		for designation in all_designations
 	}
 
 	return (
@@ -267,7 +302,10 @@ def get_site_budget_summary_html(site_budget):
 			data["headcounts"],
 			data["salary_structure_by_designation"],
 			cost_by_designation,
+			basic_cost_by_designation,
 			overtime_cost_by_designation,
+			allowance_cost_by_designation,
+			employer_contribution_cost_by_designation,
 			data["currency_by_designation"],
 			data["missing_designations"],
 			data["has_hourly_structure"],
@@ -354,27 +392,29 @@ def export_site_budget_summary_xlsx(site_budget):
 
 	headers = [
 		"Designation", "Total Headcount", "Filled", "Vacant", "Salary Structure", "Currency",
-		"Hourly Rate", "Fixed Cost", "NT Hours", "NT Cost",
+		"Hourly Rate", "Basic/Wages (Fixed)", "NT Hours", "NT Cost",
 	]
 	for overtime_type in overtime_types:
 		headers += [f"{overtime_type} Hours", f"{overtime_type} Cost"]
-	headers.append("Total Cost")
+	headers += ["Allowances", "Other CTC", "Total Cost"]
 
 	COL_DESIGNATION, COL_HEADCOUNT, COL_FILLED, COL_VACANT = 0, 1, 2, 3
-	COL_SALARY_STRUCTURE, COL_CURRENCY, COL_HOURLY_RATE, COL_FIXED_COST = 4, 5, 6, 7
+	COL_SALARY_STRUCTURE, COL_CURRENCY, COL_HOURLY_RATE, COL_BASIC_FIXED = 4, 5, 6, 7
 	COL_NT_HOURS, COL_NT_COST = 8, 9
 	ot_hours_col, ot_cost_col, col = {}, {}, 10
 	for overtime_type in overtime_types:
 		ot_hours_col[overtime_type] = col
 		ot_cost_col[overtime_type] = col + 1
 		col += 2
-	COL_TOTAL_COST = col
+	COL_ALLOWANCES = col
+	COL_OTHER_CTC = col + 1
+	COL_TOTAL_COST = col + 2
 
 	header_row = table_start_row
 	for col_idx, label in enumerate(headers):
 		sheet.write(header_row, col_idx, label, header_format)
 
-	col_widths = [28, 14, 10, 10, 28, 10, 14, 14, 12, 14] + [14, 14] * len(overtime_types) + [16]
+	col_widths = [28, 14, 10, 10, 28, 10, 14, 16, 12, 14] + [14, 14] * len(overtime_types) + [14, 14, 16]
 	for col_idx, width in enumerate(col_widths):
 		sheet.set_column(col_idx, col_idx, width)
 
@@ -385,7 +425,9 @@ def export_site_budget_summary_xlsx(site_budget):
 		salary_structure = data["salary_structure_by_designation"].get(designation)
 		currency = data["currency_by_designation"].get(designation, "")
 		rate = data["hourly_rate_by_designation"].get(designation)
-		fixed_cost = data["fixed_cost_by_designation"].get(designation)
+		basic_fixed = data["basic_cost_by_designation"].get(designation)
+		allowances = data["allowance_cost_by_designation"].get(designation)
+		other_ctc = data["employer_contribution_cost_by_designation"].get(designation)
 		designation_hours = total_hours.get(designation, {})
 
 		sheet.write_string(row, COL_DESIGNATION, designation, text_format)
@@ -395,18 +437,19 @@ def export_site_budget_summary_xlsx(site_budget):
 		sheet.write_string(row, COL_SALARY_STRUCTURE, salary_structure or "Missing Salary Structure", text_format)
 		sheet.write_string(row, COL_CURRENCY, currency or "", text_format)
 
-		# Rate/Fixed Cost are only hand-editable when there's no Salary
-		# Structure to prefill them from - otherwise they're the real
-		# computed values (0 Hourly Rate for a genuinely non-hourly
+		# Rate/Basic/Allowances/Other CTC are only hand-editable when there's
+		# no Salary Structure to prefill them from - otherwise they're the
+		# real computed values (0 Hourly Rate for a genuinely non-hourly
 		# structure isn't an omission, it's a fact, so it stays computed).
 		if rate is not None:
 			sheet.write_number(row, COL_HOURLY_RATE, rate, computed_format)
 		else:
 			sheet.write_blank(row, COL_HOURLY_RATE, None, input_format)
-		if fixed_cost is not None:
-			sheet.write_number(row, COL_FIXED_COST, fixed_cost, computed_format)
-		else:
-			sheet.write_blank(row, COL_FIXED_COST, None, input_format)
+		for col_idx, value in ((COL_BASIC_FIXED, basic_fixed), (COL_ALLOWANCES, allowances), (COL_OTHER_CTC, other_ctc)):
+			if value is not None:
+				sheet.write_number(row, col_idx, value, computed_format)
+			else:
+				sheet.write_blank(row, col_idx, None, input_format)
 
 		designation_cell = xl_rowcol_to_cell(row, COL_DESIGNATION)
 		rate_cell = xl_rowcol_to_cell(row, COL_HOURLY_RATE)
@@ -440,15 +483,20 @@ def export_site_budget_summary_xlsx(site_budget):
 			)
 			overtime_cost_cells.append(xl_rowcol_to_cell(row, ot_cost_col[overtime_type]))
 
-		fixed_cost_cell = xl_rowcol_to_cell(row, COL_FIXED_COST)
+		basic_fixed_cell = xl_rowcol_to_cell(row, COL_BASIC_FIXED)
 		nt_cost_cell = xl_rowcol_to_cell(row, COL_NT_COST)
-		total_formula = "=" + "+".join([fixed_cost_cell, nt_cost_cell, *overtime_cost_cells])
+		allowances_cell = xl_rowcol_to_cell(row, COL_ALLOWANCES)
+		other_ctc_cell = xl_rowcol_to_cell(row, COL_OTHER_CTC)
+		total_formula = "=" + "+".join(
+			[basic_fixed_cell, nt_cost_cell, *overtime_cost_cells, allowances_cell, other_ctc_cell]
+		)
 		total_cached = (
-			(fixed_cost or 0) + designation_hours.get("NT", 0.0) * rate_value
+			(basic_fixed or 0) + designation_hours.get("NT", 0.0) * rate_value
 			+ sum(
 				designation_hours.get(ot, 0.0) * rate_value * data["overtime_type_multiplier"][ot]
 				for ot in overtime_types
 			)
+			+ (allowances or 0) + (other_ctc or 0)
 		)
 		sheet.write_formula(row, COL_TOTAL_COST, total_formula, computed_format, total_cached)
 
@@ -460,7 +508,7 @@ def export_site_budget_summary_xlsx(site_budget):
 	sheet.write_string(total_row, COL_DESIGNATION, "Grand Total", total_label_format)
 	if last_data_row >= data_first_row:
 		grand_total_cached = sum(
-			(data["fixed_cost_by_designation"].get(d) or 0)
+			(data["basic_cost_by_designation"].get(d) or 0)
 			+ total_hours.get(d, {}).get("NT", 0.0) * (data["hourly_rate_by_designation"].get(d) or 0)
 			+ sum(
 				total_hours.get(d, {}).get(ot, 0.0)
@@ -468,6 +516,8 @@ def export_site_budget_summary_xlsx(site_budget):
 				* data["overtime_type_multiplier"][ot]
 				for ot in overtime_types
 			)
+			+ (data["allowance_cost_by_designation"].get(d) or 0)
+			+ (data["employer_contribution_cost_by_designation"].get(d) or 0)
 			for d in designations
 		)
 		total_range = f"{xl_rowcol_to_cell(data_first_row, COL_TOTAL_COST)}:{xl_rowcol_to_cell(last_data_row, COL_TOTAL_COST)}"
@@ -517,10 +567,20 @@ def get_site_budget_roster_calendar_html(site_budget):
 	blocks = ""
 	for shift_design in sorted(headings_by_design.keys()):
 		heading_names = ", ".join(headings_by_design[shift_design])
-		calendar_data = get_roster_calendar_data(shift_design, doc.from_date, doc.end_date)
+		# Shown for its own (possibly non-calendar-aligned) pay period(s), not
+		# just the literal typed Start/End Date - matches the cost engine.
+		expanded_start, expanded_end = expand_range_to_pay_periods_for_shift_design(
+			shift_design, doc.from_date, doc.end_date
+		)
+		calendar_data = get_roster_calendar_data(shift_design, expanded_start, expanded_end)
+		period_note = (
+			f"Pay Period{'s' if expanded_start != doc.from_date or expanded_end != doc.end_date else ''}: "
+			f"{escape_html(frappe.utils.formatdate(expanded_start))} - {escape_html(frappe.utils.formatdate(expanded_end))}"
+		)
 		blocks += (
 			'<div class="sdm-roster-block">'
 			f"<h4>{escape_html(shift_design)} - used by: {escape_html(heading_names)}</h4>"
+			f'<p class="text-muted small">{period_note}</p>'
 			f"{_render_roster_calendar(calendar_data)}"
 			"</div>"
 		)
@@ -637,7 +697,7 @@ def _resolve_allowances_total(branch, designation, on_date, current_salary_struc
 	if not active_map or active_map.salary_structure != current_salary_structure:
 		return 0
 
-	return compute_site_budget_map_totals(active_map.name)["allowances_total"]
+	return compute_site_budget_map_totals(active_map.name)["site_specific_allowance_total"]
 
 
 def _notice(message):
@@ -697,7 +757,10 @@ def _cost_table_html(
 	headcounts,
 	salary_structure_by_designation,
 	cost_by_designation,
+	basic_cost_by_designation,
 	overtime_cost_by_designation,
+	allowance_cost_by_designation,
+	employer_contribution_cost_by_designation,
 	currency_by_designation,
 	missing_designations,
 	has_hourly_structure=False,
@@ -711,20 +774,26 @@ def _cost_table_html(
 		if not salary_structure:
 			rows += (
 				f"<tr class=\"text-danger\"><td>{escape_html(designation)}</td>"
-				f"<td colspan=\"3\">Missing Salary Structure</td></tr>"
+				f"<td colspan=\"5\">Missing Salary Structure</td></tr>"
 			)
 			continue
 
 		cost = cost_by_designation.get(designation, 0.0)
+		basic_cost = basic_cost_by_designation.get(designation, 0.0)
 		overtime_cost = overtime_cost_by_designation.get(designation, 0.0)
+		allowance_cost = allowance_cost_by_designation.get(designation, 0.0)
+		employer_contribution_cost = employer_contribution_cost_by_designation.get(designation, 0.0)
 		currency = currency_by_designation.get(designation)
 		currencies_used.add(currency)
 		grand_total += cost
 		rows += (
 			f"<tr><td>{escape_html(designation)}</td>"
 			f"<td>{escape_html(salary_structure)}</td>"
-			f"<td>{fmt_money(cost - overtime_cost, currency=currency)}</td>"
-			f"<td>{fmt_money(overtime_cost, currency=currency)}</td></tr>"
+			f"<td>{fmt_money(basic_cost, currency=currency)}</td>"
+			f"<td>{fmt_money(overtime_cost, currency=currency)}</td>"
+			f"<td>{fmt_money(allowance_cost, currency=currency)}</td>"
+			f"<td>{fmt_money(employer_contribution_cost, currency=currency)}</td>"
+			f"<td>{fmt_money(cost, currency=currency)}</td></tr>"
 		)
 
 	banner = (
@@ -744,10 +813,18 @@ def _cost_table_html(
 
 	hourly_note = (
 		'<p class="text-muted small">Some Designations use a timesheet-based ("Hourly") Salary Structure - '
-		"their Ordinary cost simulates real ordinary hours from each role's Shift Design roster "
+		"their Basic/Wages cost simulates real ordinary hours from each role's Shift Design roster "
 		"(pattern, calendar rules, date overrides, real SA public holidays), not actual timesheets.</p>"
 		if has_hourly_structure
 		else ""
+	)
+
+	ctc_note = (
+		'<p class="text-muted small">This is Cost to Company: Basic/Wages (hourly paid + Basic Salary) + '
+		"Overtime + Allowances (Salary Structure Earnings + Site Specific Allowances) + Company "
+		"Contributions (SDL, Provident Fund, etc.). Employee-side Deductions (PAYE, Employee Provident "
+		"Fund, ...) are not netted off - they're already-earned pay redirected to a third party, not "
+		"extra cost.</p>"
 	)
 
 	return f"""
@@ -755,9 +832,11 @@ def _cost_table_html(
 	{banner}
 	{mixed_currency_note}
 	{hourly_note}
+	{ctc_note}
 	<table class="table table-bordered">
-		<thead><tr><th>Designation</th><th>Salary Structure</th><th>Ordinary Cost</th><th>Overtime Cost</th></tr></thead>
+		<thead><tr><th>Designation</th><th>Salary Structure</th><th>Basic/Wages</th><th>Overtime</th>
+		<th>Allowances</th><th>Other CTC</th><th>Total</th></tr></thead>
 		<tbody>{rows}</tbody>
-		<tfoot><tr><td colspan="3"><strong>Grand Total</strong></td><td><strong>{fmt_money(grand_total, currency=grand_total_currency)}</strong></td></tr></tfoot>
+		<tfoot><tr><td colspan="6"><strong>Grand Total</strong></td><td><strong>{fmt_money(grand_total, currency=grand_total_currency)}</strong></td></tr></tfoot>
 	</table>
 	"""

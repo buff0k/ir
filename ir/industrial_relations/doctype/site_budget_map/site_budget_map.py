@@ -7,6 +7,10 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import flt, formatdate, getdate
 
+from ir.industrial_relations.doctype.ir_payroll_cost_settings.ir_payroll_cost_settings import (
+	get_basic_wage_components,
+)
+
 
 class SiteBudgetMap(Document):
 	def autoname(self):
@@ -86,20 +90,39 @@ def resolve_active_site_budget_map(branch, designation, on_date):
 def compute_salary_structure_totals(salary_structure):
 	"""Salary Structure's own total_earning/total_deduction/net_pay fields
 	are hidden, read_only, and never populated by its controller - the only
-	real totals come from summing its Earnings/Deductions rows ourselves.
-	Formula-based rows are excluded (payroll-time only) and flagged via
-	has_formula_component so callers can note the total is incomplete.
+	real totals come from summing its Earnings/Deductions/Employer
+	Contributions rows ourselves. Formula-based rows are excluded (payroll-
+	time only) and flagged via has_formula_component so callers can note the
+	total is incomplete.
 
-	total_earning/net_pay here are the FIXED portion only - they deliberately
-	exclude the timesheet-based hourly earning (salary_slip_based_on_timesheet
-	+ salary_component + hour_rate), since that's a rate, not a static amount,
+	Earnings are split into two cost-breakdown buckets:
+	- basic_total: components explicitly curated on IR Payroll Cost Settings
+	  as Basic/Wages (Basic, Basic Salary, ...).
+	- allowance_total: every other Earning-type row (Housing Allowance, Shift
+	  Allowance, Safety Bonus, ...) - the default, so nothing needs curating
+	  there.
+	employer_contribution_total sums the Employer Contributions table as-is
+	(SDL Contribution, Employer Provident Fund, ...) - real cost-to-company
+	on top of what the employee actually receives.
+
+	Deductions (PAYE, Employee Provident Fund, UIF Employee Contribution) are
+	returned as total_deduction for reference/display only - they are money
+	already counted in Earnings that the employer redirects to a third party
+	on the employee's behalf, not extra cost, so cost_to_company deliberately
+	excludes them: cost_to_company = basic_total + allowance_total +
+	employer_contribution_total.
+
+	All of the above are the FIXED portion only - they deliberately exclude
+	the timesheet-based hourly earning (salary_slip_based_on_timesheet +
+	salary_component + hour_rate), since that's a rate, not a static amount,
 	computed at payslip time from actual/approved timesheet hours. hour_rate/
 	salary_component/salary_slip_based_on_timesheet are passed through raw so
 	callers with hours context (e.g. Site Budget, which knows each role's
-	Shift Design and its Ordinary Hours Limit) can fold the hourly portion in
-	themselves.
+	Shift Design and its Ordinary Hours Limit) can fold the hourly portion
+	into Basic/Wages themselves.
 	"""
 	ss = frappe.get_doc("Salary Structure", salary_structure)
+	basic_components = get_basic_wage_components()
 	has_formula_component = False
 
 	def sum_fixed(components):
@@ -112,13 +135,28 @@ def compute_salary_structure_totals(salary_structure):
 				total += row.amount or 0
 		return total
 
-	total_earning = sum_fixed(ss.earnings)
+	basic_total = 0
+	allowance_total = 0
+	for row in ss.earnings:
+		if row.amount_based_on_formula:
+			has_formula_component = True
+			continue
+		amount = row.amount or 0
+		if row.salary_component in basic_components:
+			basic_total += amount
+		else:
+			allowance_total += amount
+
 	total_deduction = sum_fixed(ss.deductions)
+	employer_contribution_total = sum_fixed(ss.employer_contributions)
 
 	return {
-		"total_earning": total_earning,
+		"basic_total": basic_total,
+		"allowance_total": allowance_total,
+		"total_earning": basic_total + allowance_total,
 		"total_deduction": total_deduction,
-		"net_pay": total_earning - total_deduction,
+		"employer_contribution_total": employer_contribution_total,
+		"cost_to_company": basic_total + allowance_total + employer_contribution_total,
 		"has_formula_component": has_formula_component,
 		"currency": ss.currency,
 		"salary_slip_based_on_timesheet": bool(ss.salary_slip_based_on_timesheet),
@@ -131,13 +169,19 @@ def compute_site_budget_map_totals(site_budget_map):
 	"""Combines the base Salary Structure totals with this mapping's own
 	Site Specific Allowances (a flat sum - allowances are simple top-up
 	amounts, not formula-based like some Salary Structure rows can be).
-	Returns the base totals plus `allowances_total` and a combined `net_pay`.
+	Returns the base totals plus `site_specific_allowance_total` (the Site
+	Specific Allowances table alone - _resolve_allowances_total() in
+	site_budget.py reads this in isolation), `allowance_total` folded to
+	include it, and `cost_to_company` folded the same way.
 	"""
 	doc = frappe.get_doc("Site Budget Map", site_budget_map)
 	totals = compute_salary_structure_totals(doc.salary_structure) if doc.salary_structure else {
+		"basic_total": 0,
+		"allowance_total": 0,
 		"total_earning": 0,
 		"total_deduction": 0,
-		"net_pay": 0,
+		"employer_contribution_total": 0,
+		"cost_to_company": 0,
 		"has_formula_component": False,
 		"currency": None,
 		"salary_slip_based_on_timesheet": False,
@@ -145,12 +189,13 @@ def compute_site_budget_map_totals(site_budget_map):
 		"hour_rate": 0,
 	}
 
-	allowances_total = sum(row.amount or 0 for row in doc.site_specific_allowances or [])
+	site_specific_allowance_total = sum(row.amount or 0 for row in doc.site_specific_allowances or [])
 
 	return {
 		**totals,
-		"allowances_total": allowances_total,
-		"net_pay": totals["net_pay"] + allowances_total,
+		"site_specific_allowance_total": site_specific_allowance_total,
+		"allowance_total": totals["allowance_total"] + site_specific_allowance_total,
+		"cost_to_company": totals["cost_to_company"] + site_specific_allowance_total,
 	}
 
 
@@ -168,56 +213,64 @@ def get_site_budget_map_preview(salary_structure, site_specific_allowances=None)
 
 	ss = frappe.get_doc("Salary Structure", salary_structure)
 	totals = compute_salary_structure_totals(salary_structure)
-	allowances_total = sum(flt(row.get("amount")) for row in site_specific_allowances)
-	net_pay = totals["net_pay"] + allowances_total
+	basic_components = get_basic_wage_components()
+	site_specific_allowance_total = sum(flt(row.get("amount")) for row in site_specific_allowances)
+	cost_to_company = totals["cost_to_company"] + site_specific_allowance_total
 
-	def rows(components):
-		out = ""
-		for row in components:
-			if row.amount_based_on_formula:
-				value = frappe.utils.escape_html(row.formula or "")
-			else:
-				value = frappe.utils.fmt_money(row.amount, currency=ss.currency)
-			out += f"<tr><td>{frappe.utils.escape_html(row.salary_component)}</td><td>{value}</td></tr>"
-		return out
+	def row_html(row, is_basic=False):
+		if row.amount_based_on_formula:
+			value = frappe.utils.escape_html(row.formula or "")
+		else:
+			value = frappe.utils.fmt_money(row.amount, currency=ss.currency)
+		label = frappe.utils.escape_html(row.salary_component)
+		if is_basic:
+			label = f"{label} <span class=\"text-muted small\">(Basic/Wages)</span>"
+		return f"<tr><td>{label}</td><td>{value}</td></tr>"
 
-	earning_rows = rows(ss.earnings)
+	basic_rows = "".join(row_html(row, is_basic=True) for row in ss.earnings if row.salary_component in basic_components)
 	if totals["salary_slip_based_on_timesheet"]:
 		# Hourly Earnings isn't a row in the Earnings table at all (it's
 		# computed from hour_rate x timesheet hours, not a fixed amount) -
-		# shown alongside the real Earnings rows, styled like a formula row
-		# (a rate, not a money amount), rather than as its own section.
-		earning_rows += (
-			f'<tr><td>{frappe.utils.escape_html(totals["salary_component"] or "")}</td>'
+		# shown alongside the real Basic/Wages rows, styled like a formula
+		# row (a rate, not a money amount). Hourly pay counts as Basic/Wages,
+		# not an Allowance.
+		basic_rows += (
+			f'<tr><td>{frappe.utils.escape_html(totals["salary_component"] or "")} '
+			f'<span class="text-muted small">(Basic/Wages)</span></td>'
 			f'<td>{frappe.utils.fmt_money(totals["hour_rate"], currency=ss.currency)} / hour</td></tr>'
 		)
 
-	deduction_rows = rows(ss.deductions)
+	allowance_rows = "".join(row_html(row) for row in ss.earnings if row.salary_component not in basic_components)
+	allowance_rows += "".join(
+		f"<tr><td>{frappe.utils.escape_html(row.get('salary_component') or '')} "
+		f"<span class=\"text-muted small\">(Site Specific)</span></td>"
+		f"<td>{frappe.utils.fmt_money(flt(row.get('amount')), currency=ss.currency)}</td></tr>"
+		for row in site_specific_allowances
+	)
 
-	notes = []
+	employer_contribution_rows = "".join(row_html(row) for row in ss.employer_contributions)
+	deduction_rows = "".join(row_html(row) for row in ss.deductions)
+
+	notes = [
+		"Cost to Company = Basic/Wages + Allowances + Company Contributions. Deductions below are "
+		"shown for reference only - they're money already counted in Basic/Wages/Allowances that the "
+		"employer redirects to a third party (SARS, the Provident Fund, ...) on the employee's behalf, "
+		"not additional cost.",
+	]
 	if totals["has_formula_component"]:
 		notes.append("Totals exclude formula-based components, which are computed at payroll time.")
 	if totals["salary_slip_based_on_timesheet"]:
 		notes.append(
 			"This Salary Structure is timesheet-based - the hourly rate above is not included in "
-			"Total Earning/Net Pay, since it depends on hours worked. Site Budget's own cost "
-			"prediction estimates it using the linked Shift Design's Ordinary Hours Limit."
+			"Cost to Company, since it depends on hours worked. Site Budget's own cost prediction "
+			"estimates it using the linked Shift Design's Ordinary Hours Limit."
 		)
 	note_html = "".join(f'<p class="text-muted small">{n}</p>' for n in notes)
 
-	allowance_rows = "".join(
-		f"<tr><td>{frappe.utils.escape_html(row.get('salary_component') or '')}</td>"
-		f"<td>{frappe.utils.fmt_money(flt(row.get('amount')), currency=ss.currency)}</td></tr>"
-		for row in site_specific_allowances
-	)
-	allowances_section = (
-		f"""
-		<tr class="text-muted"><td colspan="2"><strong>Site Specific Allowances</strong></td></tr>
-		{allowance_rows}
-		"""
-		if site_specific_allowances
-		else ""
-	)
+	def section(title, rows_html):
+		if not rows_html:
+			return ""
+		return f'<tr class="text-muted"><td colspan="2"><strong>{title}</strong></td></tr>{rows_html}'
 
 	html = f"""
 	<div class="salary-structure-preview">
@@ -226,17 +279,17 @@ def get_site_budget_map_preview(salary_structure, site_specific_allowances=None)
 				<tr><th>Component</th><th>Amount / Formula</th></tr>
 			</thead>
 			<tbody>
-				<tr class="text-muted"><td colspan="2"><strong>Earnings</strong></td></tr>
-				{earning_rows}
-				<tr class="text-muted"><td colspan="2"><strong>Deductions</strong></td></tr>
-				{deduction_rows}
-				{allowances_section}
+				{section("Basic/Wages", basic_rows)}
+				{section("Allowances", allowance_rows)}
+				{section("Company Contributions (CTC only)", employer_contribution_rows)}
+				{section("Deductions (reference only, not part of Cost to Company)", deduction_rows)}
 			</tbody>
 			<tfoot>
-				<tr><td><strong>Total Earning</strong></td><td>{frappe.utils.fmt_money(totals["total_earning"], currency=ss.currency)}</td></tr>
+				<tr><td><strong>Basic/Wages</strong></td><td>{frappe.utils.fmt_money(totals["basic_total"], currency=ss.currency)}</td></tr>
+				<tr><td><strong>Allowances</strong></td><td>{frappe.utils.fmt_money(totals["allowance_total"] + site_specific_allowance_total, currency=ss.currency)}</td></tr>
+				<tr><td><strong>Company Contributions</strong></td><td>{frappe.utils.fmt_money(totals["employer_contribution_total"], currency=ss.currency)}</td></tr>
 				<tr><td><strong>Total Deduction</strong></td><td>{frappe.utils.fmt_money(totals["total_deduction"], currency=ss.currency)}</td></tr>
-				<tr><td><strong>Site Specific Allowances</strong></td><td>{frappe.utils.fmt_money(allowances_total, currency=ss.currency)}</td></tr>
-				<tr><td><strong>Combined Net Pay (excl. hourly pay)</strong></td><td>{frappe.utils.fmt_money(net_pay, currency=ss.currency)}</td></tr>
+				<tr><td><strong>Cost to Company (excl. hourly pay)</strong></td><td>{frappe.utils.fmt_money(cost_to_company, currency=ss.currency)}</td></tr>
 			</tfoot>
 		</table>
 		{note_html}

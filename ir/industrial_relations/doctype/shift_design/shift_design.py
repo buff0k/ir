@@ -403,6 +403,33 @@ def count_pay_periods_for_shift_design(shift_design, range_start, range_end):
 	return count_pay_periods_in_range(start_day, end_day, range_start, range_end)
 
 
+def expand_range_to_pay_periods(pay_period_start_day, pay_period_end_day, range_start, range_end):
+	"""Expands [range_start, range_end] out to the full bounds of whichever
+	pay periods contain those two dates - so a caller wanting "every day of
+	every pay period touching the requested range" (as opposed to the
+	literal typed dates) gets a range aligned to the real, possibly non-
+	calendar-aligned payroll cycle (e.g. a 16th-15th cycle asked for
+	"1-31 Oct" expands to 16 Sep - 15 Nov). Matches count_pay_periods_in_range()'s
+	own definition of which periods "touch" the range, so hours simulated over
+	the expanded range and the whole-period count used for fixed-cost
+	multiplication agree with each other."""
+	range_start = getdate(range_start)
+	range_end = getdate(range_end)
+	period_start, _period_end = _pay_period_bounds(pay_period_start_day, pay_period_end_day, range_start)
+	_period_start, period_end = _pay_period_bounds(pay_period_start_day, pay_period_end_day, range_end)
+	return period_start, period_end
+
+
+def expand_range_to_pay_periods_for_shift_design(shift_design, range_start, range_end):
+	if not shift_design or not range_start or not range_end:
+		return range_start, range_end
+
+	start_day, end_day = frappe.db.get_value(
+		"Shift Design", shift_design, ["pay_period_start_day", "pay_period_end_day"]
+	)
+	return expand_range_to_pay_periods(start_day, end_day, range_start, range_end)
+
+
 def get_ordered_team_keys(shift_design):
 	"""Enabled teams' team_key, ordered by display_order - the same ordering
 	used everywhere else in the app to assign "Shift A"/"Shift B"/... letters
