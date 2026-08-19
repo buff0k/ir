@@ -16,12 +16,18 @@ from ir.industrial_relations.utils import get_ir_notification_recipients
 def run_daily():
     rows = frappe.get_all(
         "Demotion Form",
-        filters={
-            "docstatus": 1,
-            "demotion_applied": 1,
-            "demotion_reversed": 0,
-            "to_date": ["<", today()],
-        },
+        filters=[
+            ["docstatus", "=", 1],
+            ["demotion_applied", "=", 1],
+            ["demotion_reversed", "=", 0],
+            # Frappe's query builder treats a blank Date field as '0001-01-01'
+            # for "<"/">" comparisons (IFNULL(field, '0001-01-01')), so
+            # to_date IS NULL (an indefinite demotion, per the field's own
+            # "If Temporary" label) would otherwise always match "< today()"
+            # and get wrongly reversed. Exclude blank to_date explicitly.
+            ["to_date", "is", "set"],
+            ["to_date", "<", today()],
+        ],
         fields=["name", "employee", "names", "position", "new_position", "to_date", "company"],
     )
     for row in rows:
