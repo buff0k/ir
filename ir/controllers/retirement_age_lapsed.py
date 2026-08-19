@@ -12,9 +12,14 @@ def retirement_age_lapsed():
     # Fetch employees whose retirement date is in the past
     lapsed_retirements = frappe.get_all(
         "Employee",
-        filters={
-            "date_of_retirement": ["<", frappe.utils.today()]
-        },
+        filters=[
+            # Same trap as demotion_expiry.py: Frappe's query builder treats
+            # a blank Date field as '0001-01-01' for "<" comparisons, so an
+            # Employee with no date_of_retirement set would otherwise always
+            # match "< today()" and be wrongly reported as lapsed.
+            ["date_of_retirement", "is", "set"],
+            ["date_of_retirement", "<", frappe.utils.today()],
+        ],
         fields=["name", "employee_name", "designation", "date_of_retirement", "branch"]
     )
 
