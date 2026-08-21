@@ -6,8 +6,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_months, cint, flt, get_first_day, get_last_day, getdate
 
+from ir.industrial_relations.utils import autoname_planning_document
+
 
 class ShiftDesign(Document):
+	def autoname(self):
+		autoname_planning_document(self, "design_name")
+
 	def before_validate(self):
 		self.remove_blank_child_rows()
 		self.set_defaults()

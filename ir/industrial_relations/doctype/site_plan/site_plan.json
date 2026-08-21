@@ -3,7 +3,6 @@
  "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:plan_name",
  "creation": "2026-08-07 09:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -42,8 +41,7 @@
    "fieldname": "plan_name",
    "fieldtype": "Data",
    "label": "Plan Name",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "description": "A default/suggested Branch for Site Organograms built from this Plan. A Plan is meant to be reusable across sites, so this is not enforced.",
@@ -144,7 +142,6 @@
  "links": [],
  "module": "Industrial Relations",
  "name": "Site Plan",
- "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

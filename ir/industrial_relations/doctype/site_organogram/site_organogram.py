@@ -11,8 +11,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
+from ir.industrial_relations.utils import autoname_planning_document
+
 
 class SiteOrganogram(Document):
+    def autoname(self):
+        autoname_planning_document(self, "location")
+
     def validate(self):
         self.validate_effective_dates()
         normalize_group_structure(self)
