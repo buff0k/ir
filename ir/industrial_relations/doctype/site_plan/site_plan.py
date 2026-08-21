@@ -6,8 +6,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, getdate
 
+from ir.industrial_relations.utils import autoname_planning_document
+
 
 class SitePlan(Document):
+	def autoname(self):
+		autoname_planning_document(self, "plan_name")
+
 	def before_validate(self):
 		self.ensure_group_keys()
 		self.resolve_group_keys_by_label()

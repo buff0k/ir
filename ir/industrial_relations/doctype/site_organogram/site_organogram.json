@@ -3,7 +3,6 @@
  "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:{branch} - {DD}-{MM}-{YYYY}",
  "creation": "2025-06-04 12:43:04.152269",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -161,11 +160,10 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-29 09:12:23.280567",
+ "modified": "2026-08-19 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram",
- "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

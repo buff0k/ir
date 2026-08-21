@@ -7,7 +7,8 @@ import json
 
 import frappe
 from frappe import _
-from frappe.utils import escape_html, get_url_to_form
+from frappe.model.naming import append_number_if_name_exists
+from frappe.utils import escape_html, formatdate, get_url_to_form
 
 from ir import permissions
 
@@ -157,6 +158,53 @@ def autoname_by_linked_parent(doc, prefix):
             except (TypeError, ValueError):
                 pass
     doc.name = f"{base_name}-{latest_revision + 1}"
+
+
+def autoname_planning_document(doc, title_field):
+    """Shared naming for Site Plan, Shift Design and Site Organogram - all three
+    are the same kind of thing (a versioned, effective-dated planning structure;
+    see Site Organogram's own Effective From field description), so they share
+    one convention: "{Branch or 'Generic'}: {title} - eff. {Effective From}".
+
+    `title_field` is whichever field on the calling doctype best answers "what
+    is this" - plan_name / design_name (a free-text title) for Site Plan and
+    Shift Design, or location for Site Organogram (which has no free-text title
+    of its own). A blank branch (a genuinely generic, multi-site template) falls
+    back to a literal "Generic" so those records still cluster together rather
+    than scattering in a list view sorted by name.
+
+    The date is ISO (yyyy-mm-dd) rather than locale-formatted so that sorting by
+    name also sorts chronologically within a branch group, for free. Collisions
+    (e.g. two Draft attempts with the same branch/title/date) are resolved the
+    same way Site Budget Map's own autoname() already does, via
+    append_number_if_name_exists.
+    """
+    title = (doc.get(title_field) or "").strip()
+    if not title:
+        frappe.throw(_("{0} is required before naming.").format(doc.meta.get_label(title_field)))
+    if not doc.effective_from:
+        frappe.throw(_("Effective From is required before naming."))
+
+    branch_label = doc.get("branch") or "Generic"
+    formatted_date = formatdate(doc.effective_from, "yyyy-mm-dd")
+
+    # Site Organogram uses Location as its descriptor (it has no free-text
+    # title of its own) - real Location records are frequently named the same
+    # as their Branch, which would otherwise produce a redundant
+    # "Bankfontein: Bankfontein - eff. ..." name. Drop the descriptor when
+    # it's just repeating the branch.
+    if title == branch_label:
+        base_name = f"{branch_label} - eff. {formatted_date}"
+    else:
+        base_name = f"{branch_label}: {title} - eff. {formatted_date}"
+
+    if frappe.db.exists(doc.doctype, base_name):
+        # Default separator is "-", which would land right after the eff.
+        # date's own "yyyy-mm-dd" hyphens (e.g. "...2026-10-10-1") and read
+        # as part of the date. " #" keeps a collision suffix unambiguous.
+        base_name = append_number_if_name_exists(doc.doctype, base_name, separator=" #")
+
+    doc.name = base_name
 
 
 def create_manual_version(doc, fieldname, old_value, new_value):
