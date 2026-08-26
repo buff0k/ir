@@ -596,12 +596,29 @@ def send_weekly_induction_expired_notifications():
 def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=False):
     """
     Returns only the latest submitted Employee Induction Record per:
-        Employee + Training
+        Employee + Employee Site (Branch) + Training
 
     This is the key renewal logic.
 
     If an older record expired, but a newer submitted record exists for the
-    same employee and training, only the newer record is considered.
+    same employee/branch/training, only the newer record is considered.
+
+    A record only counts if its `training` is still listed in that specific
+    Employee + Branch's Employee Induction Tracking's Required Inductions
+    (`inductions_required`) - an employee can have a separate Tracking (and
+    a separate required-inductions list) per Branch, so this is checked per
+    Employee Induction Record's own `branch`, not just per employee. A
+    record for a training that was since removed from that Tracking's
+    Required Inductions (or that has no branch set, so which Tracking it
+    belongs to can't be determined) is excluded entirely, the same way the
+    Skills Matrix panel on Employee Induction Tracking itself only ever
+    builds cards for `inductions_required` (see employee_induction_tracking.js
+    render_induction_panels()/build_skills_cards_html()) and the Training
+    Matrix report only ever builds columns from
+    `Employee Required Inductions` rows for tracking docs in scope (see
+    training_matrix.py _get_required_inductions()/
+    _filter_required_by_allowed_inductions()) - this brings the two weekly
+    notifications in line with both of those.
     """
     conditions = []
 
@@ -613,11 +630,24 @@ def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=Fals
 
     date_condition = " AND ".join(conditions)
 
+    required_induction_exists = """
+        EXISTS (
+            SELECT 1
+            FROM `tabEmployee Induction Tracking` tracking
+            INNER JOIN `tabEmployee Required Inductions` required
+                ON required.parent = tracking.name
+                AND required.parenttype = 'Employee Induction Tracking'
+            WHERE tracking.employee = induction.employee
+                AND tracking.branch = induction.branch
+                AND required.induction = induction.training
+        )
+    """
+
     query = f"""
         SELECT
             latest.employee,
             COALESCE(MAX(record.employee_name), MAX(employee.employee_name), latest.employee) AS employee_name,
-            COALESCE(MAX(record.branch), MAX(employee.branch)) AS branch,
+            latest.branch,
             MAX(employee.designation) AS designation,
             latest.training,
             latest.latest_valid_to AS valid_to,
@@ -625,6 +655,7 @@ def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=Fals
         FROM (
             SELECT
                 induction.employee,
+                induction.branch,
                 induction.training,
                 MAX(induction.valid_to) AS latest_valid_to
             FROM `tabEmployee Induction Record` induction
@@ -633,15 +664,19 @@ def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=Fals
             WHERE
                 induction.docstatus = 1
                 AND induction.employee IS NOT NULL
+                AND induction.branch IS NOT NULL
                 AND induction.training IS NOT NULL
                 AND induction.valid_to IS NOT NULL
                 AND employee.status = 'Active'
+                AND {required_induction_exists}
             GROUP BY
                 induction.employee,
+                induction.branch,
                 induction.training
         ) latest
         INNER JOIN `tabEmployee Induction Record` record
             ON record.employee = latest.employee
+            AND record.branch = latest.branch
             AND record.training = latest.training
             AND record.valid_to = latest.latest_valid_to
             AND record.docstatus = 1
@@ -652,6 +687,7 @@ def _get_latest_induction_expiry_rows(date_from=None, date_to=None, expired=Fals
             AND {date_condition}
         GROUP BY
             latest.employee,
+            latest.branch,
             latest.training,
             latest.latest_valid_to
         ORDER BY
