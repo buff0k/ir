@@ -9,6 +9,7 @@
  "field_order": [
   "training_name",
   "valid_for",
+  "duration_hours",
   "applicable_sites",
   "applicable_designations",
   "is_training",
@@ -36,6 +37,13 @@
    "reqd": 1,
    "search_index": 1,
    "sort_options": 1
+  },
+  {
+   "description": "Length of this Training/Induction, in hours. Not currently used elsewhere - for future reporting.",
+   "fieldname": "duration_hours",
+   "fieldtype": "Float",
+   "label": "Duration (Hours)",
+   "non_negative": 1
   },
   {
    "fieldname": "applicable_sites",
@@ -79,7 +87,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-09 12:46:57.927214",
+ "modified": "2026-08-19 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction",
