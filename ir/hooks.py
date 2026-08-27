@@ -256,6 +256,7 @@ doc_events = {
 		"after_insert": "ir.controllers.attendance_sync.on_employee_checkin",
 	},
 	"Leave Application": {
+        "validate": "ir.overrides.leave_application.set_letter_head_from_company",
         "before_submit": "ir.overrides.leave_application.validate_signed_leave_form_attached",
 		"on_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",

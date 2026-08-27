@@ -7,6 +7,8 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import formatdate
 
+from ir.industrial_relations.utils import fetch_company_letter_head as _fetch_company_letter_head
+
 def _clean(s: str) -> str:
 	return re.sub(r"\s+", " ", (s or "").strip())
 
@@ -30,3 +32,8 @@ class EmployeeInductionRecord(Document):
 				_("You cannot submit this record without attaching the certificate file."),
 				title=_("Certificate Required"),
 			)
+
+
+@frappe.whitelist()
+def fetch_company_letter_head(company):
+	return _fetch_company_letter_head(company)

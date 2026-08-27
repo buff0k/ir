@@ -18,6 +18,8 @@
   "attach",
   "column_break_sgpr",
   "employee_name",
+  "company",
+  "letter_head",
   "effective_date",
   "details_of_status_change_section",
   "description",
@@ -113,6 +115,24 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Full Names",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Letterhead",
+   "options": "Letter Head",
    "read_only": 1
   },
   {
@@ -300,7 +320,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-06-19 14:03:40.155149",
+ "modified": "2026-08-27 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",

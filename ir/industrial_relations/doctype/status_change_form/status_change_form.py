@@ -6,6 +6,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import formatdate
 
+from ir.industrial_relations.utils import fetch_company_letter_head
+
 def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").strip())
 
@@ -36,16 +38,23 @@ class StatusChangeForm(Document):
             self.requested_by_name = vals.get("employee_name")
             self.requested_by_designation = vals.get("designation")
 
-        # employee -> employee_name + current_designation
+        # employee -> employee_name + current_designation + company + letter_head
+        # (Company/Letterhead were missing entirely until now, so a Status
+        # Change Form always printed with the site's default Letter Head
+        # instead of the Employee's own Company's - see
+        # ir.patches.backfill_status_change_form_company_letter_head for the
+        # retroactive fix on already-submitted records.)
         if self.employee:
             vals = frappe.db.get_value(
                 "Employee",
                 self.employee,
-                ["employee_name", "designation"],
+                ["employee_name", "designation", "company"],
                 as_dict=True
             ) or {}
             self.employee_name = vals.get("employee_name")
             self.current_designation = vals.get("designation")
+            self.company = vals.get("company")
+            self.letter_head = fetch_company_letter_head(self.company).get("letter_head") if self.company else None
 
     def before_submit(self):
         if not self.attach:
