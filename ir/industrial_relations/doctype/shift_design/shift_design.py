@@ -377,35 +377,55 @@ def _pay_period_bounds(start_day, end_day, current_date):
 	return period_start, period_end
 
 
-def count_pay_periods_in_range(pay_period_start_day, pay_period_end_day, range_start, range_end):
-	"""How many distinct pay periods (whole cycles, not day-fractions - a
-	labour budget is for whole pay periods worked, not prorated days)
-	overlap [range_start, range_end]."""
+def list_pay_periods_in_range(pay_period_start_day, pay_period_end_day, range_start, range_end):
+	"""The distinct whole pay periods (not day-fractions - a labour budget is
+	for whole pay periods worked, not prorated days) overlapping
+	[range_start, range_end], as an ordered list of (period_start, period_end)
+	tuples."""
 	range_start = getdate(range_start)
 	range_end = getdate(range_end)
 
 	if range_start > range_end:
-		return 0
+		return []
 
-	count = 0
+	periods = []
 	cursor = range_start
 
 	while cursor <= range_end:
-		_period_start, period_end = _pay_period_bounds(pay_period_start_day, pay_period_end_day, cursor)
-		count += 1
+		period_start, period_end = _pay_period_bounds(pay_period_start_day, pay_period_end_day, cursor)
+		periods.append((period_start, period_end))
 		cursor = add_days(period_end, 1)
 
-	return count
+	return periods
 
 
-def count_pay_periods_for_shift_design(shift_design, range_start, range_end):
+def count_pay_periods_in_range(pay_period_start_day, pay_period_end_day, range_start, range_end):
+	return len(list_pay_periods_in_range(pay_period_start_day, pay_period_end_day, range_start, range_end))
+
+
+def list_pay_periods_for_shift_design(shift_design, range_start, range_end):
 	if not shift_design or not range_start or not range_end:
-		return 0
+		return []
 
 	start_day, end_day = frappe.db.get_value(
 		"Shift Design", shift_design, ["pay_period_start_day", "pay_period_end_day"]
 	)
-	return count_pay_periods_in_range(start_day, end_day, range_start, range_end)
+	return list_pay_periods_in_range(start_day, end_day, range_start, range_end)
+
+
+def count_pay_periods_for_shift_design(shift_design, range_start, range_end):
+	return len(list_pay_periods_for_shift_design(shift_design, range_start, range_end))
+
+
+def pay_period_month_key(period_end):
+	"""The calendar month a pay period counts as for payroll purposes - the
+	month containing its End date, regardless of where it starts. A 16th-15th
+	period ending 15 June is "June" payroll, same as a calendar-aligned
+	1-31 June period - a pay period always ends in the same month it starts
+	or the next one (see _pay_period_bounds()), so this is always
+	unambiguous."""
+	period_end = getdate(period_end)
+	return f"{period_end.year:04d}-{period_end.month:02d}"
 
 
 def expand_range_to_pay_periods(pay_period_start_day, pay_period_end_day, range_start, range_end):
@@ -703,10 +723,16 @@ def _iter_daily_assignments(context):
 def simulate_team_hours_by_month(shift_design, range_start, range_end):
 	"""Same day-by-day roster simulation and per-team-per-pay-period Ordinary
 	Hours Limit bucketing as simulate_team_hours(), but additionally grouped
-	by calendar month (the month each day itself falls in, not the pay
-	period's start) - Site Budget's Excel export reports hours per
-	Designation per month, matching how payroll actually runs (one payslip
-	per month), even though the Ordinary Hours Limit bucketing itself still
+	by which calendar month each whole pay period counts as for payroll
+	purposes (see pay_period_month_key() - the month containing the period's
+	End date, e.g. a 16th-15th period ending 15 June is "June" payroll, same
+	as a calendar-aligned 1-31 June period) - NOT by which calendar month each
+	individual day falls in. A pay period's hours always land together under
+	the one month it counts as, matching how payroll and Site Budget's own
+	fixed-cost period counting already talk about a pay period as "belonging"
+	to one month regardless of its exact date range. Site Budget's Excel
+	export and on-screen summary both report cost per Designation per month
+	from this, even though the Ordinary Hours Limit bucketing itself still
 	operates per pay period (which may not be calendar-aligned).
 
 	Returns {team_key: {month_key: {"ordinary": h, "overtime": {"normal": h,
@@ -726,7 +752,7 @@ def simulate_team_hours_by_month(shift_design, range_start, range_end):
 		if not hours:
 			continue
 
-		period_start, _period_end = _pay_period_bounds(
+		period_start, period_end = _pay_period_bounds(
 			context["doc"].pay_period_start_day, context["doc"].pay_period_end_day, date
 		)
 		key = (team.team_key, period_start)
@@ -736,7 +762,7 @@ def simulate_team_hours_by_month(shift_design, range_start, range_end):
 		ordinary_used[key] = used + hours
 
 		months = results[team.team_key]
-		month_key = f"{date.year:04d}-{date.month:02d}"
+		month_key = pay_period_month_key(period_end)
 		if month_key not in months:
 			months[month_key] = {
 				"ordinary": 0.0,
