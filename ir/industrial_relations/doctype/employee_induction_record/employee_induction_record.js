@@ -8,6 +8,20 @@ frappe.ui.form.on("Employee Induction Record", {
     await frm.events.populate_employee_details(frm);
   },
 
+  company: function (frm) {
+    if (!frm.doc.company) {
+      frm.set_value("letter_head", "");
+      return;
+    }
+    frappe.call({
+      method: "ir.industrial_relations.doctype.employee_induction_record.employee_induction_record.fetch_company_letter_head",
+      args: { company: frm.doc.company },
+      callback(r) {
+        frm.set_value("letter_head", (r.message || {}).letter_head || "");
+      },
+    });
+  },
+
   facilitator: async function (frm) {
     await frm.events.populate_facilitator_details(frm);
   },
@@ -95,11 +109,13 @@ frappe.ui.form.on("Employee Induction Record", {
         designation: null,
         branch: null,
         ofo_code: null,
+        company: null,
+        letter_head: null,
       });
       return;
     }
 
-    const employee_fields = ["employee_name", "designation", "branch"];
+    const employee_fields = ["employee_name", "designation", "branch", "company"];
 
     try {
       const r = await frappe.db.get_value("Employee", employee, employee_fields);
@@ -109,6 +125,7 @@ frappe.ui.form.on("Employee Induction Record", {
         employee_name: v.employee_name || null,
         designation: v.designation || null,
         branch: v.branch || null,
+        company: v.company || null,
       });
 
       await frm.events.populate_ofo_code_from_designation(frm);

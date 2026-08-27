@@ -446,6 +446,7 @@ def export_site_budget_summary_xlsx(site_budget):
 	int_format = workbook.add_format({"border": 1, "num_format": "0"})
 	total_label_format = workbook.add_format({"bold": True})
 	total_format = workbook.add_format({"bold": True, "border": 1, "top": 2, "num_format": "#,##0.00"})
+	total_int_format = workbook.add_format({"bold": True, "border": 1, "top": 2, "num_format": "0"})
 	note_format = workbook.add_format({"italic": True, "font_color": "#a00000"})
 	legend_label_format = workbook.add_format({"bold": True})
 
@@ -529,12 +530,15 @@ def export_site_budget_summary_xlsx(site_budget):
 	data_first_row = header_row + 1  # 0-indexed
 	row = data_first_row
 	monthly_col_by_field = {"NT": 2, **{ot: 3 + i for i, ot in enumerate(overtime_types)}}
+	month_subtotal_row_by_key = {}
 
 	for month_key in months:
 		month_hours = data["hours_by_month_designation"].get(month_key, {})
 		month_basic = data["basic_cost_by_month_designation"].get(month_key, {})
 		month_allowance = data["allowance_cost_by_month_designation"].get(month_key, {})
 		month_employer_contribution = data["employer_contribution_cost_by_month_designation"].get(month_key, {})
+		month_first_row = row
+		month_subtotal_cached = defaultdict(float)
 
 		for designation in designations:
 			# Skip a (Designation, Month) combo with nothing to show - e.g. a
@@ -562,6 +566,12 @@ def export_site_budget_summary_xlsx(site_budget):
 			sheet.write_number(row, COL_HEADCOUNT, counts["total"], int_format)
 			sheet.write_number(row, COL_FILLED, counts["filled"], int_format)
 			sheet.write_number(row, COL_VACANT, counts["vacant"], int_format)
+			month_subtotal_cached[COL_HEADCOUNT] += counts["total"]
+			month_subtotal_cached[COL_FILLED] += counts["filled"]
+			month_subtotal_cached[COL_VACANT] += counts["vacant"]
+			month_subtotal_cached[COL_BASIC_FIXED] += basic_fixed or 0
+			month_subtotal_cached[COL_ALLOWANCES] += allowances or 0
+			month_subtotal_cached[COL_OTHER_CTC] += other_ctc or 0
 			sheet.write_string(row, COL_SALARY_STRUCTURE, salary_structure or "Missing Salary Structure", text_format)
 			sheet.write_string(row, COL_CURRENCY, currency or "", text_format)
 
@@ -593,10 +603,13 @@ def export_site_budget_summary_xlsx(site_budget):
 				f"'Monthly Hours'!$A:$A,{designation_cell},'Monthly Hours'!$B:$B,{month_cell})",
 				computed_format, designation_hours.get("NT", 0.0),
 			)
+			nt_cost_cached = designation_hours.get("NT", 0.0) * rate_value
 			sheet.write_formula(
 				row, COL_NT_COST, f"={nt_hours_cell}*{rate_cell}",
-				computed_format, designation_hours.get("NT", 0.0) * rate_value,
+				computed_format, nt_cost_cached,
 			)
+			month_subtotal_cached[COL_NT_HOURS] += designation_hours.get("NT", 0.0)
+			month_subtotal_cached[COL_NT_COST] += nt_cost_cached
 
 			overtime_cost_cells = []
 			for overtime_type in overtime_types:
@@ -615,6 +628,8 @@ def export_site_budget_summary_xlsx(site_budget):
 					computed_format, cost_value,
 				)
 				overtime_cost_cells.append(xl_rowcol_to_cell(row, ot_cost_col[overtime_type]))
+				month_subtotal_cached[ot_hours_col[overtime_type]] += designation_hours.get(overtime_type, 0.0)
+				month_subtotal_cached[ot_cost_col[overtime_type]] += cost_value
 
 			basic_fixed_cell = xl_rowcol_to_cell(row, COL_BASIC_FIXED)
 			nt_cost_cell = xl_rowcol_to_cell(row, COL_NT_COST)
@@ -632,14 +647,41 @@ def export_site_budget_summary_xlsx(site_budget):
 				+ (allowances or 0) + (other_ctc or 0)
 			)
 			sheet.write_formula(row, COL_TOTAL_COST, total_formula, computed_format, total_cached)
+			month_subtotal_cached[COL_TOTAL_COST] += total_cached
 
 			row += 1
 
-	last_data_row = row - 1  # 0-indexed
+		# --- Per-period subtotal - this is the actual "what does this pay
+		# period total" breakdown that was missing: every month gets its own
+		# subtotal row here, the same way the on-screen summary gives every
+		# month its own "Period Total" footer, instead of only a single
+		# combined figure at the very end of the sheet.
+		if row > month_first_row:
+			month_last_row = row - 1
+			sheet.write_string(row, COL_DESIGNATION, f"Total - {_month_label(month_key)}", total_label_format)
+			int_subtotal_cols = {COL_HEADCOUNT, COL_FILLED, COL_VACANT}
+			subtotal_cols = [
+				COL_HEADCOUNT, COL_FILLED, COL_VACANT, COL_BASIC_FIXED, COL_NT_HOURS, COL_NT_COST,
+				*[ot_hours_col[ot] for ot in overtime_types], *[ot_cost_col[ot] for ot in overtime_types],
+				COL_ALLOWANCES, COL_OTHER_CTC, COL_TOTAL_COST,
+			]
+			for col_idx in subtotal_cols:
+				col_letter = xl_col_to_name(col_idx)
+				col_range = f"{col_letter}{month_first_row + 1}:{col_letter}{month_last_row + 1}"
+				fmt = total_int_format if col_idx in int_subtotal_cols else total_format
+				sheet.write_formula(row, col_idx, f"=SUM({col_range})", fmt, month_subtotal_cached.get(col_idx, 0.0))
+			month_subtotal_row_by_key[month_key] = row
+			row += 2  # subtotal row + one blank separator row before the next month
+		elif months:
+			row += 1
+
 	total_row = row + 1  # leave a blank row before the Grand Total
 
 	sheet.write_string(total_row, COL_DESIGNATION, "Grand Total (all periods)", total_label_format)
-	if last_data_row >= data_first_row:
+	if month_subtotal_row_by_key:
+		# Sum the per-month subtotal rows above, not every detail row - the
+		# detail rows and their own month subtotal already duplicate each
+		# other's totals, so summing the whole block would double-count.
 		grand_total_cached = 0.0
 		for month_key in months:
 			month_hours = data["hours_by_month_designation"].get(month_key, {})
@@ -656,8 +698,11 @@ def export_site_budget_summary_xlsx(site_budget):
 					+ (data["allowance_cost_by_month_designation"].get(month_key, {}).get(designation) or 0)
 					+ (data["employer_contribution_cost_by_month_designation"].get(month_key, {}).get(designation) or 0)
 				)
-		total_range = f"{xl_rowcol_to_cell(data_first_row, COL_TOTAL_COST)}:{xl_rowcol_to_cell(last_data_row, COL_TOTAL_COST)}"
-		sheet.write_formula(total_row, COL_TOTAL_COST, f"=SUM({total_range})", total_format, grand_total_cached)
+		subtotal_cells = [
+			xl_rowcol_to_cell(subtotal_row, COL_TOTAL_COST)
+			for subtotal_row in month_subtotal_row_by_key.values()
+		]
+		sheet.write_formula(total_row, COL_TOTAL_COST, f"=SUM({','.join(subtotal_cells)})", total_format, grand_total_cached)
 	else:
 		sheet.write_number(total_row, COL_TOTAL_COST, 0, total_format)
 

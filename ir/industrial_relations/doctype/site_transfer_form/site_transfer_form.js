@@ -10,6 +10,20 @@ frappe.ui.form.on("Site Transfer Form", {
     await frm.events.pull_employee_details(frm);
   },
 
+  company(frm) {
+    if (!frm.doc.company) {
+      frm.set_value("letter_head", "");
+      return;
+    }
+    frappe.call({
+      method: "ir.industrial_relations.doctype.site_transfer_form.site_transfer_form.fetch_company_letter_head",
+      args: { company: frm.doc.company },
+      callback(r) {
+        frm.set_value("letter_head", (r.message || {}).letter_head || "");
+      },
+    });
+  },
+
   // Block submit if no attachment (client-side)
   before_submit(frm) {
     if (!frm.doc.attach) {
@@ -39,6 +53,8 @@ frappe.ui.form.on("Site Transfer Form", {
       frm.set_value("employee_name", "");
       frm.set_value("designation", "");
       frm.set_value("current_branch", "");
+      frm.set_value("company", "");
+      frm.set_value("letter_head", "");
       return;
     }
 
@@ -46,11 +62,13 @@ frappe.ui.form.on("Site Transfer Form", {
       "employee_name",
       "designation",
       "branch",
+      "company",
     ]);
 
     const v = (r && r.message) || {};
     await frm.set_value("employee_name", v.employee_name || "");
     await frm.set_value("designation", v.designation || "");
     await frm.set_value("current_branch", v.branch || "");
+    await frm.set_value("company", v.company || "");
   },
 });

@@ -13,6 +13,8 @@
   "employee_name",
   "designation",
   "branch",
+  "company",
+  "letter_head",
   "facilitator_details_section",
   "facilitator",
   "institution",
@@ -80,6 +82,22 @@
    "label": "Employee Site",
    "options": "Branch",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Letterhead",
+   "options": "Letter Head",
+   "read_only": 1
   },
   {
    "fieldname": "facilitator",
@@ -171,7 +189,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-30 13:46:37.202242",
+ "modified": "2026-08-27 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Record",

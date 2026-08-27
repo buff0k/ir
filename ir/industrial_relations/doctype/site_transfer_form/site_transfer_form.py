@@ -9,6 +9,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import formatdate
 
+from ir.industrial_relations.utils import fetch_company_letter_head as _fetch_company_letter_head
+
 def _clean(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "").strip())
 
@@ -38,17 +40,24 @@ class SiteTransferForm(Document):
             self.requested_by_name = vals.get("employee_name")
             self.requested_by_designation = vals.get("designation")
 
-        # employee -> employee_name, designation, current_branch
+        # employee -> employee_name, designation, current_branch, company, letter_head
+        # (Company/Letterhead were missing entirely until now, so a Site
+        # Transfer Form always printed with the site's default Letter Head
+        # instead of the Employee's own Company's - see
+        # ir.patches.backfill_site_transfer_form_company_letter_head for the
+        # retroactive fix on already-submitted records.)
         if self.employee:
             vals = frappe.db.get_value(
                 "Employee",
                 self.employee,
-                ["employee_name", "designation", "branch"],
+                ["employee_name", "designation", "branch", "company"],
                 as_dict=True
             ) or {}
             self.employee_name = vals.get("employee_name")
             self.designation = vals.get("designation")
             self.current_branch = vals.get("branch")
+            self.company = vals.get("company")
+            self.letter_head = _fetch_company_letter_head(self.company).get("letter_head") if self.company else None
 
     def before_submit(self):
         # 1) Block submit if nothing attached
@@ -121,3 +130,8 @@ class SiteTransferForm(Document):
         # Only after saving child table: update Employee.branch and save again
         emp.branch = self.new_branch
         emp.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def fetch_company_letter_head(company):
+    return _fetch_company_letter_head(company)
