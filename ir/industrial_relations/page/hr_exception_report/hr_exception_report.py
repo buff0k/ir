@@ -1023,6 +1023,7 @@ def _esg_snapshot(company, snapshot_date, branches=None):
     }
     return {
         "values": values,
+        "rows": rows,
     }
 
 
@@ -1047,59 +1048,81 @@ def _metric_matches(metric_key, row, snapshot_date):
     }.get(metric_key, False)
 
 
-def _terminated_reporting_rows(company, from_date, to_date, branches=None):
-    reporting_fields = _employee_reporting_fields()
-    designation_level = _designation_level_field()
-    selected = [
-        "e.name", "e.employee_name", "e.gender", "e.designation", "e.date_of_birth",
-        "e.relieving_date", "e.reason_for_leaving",
+# Which _employee_flags() keys can plausibly explain a person dropping out of
+# each ESG metric, in the order worth checking. A reduction is very often NOT a
+# termination at all (e.g. someone simply turning 35 during the period), so
+# _explain_reduction below must check these before assuming a person left.
+METRIC_FLAGS = {
+    "women_managers": ("female", "manager"),
+    "black_women_managers": ("female", "black", "manager"),
+    "managers": ("manager",),
+    "women_skilled": ("female", "skilled"),
+    "black_women_skilled": ("female", "black", "skilled"),
+    "women": ("female",),
+    "black": ("black",),
+    "black_women": ("female", "black"),
+    "youth_skilled": ("youth", "skilled"),
+    "youth": ("youth",),
+    "black_youth_skilled": ("black", "youth", "skilled"),
+    "black_women_youth_skilled": ("black", "female", "youth", "skilled"),
+}
+
+FLAG_DROP_LABELS = {
+    "youth": "aged out of the youth (<35) bracket",
+    "skilled": "no longer in a skilled occupational level",
+    "manager": "no longer flagged as a manager/team leader",
+    "female": "Gender no longer recorded as Female",
+    "black": "Race/Designated Group no longer recorded as Black",
+}
+
+
+def _explain_reduction(metric_key, start_rows, end_rows, from_date, to_date):
+    """Name who actually dropped out of a metric's headcount, and why.
+
+    A reduction is just as often caused by someone ageing past a threshold, or
+    a level/designation change, as by an actual termination - citing only
+    termination reasons (the previous behaviour) says nothing useful when the
+    cause isn't a termination, which is misleading rather than merely
+    incomplete: "no termination reason recorded" reads as "we don't know why",
+    when the real, checkable answer is usually right there in the same data.
+    """
+    relevant_flags = METRIC_FLAGS.get(metric_key)
+    if not relevant_flags:
+        return ""
+
+    end_by_name = {row.name: row for row in end_rows}
+    dropped = [row for row in start_rows if _metric_matches(metric_key, row, from_date)]
+    dropped = [
+        row for row in dropped
+        if row.name not in end_by_name or not _metric_matches(metric_key, end_by_name[row.name], to_date)
     ]
-    for alias in ("designated_group", "occupational_level"):
-        fieldname = reporting_fields.get(alias)
-        selected.append(f"e.`{fieldname}` AS `{alias}`" if fieldname else f"NULL AS `{alias}`")
-    selected.append(
-        f"d.`{designation_level}` AS designation_occupational_level"
-        if designation_level else "NULL AS designation_occupational_level"
-    )
 
-    values = {"company": company, "from_date": from_date, "to_date": to_date}
-    branch_clause = ""
-    if branches:
-        branch_clause = "AND e.branch IN %(branches)s"
-        values["branches"] = tuple(branches)
+    explanations = []
+    for row in dropped:
+        end_row = end_by_name.get(row.name)
+        if end_row is None:
+            reason = row.get("reason_for_leaving") or _("Unspecified reason")
+            explanations.append(f"{row.employee_name} ({row.name}) - {_('Terminated')}: {reason}")
+            continue
 
-    return frappe.db.sql(
-        f"""
-        SELECT {', '.join(selected)}
-        FROM `tabEmployee` e
-        LEFT JOIN `tabDesignation` d ON d.name = e.designation
-        WHERE e.company = %(company)s
-          AND e.relieving_date BETWEEN %(from_date)s AND %(to_date)s
-          {branch_clause}
-        ORDER BY e.relieving_date, e.employee_name
-        """,
-        values,
-        as_dict=True,
-    )
+        start_flags = _employee_flags(row, from_date)
+        end_flags = _employee_flags(end_row, to_date)
+        changed = [
+            _(FLAG_DROP_LABELS[flag])
+            for flag in relevant_flags
+            if start_flags.get(flag) and not end_flags.get(flag) and flag in FLAG_DROP_LABELS
+        ]
+        detail = "; ".join(changed) if changed else _("no longer matches this measure")
+        explanations.append(f"{row.employee_name} ({row.name}) - {detail}")
 
-
-def _format_reduction_reasons(metric_key, terminated_rows, to_date):
-    reasons = defaultdict(int)
-    for row in terminated_rows:
-        if _metric_matches(metric_key, row, to_date):
-            reasons[row.get("reason_for_leaving") or _("Unspecified")] += 1
-    if not reasons:
-        return _("No matching termination reason recorded in the period")
-    return ", ".join(
-        f"{reason} ({count})"
-        for reason, count in sorted(reasons.items(), key=lambda item: (-item[1], item[0]))
-    )
+    if not explanations:
+        return _("No individual change identified in the period")
+    return "; ".join(explanations)
 
 
 def _build_esg_comparison(company, from_date, to_date, branches=None):
     start = _esg_snapshot(company, from_date, branches)
     end = _esg_snapshot(company, to_date, branches)
-    terminated_rows = _terminated_reporting_rows(company, from_date, to_date, branches)
     rows = []
     for key, label, unit in ESG_METRICS:
         start_value = start["values"].get(key)
@@ -1117,7 +1140,7 @@ def _build_esg_comparison(company, from_date, to_date, branches=None):
                 "start": start_value,
                 "end": end_value,
                 "change": change,
-                "reduction_reasons": _format_reduction_reasons(key, terminated_rows, to_date)
+                "reduction_reasons": _explain_reduction(key, start["rows"], end["rows"], from_date, to_date)
                 if change is not None and change < 0 else "",
             }
         )
@@ -1130,7 +1153,7 @@ def _build_esg_comparison(company, from_date, to_date, branches=None):
             _("Managers and team leaders include Top Management, Senior Management and Professional/Mid-Management occupational levels, plus designation names containing Manager, Team Leader, Supervisor, Foreman or Superintendent."),
             _("Skilled labour includes Professional/Mid-Management and Skilled Technical/Junior Management occupational levels."),
             _("Salary measures are retained for alignment with the source ESG schedule but are shown as unavailable until a verified salary source is agreed."),
-            _("Termination reasons provide context for reductions; transfers and later master-data changes may also affect comparisons."),
+            _("Reductions are explained per employee: a termination (with reason), or a natural change such as ageing out of the youth bracket or a level/designation change."),
         ],
     }
 
@@ -1336,10 +1359,47 @@ def download_report_pdf(html, company=None, from_date=None, to_date=None):
       <style>{report_css}</style>
       <style>
         /* Print-specific overrides: the desk shell isn't present, so undo any
-        width/overflow the report relies on the app page furniture for. */
+        width/overflow the report relies on the app page furniture for, and add
+        pagination rules the on-screen page never needed - without these, a
+        report this long prints as a mess of headings orphaned at the bottom
+        of a page, cards sliced in half across a page break, and a wide table
+        continuing on to a later page with no header row to say what its
+        columns are. */
         .her-content {{ max-width: none !important; overflow: visible !important; }}
-        .her-ee-table--v4, table {{ page-break-inside: auto; }}
-        tr {{ page-break-inside: avoid; }}
+
+        /* The on-screen report puts the IR panel and the Employment Equity
+        panel side by side in a CSS grid (each a flex column). That's wasted
+        width once the fixed desk shell is gone, so stack both as plain
+        blocks for the full page width instead. */
+        .her-body-grid, .her-left-column, .her-right-column {{ display: block !important; }}
+
+        h1, h2, h3, h4 {{ break-after: avoid; page-break-after: avoid; }}
+
+        table {{ break-inside: auto; page-break-inside: auto; }}
+        tfoot {{ display: table-footer-group; }}
+        tr {{ break-inside: avoid; page-break-inside: avoid; }}
+
+        /* wkhtmltopdf's own thead-repeats-per-page behaviour (the print
+        engine's default, confirmed directly - no CSS asks for it) corrupts
+        the Employment Equity table specifically: reproduced against the
+        real generated HTML, the repeated header paints on top of the first
+        one or two rows of the continuation page instead of pushing them
+        down, right where a subtotal/section row sits at the break. A plain,
+        non-repeating header avoids that corruption; the tradeoff is a reader
+        has to flip back to the table's start to recheck a column's meaning
+        on a later page, which is far better than illegible overlapping text. */
+        thead {{ display: table-row-group; }}
+
+        /* Small card/tile wrappers throughout the report (matched by class
+        name fragment, since there are many and new ones get added over time)
+        should stay whole. Deliberately NOT applied to "-panel"/"-block"
+        wrappers - those also wrap the big tables above, which must stay
+        breakable (wkhtmltopdf has no :has() to tell those two cases apart),
+        or a single section could be forced to overflow every following page. */
+        [class*="-card"], [class*="-tile"], [class*="-kpi"] {{
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }}
       </style>
     </head>
     <body>
@@ -1363,6 +1423,62 @@ def download_report_pdf(html, company=None, from_date=None, to_date=None):
         },
     )
     return base64.b64encode(pdf_bytes).decode("ascii")
+
+
+def _snapshot_employee_row(row):
+    return {
+        "employee": row.name,
+        "employee_name": row.employee_name,
+        "gender": row.get("gender") or "",
+        "race": row.get("designated_group") or "",
+        "branch": row.get("branch") or "",
+        "designation": row.get("designation") or "",
+        "employment_type": row.get("employment_type") or "",
+    }
+
+
+@frappe.whitelist()
+def get_ee_level_employees(company, snapshot_date, level, employment_type="combined", branches=None):
+    """The employees behind one Employment Equity table row - lets a reader
+    verify a headcount directly rather than taking the row's number on trust."""
+    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.has_permission("Employee", "read", throw=True)
+    if isinstance(branches, str):
+        branches = frappe.parse_json(branches) if branches else []
+    snapshot_date = getdate(snapshot_date)
+
+    rows = _employee_snapshot_rows(company, snapshot_date, branches)
+    result = []
+    for row in rows:
+        raw_level = row.get("occupational_level") or row.get("designation_occupational_level")
+        if _normalise_level(raw_level) != level:
+            continue
+        temporary = _is_temporary(row.get("employment_type"))
+        if employment_type == "permanent" and temporary:
+            continue
+        if employment_type == "temporary" and not temporary:
+            continue
+        result.append(_snapshot_employee_row(row))
+    return result
+
+
+@frappe.whitelist()
+def get_esg_metric_employees(company, snapshot_date, metric_key, branches=None):
+    """The employees currently matching one ESG measure, as at snapshot_date -
+    the same per-employee check _explain_reduction uses to explain a drop, but
+    for the full current headcount rather than just who left it."""
+    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.has_permission("Employee", "read", throw=True)
+    if isinstance(branches, str):
+        branches = frappe.parse_json(branches) if branches else []
+    snapshot_date = getdate(snapshot_date)
+
+    rows = _employee_snapshot_rows(company, snapshot_date, branches)
+    result = []
+    for row in rows:
+        if _metric_matches(metric_key, row, snapshot_date):
+            result.append(_snapshot_employee_row(row))
+    return result
 
 
 @frappe.whitelist()
