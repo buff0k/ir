@@ -435,6 +435,11 @@ def sync_employees(branch, current_employees=None, auto_employees=None):
                     "employee": emp_id,
                     "employee_name": row.employee_name or "",
                     "designation": row.designation or "",
+                    # Always == branch here (that's the filter above) - kept
+                    # so an auto-added row has the same shape as a manually-
+                    # added one (see get_employee_details()), rather than
+                    # the Designer needing to special-case which rows have it.
+                    "branch": branch,
                 }
             )
 
@@ -454,6 +459,7 @@ def get_employee_details(employee):
     return {
         "employee_name": doc.employee_name,
         "designation": doc.designation,
+        "branch": doc.branch,
     }
 
 
@@ -1032,6 +1038,30 @@ def get_designation_mismatches(doc):
     return mismatches
 
 
+def get_employee_branch_exceptions(doc):
+    """Public wrapper over _get_admin_exceptions()'s employee half - Employees
+    assigned somewhere in this Organogram whose own Employee.branch disagrees
+    with this Organogram's branch (e.g. a shared Engineering/Maintenance
+    resource who genuinely works more than one site). Already surfaced on
+    the Organogram Designer's own report panel and Excel export as "Admin
+    Exceptions - Employees"; Site Budget's summaries reuse this same
+    detection rather than re-implementing it, so the two can't disagree.
+    Returns a list of dicts (not the plain [name, ...] lists
+    _get_admin_exceptions() itself returns, which are shaped for that
+    Excel sheet specifically).
+    """
+    employee_rows, _asset_rows = _get_admin_exceptions(doc)
+    return [
+        {
+            "employee": row[0],
+            "employee_name": row[1],
+            "designation": row[2],
+            "branch": row[3],
+        }
+        for row in employee_rows
+    ]
+
+
 def get_designation_slots_by_group(doc):
     """Every staffable slot, grouped by heading (group_key) with that
     heading's own Shift Design - Site Budget uses this to cost each
@@ -1487,7 +1517,7 @@ def _designer_payload(doc):
         ),
         "employees": _designer_child_rows(
             getattr(doc, "employees", None),
-            ["employee", "employee_name", "designation"],
+            ["employee", "employee_name", "designation", "branch"],
         ),
         "assets": _designer_child_rows(
             getattr(doc, "assets", None),
@@ -1641,7 +1671,7 @@ def save_site_organogram_designer_state(payload):
 
     _replace_child_table(doc, "asset_categories", payload.get("asset_categories"), ["asset_cateogories"])
     _replace_child_table(doc, "group_headings", payload.get("group_headings"), ["group_key", "group", "shift_design"])
-    _replace_child_table(doc, "employees", payload.get("employees"), ["employee", "employee_name", "designation"])
+    _replace_child_table(doc, "employees", payload.get("employees"), ["employee", "employee_name", "designation", "branch"])
     _replace_child_table(doc, "assets", payload.get("assets"), ["asset", "item_name", "asset_category"])
     _replace_child_table(
         doc,

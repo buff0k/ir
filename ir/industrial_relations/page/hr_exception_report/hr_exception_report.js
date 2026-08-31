@@ -32,6 +32,7 @@ class HRExceptionReport {
     this.page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
     this.page.add_inner_button(__("Export transparent PNG"), () => this.export_png(), __("Export"));
     this.page.add_inner_button(__("Copy PNG"), () => this.copy_png(), __("Export"));
+    this.page.add_inner_button(__("Print PDF"), () => this.print_pdf(), __("Export"));
     this.page.add_inner_button(__("Export new employee details"), () => this.export_new_employee_details(), __("Export"));
 
     this.initialise_defaults();
@@ -1350,6 +1351,77 @@ class HRExceptionReport {
       frappe.show_alert({ message: __("PNG copied to clipboard"), indicator: "green" });
     } catch (error) {
       frappe.msgprint({ title: __("Copy failed"), message: error.message, indicator: "red" });
+    }
+  }
+
+  print_safe_html() {
+    // The server-side PDF renderer (wkhtmltopdf) doesn't understand CSS
+    // var(...) at all - and this report's theme colours (card tones,
+    // warning colours, table striping, ...) come almost entirely from
+    // Frappe's own CSS custom properties, which aren't defined outside the
+    // desk shell anyway. The browser already resolved every var() into a
+    // concrete colour to paint the screen, so bake those resolved colours
+    // onto a clone as inline styles before sending it - this keeps the
+    // markup as real, selectable text/tables (unlike a full-page raster)
+    // while making every colour render correctly with no var() involved.
+    const original = this.$content[0];
+    const clone = original.cloneNode(true);
+    const colorProps = [
+      "backgroundColor", "color",
+      "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor",
+    ];
+    const applyResolvedColors = (originalEl, cloneEl) => {
+      const computed = getComputedStyle(originalEl);
+      let inline = cloneEl.getAttribute("style") || "";
+      colorProps.forEach((prop) => {
+        const value = computed[prop];
+        if (!value) return;
+        const cssProp = prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+        inline += `;${cssProp}:${value} !important`;
+      });
+      cloneEl.setAttribute("style", inline);
+    };
+    applyResolvedColors(original, clone);
+    const originals = original.querySelectorAll("*");
+    const clones = clone.querySelectorAll("*");
+    originals.forEach((el, index) => applyResolvedColors(el, clones[index]));
+    return clone.outerHTML;
+  }
+
+  async print_pdf() {
+    if (!this.data) {
+      frappe.msgprint(__("Generate the report before printing."));
+      return;
+    }
+    frappe.show_alert({ message: __("Generating PDF…"), indicator: "blue" }, 10);
+    try {
+      const html = this.print_safe_html();
+      const response = await frappe.call({
+        method: "ir.industrial_relations.page.hr_exception_report.hr_exception_report.download_report_pdf",
+        args: {
+          html,
+          company: this.data.company,
+          from_date: this.data.from_date,
+          to_date: this.data.to_date,
+        },
+      });
+      const base64 = response.message;
+      if (!base64) throw new Error(__("PDF generation failed."));
+      const byteChars = atob(base64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `HR-Exception-Report-${this.slug(this.data.company)}-${this.data.from_date}-to-${this.data.to_date}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      frappe.show_alert({ message: __("PDF ready"), indicator: "green" });
+    } catch (error) {
+      frappe.msgprint({ title: __("PDF export failed"), message: error.message, indicator: "red" });
     }
   }
 

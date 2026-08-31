@@ -8,7 +8,8 @@
  "field_order": [
   "employee",
   "employee_name",
-  "designation"
+  "designation",
+  "branch"
  ],
  "fields": [
   {
@@ -36,13 +37,22 @@
    "label": "Designation",
    "options": "Designation",
    "read_only": 1
+  },
+  {
+   "description": "This Employee's own Branch, cached when added to the pool - the Designer tags a card as an exception when this differs from the Organogram's own Branch (e.g. a shared Engineering/Maintenance resource genuinely working more than one site).",
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee's Own Branch",
+   "options": "Branch",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-02-04 19:14:53.407543",
+ "modified": "2026-08-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Employees",
