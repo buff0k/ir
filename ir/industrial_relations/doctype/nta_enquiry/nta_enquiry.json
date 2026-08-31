@@ -48,7 +48,8 @@
   "history_of_poor_performance_section",
   "previous_performance_outcomes",
   "rights_section",
-  "employee_rights"
+  "employee_rights",
+  "calendar_invite_sequence"
  ],
  "fields": [
   {
@@ -312,13 +313,22 @@
    "label": "Employee Coy. No.",
    "options": "Employee",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "How many times the calendar invite has been sent - bumped as the ICS SEQUENCE on every send so a re-send (e.g. after rescheduling) updates the recipient's existing calendar event instead of creating a duplicate.",
+   "fieldname": "calendar_invite_sequence",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Calendar Invite Sequence",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-13 10:48:28.572824",
+ "modified": "2026-08-31 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "NTA Enquiry",

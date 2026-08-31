@@ -10,6 +10,59 @@ frappe.ui.form.on("NTA Enquiry", {
         ) {
             frm.trigger("load_linked_intervention");
         }
+
+        if (
+            !frm.is_new() &&
+            frm.doc.hearing_date_time &&
+            frm.doc.venue &&
+            frm.doc.complainant &&
+            frm.doc.chairperson
+        ) {
+            const label = frm.doc.calendar_invite_sequence
+                ? __("Re-send Calendar Invite")
+                : __("Send Calendar Invite");
+            frm.add_custom_button(label, () => frm.trigger("send_calendar_invite"));
+        }
+    },
+
+    send_calendar_invite(frm) {
+        frappe.confirm(
+            __("Send a calendar invite to the Complainant and Chairperson for this hearing?"),
+            () => {
+                frappe.call({
+                    method: "ir.industrial_relations.doctype.nta_enquiry.nta_enquiry.send_calendar_invite",
+                    args: { nta_enquiry: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __("Sending calendar invite..."),
+                    callback(r) {
+                        if (r.exc) {
+                            return;
+                        }
+                        const data = r.message || {};
+                        const sent = data.sent_to || [];
+                        const skipped = data.skipped || [];
+
+                        if (sent.length) {
+                            frappe.show_alert({
+                                message: __("Calendar invite sent to {0}.", [sent.join(", ")]),
+                                indicator: "green",
+                            });
+                        }
+                        if (skipped.length) {
+                            frappe.msgprint({
+                                title: __("Some recipients were skipped"),
+                                indicator: "orange",
+                                message: __(
+                                    "{0} has no usable email address on file and was not sent an invite.",
+                                    [skipped.join(", ")]
+                                ),
+                            });
+                        }
+                        frm.reload_doc();
+                    },
+                });
+            }
+        );
     },
 
     ir_intervention(frm) {
