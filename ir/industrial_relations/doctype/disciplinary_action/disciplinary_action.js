@@ -411,17 +411,6 @@ function sync_offences_and_render_sanctions(frm) {
 }
 
 function seed_new_offence_charges(frm, offences, offence_data) {
-  // Client-side mirror of disciplinary_action.py's
-  // _sync_offence_codes_and_final_charges: gives an instant preview in the
-  // browser (a newly added Offence immediately gets a matching Charges row)
-  // without waiting for a save round-trip, using the exact same per-row
-  // `charge_created` marker the server checks. Because the marker lives on
-  // the Offence row itself, it travels with the document either way -
-  // whichever side (this, or the server's validate() on save) processes an
-  // Offence first sets it, and the other then correctly sees it as already
-  // handled. This is what makes it safe to add Offences and start editing
-  // Charges without saving in between: nothing can double-create a charge,
-  // and nothing here ever touches a Charges row once created.
   let added = false;
 
   offences.forEach((offence) => {
