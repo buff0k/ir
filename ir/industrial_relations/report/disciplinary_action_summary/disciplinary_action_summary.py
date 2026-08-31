@@ -144,15 +144,7 @@ def get_data(filters):
 				THEN IFNULL(hcf.reason_for_cancellation, '')
 				ELSE ''
 			END AS reason_for_cancellation,
-			CASE
-				WHEN IFNULL(TRIM(da.responsible_ir_name), '') != '' AND IFNULL(TRIM(da.responsible_ir_no), '') != ''
-				THEN CONCAT(TRIM(da.responsible_ir_name), ' (', TRIM(da.responsible_ir_no), ')')
-				WHEN IFNULL(TRIM(da.responsible_ir_name), '') != ''
-				THEN TRIM(da.responsible_ir_name)
-				WHEN IFNULL(TRIM(da.responsible_ir_no), '') != ''
-				THEN CONCAT('(', TRIM(da.responsible_ir_no), ')')
-				ELSE ''
-			END AS responsible_ir_display
+			IFNULL(TRIM(da.responsible_ir_name), '') AS responsible_ir_display
 		FROM `tabDisciplinary Action` da
 		LEFT JOIN `tabOffence Outcome` oo
 			ON oo.name = da.outcome

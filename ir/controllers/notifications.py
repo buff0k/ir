@@ -308,8 +308,60 @@ def _diff_child_table_rows(curr_rows, prev_rows):
     return changes
 
 
+def _resolve_employee_user_email(employee):
+    """Employee -> (email, full_name) via their linked User account, or
+    (None, None) if the Employee has no linked/enabled User with an email -
+    not every Employee (e.g. a Shop Steward or an external complainant
+    recorded as an Employee) necessarily has a desk login."""
+    if not employee:
+        return None, None
+    user_id = frappe.db.get_value("Employee", employee, "user_id")
+    if not user_id:
+        return None, None
+    return _resolve_user_email(user_id)
+
+
+def _resolve_user_email(user):
+    """User -> (email, full_name), or (None, None) if unset/disabled/no email."""
+    if not user:
+        return None, None
+    row = frappe.db.get_value("User", user, ["enabled", "email", "full_name"], as_dict=True)
+    if not row or not row.enabled or not row.email:
+        return None, None
+    return row.email, row.full_name or user
+
+
+def _add_case_participants(recipient_emails, name_by_email, doc, *, complainant_field="complainant", responsible_ir_field="responsible_ir"):
+    """Add the case's initiating employee (complainant_field) and Responsible IR
+    (responsible_ir_field) to the recipient list/name map in place, so they're
+    always notified about their own case regardless of whether the fixed
+    distribution list (disciplinary_recipients/incapacity_recipients/
+    performance_recipients on IR Role Restrictions) is configured at all.
+
+    Deduplicated against recipient_emails (a plain list, matching
+    _collect_recipients_from_table's own shape) so a person who is both, say,
+    on the distribution list AND the complainant or Responsible IR on this
+    specific case is only ever emailed once.
+
+    Deliberately NOT run through permissions.recipient_passes_restrictions -
+    unlike the fixed distribution list (general IR staff whose Designation/
+    Branch Limits decide whether a given case is any of their business), the
+    complainant and Responsible IR are already, specifically, part of this
+    exact case - one raised it, the other was assigned to it - so there's
+    nothing for those limits to filter out here.
+    """
+    for email, full_name in (
+        _resolve_employee_user_email(doc.get(complainant_field)),
+        _resolve_user_email(doc.get(responsible_ir_field)),
+    ):
+        if email and email not in recipient_emails:
+            recipient_emails.append(email)
+            name_by_email[email] = full_name
+
+
 def handle_disciplinary_action_create(doc, method=None):
     recipient_emails, name_by_email = _collect_recipients_from_table("disciplinary_recipients", doc)
+    _add_case_participants(recipient_emails, name_by_email, doc)
     if not recipient_emails:
         return
 
@@ -440,6 +492,7 @@ def _collect_recipients_from_table(parentfield, doc=None):
 
 def handle_incapacity_proceedings_create(doc, method=None):
     recipient_emails, name_by_email = _collect_recipients_from_table("incapacity_recipients", doc)
+    _add_case_participants(recipient_emails, name_by_email, doc)
     if not recipient_emails:
         return
 
@@ -471,6 +524,11 @@ def handle_incapacity_proceedings_create(doc, method=None):
 
 def handle_poor_performance_create(doc, method=None):
     recipient_emails, name_by_email = _collect_recipients_from_table("performance_recipients", doc)
+    # Poor Performance's own Responsible IR link field is named "ir", not
+    # "responsible_ir" like Disciplinary Action/Incapacity Proceedings (a
+    # pre-existing naming inconsistency on this doctype - see also the
+    # matching fetch_from fix on its ir_name field).
+    _add_case_participants(recipient_emails, name_by_email, doc, responsible_ir_field="ir")
     if not recipient_emails:
         return
 

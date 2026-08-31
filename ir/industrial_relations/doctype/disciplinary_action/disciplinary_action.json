@@ -26,7 +26,6 @@
   "ss_union",
   "responsible_ir_section",
   "responsible_ir",
-  "responsible_ir_no",
   "column_break_ofak",
   "responsible_ir_name",
   "details_of_complainant_section",
@@ -290,12 +289,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "responsible_ir.phone",
-   "fieldname": "responsible_ir_no",
-   "fieldtype": "Read Only",
-   "label": "Responsible IR Number"
-  },
-  {
    "fetch_from": "responsible_ir.full_name",
    "fieldname": "responsible_ir_name",
    "fieldtype": "Read Only",
@@ -323,7 +316,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-28 14:38:29.037995",
+ "modified": "2026-08-31 13:04:29.404300",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",

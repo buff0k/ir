@@ -71,6 +71,32 @@ BRANCH_LIMITED_DOCTYPES = {
     "Appeal Against Outcome": "employee",
 }
 
+# The 3 source case doctypes' own Responsible IR link field. Poor Performance's
+# is named "ir", not "responsible_ir" - a pre-existing naming inconsistency on
+# that doctype (see also its ir_name fetch_from fix).
+RESPONSIBLE_IR_FIELD_BY_DOCTYPE = {
+    "Disciplinary Action": "responsible_ir",
+    "Incapacity Proceedings": "responsible_ir",
+    "Poor Performance": "ir",
+}
+
+# Downstream action doctypes that carry the "new generic intervention model"
+# ir_intervention (source doctype name) + linked_intervention (Dynamic Link to
+# the actual case) fields - i.e. everything that implements/flows from one of
+# the 3 source cases above, but has no Responsible IR field of its own.
+INTERVENTION_LINK_DOCTYPES = {
+    "NTA Enquiry",
+    "Written Outcome",
+    "Warning Form",
+    "Suspension Form",
+    "Dismissal Form",
+    "Demotion Form",
+    "Pay Deduction Form",
+    "Pay Reduction Form",
+    "No Further Action Form",
+    "Appeal Against Outcome",
+}
+
 
 def effective_ir_role(user: str | None = None) -> str | None:
     """Return the user's highest IR role: Manager, Officer, then User."""
@@ -165,6 +191,55 @@ def _sql_branch_condition(doctype: str, employee_field: str, user: str | None) -
     )
 
 
+def _sql_responsible_ir_override(doctype: str, user: str | None) -> str | None:
+    """SQL condition matching records where `user` is the effective Responsible
+    IR - the person actually assigned to implement this case - so Designation
+    Limits and Branch Limits (both inherited from the IR Role Restrictions
+    singleton) never stand between them and their own case. Directly on the 3
+    source case doctypes via their own Responsible IR field; on a downstream
+    action doctype (NTA Enquiry, Written Outcome, a sanction form, Appeal
+    Against Outcome) via the case it traces back to through
+    ir_intervention/linked_intervention - they're "the person implementing
+    the action" too, just one step removed from the source case."""
+    if not user:
+        return None
+
+    field = RESPONSIBLE_IR_FIELD_BY_DOCTYPE.get(doctype)
+    if field:
+        return f"`tab{doctype}`.`{field}` = {frappe.db.escape(user)}"
+
+    if doctype in INTERVENTION_LINK_DOCTYPES:
+        clauses = [
+            f"(`tab{doctype}`.`ir_intervention` = {frappe.db.escape(source_doctype)} "
+            f"and `tab{doctype}`.`linked_intervention` in "
+            f"(select name from `tab{source_doctype}` where `{source_field}` = {frappe.db.escape(user)}))"
+            for source_doctype, source_field in RESPONSIBLE_IR_FIELD_BY_DOCTYPE.items()
+        ]
+        return "(" + " or ".join(clauses) + ")"
+
+    return None
+
+
+def _is_effective_responsible_ir(doc, user: str | None) -> bool:
+    """Document-level counterpart to _sql_responsible_ir_override, for a single
+    already-loaded doc (has_permission/validate hooks) rather than a list query."""
+    if not user:
+        return False
+
+    field = RESPONSIBLE_IR_FIELD_BY_DOCTYPE.get(doc.doctype)
+    if field:
+        return doc.get(field) == user
+
+    if doc.doctype in INTERVENTION_LINK_DOCTYPES:
+        source_doctype = doc.get("ir_intervention")
+        linked_name = doc.get("linked_intervention")
+        source_field = RESPONSIBLE_IR_FIELD_BY_DOCTYPE.get(source_doctype)
+        if source_doctype and linked_name and source_field:
+            return frappe.db.get_value(source_doctype, linked_name, source_field) == user
+
+    return False
+
+
 def _permission_query(doctype: str, user: str | None) -> str:
     conditions = []
 
@@ -179,7 +254,12 @@ def _permission_query(doctype: str, user: str | None) -> str:
         if branch_condition:
             conditions.append(branch_condition)
 
-    return " and ".join(conditions)
+    base = " and ".join(conditions)
+
+    override = _sql_responsible_ir_override(doctype, user)
+    if override and base:
+        return f"(({base}) or {override})"
+    return override or base
 
 
 def _designation_is_restricted(designation: str | None, user: str | None = None) -> bool:
@@ -198,6 +278,8 @@ def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | N
         return True
     if ptype not in PROTECTED_PERMISSION_TYPES:
         return True
+    if _is_effective_responsible_ir(doc, user):
+        return True
     if _designation_is_restricted(doc.get(fieldname), user):
         return False
 
@@ -211,6 +293,8 @@ def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | N
 def _validate_designation(doc, fieldname: str, user: str | None = None) -> None:
     user = user or frappe.session.user
     if not effective_ir_role(user):
+        return
+    if _is_effective_responsible_ir(doc, user):
         return
     designation = doc.get(fieldname)
     if _designation_is_restricted(designation, user):

@@ -26,7 +26,6 @@
   "ss_union",
   "responsible_ir_section",
   "responsible_ir",
-  "responsible_ir_no",
   "column_break_ofak",
   "responsible_ir_name",
   "details_of_incapacity_sec",
@@ -137,12 +136,6 @@
    "label": "Responsible IR",
    "link_filters": "[[\"User\",\"role\",\"in\",[\"IR Officer\",\"IR Manager\"]]]",
    "options": "User"
-  },
-  {
-   "fetch_from": "responsible_ir.phone",
-   "fieldname": "responsible_ir_no",
-   "fieldtype": "Read Only",
-   "label": "Responsible IR Number"
   },
   {
    "fieldname": "column_break_ofak",
@@ -315,7 +308,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-28 14:39:30.673217",
+ "modified": "2026-08-31 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Incapacity Proceedings",

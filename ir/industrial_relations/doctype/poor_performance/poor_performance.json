@@ -260,7 +260,7 @@
    "options": "User"
   },
   {
-   "fetch_from": "responsible_ir.full_name",
+   "fetch_from": "ir.full_name",
    "fieldname": "ir_name",
    "fieldtype": "Read Only",
    "label": "Responsible IR Name"
@@ -285,7 +285,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-19 12:04:08.101804",
+ "modified": "2026-08-31 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Poor Performance",
