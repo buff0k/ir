@@ -1420,6 +1420,16 @@ def download_report_pdf(html, company=None, from_date=None, to_date=None):
             "encoding": "UTF-8",
             "disable-smart-shrinking": None,
             "print-media-type": None,
+            # The on-screen card layout is sized generously for a screen, not
+            # a printed page - at zoom 1 almost nothing on this report fits
+            # one physical page, which is what actually made the first cut at
+            # this PDF export feel unusable rather than merely long. --zoom is
+            # wkhtmltopdf's own page-scale control (shrinks the whole render,
+            # fonts and paddings included, before laying it out on paper) -
+            # this is the real fix for "fit more real content per page",
+            # which CSS alone (padding/font-size tweaks) can't do as cleanly
+            # since most of this report's sizes are fixed px, not relative.
+            "zoom": "0.65",
         },
     )
     return base64.b64encode(pdf_bytes).decode("ascii")
