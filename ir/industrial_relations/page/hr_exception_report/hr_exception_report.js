@@ -1436,6 +1436,14 @@ class HRExceptionReport {
       real on-screen table is untouched. */
       .her-esg-table tr.is-reduction { background: rgba(239, 68, 68, 0.08) !important; }
       .her-esg-table tr.is-increase { background: rgba(34, 197, 94, 0.07) !important; }
+      /* This capture is meant to be a self-contained image (e.g. pasted into
+      a presentation slide), so the on-page-only hint ("not included in the
+      PNG...") would be actively wrong INSIDE the PNG it's describing, and the
+      Reason for reduction column is analysis detail for the report itself
+      rather than something the export needs - both stay in the real HTML
+      view, just not in this capture. */
+      .her-esg-heading p { display: none !important; }
+      .her-esg-table th:last-child, .her-esg-table td:last-child { display: none !important; }
     </style></head><body></body></html>`);
     doc.close();
     doc.body.innerHTML = this.render_esg_section(this.data.esg_comparison);
