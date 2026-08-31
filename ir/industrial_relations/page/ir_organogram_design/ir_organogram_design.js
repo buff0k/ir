@@ -34,6 +34,14 @@ class SiteOrganogramDesigner {
     this._control_load_timer = null;
     this._recovery_prompt_key = "";
     this.shift_designs = [];
+    // Employee IDs this session knows it added to the pool via an auto
+    // Branch-match sync - NOT persisted, and deliberately never inferred
+    // for whatever was already in the pool on load. sync_pools() only ever
+    // proposes removing IDs in this set, so a manually-added "missing"
+    // Employee (see add_missing_employee()) - or anything already in the
+    // pool from a previous session - is never silently stripped out by a
+    // later Sync click.
+    this.auto_synced_employee_ids = new Set();
   }
 
   blank_state() {
@@ -705,11 +713,30 @@ class SiteOrganogramDesigner {
 
   async sync_pools(show_message) {
     if (!this.state.branch) return frappe.msgprint("Select a Site first.");
+    const currentEmployeeIds = (this.state.employees || []).map(r => r.employee).filter(Boolean);
     const emp = await frappe.call({
       method: `${SO_PY}.sync_employees`,
-      args: { branch: this.state.branch, current_employees: JSON.stringify([]), auto_employees: JSON.stringify([]) },
+      args: {
+        branch: this.state.branch,
+        current_employees: JSON.stringify(currentEmployeeIds),
+        auto_employees: JSON.stringify([...this.auto_synced_employee_ids]),
+      },
     });
-    this.state.employees = (emp.message?.to_add || []).filter(r => r.employee);
+    const toAdd = (emp.message?.to_add || []).filter(r => r.employee);
+    const toRemove = new Set(emp.message?.to_remove || []);
+
+    // Keep everything already in the pool except IDs this session itself
+    // auto-added before and that no longer Branch-match (to_remove is only
+    // ever drawn from auto_synced_employee_ids - see that set's own
+    // comment) - a manually-added "missing" Employee, or anything already
+    // in the pool from a previous session, is never in that set, so a Sync
+    // can never silently strip them back out.
+    this.state.employees = (this.state.employees || []).filter(
+      r => r.employee && !toRemove.has(r.employee)
+    ).concat(toAdd);
+
+    toRemove.forEach(id => this.auto_synced_employee_ids.delete(id));
+    toAdd.forEach(r => this.auto_synced_employee_ids.add(r.employee));
 
     if (this.state.location) {
       const cats = (this.state.asset_categories || []).map(r => r.asset_cateogories).filter(Boolean);
@@ -724,6 +751,68 @@ class SiteOrganogramDesigner {
     this.mark_dirty();
     this.render_planner();
     if (show_message) frappe.show_alert({ message: "Employees and assets refreshed.", indicator: "green" });
+  }
+
+  add_missing_employee() {
+    const existingIds = new Set((this.state.employees || []).map(r => r.employee));
+
+    const dialog = new frappe.ui.Dialog({
+      title: __("Add Missing Employee"),
+      fields: [
+        {
+          fieldname: "employee",
+          fieldtype: "Link",
+          options: "Employee",
+          label: __("Employee"),
+          reqd: 1,
+          description: __(
+            "Any Active Employee, even if their own record's Branch is elsewhere - use this for " +
+            "someone who genuinely works here too (e.g. a shared Engineering/Maintenance resource)."
+          ),
+          get_query: () => ({
+            filters: { status: "Active", name: ["not in", [...existingIds]] },
+          }),
+        },
+      ],
+      primary_action_label: __("Add"),
+      primary_action: async (values) => {
+        if (existingIds.has(values.employee)) {
+          frappe.msgprint(__("That Employee is already in the pool."));
+          return;
+        }
+
+        const r = await frappe.call({
+          method: `${SO_PY}.get_employee_details`,
+          args: { employee: values.employee },
+        });
+        const details = r.message || {};
+
+        this.state.employees.push({
+          employee: values.employee,
+          employee_name: details.employee_name || values.employee,
+          designation: details.designation || "",
+          branch: details.branch || "",
+        });
+        // Deliberately NOT added to auto_synced_employee_ids - a manual
+        // add is never a candidate for a later Sync's to_remove.
+        this.mark_dirty();
+        this.render_planner();
+        dialog.hide();
+
+        if (details.branch && details.branch !== this.state.branch) {
+          frappe.show_alert({
+            message: __("Added - note {0}'s own Employee record shows Branch {1}, not {2}.", [
+              details.employee_name || values.employee, details.branch, this.state.branch,
+            ]),
+            indicator: "orange",
+          }, 7);
+        } else {
+          frappe.show_alert({ message: __("Employee added to the pool."), indicator: "green" });
+        }
+      },
+    });
+
+    dialog.show();
   }
 
   reconcile_missing_assignments() {
@@ -952,10 +1041,12 @@ class SiteOrganogramDesigner {
       </div></div>
       <div class="so-panel__bd"><div class="so-filters"><input class="form-control" data-pool-search placeholder="Search..." value="${this.esc(this.pool_query)}"></div>
         ${this.pool_mode==="employees"?`<div class="so-filters"><select class="form-control" data-pool-designation><option value="">All designations</option>${empDesignations.map(d=>`<option ${d===this.pool_designation?"selected":""}>${this.esc(d)}</option>`).join("")}</select></div>`:""}
+        ${this.pool_mode==="employees"?`<div class="so-filters"><button type="button" class="btn btn-xs btn-default" data-action="add-missing-employee" title="${__("Add an Employee who genuinely works here even though their own record's Branch says elsewhere - e.g. a shared Engineering/Maintenance resource.")}">+ ${__("Add Missing Employee")}</button></div>`:""}
         <div class="so-pool-drop" data-drop="pool">Drop here to unassign or remove row</div><div class="so-pool">${poolItems||'<div class="so-empty">No matching unallocated items.</div>'}</div>
       </div></div></div>`);
 
     this.bind_planner_events($w);
+    $w.find('[data-action="add-missing-employee"]').on("click", () => this.add_missing_employee());
 
     if (searchHadFocus) {
       const newSearchEl = $w.find("[data-pool-search]").get(0);
@@ -966,7 +1057,13 @@ class SiteOrganogramDesigner {
     }
   }
 
-  employee_card(e,type,payload) { return `<div class="so-card" draggable="true" data-drag-type="${type}" data-employee="${this.esc(e.employee)}" ${payload?`data-payload='${this.esc(JSON.stringify(payload))}'`:""}><div class="so-card__title">${this.esc(e.employee_name||e.employee)} (${this.esc(e.employee)})</div><div class="so-card__meta">${this.esc(e.designation||"")}</div></div>`; }
+  employee_card(e,type,payload) {
+    const differentBranch = e.branch && this.state.branch && e.branch !== this.state.branch;
+    const branchTag = differentBranch
+      ? `<div class="so-card__warning" title="${this.esc(__("This Employee's own record shows Branch {0}, not {1}.", [e.branch, this.state.branch]))}">&#9888; ${__("Home")}: ${this.esc(e.branch)}</div>`
+      : "";
+    return `<div class="so-card ${differentBranch?"so-card--branch-exception":""}" draggable="true" data-drag-type="${type}" data-employee="${this.esc(e.employee)}" ${payload?`data-payload='${this.esc(JSON.stringify(payload))}'`:""}><div class="so-card__title">${this.esc(e.employee_name||e.employee)} (${this.esc(e.employee)})</div><div class="so-card__meta">${this.esc(e.designation||"")}</div>${branchTag}</div>`;
+  }
   asset_card(a) { return `<div class="so-card" draggable="true" data-drag-type="asset" data-asset="${this.esc(a.asset)}"><div class="so-card__title">${this.esc(a.asset)}</div><div class="so-card__meta">${this.esc(a.item_name||a.asset_category||"")}</div></div>`; }
   designation_card(d) { return `<div class="so-card" draggable="true" data-drag-type="designation" data-designation="${this.esc(d)}"><div class="so-card__title">${this.esc(d)}</div></div>`; }
   row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); const spare=!!r.spare_swing; return `<div class="so-rowlabel ${spare?"is-spare":""}"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div><button type="button" class="so-spare-toggle ${spare?"is-active":""}" data-action="toggle-spare" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Mark this Asset as Spare / Swing — it won't accept Employees")}">${spare?__("Spare / Swing"):__("Mark Spare / Swing")}</button><button type="button" class="so-designation-toggle ${r.designation?"is-active":""}" data-action="set-designation" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Set the default Designation for this Asset — used to count vacancies by role")}">${this.esc(r.designation||__("Set Designation"))}</button></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
@@ -1643,10 +1740,10 @@ class SiteOrganogramDesigner {
     const status = this.line_mode
       ? (
           this.line_source
-            ? `Source selected: ${this.esc(
+            ? `Manager selected: ${this.esc(
                 this.endpoint_label(this.line_source)
-              )}. Select the target.`
-            : "Select a source heading or shift."
+              )}. Now select the heading or shift that reports to it.`
+            : "Select the manager / higher-level heading or shift first (the source)."
         )
       : `${lineCount} reporting line${lineCount === 1 ? "" : "s"}`;
 
@@ -1785,6 +1882,10 @@ class SiteOrganogramDesigner {
                 <b>${this.esc(this.endpoint_label(source))}</b>
                 leads to
                 <b>${this.esc(this.endpoint_label(target))}</b>
+                <div class="text-muted small" style="margin-top: 4px;">
+                  i.e. <b>${this.esc(this.endpoint_label(target))}</b> reports to
+                  <b>${this.esc(this.endpoint_label(source))}</b>. If that's backwards, cancel and select the manager first.
+                </div>
               </div>
             `,
           },

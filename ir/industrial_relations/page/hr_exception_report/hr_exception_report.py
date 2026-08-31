@@ -30,6 +30,15 @@ EE_LEVELS = [
 
 TERMINAL_POOR_PERFORMANCE_OUTCOMES = {"Performance Improved", "Dismissal"}
 
+# Employee.status values that mean "not actually employed here", independent of
+# whether relieving_date happens to be set. A person can be marked Inactive (or
+# Left) without ever going through a proper separation that backfills
+# relieving_date, so every "who counts as active as at this snapshot date" query
+# below must exclude these statuses explicitly - relieving_date alone is not a
+# reliable signal. Suspended is deliberately NOT included here: a suspended
+# employee is still employed, just not currently working.
+INACTIVE_EMPLOYEE_STATUSES = ("Left", "Inactive")
+
 
 def _field_exists(doctype, fieldname):
     return bool(frappe.get_meta(doctype).get_field(fieldname))
@@ -294,7 +303,11 @@ def _build_ee_profile(company, snapshot_date, branches=None):
     else:
         selected.append("NULL AS designation_occupational_level")
 
-    values = {"company": company, "snapshot_date": snapshot_date}
+    values = {
+        "company": company,
+        "snapshot_date": snapshot_date,
+        "inactive_statuses": INACTIVE_EMPLOYEE_STATUSES,
+    }
     branch_clause = ""
     if branches:
         branch_clause = "AND e.branch IN %(branches)s"
@@ -308,6 +321,7 @@ def _build_ee_profile(company, snapshot_date, branches=None):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
+          AND e.status NOT IN %(inactive_statuses)s
           {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
@@ -466,10 +480,17 @@ def _employee_movements(company, from_date, to_date, branches=None):
     for row in terminated_employees:
         reasons[row.get("reason_for_leaving") or _("Unspecified")] += 1
 
+    # Headcount is "as at this date" - unlike new_employees/terminated_employees
+    # above (which report historical join/leave events regardless of an
+    # employee's current status), so it must also exclude anyone whose status
+    # says they aren't actually employed (see INACTIVE_EMPLOYEE_STATUSES), not
+    # just rely on relieving_date being set.
+    active_filters = {**base_filters, "status": ["not in", list(INACTIVE_EMPLOYEE_STATUSES)]}
+
     opening_headcount = frappe.db.count(
         "Employee",
         filters={
-            **base_filters,
+            **active_filters,
             "date_of_joining": ["<", from_date],
             "relieving_date": ["in", [None, ""]],
         },
@@ -477,7 +498,7 @@ def _employee_movements(company, from_date, to_date, branches=None):
     opening_headcount += frappe.db.count(
         "Employee",
         filters={
-            **base_filters,
+            **active_filters,
             "date_of_joining": ["<", from_date],
             "relieving_date": [">=", from_date],
         },
@@ -486,7 +507,7 @@ def _employee_movements(company, from_date, to_date, branches=None):
     closing_headcount = frappe.db.count(
         "Employee",
         filters={
-            **base_filters,
+            **active_filters,
             "date_of_joining": ["<=", to_date],
             "relieving_date": ["in", [None, ""]],
         },
@@ -494,7 +515,7 @@ def _employee_movements(company, from_date, to_date, branches=None):
     closing_headcount += frappe.db.count(
         "Employee",
         filters={
-            **base_filters,
+            **active_filters,
             "date_of_joining": ["<=", to_date],
             "relieving_date": [">", to_date],
         },
@@ -884,7 +905,11 @@ def _employee_snapshot_rows(company, snapshot_date, branches=None):
     else:
         selected.append("NULL AS designation_occupational_level")
 
-    values = {"company": company, "snapshot_date": snapshot_date}
+    values = {
+        "company": company,
+        "snapshot_date": snapshot_date,
+        "inactive_statuses": INACTIVE_EMPLOYEE_STATUSES,
+    }
     branch_clause = ""
     if branches:
         branch_clause = "AND e.branch IN %(branches)s"
@@ -898,6 +923,7 @@ def _employee_snapshot_rows(company, snapshot_date, branches=None):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
+          AND e.status NOT IN %(inactive_statuses)s
           {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
@@ -1206,7 +1232,10 @@ def _new_employee_export_rows(company, from_date, to_date, branches=None):
         level = _normalise_level(row.get("occupational_level") or row.get("designation_occupational_level"))
         skill_type = "Skilled" if level in {EE_LEVELS[2], EE_LEVELS[3]} else "Semi-skilled" if level == EE_LEVELS[4] else "Unskilled" if level == EE_LEVELS[5] else ""
         age = _employee_age(row, to_date)
-        still_employed = not row.get("relieving_date") or getdate(row.relieving_date) > to_date
+        still_employed = (
+            (not row.get("relieving_date") or getdate(row.relieving_date) > to_date)
+            and row.get("status") not in INACTIVE_EMPLOYEE_STATUSES
+        )
         disabled = cint(row.get("disabled")) == 1 or str(row.get("disabled") or "").strip().lower() in {"yes", "y", "true", "disabled"}
         result.append([
             index,
@@ -1263,6 +1292,77 @@ def download_new_employee_details(company, from_date, to_date, branches=None):
     frappe.response["filename"] = filename
     frappe.response["filecontent"] = xlsx.getvalue()
     frappe.response["type"] = "binary"
+
+
+@frappe.whitelist()
+def download_report_pdf(html, company=None, from_date=None, to_date=None):
+    """Render the report's own already-generated on-screen HTML to a PDF.
+
+    The report body (header, KPIs, EE matrix, ESG comparison, outcome tables -
+    everything under .her-content) is built entirely client-side in JS from data
+    this same session already has read access to, so it is passed in as-is
+    rather than re-built here - re-implementing every render_* method in Python
+    would duplicate the whole file and drift from what's actually on screen.
+    Kept safe by the same role/permission gate as every other export on this
+    page, plus frappe.utils.pdf.get_pdf's own hardening (JS execution and local
+    file access are always disabled by that helper, regardless of options).
+    """
+    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.has_permission("Employee", "read", throw=True)
+
+    import base64
+
+    from frappe.utils.pdf import get_pdf
+
+    css_path = frappe.get_app_path("ir", "public", "css", "ir_ui.css")
+    with open(css_path, encoding="utf-8") as css_file:
+        report_css = css_file.read()
+
+    full_html = f"""
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        @page {{ size: A4 landscape; margin: 10mm; }}
+        html, body {{
+          margin: 0; padding: 0; background: #ffffff;
+          font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }}
+        * {{ box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+      </style>
+      <style>{report_css}</style>
+      <style>
+        /* Print-specific overrides: the desk shell isn't present, so undo any
+        width/overflow the report relies on the app page furniture for. */
+        .her-content {{ max-width: none !important; overflow: visible !important; }}
+        .her-ee-table--v4, table {{ page-break-inside: auto; }}
+        tr {{ page-break-inside: avoid; }}
+      </style>
+    </head>
+    <body>
+      <div class="her-page">{html}</div>
+    </body>
+    </html>
+    """
+
+    pdf_bytes = get_pdf(
+        full_html,
+        options={
+            "orientation": "Landscape",
+            "page-size": "A4",
+            "margin-top": "10mm",
+            "margin-right": "10mm",
+            "margin-bottom": "10mm",
+            "margin-left": "10mm",
+            "encoding": "UTF-8",
+            "disable-smart-shrinking": None,
+            "print-media-type": None,
+        },
+    )
+    return base64.b64encode(pdf_bytes).decode("ascii")
 
 
 @frappe.whitelist()

@@ -32,6 +32,7 @@ from ir.industrial_relations.doctype.site_organogram.site_organogram import (
 	get_designation_headcounts,
 	get_designation_mismatches,
 	get_designation_slots_by_group,
+	get_employee_branch_exceptions,
 )
 
 class SiteBudget(Document):
@@ -114,6 +115,7 @@ def _compute_designation_costs(doc):
 
 	headcounts = get_designation_headcounts(organogram)
 	mismatches = get_designation_mismatches(organogram)
+	branch_exceptions = get_employee_branch_exceptions(organogram)
 	slots_by_group = get_designation_slots_by_group(organogram)
 
 	salary_structure_by_designation = {
@@ -254,6 +256,7 @@ def _compute_designation_costs(doc):
 	return {
 		"headcounts": headcounts,
 		"mismatches": mismatches,
+		"branch_exceptions": branch_exceptions,
 		"salary_structure_by_designation": salary_structure_by_designation,
 		"currency_by_designation": currency_by_designation,
 		"has_hourly_structure": has_hourly_structure,
@@ -364,6 +367,7 @@ def get_site_budget_summary_html(site_budget):
 		return (
 			_vacancy_table_html(data["headcounts"])
 			+ _mismatch_table_html(data["mismatches"])
+			+ _branch_exception_table_html(data["branch_exceptions"])
 			+ missing_shift_design_notice
 			+ _notice("No whole pay period falls within the selected Start/End Date.")
 		)
@@ -413,6 +417,7 @@ def get_site_budget_summary_html(site_budget):
 	return (
 		_vacancy_table_html(data["headcounts"])
 		+ _mismatch_table_html(data["mismatches"])
+		+ _branch_exception_table_html(data["branch_exceptions"])
 		+ missing_shift_design_notice
 		+ blocks
 	)
@@ -722,6 +727,27 @@ def export_site_budget_summary_xlsx(site_budget):
 	for i, note in enumerate(notes):
 		sheet.write_string(note_row + i, 0, note, note_format)
 
+	if data["branch_exceptions"]:
+		exceptions_row = note_row + len(notes) + (1 if notes else 0)
+		sheet.write_string(
+			exceptions_row, 0,
+			"Employees with a Different Home Branch - assigned somewhere in this budget's Organogram, "
+			"but their own Employee record's Branch doesn't match this Organogram's Branch. Confirm "
+			"they're genuinely meant to be costed here (e.g. a resource shared across sites) rather "
+			"than assigned in error:",
+			note_format,
+		)
+		exception_headers = ["Employee", "Employee Name", "Designation", "Employee's Own Branch"]
+		header_row_idx = exceptions_row + 1
+		for col_idx, label in enumerate(exception_headers):
+			sheet.write_string(header_row_idx, col_idx, label, header_format)
+		for i, exc in enumerate(data["branch_exceptions"]):
+			r = header_row_idx + 1 + i
+			sheet.write_string(r, 0, exc["employee"], text_format)
+			sheet.write_string(r, 1, exc["employee_name"], text_format)
+			sheet.write_string(r, 2, exc["designation"], text_format)
+			sheet.write_string(r, 3, exc["branch"], text_format)
+
 	sheet.freeze_panes(header_row + 1, 0)
 	workbook.close()
 	output.seek(0)
@@ -943,6 +969,36 @@ def _mismatch_table_html(mismatches):
 	<table class="table table-bordered">
 		<thead><tr><th>Group</th><th>Shift</th><th>Role</th><th>Employee</th>
 		<th>Expected Designation</th><th>Actual Designation</th></tr></thead>
+		<tbody>{rows}</tbody>
+	</table>
+	"""
+
+
+def _branch_exception_table_html(branch_exceptions):
+	"""Employees assigned somewhere in this budget's Organogram whose own
+	Employee.branch disagrees with the Organogram's - e.g. a shared
+	Engineering/Maintenance resource genuinely working more than one site.
+	Not necessarily wrong (see get_employee_branch_exceptions()'s docstring),
+	but their cost is being counted into *this* Site Budget while their own
+	record says they belong elsewhere, so it's worth a visible flag rather
+	than a silent assumption either way."""
+	if not branch_exceptions:
+		return "<h4>Employees with a Different Home Branch</h4>" + _notice("None found.")
+
+	rows = "".join(
+		f"<tr><td>{escape_html(e['employee_name'])} ({escape_html(e['employee'])})</td>"
+		f"<td>{escape_html(e['designation'])}</td>"
+		f"<td>{escape_html(e['branch'])}</td></tr>"
+		for e in branch_exceptions
+	)
+
+	return f"""
+	<h4>Employees with a Different Home Branch</h4>
+	<p class="text-muted small">These Employees are assigned somewhere in this Site Budget's Organogram, but
+	their own Employee record's Branch doesn't match this Organogram's Branch - confirm they're genuinely
+	meant to be costed here (e.g. a resource shared across sites) rather than assigned in error.</p>
+	<table class="table table-bordered">
+		<thead><tr><th>Employee</th><th>Designation</th><th>Employee's Own Branch</th></tr></thead>
 		<tbody>{rows}</tbody>
 	</table>
 	"""

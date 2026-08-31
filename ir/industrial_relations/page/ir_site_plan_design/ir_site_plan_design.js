@@ -874,7 +874,7 @@ class SitePlanDesigner {
   endpoint_fields(prefix) {
     const groups = (this.state.groups || []).filter((g) => g.group && g.group_key);
     return [
-      { fieldtype: "Select", fieldname: `${prefix}_group`, label: __(prefix === "source" ? "Source Heading" : "Target Heading"), options: [""].concat(groups.map((g) => g.group)).join("\n"), reqd: 1 },
+      { fieldtype: "Select", fieldname: `${prefix}_group`, label: __(prefix === "source" ? "Source Heading (Manager)" : "Target Heading (Reports to Source)"), options: [""].concat(groups.map((g) => g.group)).join("\n"), reqd: 1 },
       { fieldtype: "Select", fieldname: `${prefix}_scope`, label: __(prefix === "source" ? "Source Scope" : "Target Scope"), options: "Heading\nShift", default: "Heading", reqd: 1 },
       { fieldtype: "Select", fieldname: `${prefix}_shift`, label: __(prefix === "source" ? "Source Shift" : "Target Shift"), options: this.shift_select_options().join("\n") },
     ];
@@ -892,6 +892,12 @@ class SitePlanDesigner {
     const dialog = new frappe.ui.Dialog({
       title: __("Add Reporting Line"),
       fields: [
+        {
+          fieldtype: "HTML",
+          options: `<div class="text-muted small" style="margin-bottom: 8px;">
+              ${__("A reporting line runs downward: the")} <b>${__("Source")}</b> ${__("is the manager / higher-level heading, and the")} <b>${__("Target")}</b> ${__("is the heading that reports to it.")}
+            </div>`,
+        },
         ...this.endpoint_fields("source"),
         { fieldtype: "Column Break" },
         ...this.endpoint_fields("target"),

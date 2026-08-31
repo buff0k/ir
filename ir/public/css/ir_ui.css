@@ -418,6 +418,18 @@
   opacity: 0.75;
   overflow-wrap: anywhere;
 }
+.so-card--branch-exception {
+  border-color: #eab308;
+}
+.so-card__warning {
+  font-size: 10px;
+  font-weight: 700;
+  color: #b45309;
+  margin-top: 4px;
+}
+body[data-theme="dark"] .so-card__warning {
+  color: #eab308;
+}
 .so-group {
   margin-bottom: 12px;
 }
