@@ -363,6 +363,27 @@ def fetch_employee_name(employee):
     return {"employee_name": frappe.db.get_value("Employee", employee, "employee_name") or ""}
 
 
+def employee_email(employee):
+    """The best real-world email address for an Employee, regardless of
+    whether they have a Frappe desk login (most don't - see
+    RESPONSIBLE_IR_FIELD_BY_DOCTYPE-adjacent notification resolvers, which
+    deliberately go through a linked User instead since they're about desk
+    notifications). This is for reaching the person directly - their own
+    preferred contact email (Company/Personal, per the Employee's own
+    choice), falling back to whichever of those two is set, and finally
+    their linked User's login as a last resort."""
+    if not employee:
+        return None
+    row = frappe.db.get_value(
+        "Employee", employee,
+        ["prefered_email", "company_email", "personal_email", "user_id"],
+        as_dict=True,
+    )
+    if not row:
+        return None
+    return row.prefered_email or row.company_email or row.personal_email or row.user_id or None
+
+
 def fetch_performance_data(poor_performance):
     if not frappe.db.exists("Poor Performance", poor_performance):
         frappe.throw(_("Poor Performance {0} not found").format(poor_performance))
