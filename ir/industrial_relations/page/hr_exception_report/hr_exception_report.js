@@ -32,6 +32,7 @@ class HRExceptionReport {
     this.page.set_primary_action(__("Refresh"), () => this.refresh(), "refresh");
     this.page.add_inner_button(__("Export transparent PNG"), () => this.export_png(), __("Export"));
     this.page.add_inner_button(__("Copy PNG"), () => this.copy_png(), __("Export"));
+    this.page.add_inner_button(__("Export ESG PNG"), () => this.export_esg_png(), __("Export"));
     this.page.add_inner_button(__("Print PDF"), () => this.print_pdf(), __("Export"));
     this.page.add_inner_button(__("Export new employee details"), () => this.export_new_employee_details(), __("Export"));
 
@@ -461,13 +462,13 @@ class HRExceptionReport {
   render_ee_table(table, specialRows = {}) {
     const rows = [
       { level: __("Permanent employees"), row_class: "is-section", is_section: true },
-      ...table.levels.map((row) => ({ ...row, row_class: "" })),
+      ...table.levels.map((row) => ({ ...row, row_class: "", bucket: "permanent" })),
       { level: __("TOTAL PERMANENT"), ...table.total_permanent, row_class: "is-total" },
       { level: __("Temporary employees"), row_class: "is-section", is_section: true },
-      ...(table.temporary_levels || []).map((row) => ({ ...row, row_class: "" })),
+      ...(table.temporary_levels || []).map((row) => ({ ...row, row_class: "", bucket: "temporary" })),
       { level: __("TOTAL TEMPORARY"), ...table.temporary, row_class: "is-subtotal" },
       { level: __("Combined (Permanent + Temporary)"), row_class: "is-section", is_section: true },
-      ...(table.combined_levels || []).map((row) => ({ ...row, row_class: "" })),
+      ...(table.combined_levels || []).map((row) => ({ ...row, row_class: "", bucket: "combined" })),
       { level: __("GRAND TOTAL"), ...table.grand_total, row_class: "is-grand-total" },
       { level: __("People with disabilities"), ...(specialRows.people_with_disabilities || {}), row_class: "is-special" },
       { level: __("Foreign nationals"), ...(specialRows.foreign_nationals || {}), row_class: "is-special" },
@@ -489,7 +490,8 @@ class HRExceptionReport {
             ${rows.map((row) => row.is_section
               ? `<tr class="${row.row_class}"><th colspan="10">${frappe.utils.escape_html(this.compact_level_label(row.level))}</th></tr>`
               : `
-              <tr class="${row.row_class}">
+              <tr class="${row.row_class}${row.bucket ? " her-ee-row--drilldown" : ""}"
+                  ${row.bucket ? `data-ee-level="${frappe.utils.escape_html(row.level)}" data-ee-bucket="${row.bucket}" title="${__("Click to list the employees behind this row")}"` : ""}>
                 <th>${frappe.utils.escape_html(this.compact_level_label(row.level))}</th>
                 <td>${row.african_male || 0}</td><td>${row.coloured_male || 0}</td><td>${row.indian_male || 0}</td><td>${row.white_male || 0}</td>
                 <td>${row.african_female || 0}</td><td>${row.coloured_female || 0}</td><td>${row.indian_female || 0}</td><td>${row.white_female || 0}</td>
@@ -549,7 +551,7 @@ class HRExceptionReport {
           <div>
             <span>${__("Additional ESG information")}</span>
             <h2>${__("Workforce measurement-period comparison")}</h2>
-            <p>${__("This section appears on the page only and is not included in the PNG export.")}</p>
+            <p>${__("Not included in the compact PNG/print slide - use the \"Export ESG PNG\" button to export this table on its own.")}</p>
           </div>
           <button class="btn btn-default btn-sm" data-action="export-new-employees">
             ${__("Export new employee details to Excel")}
@@ -569,7 +571,8 @@ class HRExceptionReport {
             </thead>
             <tbody>
               ${esg.rows.map((row) => `
-                <tr class="${row.change === null || row.change === undefined ? "is-unavailable" : Number(row.change) < 0 ? "is-reduction" : Number(row.change) > 0 ? "is-increase" : ""}">
+                <tr class="${row.change === null || row.change === undefined ? "is-unavailable" : Number(row.change) < 0 ? "is-reduction" : Number(row.change) > 0 ? "is-increase" : ""}${row.unit === "Unavailable" ? "" : " her-esg-row--drilldown"}"
+                    ${row.unit === "Unavailable" ? "" : `data-esg-metric="${frappe.utils.escape_html(row.key)}" title="${__("Click to list the employees currently counted here")}"`}>
                   <th>${frappe.utils.escape_html(row.label)}</th>
                   <td>${row.unit === "Currency" ? frappe.utils.escape_html(currency) : row.unit === "Unavailable" ? frappe.utils.escape_html(__("Not available")) : frappe.utils.escape_html(__(row.unit))}</td>
                   <td>${this.esg_value(row.start, row.unit, currency)}</td>
@@ -700,10 +703,18 @@ class HRExceptionReport {
       return `<span class="her-esg-unavailable">—</span>`;
     }
     const number = Number(value || 0);
+    const sign = number > 0 ? "+" : number < 0 ? "−" : "";
+    // frappe.format(..., {fieldtype: "Int"}) wraps its output in a right-aligned
+    // block <div> - fine when it's a cell's only content (as in esg_value()
+    // above), but prepending the sign as plain text before that div put the
+    // sign and the number on separate "lines" (a text node never sits inline
+    // next to a following block element), both on screen and in the PDF
+    // export. Format the magnitude as plain text instead so sign+number stay
+    // one inline string.
     const formatted = unit === "Currency"
       ? format_currency(Math.abs(number), currency, 2)
-      : frappe.format(Math.abs(number), { fieldtype: "Int" });
-    return `${number > 0 ? "+" : number < 0 ? "−" : ""}${formatted}`;
+      : Math.abs(number).toLocaleString();
+    return `${sign}${formatted}`;
   }
 
   export_new_employee_details() {
@@ -733,6 +744,71 @@ class HRExceptionReport {
       const key = $(event.currentTarget).attr("data-detail");
       this.open_details(key);
     });
+    this.$content.off("click.her-ee-level").on("click.her-ee-level", "[data-ee-level]", (event) => {
+      const $row = $(event.currentTarget);
+      this.open_ee_level_details($row.attr("data-ee-level"), $row.attr("data-ee-bucket"));
+    });
+    this.$content.off("click.her-esg-metric").on("click.her-esg-metric", "[data-esg-metric]", (event) => {
+      this.open_esg_metric_details($(event.currentTarget).attr("data-esg-metric"));
+    });
+  }
+
+  employee_drilldown_columns() {
+    return [
+      ["employee", __("Employee")],
+      ["employee_name", __("Employee name")],
+      ["gender", __("Gender")],
+      ["race", __("Race / Designated Group")],
+      ["branch", __("Branch")],
+      ["designation", __("Designation")],
+      ["employment_type", __("Employment type")],
+    ];
+  }
+
+  async open_remote_employee_details(title, method, args) {
+    const dialog = new frappe.ui.Dialog({
+      title,
+      size: "extra-large",
+      fields: [{ fieldtype: "HTML", fieldname: "results" }],
+    });
+    dialog.fields_dict.results.$wrapper.html(`<div class="text-muted">${__("Loading…")}</div>`);
+    dialog.show();
+    try {
+      const response = await frappe.call({ method, args });
+      const rows = response.message || [];
+      dialog.fields_dict.results.$wrapper.html(this.detail_table(rows, this.employee_drilldown_columns()));
+    } catch (error) {
+      dialog.fields_dict.results.$wrapper.html(`<div class="text-danger">${frappe.utils.escape_html(error.message || __("Failed to load employees."))}</div>`);
+    }
+  }
+
+  open_ee_level_details(level, bucket) {
+    const bucketLabel = { permanent: __("Permanent"), temporary: __("Temporary"), combined: __("Permanent + Temporary") }[bucket] || bucket;
+    this.open_remote_employee_details(
+      `${level} (${bucketLabel})`,
+      "ir.industrial_relations.page.hr_exception_report.hr_exception_report.get_ee_level_employees",
+      {
+        company: this.data.company,
+        snapshot_date: this.data.employment_equity.snapshot_date,
+        level,
+        employment_type: bucket,
+        branches: JSON.stringify(this.get_filters().branches || []),
+      }
+    );
+  }
+
+  open_esg_metric_details(metricKey) {
+    const row = (this.data.esg_comparison.rows || []).find((r) => r.key === metricKey);
+    this.open_remote_employee_details(
+      row ? row.label : metricKey,
+      "ir.industrial_relations.page.hr_exception_report.hr_exception_report.get_esg_metric_employees",
+      {
+        company: this.data.company,
+        snapshot_date: this.data.esg_comparison.to_date,
+        metric_key: metricKey,
+        branches: JSON.stringify(this.get_filters().branches || []),
+      }
+    );
   }
 
   open_details(key) {
@@ -1322,6 +1398,90 @@ class HRExceptionReport {
       });
     } finally {
       iframe.remove();
+    }
+  }
+
+  create_esg_export_frame() {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    Object.assign(iframe.style, {
+      position: "fixed",
+      left: "-20000px",
+      top: "0",
+      width: "1500px",
+      height: "1200px",
+      border: "0",
+      opacity: "0",
+      pointerEvents: "none",
+    });
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
+    // Reuse the same stylesheets the real page already loaded (ir_ui.css and
+    // Frappe's own theme bundle) rather than a separate hand-written sheet -
+    // this table's colours (reduction/increase row tints, etc.) come from
+    // Frappe's CSS custom properties, and html2canvas runs in a real browser
+    // here (unlike the server-side PDF export), so var() resolves correctly
+    // as long as the same stylesheets are present.
+    const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((link) => `<link rel="stylesheet" href="${link.href}">`)
+      .join("\n");
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8">${styleLinks}<style>
+      html, body { margin: 0; background: transparent; }
+      body { padding: 20px; }
+      [data-action="export-new-employees"] { display: none !important; }
+      /* html2canvas can't parse the modern color-mix() function ir_ui.css
+      uses for these two row tints ("unsupported color function"), so restate
+      them here as the plain rgba() equivalent for this capture only - the
+      real on-screen table is untouched. */
+      .her-esg-table tr.is-reduction { background: rgba(239, 68, 68, 0.08) !important; }
+      .her-esg-table tr.is-increase { background: rgba(34, 197, 94, 0.07) !important; }
+    </style></head><body></body></html>`);
+    doc.close();
+    doc.body.innerHTML = this.render_esg_section(this.data.esg_comparison);
+    const clone = doc.body.firstElementChild;
+    return { iframe, clone };
+  }
+
+  async capture_esg_blob() {
+    if (!this.data) throw new Error(__("Generate the report before exporting."));
+    if (!this.data.esg_comparison?.rows?.length) {
+      throw new Error(__("No ESG comparison data to export."));
+    }
+    await this.ensure_html2canvas();
+    const { iframe, clone } = this.create_esg_export_frame();
+    try {
+      // No fixed width/height here (unlike capture_blob() above) - the ESG
+      // table's height depends on how many measures and how much reduction
+      // detail there is, so let html2canvas size the capture to the actual
+      // rendered content instead of a fixed "slide" aspect ratio.
+      const canvas = await window.html2canvas(clone, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      return await new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(__("PNG creation failed.")))), "image/png");
+      });
+    } finally {
+      iframe.remove();
+    }
+  }
+
+  async export_esg_png() {
+    try {
+      const blob = await this.capture_esg_blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `HR-Exception-Report-ESG-${this.slug(this.data.company)}-${this.data.from_date}-to-${this.data.to_date}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
     }
   }
 

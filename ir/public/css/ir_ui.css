@@ -430,6 +430,14 @@
 body[data-theme="dark"] .so-card__warning {
   color: #eab308;
 }
+.her-ee-row--drilldown,
+.her-esg-row--drilldown {
+  cursor: pointer;
+}
+.her-ee-row--drilldown:hover,
+.her-esg-row--drilldown:hover {
+  background: var(--control-bg, rgba(0, 0, 0, 0.04));
+}
 .so-group {
   margin-bottom: 12px;
 }
