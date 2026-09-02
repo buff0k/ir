@@ -48,7 +48,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-30 14:39:00.120792",
+ "modified": "2026-08-31 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Organising Framework for Occupation Code",
@@ -100,6 +100,36 @@
    "read": 1,
    "report": 1,
    "role": "Training Administrator",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
    "select": 1,
    "share": 1
   }

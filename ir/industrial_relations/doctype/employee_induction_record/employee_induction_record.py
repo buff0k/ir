@@ -37,3 +37,32 @@ class EmployeeInductionRecord(Document):
 @frappe.whitelist()
 def fetch_company_letter_head(company):
 	return _fetch_company_letter_head(company)
+
+
+@frappe.whitelist()
+def get_ofo_codes_for_designation(designation):
+	"""OFO Code names whose Designation Selector child table includes
+	`designation`. Deliberately not a plain frappe.db.get_list("Designation
+	Selector", ...) call from the client - Designation Selector is a child
+	table (istable=1) with no permission rules of its own (child tables don't
+	need any for the normal case, access via their parent), but the generic
+	list API still enforces frappe.has_permission on whatever doctype it's
+	asked for, so querying it directly like a top-level doctype always denied
+	every non-System-Manager user outright ("Insufficient Permission for
+	Designation Selector"). Gate on the real doctype being looked up instead
+	(Organising Framework for Occupation Code) and read the child rows with
+	ignore_permissions, since nothing here exposes anything beyond the parent
+	OFO Code names a caller who can read that doctype could already list."""
+	frappe.has_permission("Organising Framework for Occupation Code", "read", throw=True)
+
+	if not designation:
+		return []
+
+	rows = frappe.get_all(
+		"Designation Selector",
+		filters={"designation": designation, "parenttype": "Organising Framework for Occupation Code"},
+		fields=["parent"],
+		limit_page_length=50,
+		ignore_permissions=True,
+	)
+	return sorted({row.parent for row in rows if row.parent})
