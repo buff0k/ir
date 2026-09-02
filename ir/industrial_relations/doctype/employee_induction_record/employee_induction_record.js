@@ -148,18 +148,12 @@ frappe.ui.form.on("Employee Induction Record", {
     }
 
     try {
-      const matches = await frappe.db.get_list("Designation Selector", {
-        filters: {
-          designation: designation,
-          parenttype: "Organising Framework for Occupation Code",
-        },
-        fields: ["parent"],
-        limit: 50,
+      const r = await frappe.call({
+        method: "ir.industrial_relations.doctype.employee_induction_record.employee_induction_record.get_ofo_codes_for_designation",
+        args: { designation: designation },
       });
 
-      const unique_ofo_codes = [
-        ...new Set((matches || []).map((row) => row.parent).filter(Boolean)),
-      ];
+      const unique_ofo_codes = r.message || [];
 
       if (unique_ofo_codes.length === 1) {
         await frm.set_value("ofo_code", unique_ofo_codes[0]);
@@ -180,8 +174,15 @@ frappe.ui.form.on("Employee Induction Record", {
         return;
       }
 
-      frappe.show_alert({
-        message: __("No OFO Code found for designation {0}.", [designation]),
+      // OFO Code is mandatory but couldn't be auto-filled - a fleeting toast
+      // here previously left the "why won't this save" question unanswered,
+      // since the field just sits there red with no visible explanation.
+      frappe.msgprint({
+        title: __("No OFO Code Found"),
+        message: __(
+          "No OFO Code is linked to designation {0} yet. OFO Code is required - please select one manually before saving, or ask a Training Manager to add {0} to the correct OFO Code's Applicable Designation(s).",
+          [designation]
+        ),
         indicator: "orange",
       });
     } catch (err) {
