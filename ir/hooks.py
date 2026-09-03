@@ -113,7 +113,6 @@ fixtures = [
         "Designation-ir_experience_required",
         "Designation-ir_main_duties_and_responsibilities",
         "Designation-ir_acceptable_disabilities",
-		"Employee Checkin-custom_site",
 		"Leave Application-ir_total_leave_hours",
         "Leave Application-ir_attach_signed_leave_form",
         "Leave Application-ir_working_days_leave",
@@ -144,7 +143,6 @@ fixtures = [
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
         "Designation-ir_occupational_level",
-		"Employee Checkin-custom_site",
 		"Leave Application-ir_total_leave_hours",
         "Leave Application-ir_attach_signed_leave_form",
     	"Leave Application-ir_working_days_leave",
@@ -228,7 +226,6 @@ scheduler_events = {
 		"ir.controllers.notifications.send_weekly_outstanding_employee_change_form_notifications",
 	],
 	"daily": [
-		"ir.controllers.attendance_sync.enqueue_daily_sync",
 		"ir.controllers.employee_termination_sync.run_daily",
         "ir.controllers.demotion_expiry.run_daily",
 	]
@@ -252,15 +249,9 @@ doc_events = {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
 	},
-    "Employee Checkin": {
-		"after_insert": "ir.controllers.attendance_sync.on_employee_checkin",
-	},
 	"Leave Application": {
         "validate": "ir.overrides.leave_application.set_letter_head_from_company",
         "before_submit": "ir.overrides.leave_application.validate_signed_leave_form_attached",
-		"on_submit": "ir.controllers.attendance_sync.on_leave_application_change",
-		"on_cancel": "ir.controllers.attendance_sync.on_leave_application_change",
-		"on_update_after_submit": "ir.controllers.attendance_sync.on_leave_application_change",
 	},
 	"Contract of Employment": {
         "validate": "ir.permissions.validate_contract_of_employment",
