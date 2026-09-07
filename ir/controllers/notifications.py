@@ -814,16 +814,23 @@ def _send_training_expiry_email(
     scope_label,
     notification_type,
 ):
-    """Branch scoping already happened before this is called (global vs
-    trainer_per_branch bucketing - a separate, deliberate mechanism). This still
-    applies Designation Limits per individual recipient, since a trainer can also
-    hold an IR role with restricted designations - so each recipient's own copy
-    of `rows` is filtered before building their table, and a recipient left with
-    nothing to see after that isn't emailed at all.
+    """Branch scoping mostly already happened before this is called (global vs
+    trainer_per_branch bucketing - a separate, deliberate mechanism: who gets a
+    branch's digest at all). This still applies Designation Limits AND Branch
+    Limits (hr_per_branch) per individual recipient on top of that, since a
+    Training Officer can also separately hold an IR role with its own
+    Designation/Branch Limits - previously only Designation Limits were passed
+    through here (no employee_field), so a recipient who also had hr_per_branch
+    restrictions never actually had them enforced on this digest at all. Each
+    recipient's own copy of `rows` is filtered before building their table, and
+    a recipient left with nothing to see after that isn't emailed at all.
     """
     for email in recipients:
         recipient_rows = filter_rows_for_recipient(
-            rows, email, doctype="Employee Induction Record", designation_field="designation"
+            rows, email,
+            doctype="Employee Induction Record",
+            designation_field="designation",
+            employee_field="employee",
         )
         if not recipient_rows:
             continue
