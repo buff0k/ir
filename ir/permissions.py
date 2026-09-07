@@ -53,14 +53,23 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
 
 # Doctype -> fieldname holding the Employee link whose Employee.branch is checked
 # against a user's "Responsible HR per Branch" (hr_per_branch) rows on IR Role
-# Restrictions. Deliberately does not include External Dispute Resolution (no single
-# branch - it's inherently multi-employee/multi-branch), NTA Enquiry, or Written
-# Outcome.
+# Restrictions. Deliberately does not include External Dispute Resolution (no
+# single branch - it's inherently multi-employee/multi-branch).
+#
+# NTA Enquiry and Written Outcome USED to be deliberately excluded here too
+# ("no single branch"), which was wrong - both carry their own direct
+# `employee` field (confirmed against live data: 307 of 333 NTA Enquiry
+# records visible to a real branch-restricted user were for employees outside
+# every branch she was assigned, because nothing was filtering them at all).
+# This same dict also identifies "the employee this record is about" for the
+# own-case exclusion below, so fixing it here closes both gaps at once.
 BRANCH_LIMITED_DOCTYPES = {
     "Contract of Employment": "employee",
     "Disciplinary Action": "accused",
     "Incapacity Proceedings": "accused",
     "Poor Performance": "employee",
+    "NTA Enquiry": "employee",
+    "Written Outcome": "employee",
     "Warning Form": "employee",
     "Suspension Form": "employee",
     "Dismissal Form": "employee",
@@ -96,6 +105,18 @@ INTERVENTION_LINK_DOCTYPES = {
     "No Further Action Form",
     "Appeal Against Outcome",
 }
+
+# The 3 doctypes a disciplinary/incapacity/performance matter actually starts
+# as. Own-case exclusion (see _is_own_case) applies only to these - an
+# employee who also holds an IR role must never see their own case being
+# investigated, but IS allowed to see their own already-Submitted outcome
+# documents (Warning Form, Suspension Form, ...) once the case concludes,
+# same as any other employee whose case that outcome concerns.
+ROOT_CASE_DOCTYPES = (
+    "Disciplinary Action",
+    "Incapacity Proceedings",
+    "Poor Performance",
+)
 
 
 def effective_ir_role(user: str | None = None) -> str | None:
@@ -191,6 +212,110 @@ def _sql_branch_condition(doctype: str, employee_field: str, user: str | None) -
     )
 
 
+def _sql_root_case_ok_subquery(root_doctype: str, user: str | None) -> str:
+    """SELECT name FROM tab{root_doctype} WHERE <passes Designation/Branch
+    Limits for `user`> - the building block _sql_outcome_root_restriction
+    below joins a downstream outcome doctype against, per possible root."""
+    conditions = []
+    restricted = restricted_designations_for_user(user)
+    if restricted:
+        designation_field = DESIGNATION_FIELD_BY_DOCTYPE[root_doctype]
+        conditions.append(_sql_not_in_designations(f"`{designation_field}`", restricted))
+    branches = responsible_branches_for_user(user)
+    if branches:
+        employee_field = BRANCH_LIMITED_DOCTYPES[root_doctype]
+        escaped = ", ".join(frappe.db.escape(value) for value in branches)
+        conditions.append(f"`{employee_field}` IN (SELECT name FROM `tabEmployee` WHERE branch IN ({escaped}))")
+    where = " and ".join(conditions) if conditions else "1=1"
+    return f"SELECT name FROM `tab{root_doctype}` WHERE {where}"
+
+
+def _sql_outcome_root_restriction(doctype: str, user: str | None) -> str | None:
+    """Designation/Branch Limits for a downstream outcome/action doctype
+    (INTERVENTION_LINK_DOCTYPES), evaluated against the ROOT case it traces
+    back to via ir_intervention/linked_intervention rather than the outcome's
+    own (separately populated, and not necessarily kept in sync) copy of
+    employee/position - i.e. if the root Disciplinary Action is restricted for
+    this user, every Warning Form/NTA Enquiry/... under it is too. Does NOT
+    include own-case exclusion - see ROOT_CASE_DOCTYPES."""
+    if not (restricted_designations_for_user(user) or responsible_branches_for_user(user)):
+        return None
+
+    clauses = [
+        f"(`tab{doctype}`.`ir_intervention` = {frappe.db.escape(root_doctype)} "
+        f"and `tab{doctype}`.`linked_intervention` in ({_sql_root_case_ok_subquery(root_doctype, user)}))"
+        for root_doctype in ROOT_CASE_DOCTYPES
+    ]
+    return "(" + " or ".join(clauses) + ")"
+
+
+def _root_case_fields(doc) -> tuple[str | None, str | None]:
+    """(employee, designation) `doc`'s Branch/Designation restriction should be
+    evaluated against. For a downstream outcome/action doctype
+    (INTERVENTION_LINK_DOCTYPES), that's the ROOT case it traces back to via
+    ir_intervention/linked_intervention (document-level counterpart to
+    _sql_outcome_root_restriction) - for anything else (the 3 root case
+    doctypes themselves, and doctypes with no intervention concept at all
+    like Contract of Employment), it's the doc's own fields, unchanged from
+    before this existed."""
+    if doc.doctype in INTERVENTION_LINK_DOCTYPES:
+        root_doctype = doc.get("ir_intervention")
+        root_name = doc.get("linked_intervention")
+        if root_doctype not in ROOT_CASE_DOCTYPES or not root_name:
+            return None, None
+        employee_field = BRANCH_LIMITED_DOCTYPES[root_doctype]
+        designation_field = DESIGNATION_FIELD_BY_DOCTYPE[root_doctype]
+        row = frappe.db.get_value(root_doctype, root_name, [employee_field, designation_field], as_dict=True)
+        if not row:
+            return None, None
+        return row.get(employee_field), row.get(designation_field)
+
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
+    designation_field = DESIGNATION_FIELD_BY_DOCTYPE.get(doc.doctype)
+    employee = doc.get(employee_field) if employee_field else None
+    designation = doc.get(designation_field) if designation_field else None
+    return employee, designation
+
+
+def _own_employee(user: str | None = None) -> str | None:
+    """The Employee record (if any) linked to `user`'s own login."""
+    user = user or frappe.session.user
+    if not user:
+        return None
+    return frappe.db.get_value("Employee", {"user_id": user}, "name")
+
+
+def _is_own_case(doc, user: str | None = None) -> bool:
+    """True if `doc` is about the viewing user's own Employee record - e.g. a
+    Disciplinary Action where they themselves are the accused. Confirmed live:
+    an IR User with real Branch Limits could see her own 3 Disciplinary Action
+    records (one still a Draft) purely because her own Employee record happens
+    to sit inside a branch she's responsible for. Nobody should be able to
+    browse their own case file through general IR/Branch-scoped access -
+    that's an identity check, unrelated to org-structure scoping, and takes
+    priority over everything else including the Responsible IR override (a
+    person can't legitimately be the impartial Responsible IR on their own
+    case)."""
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
+    if not employee_field:
+        return False
+    own_employee = _own_employee(user)
+    if not own_employee:
+        return False
+    return doc.get(employee_field) == own_employee
+
+
+def _sql_own_case_exclusion(doctype: str, user: str | None) -> str | None:
+    """SQL counterpart to _is_own_case, for list queries."""
+    employee_field = BRANCH_LIMITED_DOCTYPES.get(doctype)
+    if not employee_field:
+        return None
+    own_employee = _own_employee(user)
+    if not own_employee:
+        return None
+    return f"`tab{doctype}`.`{employee_field}` != {frappe.db.escape(own_employee)}"
+
+
 def _sql_responsible_ir_override(doctype: str, user: str | None) -> str | None:
     """SQL condition matching records where `user` is the effective Responsible
     IR - the person actually assigned to implement this case - so Designation
@@ -243,30 +368,70 @@ def _is_effective_responsible_ir(doc, user: str | None) -> bool:
 def _permission_query(doctype: str, user: str | None) -> str:
     conditions = []
 
-    restricted = restricted_designations_for_user(user)
-    if restricted:
-        fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
-        conditions.append(_sql_not_in_designations(f"`tab{doctype}`.`{fieldname}`", restricted))
+    if doctype in INTERVENTION_LINK_DOCTYPES:
+        # Designation/Branch Limits inherited from the root case (see
+        # _sql_outcome_root_restriction) rather than evaluated on this
+        # doctype's own employee/position fields.
+        root_condition = _sql_outcome_root_restriction(doctype, user)
+        if root_condition:
+            conditions.append(root_condition)
+    else:
+        restricted = restricted_designations_for_user(user)
+        if restricted:
+            fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
+            conditions.append(_sql_not_in_designations(f"`tab{doctype}`.`{fieldname}`", restricted))
 
-    employee_field = BRANCH_LIMITED_DOCTYPES.get(doctype)
-    if employee_field:
-        branch_condition = _sql_branch_condition(doctype, employee_field, user)
-        if branch_condition:
-            conditions.append(branch_condition)
+        employee_field = BRANCH_LIMITED_DOCTYPES.get(doctype)
+        if employee_field:
+            branch_condition = _sql_branch_condition(doctype, employee_field, user)
+            if branch_condition:
+                conditions.append(branch_condition)
+
+    # IR User is a view-only role by design - it should only ever see
+    # concluded (Submitted) records, never a case still being actively
+    # worked as a Draft. Folded into the same "base" conditions as
+    # Designation/Branch Limits, so the Responsible IR override below (who
+    # legitimately needs to see their own assigned case's drafts) still
+    # bypasses it, same as it already bypasses those two.
+    if effective_ir_role(user) == "IR User":
+        conditions.append(f"`tab{doctype}`.`docstatus` = 1")
 
     base = " and ".join(conditions)
 
+    # The Responsible IR override only matters as an escape hatch FROM an
+    # active restriction - if `base` is empty there is no restriction to
+    # begin with (this user has no Designation/Branch Limits configured, or
+    # isn't an IR User), so the whole doctype is already unrestricted for
+    # them and override must not be turned into the ONLY visible slice.
+    # (Bug found live: an IR Manager with zero configured restrictions saw
+    # only their own 22 of 1040 Disciplinary Action records, because
+    # `override or base` picked the override on its own whenever base was
+    # falsy, instead of leaving the query unrestricted.)
     override = _sql_responsible_ir_override(doctype, user)
-    if override and base:
-        return f"(({base}) or {override})"
-    return override or base
+    if base:
+        combined = f"(({base}) or {override})" if override else base
+    else:
+        combined = ""
+
+    # Own-case exclusion applies only to the 3 root case doctypes - an
+    # employee is deliberately still allowed to see their own already-
+    # Submitted outcome documents once a case concludes (ROOT_CASE_DOCTYPES).
+    # ANDed around the whole thing, including the Responsible IR override -
+    # nobody sees their own root case via this model, full stop.
+    if doctype not in ROOT_CASE_DOCTYPES:
+        return combined
+
+    own_case_exclusion = _sql_own_case_exclusion(doctype, user)
+    if own_case_exclusion and combined:
+        return f"({combined}) and {own_case_exclusion}"
+    return own_case_exclusion or combined
 
 
 def _designation_is_restricted(designation: str | None, user: str | None = None) -> bool:
     return bool(designation) and designation in set(restricted_designations_for_user(user))
 
 
-def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | None = None) -> bool:
+def _has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
     user = user or frappe.session.user
     if (
         ptype == "cancel"
@@ -278,25 +443,37 @@ def _has_permission(doc, fieldname: str, user: str | None = None, ptype: str | N
         return True
     if ptype not in PROTECTED_PERMISSION_TYPES:
         return True
+    # Own-case exclusion applies only to the 3 root case doctypes - see
+    # ROOT_CASE_DOCTYPES for why outcome documents are deliberately exempt.
+    if doc.doctype in ROOT_CASE_DOCTYPES and _is_own_case(doc, user):
+        return False
     if _is_effective_responsible_ir(doc, user):
         return True
-    if _designation_is_restricted(doc.get(fieldname), user):
+
+    employee, designation = _root_case_fields(doc)
+    if _designation_is_restricted(designation, user):
+        return False
+    if employee and _branch_is_restricted(doc.doctype, employee, user):
         return False
 
-    employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
-    if employee_field and _branch_is_restricted(doc.doctype, doc.get(employee_field), user):
+    if effective_ir_role(user) == "IR User" and doc.get("docstatus") != 1:
         return False
 
     return True
 
 
-def _validate_designation(doc, fieldname: str, user: str | None = None) -> None:
+def _validate_designation(doc, user: str | None = None) -> None:
     user = user or frappe.session.user
     if not effective_ir_role(user):
         return
+    if doc.doctype in ROOT_CASE_DOCTYPES and _is_own_case(doc, user):
+        frappe.throw(
+            _("You cannot create or edit this document - it concerns your own record."),
+            frappe.PermissionError,
+        )
     if _is_effective_responsible_ir(doc, user):
         return
-    designation = doc.get(fieldname)
+    _, designation = _root_case_fields(doc)
     if _designation_is_restricted(designation, user):
         frappe.throw(
             _("You are not permitted to create or edit this document for designation: {0}").format(designation),
@@ -395,114 +572,114 @@ def appeal_against_outcome_permission_query_conditions(user: str | None = None) 
 # Direct-access permission hooks
 
 def contract_of_employment_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "designation", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def disciplinary_action_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "accused_pos", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def incapacity_proceedings_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "accused_pos", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def poor_performance_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "employee_designation", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def nta_enquiry_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def written_outcome_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "employee_designation", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def warning_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def suspension_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def dismissal_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def demotion_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def pay_deduction_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def pay_reduction_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def no_further_action_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "designation", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 def appeal_against_outcome_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, "position", user, ptype)
+    return _has_permission(doc, user, ptype)
 
 
 # Validation hooks
 
 def validate_contract_of_employment(doc, method=None):
-    _validate_designation(doc, "designation")
+    _validate_designation(doc)
 
 
 def validate_disciplinary_action(doc, method=None):
-    _validate_designation(doc, "accused_pos")
+    _validate_designation(doc)
 
 
 def validate_incapacity_proceedings(doc, method=None):
-    _validate_designation(doc, "accused_pos")
+    _validate_designation(doc)
 
 
 def validate_poor_performance(doc, method=None):
-    _validate_designation(doc, "employee_designation")
+    _validate_designation(doc)
 
 
 def validate_nta_enquiry(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_written_outcome(doc, method=None):
-    _validate_designation(doc, "employee_designation")
+    _validate_designation(doc)
 
 
 def validate_warning_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_suspension_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_dismissal_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_demotion_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_pay_deduction_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_pay_reduction_form(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
 
 
 def validate_no_further_action_form(doc, method=None):
-    _validate_designation(doc, "designation")
+    _validate_designation(doc)
 
 
 def validate_appeal_against_outcome(doc, method=None):
-    _validate_designation(doc, "position")
+    _validate_designation(doc)
