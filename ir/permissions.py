@@ -36,6 +36,9 @@ CANCEL_RESTRICTED_DOCTYPES = {
 
 DESIGNATION_FIELD_BY_DOCTYPE = {
     "Contract of Employment": "designation",
+    "Termination Form": "requested_for_designation",
+    "Status Change Form": "current_designation",
+    "Site Transfer Form": "designation",
     "Disciplinary Action": "accused_pos",
     "Incapacity Proceedings": "accused_pos",
     "Poor Performance": "employee_designation",
@@ -65,6 +68,9 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
 # own-case exclusion below, so fixing it here closes both gaps at once.
 BRANCH_LIMITED_DOCTYPES = {
     "Contract of Employment": "employee",
+    "Termination Form": "requested_for",
+    "Status Change Form": "employee",
+    "Site Transfer Form": "employee",
     "Disciplinary Action": "accused",
     "Incapacity Proceedings": "accused",
     "Poor Performance": "employee",
@@ -117,6 +123,16 @@ ROOT_CASE_DOCTYPES = (
     "Incapacity Proceedings",
     "Poor Performance",
 )
+
+# Doctypes where IR User is restricted to Submitted (docstatus=1) records only
+# - Contract of Employment (read-only for IR User in the doctype JSON) plus
+# every case/outcome doctype (all gated by a Responsible IR override that lets
+# the person actually assigned to a case see their own Draft regardless).
+# Deliberately excludes Termination Form/Status Change Form/Site Transfer Form
+# below - IR User genuinely has create/write on those three with no
+# Responsible IR concept at all, so this rule would otherwise lock a creator
+# out of their own just-drafted record with no escape hatch.
+IR_USER_SUBMITTED_ONLY_DOCTYPES = {"Contract of Employment", *ROOT_CASE_DOCTYPES, *INTERVENTION_LINK_DOCTYPES}
 
 
 def effective_ir_role(user: str | None = None) -> str | None:
@@ -387,13 +403,12 @@ def _permission_query(doctype: str, user: str | None) -> str:
             if branch_condition:
                 conditions.append(branch_condition)
 
-    # IR User is a view-only role by design - it should only ever see
-    # concluded (Submitted) records, never a case still being actively
-    # worked as a Draft. Folded into the same "base" conditions as
-    # Designation/Branch Limits, so the Responsible IR override below (who
+    # IR User is a view-only role by design on these doctypes - see
+    # IR_USER_SUBMITTED_ONLY_DOCTYPES. Folded into the same "base" conditions
+    # as Designation/Branch Limits, so the Responsible IR override below (who
     # legitimately needs to see their own assigned case's drafts) still
     # bypasses it, same as it already bypasses those two.
-    if effective_ir_role(user) == "IR User":
+    if effective_ir_role(user) == "IR User" and doctype in IR_USER_SUBMITTED_ONLY_DOCTYPES:
         conditions.append(f"`tab{doctype}`.`docstatus` = 1")
 
     base = " and ".join(conditions)
@@ -456,7 +471,11 @@ def _has_permission(doc, user: str | None = None, ptype: str | None = None) -> b
     if employee and _branch_is_restricted(doc.doctype, employee, user):
         return False
 
-    if effective_ir_role(user) == "IR User" and doc.get("docstatus") != 1:
+    if (
+        effective_ir_role(user) == "IR User"
+        and doc.doctype in IR_USER_SUBMITTED_ONLY_DOCTYPES
+        and doc.get("docstatus") != 1
+    ):
         return False
 
     return True
@@ -473,7 +492,7 @@ def _validate_designation(doc, user: str | None = None) -> None:
         )
     if _is_effective_responsible_ir(doc, user):
         return
-    _, designation = _root_case_fields(doc)
+    _employee, designation = _root_case_fields(doc)
     if _designation_is_restricted(designation, user):
         frappe.throw(
             _("You are not permitted to create or edit this document for designation: {0}").format(designation),
@@ -515,6 +534,18 @@ def recipient_passes_restrictions(doc, user: str | None) -> bool:
 
 def contract_of_employment_permission_query_conditions(user: str | None = None) -> str:
     return _permission_query("Contract of Employment", user)
+
+
+def termination_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Termination Form", user)
+
+
+def status_change_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Status Change Form", user)
+
+
+def site_transfer_form_permission_query_conditions(user: str | None = None) -> str:
+    return _permission_query("Site Transfer Form", user)
 
 
 def disciplinary_action_permission_query_conditions(user: str | None = None) -> str:
@@ -575,6 +606,18 @@ def contract_of_employment_has_permission(doc, user=None, ptype=None) -> bool:
     return _has_permission(doc, user, ptype)
 
 
+def termination_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, user, ptype)
+
+
+def status_change_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, user, ptype)
+
+
+def site_transfer_form_has_permission(doc, user=None, ptype=None) -> bool:
+    return _has_permission(doc, user, ptype)
+
+
 def disciplinary_action_has_permission(doc, user=None, ptype=None) -> bool:
     return _has_permission(doc, user, ptype)
 
@@ -630,6 +673,18 @@ def appeal_against_outcome_has_permission(doc, user=None, ptype=None) -> bool:
 # Validation hooks
 
 def validate_contract_of_employment(doc, method=None):
+    _validate_designation(doc)
+
+
+def validate_termination_form(doc, method=None):
+    _validate_designation(doc)
+
+
+def validate_status_change_form(doc, method=None):
+    _validate_designation(doc)
+
+
+def validate_site_transfer_form(doc, method=None):
     _validate_designation(doc)
 
 
