@@ -236,6 +236,7 @@ after_migrate = [
 doc_events = {
 	"Termination Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
+		"validate": "ir.permissions.validate_termination_form",
 	},
 	"NTA Enquiry": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
@@ -244,10 +245,12 @@ doc_events = {
 	"Status Change Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+		"validate": "ir.permissions.validate_status_change_form",
 	},
 	"Site Transfer Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"on_submit": "ir.controllers.notifications.handle_doc_event_submit",
+		"validate": "ir.permissions.validate_site_transfer_form",
 	},
 	"Leave Application": {
         "validate": "ir.overrides.leave_application.set_letter_head_from_company",
@@ -305,6 +308,9 @@ doc_events = {
 }
 permission_query_conditions = {
     "Contract of Employment": "ir.permissions.contract_of_employment_permission_query_conditions",
+    "Termination Form": "ir.permissions.termination_form_permission_query_conditions",
+    "Status Change Form": "ir.permissions.status_change_form_permission_query_conditions",
+    "Site Transfer Form": "ir.permissions.site_transfer_form_permission_query_conditions",
     "Disciplinary Action": "ir.permissions.disciplinary_action_permission_query_conditions",
     "Incapacity Proceedings": "ir.permissions.incapacity_proceedings_permission_query_conditions",
     "Poor Performance": "ir.permissions.poor_performance_permission_query_conditions",
@@ -321,6 +327,9 @@ permission_query_conditions = {
 }
 has_permission = {
     "Contract of Employment": "ir.permissions.contract_of_employment_has_permission",
+    "Termination Form": "ir.permissions.termination_form_has_permission",
+    "Status Change Form": "ir.permissions.status_change_form_has_permission",
+    "Site Transfer Form": "ir.permissions.site_transfer_form_has_permission",
     "Disciplinary Action": "ir.permissions.disciplinary_action_has_permission",
     "Incapacity Proceedings": "ir.permissions.incapacity_proceedings_has_permission",
     "Poor Performance": "ir.permissions.poor_performance_has_permission",

@@ -29,11 +29,16 @@ ANON_REPORT_INVESTIGATOR_ROLE = "Anonymous Report Investigator"
 
 def handle_doc_event(doc, method, action, changed_fields=None):
     if doc.doctype == "Termination Form":
+        # Names the terminated employee (requested_for) and their designation
+        # directly in the email - carries the same Designation/Branch Limits
+        # sensitivity as any other case doctype, so it needs recipient_filter
+        # same as everything else below.
         return handle_notification(
             doc, action,
             subject_template="Termination form for {requested_for_names} ({requested_for}) {action}",
             body_template="A Termination Form for {requested_for_names} ({requested_for}) at {requested_for_site} has been {action} by {actor}.",
             changed_fields=changed_fields,
+            recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
             severity="urgent",
         )
     elif doc.doctype == "NTA Enquiry":
@@ -41,9 +46,7 @@ def handle_doc_event(doc, method, action, changed_fields=None):
         # Incapacity Proceedings, or Poor Performance case, and names the
         # accused employee and their position directly in the email - so it
         # carries the exact same sensitivity as those source cases and must
-        # respect the same Designation Limits. Unlike Termination/Status
-        # Change/Site Transfer (deliberately unfiltered - different workflow),
-        # this one needs recipient_filter.
+        # respect the same Designation Limits.
         return handle_notification(
             doc, action,
             subject_template="A Notice to Attend for {names} ({employee}) {action}",
@@ -58,6 +61,7 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             subject_template="A Status Change for {employee_name} ({employee}) {action}",
             body_template="A Status Change for {employee_name} ({employee}) has been {action} by {actor}.",
             changed_fields=changed_fields,
+            recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
             severity="info",
         )
     elif doc.doctype == "Site Transfer Form":
@@ -66,6 +70,7 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             subject_template="A Site Transfer for {employee_name} ({employee}) {action}",
             body_template="A Site Transfer for {employee_name} ({employee}) has been {action} by {actor}.",
             changed_fields=changed_fields,
+            recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
             severity="info",
         )
 
