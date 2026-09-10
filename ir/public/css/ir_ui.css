@@ -532,6 +532,10 @@ body[data-theme="dark"] .so-card__warning {
   border: 1px dashed transparent;
   border-radius: 10px;
 }
+.so-leftcell--droppable .so-rowlabel {
+  border-style: dashed;
+  border-color: var(--red-500, #ef4444);
+}
 .so-over {
   outline: 2px dashed var(--blue-400, #4c9aff);
   outline-offset: 2px;

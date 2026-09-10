@@ -1027,10 +1027,10 @@ class SiteOrganogramDesigner {
         <div class="so-group__hd"><div class="so-group__name">${this.esc(g.group)}</div><div class="so-group__mode">${this.esc(g.shift_design)}</div></div>
         <div class="so-gridwrap"><div class="so-grid" data-drop="grid" data-group-key="${this.esc(g.group_key)}">
           <div class="so-grid__hdr"><div class="so-hcell so-h-left">Asset / Designation</div>${shifts.map(s=>`<div class="so-hcell so-h-slot">${this.esc(s)}</div>`).join("")}</div>
-          ${rows.length ? rows.map(identity => `<div class="so-grid__row so-rowdrag" draggable="true" data-drag-type="row" data-group-key="${this.esc(g.group_key)}" data-row-key="${this.esc(identity.row_key)}">
-            <div class="so-leftcell">${this.row_label(identity)}</div>
+          ${rows.length ? rows.map(identity => { const vacantAssetRow = identity.row_type === "Asset" && !identity.asset; return `<div class="so-grid__row so-rowdrag" draggable="true" data-drag-type="row" data-group-key="${this.esc(g.group_key)}" data-row-key="${this.esc(identity.row_key)}">
+            <div class="so-leftcell ${vacantAssetRow ? "so-leftcell--droppable" : ""}" ${vacantAssetRow ? `data-drop="row-asset" data-group-key="${this.esc(g.group_key)}" data-row-key="${this.esc(identity.row_key)}" title="${this.esc(__("Drop a specific Asset here to fill this slot"))}"` : ""}>${this.row_label(identity)}</div>
             ${shifts.map(s=>this.slot_html(g,s,identity)).join("")}
-          </div>`).join("") : '<div class="so-empty so-grid-empty">Drop an Asset or Designation into this group to create rows.</div>'}
+          </div>`; }).join("") : '<div class="so-empty so-grid-empty">Drop an Asset or Designation into this group to create rows.</div>'}
         </div></div>
       </div>`;
     }).join("") || '<div class="so-empty">Add at least one Group Heading before planning the organogram.</div>';
@@ -1085,6 +1085,7 @@ class SiteOrganogramDesigner {
       e.preventDefault();$(e.currentTarget).removeClass("so-over");let p;try{p=JSON.parse(e.originalEvent.dataTransfer.getData("application/json"));}catch(_){return;}
       const type=e.currentTarget.dataset.drop;
       if(type==="grid"){if(p.type==="asset")this.add_row(e.currentTarget.dataset.groupKey,"Asset",p.asset);if(p.type==="designation")this.add_row(e.currentTarget.dataset.groupKey,"Designation",p.designation);}
+      if(type==="row-asset"&&p.type==="asset")this.assign_asset(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey,p.asset);
       if(type==="cell"&&p.type==="employee")this.assign_employee(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.shift,e.currentTarget.dataset.rowKey,p.employee,p.from);
       if(type==="pool"){if(p.type==="assigned"&&p.from)this.unassign(p.from);if(p.type==="row")this.remove_row(p.group_key,p.row_key);}
     });
@@ -1129,6 +1130,31 @@ class SiteOrganogramDesigner {
     const asset=type==="Asset"?this.asset_by_id(value):null;
     const order=this.mapping_rows_for_group(g).length+1;
     for(const shift of this.shifts_for_group(g))this.state.shift_mappings.push({group_key:g.group_key,group:g.group,shift,employee:"",asset:type==="Asset"?value:"",designation:"",row_key:rowKey,row_order:order,row_label:type==="Asset"?[value,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — "):value,row_type:type,spare_swing:0,missing_asset:0,missing_employee:0});
+    this.mark_dirty();this.render_planner();
+  }
+
+  assign_asset(groupKey,rowKey,assetId) {
+    // Fills an existing vacant Asset row (row_type==="Asset" with no asset
+    // yet - the MISSING_ASSET:: placeholder rows Populate-from-Plan creates
+    // for a Plan's Asset slots, or any Asset row that lost its Asset e.g.
+    // through a deletion) with a specific real Asset, instead of always
+    // creating a brand-new row the way dropping onto the group grid does.
+    // The row_key must be rekeyed to ASSET::<id> here too, matching add_row -
+    // the server's own normalize_mappings() only recognises ASSET::/DESIG::
+    // prefixes; leaving the old MISSING_ASSET:: key in place would force
+    // missing_asset back to 1 on the very next save despite a real Asset
+    // now being linked.
+    if(!assetId)return;
+    const rows=this.state.shift_mappings.filter(r=>r.group_key===groupKey&&r.row_key===rowKey&&r.row_type==="Asset");
+    if(!rows.length||rows[0].asset)return;
+    const newRowKey=`ASSET::${assetId}`;
+    if(rowKey!==newRowKey&&this.state.shift_mappings.some(r=>r.group_key===groupKey&&r.row_key===newRowKey)){
+      frappe.msgprint(__("This Asset is already placed elsewhere in this group."));
+      return;
+    }
+    const asset=this.asset_by_id(assetId);
+    const label=[assetId,asset?.item_name||asset?.asset_category].filter(Boolean).join(" — ");
+    for(const r of rows){r.asset=assetId;r.row_key=newRowKey;r.row_label=label;r.missing_asset=0;}
     this.mark_dirty();this.render_planner();
   }
 
