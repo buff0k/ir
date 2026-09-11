@@ -33,7 +33,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Validity Period",
-   "options": "3\n6\n12\n24\n36",
+   "options": "3\n6\n12\n24\n36\n60\n120",
    "reqd": 1,
    "search_index": 1,
    "sort_options": 1
@@ -49,15 +49,13 @@
    "fieldname": "applicable_sites",
    "fieldtype": "Table MultiSelect",
    "label": "Applicable Site(s)",
-   "options": "Branch Selector",
-   "reqd": 1
+   "options": "Branch Selector"
   },
   {
    "fieldname": "applicable_designations",
    "fieldtype": "Table MultiSelect",
    "label": "Applicable Designation(s)",
-   "options": "Designation Selector",
-   "reqd": 1
+   "options": "Designation Selector"
   },
   {
    "default": "0",
@@ -87,7 +85,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-19 10:00:00.000000",
+ "modified": "2026-09-11 12:21:01.506220",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction",
