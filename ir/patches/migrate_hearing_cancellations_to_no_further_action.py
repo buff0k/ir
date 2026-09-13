@@ -3,7 +3,7 @@ from __future__ import annotations
 import frappe
 from frappe.utils import cint
 
-from ir.patches._legacy_doc import get_legacy_doc
+from ir.patches._legacy_doctype import old_doctype_module_exists
 
 OLD_DOCTYPE = "Hearing Cancellation Form"
 NEW_DOCTYPE = "No Further Action Form"
@@ -28,6 +28,16 @@ SYSTEM_CHILD_FIELDS = {
 
 
 def execute():
+    # A site whose database was restored from a backup taken before this
+    # migration, then updated straight to current app code, can still have
+    # real Hearing Cancellation Form data sitting in the DB - but the app's
+    # current source no longer ships that doctype's own files at all
+    # (deleted as part of the normal post-migration cleanup once every site
+    # that needed this patch had already run it). There's no supported way
+    # to process it in that state; treat it the same as "this site never had
+    # the data" and succeed as a no-op.
+    if not old_doctype_module_exists(OLD_DOCTYPE):
+        return
     if not frappe.db.table_exists(OLD_DOCTYPE):
         return
     if not frappe.db.table_exists(NEW_DOCTYPE):
@@ -139,13 +149,7 @@ def _source_identity(intervention, linked_intervention):
 
 
 def _migrate_one(old_name):
-    old = get_legacy_doc(OLD_DOCTYPE, old_name)
-    if not old:
-        frappe.log_error(
-            title="Hearing Cancellation migration skipped",
-            message=f"{OLD_DOCTYPE} {old_name} could not be read.",
-        )
-        return
+    old = frappe.get_doc(OLD_DOCTYPE, old_name)
     intervention, linked_intervention = _get_source(old)
     if not intervention or not linked_intervention:
         frappe.log_error(

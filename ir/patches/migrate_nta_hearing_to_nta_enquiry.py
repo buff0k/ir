@@ -6,7 +6,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-from ir.patches._legacy_doc import get_legacy_doc
+from ir.patches._legacy_doctype import old_doctype_module_exists
 
 OLD_DOCTYPE = "NTA Hearing"
 NEW_DOCTYPE = "NTA Enquiry"
@@ -30,6 +30,16 @@ SYSTEM_REFERENCES = (
 
 
 def execute():
+    # A site whose database was restored from a backup taken before this
+    # rename, then updated straight to current app code, can still have real
+    # NTA Hearing data sitting in the DB - but the app's current source no
+    # longer ships the NTA Hearing doctype's own files at all (deleted as
+    # part of the normal post-migration cleanup once every site that needed
+    # this patch had already run it). There's no supported way to process it
+    # in that state; treat it the same as "this site never had the data" and
+    # succeed as a no-op.
+    if not old_doctype_module_exists(OLD_DOCTYPE):
+        return
     if not frappe.db.exists("DocType", OLD_DOCTYPE):
         return
     if not frappe.db.exists("DocType", NEW_DOCTYPE):
@@ -47,9 +57,7 @@ def execute():
 
 
 def _build_plan(name: str) -> dict:
-    old_doc = get_legacy_doc(OLD_DOCTYPE, name)
-    if not old_doc:
-        frappe.throw(_("{0} {1} could not be read.").format(OLD_DOCTYPE, name))
+    old_doc = frappe.get_doc(OLD_DOCTYPE, name)
     links = [
         (fieldname, source_doctype, old_doc.get(fieldname))
         for fieldname, source_doctype in SOURCE_FIELDS

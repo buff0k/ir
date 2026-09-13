@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import frappe
 
-from ir.patches._legacy_doc import get_legacy_doc
+from ir.patches._legacy_doctype import old_doctype_module_exists
 
 NEW_DOCTYPE = "No Further Action Form"
 LEGACY_DOCTYPES = ("Not Guilty Form", "Performance Improved")
@@ -30,6 +30,17 @@ def execute():
 
     try:
         for old_doctype in LEGACY_DOCTYPES:
+            # A site whose database was restored from a backup taken before
+            # this migration, then updated straight to current app code, can
+            # still have real data for one of these legacy doctypes sitting
+            # in the DB - but the app's current source no longer ships that
+            # doctype's own files at all (deleted as part of the normal
+            # post-migration cleanup once every site that needed this patch
+            # had already run it). There's no supported way to process it in
+            # that state; treat it the same as "this site never had the
+            # data" and move on.
+            if not old_doctype_module_exists(old_doctype):
+                continue
             if not frappe.db.exists("DocType", old_doctype):
                 continue
             for old_name in frappe.get_all(old_doctype, pluck="name", order_by="creation asc"):
@@ -42,9 +53,7 @@ def execute():
 
 
 def _migrate_one(old_doctype: str, old_name: str):
-    old = get_legacy_doc(old_doctype, old_name)
-    if not old:
-        frappe.throw(f"{old_doctype} {old_name} could not be read.")
+    old = frappe.get_doc(old_doctype, old_name)
     intervention_type, intervention_name = _linked_intervention(old_doctype, old)
 
     if not intervention_type or not intervention_name:
