@@ -6,6 +6,8 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
+from ir.patches._legacy_doc import get_legacy_doc
+
 OLD_DOCTYPE = "Disciplinary Outcome Report"
 NEW_DOCTYPE = "Written Outcome"
 SUPPORTED_INTERVENTIONS = {
@@ -60,7 +62,9 @@ def execute():
 
 
 def _build_plan(old_name: str) -> dict:
-    old_doc = frappe.get_doc(OLD_DOCTYPE, old_name)
+    old_doc = get_legacy_doc(OLD_DOCTYPE, old_name)
+    if not old_doc:
+        frappe.throw(_("{0} {1} could not be read.").format(OLD_DOCTYPE, old_name))
     linked = [
         (doctype, old_doc.get(fieldname))
         for doctype, fieldname in SUPPORTED_INTERVENTIONS.items()

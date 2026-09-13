@@ -3,6 +3,8 @@ from __future__ import annotations
 import frappe
 from frappe.utils import cint
 
+from ir.patches._legacy_doc import get_legacy_doc
+
 OLD_DOCTYPE = "Hearing Cancellation Form"
 NEW_DOCTYPE = "No Further Action Form"
 
@@ -137,7 +139,13 @@ def _source_identity(intervention, linked_intervention):
 
 
 def _migrate_one(old_name):
-    old = frappe.get_doc(OLD_DOCTYPE, old_name)
+    old = get_legacy_doc(OLD_DOCTYPE, old_name)
+    if not old:
+        frappe.log_error(
+            title="Hearing Cancellation migration skipped",
+            message=f"{OLD_DOCTYPE} {old_name} could not be read.",
+        )
+        return
     intervention, linked_intervention = _get_source(old)
     if not intervention or not linked_intervention:
         frappe.log_error(

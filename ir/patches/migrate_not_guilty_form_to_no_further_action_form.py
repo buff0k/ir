@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import frappe
 
+from ir.patches._legacy_doc import get_legacy_doc
+
 NEW_DOCTYPE = "No Further Action Form"
 LEGACY_DOCTYPES = ("Not Guilty Form", "Performance Improved")
 
@@ -40,7 +42,9 @@ def execute():
 
 
 def _migrate_one(old_doctype: str, old_name: str):
-    old = frappe.get_doc(old_doctype, old_name)
+    old = get_legacy_doc(old_doctype, old_name)
+    if not old:
+        frappe.throw(f"{old_doctype} {old_name} could not be read.")
     intervention_type, intervention_name = _linked_intervention(old_doctype, old)
 
     if not intervention_type or not intervention_name:

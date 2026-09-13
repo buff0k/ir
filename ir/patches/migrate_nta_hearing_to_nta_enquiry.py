@@ -6,6 +6,8 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
+from ir.patches._legacy_doc import get_legacy_doc
+
 OLD_DOCTYPE = "NTA Hearing"
 NEW_DOCTYPE = "NTA Enquiry"
 
@@ -45,7 +47,9 @@ def execute():
 
 
 def _build_plan(name: str) -> dict:
-    old_doc = frappe.get_doc(OLD_DOCTYPE, name)
+    old_doc = get_legacy_doc(OLD_DOCTYPE, name)
+    if not old_doc:
+        frappe.throw(_("{0} {1} could not be read.").format(OLD_DOCTYPE, name))
     links = [
         (fieldname, source_doctype, old_doc.get(fieldname))
         for fieldname, source_doctype in SOURCE_FIELDS

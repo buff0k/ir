@@ -20,6 +20,11 @@ def execute():
         doc = frappe.get_doc(DOCTYPE, row.name)
         doc.flags.ignore_validate_update_after_submit = True
         doc.flags.ignore_permissions = True
+        # Older Site Organogram records predate site_plan/effective_from/
+        # shift_design becoming mandatory - this patch only needs to re-run
+        # normalize_mappings() (via save()) to fix up spare_swing, not
+        # enforce fields that didn't exist when these records were created.
+        doc.flags.ignore_mandatory = True
         doc.save(ignore_permissions=True)
 
     frappe.db.commit()
