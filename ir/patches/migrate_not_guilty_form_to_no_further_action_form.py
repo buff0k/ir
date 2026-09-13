@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import frappe
 
-from ir.patches._legacy_doctype import old_doctype_module_exists
-
 NEW_DOCTYPE = "No Further Action Form"
 LEGACY_DOCTYPES = ("Not Guilty Form", "Performance Improved")
 
@@ -30,20 +28,34 @@ def execute():
 
     try:
         for old_doctype in LEGACY_DOCTYPES:
-            # A site whose database was restored from a backup taken before
-            # this migration, then updated straight to current app code, can
-            # still have real data for one of these legacy doctypes sitting
-            # in the DB - but the app's current source no longer ships that
-            # doctype's own files at all (deleted as part of the normal
-            # post-migration cleanup once every site that needed this patch
-            # had already run it). There's no supported way to process it in
-            # that state; treat it the same as "this site never had the
-            # data" and move on.
-            if not old_doctype_module_exists(old_doctype):
-                continue
             if not frappe.db.exists("DocType", old_doctype):
                 continue
-            for old_name in frappe.get_all(old_doctype, pluck="name", order_by="creation asc"):
+
+            old_names = frappe.get_all(old_doctype, pluck="name", order_by="creation asc")
+            if not old_names:
+                continue
+
+            try:
+                frappe.get_doc(old_doctype, old_names[0])
+            except ImportError:
+                # A site whose database was restored from a backup taken
+                # before this migration, then updated straight to current
+                # app code, can still have real data for this legacy
+                # doctype sitting in the DB even though its own DocType
+                # record's `module` says "Industrial Relations" - once the
+                # app's current source no longer ships the files for that
+                # module's doctype folder, Frappe can't load its controller
+                # from anywhere (there's no fallback - not even to a
+                # generic Document class the way there is for a doctype
+                # with no custom controller at all). This is doctype-wide,
+                # not specific to this one record - if it fails for one, it
+                # fails for all of them identically, so there's no point
+                # trying the rest. There's no supported way to process it
+                # in that state; treat it the same as "this site never had
+                # the data" and move on.
+                continue
+
+            for old_name in old_names:
                 if not frappe.db.exists(NEW_DOCTYPE, old_name):
                     _migrate_one(old_doctype, old_name)
                 _relink_system_references(old_doctype, old_name)
