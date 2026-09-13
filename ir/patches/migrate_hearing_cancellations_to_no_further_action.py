@@ -3,8 +3,6 @@ from __future__ import annotations
 import frappe
 from frappe.utils import cint
 
-from ir.patches._legacy_doctype import old_doctype_module_exists
-
 OLD_DOCTYPE = "Hearing Cancellation Form"
 NEW_DOCTYPE = "No Further Action Form"
 
@@ -28,22 +26,33 @@ SYSTEM_CHILD_FIELDS = {
 
 
 def execute():
-    # A site whose database was restored from a backup taken before this
-    # migration, then updated straight to current app code, can still have
-    # real Hearing Cancellation Form data sitting in the DB - but the app's
-    # current source no longer ships that doctype's own files at all
-    # (deleted as part of the normal post-migration cleanup once every site
-    # that needed this patch had already run it). There's no supported way
-    # to process it in that state; treat it the same as "this site never had
-    # the data" and succeed as a no-op.
-    if not old_doctype_module_exists(OLD_DOCTYPE):
-        return
     if not frappe.db.table_exists(OLD_DOCTYPE):
         return
     if not frappe.db.table_exists(NEW_DOCTYPE):
         return
 
-    for old_name in frappe.get_all(OLD_DOCTYPE, pluck="name", order_by="creation asc"):
+    old_names = frappe.get_all(OLD_DOCTYPE, pluck="name", order_by="creation asc")
+    if not old_names:
+        return
+
+    try:
+        frappe.get_doc(OLD_DOCTYPE, old_names[0])
+    except ImportError:
+        # A site whose database was restored from a backup taken before this
+        # migration, then updated straight to current app code, can still
+        # have real Hearing Cancellation Form data sitting in the DB even
+        # though OLD_DOCTYPE's own DocType record is already gone - once
+        # that's gone, Frappe can no longer tell which app/module to load
+        # its controller from (it silently falls back to "Core", which
+        # obviously doesn't have it either) even if the file itself is still
+        # sitting right there in ir's own source. This is doctype-wide, not
+        # specific to this one record - if it fails for one, it fails for
+        # all of them identically, so there's no point trying the rest.
+        # There's no supported way to process it in that state; treat it the
+        # same as "this site never had the data" and succeed as a no-op.
+        return
+
+    for old_name in old_names:
         _migrate_one(old_name)
 
 

@@ -6,8 +6,6 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-from ir.patches._legacy_doctype import old_doctype_module_exists
-
 OLD_DOCTYPE = "NTA Hearing"
 NEW_DOCTYPE = "NTA Enquiry"
 
@@ -30,16 +28,6 @@ SYSTEM_REFERENCES = (
 
 
 def execute():
-    # A site whose database was restored from a backup taken before this
-    # rename, then updated straight to current app code, can still have real
-    # NTA Hearing data sitting in the DB - but the app's current source no
-    # longer ships the NTA Hearing doctype's own files at all (deleted as
-    # part of the normal post-migration cleanup once every site that needed
-    # this patch had already run it). There's no supported way to process it
-    # in that state; treat it the same as "this site never had the data" and
-    # succeed as a no-op.
-    if not old_doctype_module_exists(OLD_DOCTYPE):
-        return
     if not frappe.db.exists("DocType", OLD_DOCTYPE):
         return
     if not frappe.db.exists("DocType", NEW_DOCTYPE):
@@ -47,6 +35,24 @@ def execute():
 
     old_names = frappe.get_all(OLD_DOCTYPE, pluck="name", order_by="creation asc")
     if not old_names:
+        return
+
+    try:
+        frappe.get_doc(OLD_DOCTYPE, old_names[0])
+    except ImportError:
+        # A site whose database was restored from a backup taken before this
+        # rename, then updated straight to current app code, can still have
+        # real NTA Hearing data sitting in the DB even though its own
+        # DocType record's `module` says "Industrial Relations" - once the
+        # app's current source no longer ships the files for that module's
+        # doctype folder, Frappe can't load its controller from anywhere
+        # (there's no fallback - not even to a generic Document class the
+        # way there is for a doctype with no custom controller at all). This
+        # is doctype-wide, not specific to this one record - if it fails for
+        # one, it fails for all of them identically, so there's no point
+        # trying the rest. There's no supported way to process it in that
+        # state; treat it the same as "this site never had the data" and
+        # succeed as a no-op.
         return
 
     plans = [_build_plan(name) for name in old_names]
