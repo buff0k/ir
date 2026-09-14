@@ -3,7 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, nowdate
+from frappe.model.naming import append_number_if_name_exists
+from frappe.utils import formatdate, getdate, nowdate
 
 
 class TerminationForm(Document):
@@ -19,12 +20,31 @@ class TerminationForm(Document):
       3) before setting to "Left", clear reports_to on any employees whose manager-chain leads to this employee
       4) Employee.reason_for_leaving (Small Text) gets the *text* of Reason for Termination (Link)
          - clear then set
+
+    Naming: name = the Employee (Coy No), not a bare rigid field:doc_name link -
+    an employee terminated and rehired within 4 months keeps their original
+    Employee record (per za_local's rehire rules), so a second, genuinely
+    different Termination Form for the same Employee is a real, valid case,
+    not a data error. append_number_if_name_exists() suffixes -1, -2, ... on
+    a name collision, the same style Frappe's own amend workflow uses -
+    _guard_against_duplicate() below is what actually stops true duplicates
+    (same Employee *and* same Termination Date), not the bare name clashing.
     """
+
+    def autoname(self):
+        if not self.requested_for:
+            # Let the standard mandatory-field validation (requested_for is
+            # reqd=1) catch this with a clear message rather than naming off
+            # an empty value here - naming runs before that validation.
+            return
+        self.name = append_number_if_name_exists(self.doctype, self.requested_for)
 
     def after_insert(self):
         self._sync_employee_updates(stage="create")
 
     def validate(self):
+        self._guard_against_duplicate()
+
         # validate runs on save and also during submit, but we only want the "save stage" logic here
         if self.docstatus == 0:
             self._sync_employee_updates(stage="save")
@@ -36,6 +56,37 @@ class TerminationForm(Document):
 
     def on_submit(self):
         self._sync_employee_updates(stage="submit", show_message=True)
+
+    def _guard_against_duplicate(self):
+        """
+        Naming alone (see autoname()) no longer prevents duplicates - it now
+        deliberately allows a second Termination Form for the same Employee
+        (a genuine rehire-then-terminate-again case). What still shouldn't
+        happen is two forms for the same Employee *and* the same Termination
+        Date - that's the same event entered twice. Cancelled forms are
+        excluded: a cancelled form is void, so re-entering the same
+        Employee/date afterwards is not a duplicate.
+        """
+        if not self.requested_for or not self.termination_date:
+            return
+
+        duplicate = frappe.db.exists(
+            self.doctype,
+            {
+                "requested_for": self.requested_for,
+                "termination_date": self.termination_date,
+                "docstatus": ["!=", 2],
+                "name": ["!=", self.name or ""],
+            },
+        )
+        if duplicate:
+            frappe.throw(
+                frappe._(
+                    "A Termination Form already exists for {0} with Termination Date {1}: {2}."
+                ).format(self.requested_for, formatdate(self.termination_date), duplicate),
+                frappe.DuplicateEntryError,
+                title=frappe._("Duplicate Termination Form"),
+            )
 
     # -------------------------
     # Core logic

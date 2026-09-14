@@ -4,8 +4,8 @@
 import frappe
 from frappe.utils import get_url, formatdate
 
+from ir.controllers.notifications import _collect_recipients_from_table
 from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header, greeting, intro, signoff
-from ir.industrial_relations.utils import get_ir_notification_recipients
 
 
 def outstanding_external_disputes():
@@ -20,10 +20,20 @@ def outstanding_external_disputes():
         frappe.logger().info("No outstanding external disputes found.")
         return
 
-    # Fetch recipients (from IR Role Restrictions -> report_recipients)
-    recipient_emails, name_by_email = get_ir_notification_recipients()
+    # Fetch recipients from IR Role Restrictions -> external_dispute_recipients
+    # specifically (not the generic report_recipients list every other weekly
+    # digest currently pulls from) - External Dispute Resolution has its own
+    # dedicated recipient table precisely so it can be routed to a different
+    # audience than the general weekly report distribution. doc=None: there's
+    # no single case to check Designation/Branch Limits against here (this
+    # digest can cover several), and External Dispute Resolution has none of
+    # its own anyway (it's inherently multi-employee/multi-branch - see
+    # permissions.py's BRANCH_LIMITED_DOCTYPES comment), so every row in the
+    # table is notified unconditionally, same as the on-create notification
+    # for this doctype already does.
+    recipient_emails, name_by_email = _collect_recipients_from_table("external_dispute_recipients")
     if not recipient_emails:
-        frappe.logger().info("No valid IR report recipients found.")
+        frappe.logger().info("No valid External Dispute Resolution recipients found.")
         return
 
     # The table content is identical for every recipient (no Designation/Branch

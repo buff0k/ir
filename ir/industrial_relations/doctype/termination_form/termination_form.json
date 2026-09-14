@@ -3,7 +3,6 @@
  "allow_bulk_edit": 1,
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "field:doc_name",
  "creation": "2025-07-17 09:40:56.316562",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -13,7 +12,6 @@
   "letter_head",
   "company",
   "notice",
-  "doc_name",
   "person_requesting_termination_section",
   "requested_by",
   "requested_by_designation",
@@ -201,14 +199,6 @@
    "label": "Attach Signed Termination Form"
   },
   {
-   "fieldname": "doc_name",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Document Name",
-   "read_only": 1,
-   "unique": 1
-  },
-  {
    "fieldname": "comments",
    "fieldtype": "Small Text",
    "label": "Comments / Remarks"
@@ -225,11 +215,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-13 14:32:35.766389",
+ "modified": "2026-09-14 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Termination Form",
- "naming_rule": "By fieldname",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
