@@ -81,7 +81,6 @@ frappe.ui.form.on("Termination Form", {
                     frm.set_value('requested_for_names', employee.employee_name || '');
                     frm.set_value('id_number', employee.za_id_number || '');
                     frm.set_value('company', employee.company || '');
-                    frm.set_value('doc_name', frm.doc.requested_for);
                 })
                 .catch(err => {
                     frappe.msgprint(__('Failed to fetch employee details'));
