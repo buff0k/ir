@@ -12,7 +12,8 @@ class TerminationForm(Document):
     Updates the linked Employee record on:
       - create (after_insert)
       - save (validate / on_update while draft)
-      - submit (on_submit)
+      - submit (on_submit) - the final update from this specific form;
+        termination_date/notice_ends never change after Submit
 
     Rules:
       1) relieving_date = later of termination_date and notice_ends
@@ -20,6 +21,16 @@ class TerminationForm(Document):
       3) before setting to "Left", clear reports_to on any employees whose manager-chain leads to this employee
       4) Employee.reason_for_leaving (Small Text) gets the *text* of Reason for Termination (Link)
          - clear then set
+
+    While a form is a Draft (e.g. waiting on a Payroll-signed copy to come
+    back before it can be Submitted), termination_date/notice_ends can be
+    corrected any number of times, each save recomputing Status/Relieving
+    Date from scratch - see _sync_employee_updates()'s no-op-if-unchanged
+    guard, which is what actually matters here: it keeps the Employee record
+    accurate through any number of corrections in either direction (a date
+    pushed into the future flips Left back to Active, same as a date pulled
+    into the past flips Active to Left), without touching the Employee at
+    all when nothing actually needs to change.
 
     Naming: name = the Employee (Coy No), not a bare rigid field:doc_name link -
     an employee terminated and rehired within 4 months keeps their original
@@ -92,28 +103,47 @@ class TerminationForm(Document):
     # Core logic
     # -------------------------
 
-    def _sync_employee_updates(self, stage: str, show_message: bool = False):
+    def _sync_employee_updates(self, stage: str, show_message: bool = False) -> bool:
         """
-        Applies the rules described above. Safe to call multiple times (idempotent).
+        Recomputes what the linked Employee's status/relieving_date/
+        reason_for_leaving should be *right now*, from this form's current
+        field values, and writes them to the Employee record only if
+        something actually needs to change. Safe (and cheap) to call on
+        every Draft save and again on Submit - a Termination Form can sit in
+        Draft for a while with its dates corrected more than once before the
+        Payroll-signed copy comes back, and each such save recomputes from
+        scratch: if Status and Relieving Date already match what this form
+        currently implies, there's nothing to do (no Employee save, no
+        reports_to walk, no message). If they don't match - e.g. Status is
+        "Left" but notice_ends was just pushed into the future - the Employee
+        record is brought back in line, in either direction. Returns True if
+        the Employee record was actually updated.
         """
         if not self.requested_for:
-            return
+            return False
 
         relieving_date = self._get_effective_relieving_date()
         if not relieving_date:
             # If termination_date is missing, let standard validation handle it (especially on submit).
-            return
+            return False
 
         today = getdate(nowdate())
         should_be_left = relieving_date < today  # strictly "in the past"
+        new_status = "Left" if should_be_left else "Active"
+        reason_text = self._get_reason_text()
 
         employee = frappe.get_doc("Employee", self.requested_for)
 
+        current_relieving_date = getdate(employee.relieving_date) if employee.relieving_date else None
+        if (
+            employee.status == new_status
+            and current_relieving_date == relieving_date
+            and (employee.reason_for_leaving or "") == reason_text
+        ):
+            return False
+
         # 4) reason_for_leaving (Small Text) should receive the text value of the Link
-        reason_text = self._get_reason_text()
-        employee.reason_for_leaving = ""  # clear first as requested
-        if reason_text:
-            employee.reason_for_leaving = reason_text
+        employee.reason_for_leaving = reason_text
 
         # 1) set relieving_date always to the effective date
         employee.relieving_date = relieving_date
@@ -122,9 +152,7 @@ class TerminationForm(Document):
         if should_be_left:
             # 3) before setting to Left, clear reports_to for anyone pointing (directly or indirectly) to this employee
             self._clear_reports_to_chain_for_terminated_employee(self.requested_for)
-            employee.status = "Left"
-        else:
-            employee.status = "Active"
+        employee.status = new_status
 
         # Save Employee
         employee.save(ignore_permissions=True)
@@ -136,6 +164,8 @@ class TerminationForm(Document):
                 ).format(employee.name, employee.status, relieving_date.strftime("%Y-%m-%d")),
                 alert=True,
             )
+
+        return True
 
     def _get_effective_relieving_date(self):
         """
@@ -222,14 +252,12 @@ class TerminationForm(Document):
         if not to_clear:
             return
 
-        # Clear reports_to for affected employees
+        # Clear reports_to for affected employees - through a real .save(),
+        # not a raw frappe.db.set_value(), so the change actually shows up on
+        # each employee's own Version/audit trail. Employee isn't a
+        # submittable doctype, so there's no docstatus complication that
+        # would force a direct DB write the way there sometimes is elsewhere.
         for emp_name in set(to_clear):
-            frappe.db.set_value(
-                "Employee",
-                emp_name,
-                "reports_to",
-                None,
-                update_modified=False,
-            )
-
-        frappe.db.commit()
+            emp_doc = frappe.get_doc("Employee", emp_name)
+            emp_doc.reports_to = None
+            emp_doc.save(ignore_permissions=True)
