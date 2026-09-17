@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
+ "allow_import": 1,
  "creation": "2026-01-21 07:59:28.583098",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -118,7 +119,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-09 12:42:40.761314",
+ "modified": "2026-09-17 10:07:47.471456",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Induction Tracking",
@@ -130,6 +131,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -165,6 +167,7 @@
    "create": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -179,5 +182,6 @@
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "track_seen": 1
 }
