@@ -217,6 +217,20 @@ def _branch_is_restricted(doctype: str, employee: str | None, user: str | None =
     return _employee_branch(employee) not in branches
 
 
+def branch_is_restricted_for_branch(branch: str | None, user: str | None = None) -> bool:
+    """Same rule as _branch_is_restricted, for a doctype that carries a direct
+    Branch value of its own rather than one derived via an Employee link -
+    e.g. Job Requisition.ir_site. True only if this user has hr_per_branch
+    rows configured AND `branch` isn't among them; no rows -> not restricted
+    at all (they see/receive everything for this dimension), same convention
+    as every other Branch Limits check in this module."""
+    branches = responsible_branches_for_user(user)
+    if not branches:
+        return False
+
+    return branch not in branches
+
+
 def _sql_branch_condition(doctype: str, employee_field: str, user: str | None) -> str | None:
     branches = responsible_branches_for_user(user)
     if not branches:
