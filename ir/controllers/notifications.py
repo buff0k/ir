@@ -91,6 +91,9 @@ def handle_doc_event_create(doc, method):
     if doc.doctype == "External Dispute Resolution":
         return handle_external_dispute_resolution_create(doc, method)
 
+    if doc.doctype == "Job Requisition":
+        return handle_job_requisition_create(doc, method)
+
     return handle_doc_event(doc, method, "created")
 
 
@@ -403,6 +406,75 @@ def handle_disciplinary_action_create(doc, method=None):
             subject=subject,
             message=message,
             header=email_header(subject, "urgent"),
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def handle_job_requisition_create(doc, method=None):
+    # Generic distribution list (job_requisition_recipients), narrowed by
+    # Branch Limits only - not Designation Limits, unlike the case doctypes.
+    # Job Requisition.ir_site is a direct Branch value with no single
+    # Employee to derive it from, so this goes through
+    # branch_is_restricted_for_branch() rather than
+    # recipient_passes_restrictions()/BRANCH_LIMITED_DOCTYPES (both
+    # Employee-link-derived). A user with no hr_per_branch rows configured at
+    # all isn't restricted on this dimension and receives every Job
+    # Requisition, same "no rows -> no restriction" convention as every other
+    # Branch Limits check. Frappe Users are named by their email in this
+    # system, so each recipient email doubles as the "user" to check.
+    recipient_emails, name_by_email = _collect_recipients_from_table("job_requisition_recipients")
+    job_site = doc.get("ir_site")
+    recipient_emails = [
+        email for email in recipient_emails
+        if not permissions.branch_is_restricted_for_branch(job_site, email)
+    ]
+    name_by_email = {email: name for email, name in name_by_email.items() if email in recipient_emails}
+
+    # The requester is always notified about their own request, regardless of
+    # the distribution list or its Branch Limits - same reasoning as
+    # _add_case_participants() for Disciplinary Action/Incapacity Proceedings/
+    # Poor Performance, just a single participant here rather than two.
+    requester_email, requester_name = _resolve_employee_user_email(doc.get("requested_by"))
+    if requester_email and requester_email not in recipient_emails:
+        recipient_emails.append(requester_email)
+        name_by_email[requester_email] = requester_name
+
+    if not recipient_emails:
+        return
+
+    designation = doc.get("designation") or "Unknown Designation"
+    site = doc.get("ir_site") or "Unknown Site"
+    department = doc.get("department") or ""
+    no_of_positions = doc.get("no_of_positions") or 1
+    requested_by_name = doc.get("requested_by_name") or doc.get("requested_by") or "Unknown"
+    urgency = doc.get("ir_urgency") or "Normal"
+    position_word = "position" if no_of_positions == 1 else "positions"
+
+    severity = "urgent" if urgency in ("Urgent", "Very Urgent") else "info"
+
+    subject = f"New Job Requisition Created: {designation} ({no_of_positions} {position_word}) at {site}"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(
+            f"A new Job Requisition has been created for {designation} "
+            f"({no_of_positions} {position_word}) at {site}"
+            + (f" in {department}" if department else "")
+            + f", requested by {requested_by_name}."
+        )
+        message += intro(f"Urgency: {urgency}.")
+        message += view_link(url)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            header=email_header(subject, severity),
             reference_doctype=doc.doctype,
             reference_name=doc.name,
         )

@@ -278,6 +278,9 @@ doc_events = {
     "External Dispute Resolution": {
         "after_insert": "ir.controllers.notifications.handle_doc_event_create",
     },
+    "Job Requisition": {
+        "after_insert": "ir.controllers.notifications.handle_doc_event_create",
+    },
     "Written Outcome": {
         "validate": "ir.permissions.validate_written_outcome",
     },
