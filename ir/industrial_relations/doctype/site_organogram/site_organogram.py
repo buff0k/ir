@@ -991,17 +991,41 @@ def _iter_designation_slots(doc):
         }
 
 
-def get_designation_headcounts(doc):
+def get_designation_headcounts(doc, company=None):
     """Per-Designation FTE headcount (filled/vacant/total) across the whole
-    Organogram - drives Site Budget's Designation costing table.
+    Organogram - drives Site Budget's Designation costing table, and (with
+    `company` set) Branch Staffing Dashboard's Company-filtered snapshot.
     Returns: {designation: {"filled": n, "vacant": n, "total": n}}
+
+    `company`, when given, narrows "filled" to slots whose assigned
+    Employee's own Employee.company matches - a slot filled by a *different*
+    company's Employee (a Branch can have Employees from several Companies
+    at once - there's no Branch.company at all) falls to "vacant" rather
+    than being dropped or double-counted: from the selected Company's own
+    point of view nobody of theirs is in that role either way. `total` is
+    never affected by `company` - it's always every staffable slot on this
+    Organogram, matching the no-`company` behaviour every existing caller
+    already relies on.
     """
     counts = defaultdict(lambda: {"filled": 0, "vacant": 0, "total": 0})
+
+    employee_company = {}
+    if company:
+        employee_ids = {slot["employee"] for slot in _iter_designation_slots(doc) if slot["employee"]}
+        if employee_ids:
+            employee_company = dict(
+                frappe.get_all(
+                    "Employee",
+                    filters={"name": ["in", list(employee_ids)]},
+                    fields=["name", "company"],
+                    as_list=True,
+                )
+            )
 
     for slot in _iter_designation_slots(doc):
         bucket = counts[slot["designation"]]
         bucket["total"] += 1
-        if slot["employee"]:
+        if slot["employee"] and (not company or employee_company.get(slot["employee"]) == company):
             bucket["filled"] += 1
         else:
             bucket["vacant"] += 1

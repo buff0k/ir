@@ -2711,3 +2711,173 @@ button.her-mini-list {
   }
 }
 
+/* -------------------------------------------------
+   Branch Staffing Dashboard Page
+   Namespaced bsd-* only
+   ------------------------------------------------- */
+
+.bsd-page {
+  padding: 0 4px 30px;
+}
+
+.bsd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.bsd-filters__control {
+  min-width: 200px;
+}
+
+.bsd-filters__actions {
+  margin-left: auto;
+  padding-bottom: 2px;
+}
+
+.bsd-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bsd-kpi {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  padding: 14px 16px;
+  box-shadow: inset 3px 0 0 rgba(180, 0, 0, 0.35);
+}
+
+.bsd-kpi--warn {
+  box-shadow: inset 3px 0 0 rgba(255, 193, 7, 0.7);
+}
+
+.bsd-kpi__value {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.bsd-kpi__label {
+  margin-top: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.bsd-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.bsd-chart-card {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.bsd-chart-card__title {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--control-bg);
+  font-weight: 900;
+}
+
+.bsd-chart-card__body {
+  padding: 14px;
+  min-height: 260px;
+}
+
+.bsd-section {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.bsd-section__title {
+  font-weight: 900;
+}
+
+.bsd-section__hint {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+  margin-bottom: 10px;
+}
+
+.bsd-empty {
+  opacity: 0.7;
+  padding: 20px 4px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.bsd-missing__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bsd-missing__row:last-child {
+  border-bottom: none;
+}
+
+.bsd-missing__branch {
+  font-weight: 700;
+}
+
+.bsd-missing__actions a {
+  margin-left: 12px;
+  text-decoration: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bsd-table__el {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.bsd-table__el th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.75;
+}
+
+.bsd-table__el td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bsd-table__row {
+  cursor: pointer;
+}
+
+.bsd-table__row:hover {
+  background: var(--control-bg);
+}
+
+.bsd-table__filled {
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+

@@ -18,7 +18,7 @@
    "label": "External Disputes"
   }
  ],
- "content": "[{\"id\":\"3wiSP0KSeE\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"5mdDx6Mw2o\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Contracts of Employment\",\"col\":6}},{\"id\":\"c_c3vFI8GQ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Actions\",\"col\":6}},{\"id\":\"Mx8p9kq7BN\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Termination Forms\",\"col\":6}},{\"id\":\"aYRPCrfQ5_\",\"type\":\"chart\",\"data\":{\"chart_name\":\"External Disputes\",\"col\":6}},{\"id\":\"aQirkht7kI\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"XhD9lvgKSj\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"UFRFaJAVym\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"yyj40I0HIp\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"xvYVpb4A_g\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"HWp32aWVPN\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"xAMcTwJ5bR\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"Ao6LmLvmxx\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"BJzRk4Pn8-\",\"type\":\"card\",\"data\":{\"card_name\":\"Recruitment\",\"col\":4}}]",
+ "content": "[{\"id\":\"3wiSP0KSeE\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Industrial Relations</span>\",\"col\":12}},{\"id\":\"5mdDx6Mw2o\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Contracts of Employment\",\"col\":6}},{\"id\":\"c_c3vFI8GQ\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Disciplinary Actions\",\"col\":6}},{\"id\":\"Mx8p9kq7BN\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Termination Forms\",\"col\":6}},{\"id\":\"aYRPCrfQ5_\",\"type\":\"chart\",\"data\":{\"chart_name\":\"External Disputes\",\"col\":6}},{\"id\":\"aQirkht7kI\",\"type\":\"card\",\"data\":{\"card_name\":\"General IR Documents\",\"col\":4}},{\"id\":\"XhD9lvgKSj\",\"type\":\"card\",\"data\":{\"card_name\":\"Contracts of Employment\",\"col\":4}},{\"id\":\"UFRFaJAVym\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Interventions\",\"col\":4}},{\"id\":\"yyj40I0HIp\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"xvYVpb4A_g\",\"type\":\"card\",\"data\":{\"card_name\":\"IR Documents\",\"col\":4}},{\"id\":\"HWp32aWVPN\",\"type\":\"card\",\"data\":{\"card_name\":\"Trade Unions\",\"col\":4}},{\"id\":\"xAMcTwJ5bR\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"Ao6LmLvmxx\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"BJzRk4Pn8-\",\"type\":\"card\",\"data\":{\"card_name\":\"Recruitment\",\"col\":4}},{\"id\":\"bsD1aFF9GK\",\"type\":\"card\",\"data\":{\"card_name\":\"Staffing Overview\",\"col\":4}}]",
  "creation": "2026-01-15 20:17:37.425820",
  "custom_blocks": [],
  "docstatus": 0,
@@ -504,9 +504,38 @@
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Staffing Overview",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Branch Staffing Dashboard",
+   "link_count": 0,
+   "link_to": "ir-branch-staffing",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Branch Staffing Overview",
+   "link_count": 0,
+   "link_to": "Branch Staffing Overview",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-08-07 11:43:11.156929",
+ "modified": "2026-09-21 10:50:01.826967",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
