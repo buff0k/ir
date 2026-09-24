@@ -1,0 +1,438 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 0,
+ "creation": "2026-09-23 09:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "process_overview_tab",
+  "section_break_admin",
+  "amended_from",
+  "process_title",
+  "column_break_admin",
+  "company",
+  "letter_head",
+  "process_type_section",
+  "process_type",
+  "column_break_guidance",
+  "s189a_guidance",
+  "headcounts_section",
+  "total_initially_affected",
+  "total_still_affected",
+  "column_break_headcounts",
+  "total_dismissed_12m",
+  "affected_employees_section",
+  "affected_employees",
+  "affected_designations_status",
+  "affected_employees_status",
+  "union_membership_status",
+  "linked_docs_section",
+  "linked_docs",
+  "statutory_disclosure_tab",
+  "reason_for_dismissals",
+  "alternatives_considered",
+  "selection_method",
+  "section_break_timing",
+  "proposed_implementation_date",
+  "implementation_notes",
+  "column_break_timing",
+  "severance_pay_proposal",
+  "section_break_assistance",
+  "assistance_offered",
+  "future_reemployment",
+  "section_break_counts",
+  "total_employees",
+  "column_break_counts",
+  "prior_operational_dismissals_12m",
+  "override_prior_dismissals_12m",
+  "costing_tab",
+  "costing_parameters_section",
+  "severance_weeks_per_completed_year",
+  "severance_hours_per_week",
+  "column_break_costing_parameters",
+  "minimum_severance_weeks",
+  "estimated_total_retrenchment_cost",
+  "costing_editor_section",
+  "costing_editor",
+  "employee_allowances_section",
+  "employee_allowances"
+ ],
+ "fields": [
+  {
+   "fieldname": "process_overview_tab",
+   "fieldtype": "Tab Break",
+   "label": "Process Overview"
+  },
+  {
+   "fieldname": "section_break_admin",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Retrenchment Process",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "process_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Process Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_admin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Read Only",
+   "label": "Letterhead"
+  },
+  {
+   "fieldname": "process_type_section",
+   "fieldtype": "Section Break",
+   "label": "Process Type"
+  },
+  {
+   "fieldname": "process_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Process Type",
+   "options": "\nSection 189\nSection 189A",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_guidance",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "s189a_guidance",
+   "fieldtype": "HTML",
+   "label": "Section 189A Threshold Guidance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "headcounts_section",
+   "fieldtype": "Section Break",
+   "label": "Process Headcounts"
+  },
+  {
+   "description": "Every named row ever added to Affected Employees, regardless of current status",
+   "fieldname": "total_initially_affected",
+   "fieldtype": "Int",
+   "label": "Total Initially Affected",
+   "read_only": 1
+  },
+  {
+   "description": "Currently Affected (not Excluded/Transferred) and not yet dismissed",
+   "fieldname": "total_still_affected",
+   "fieldtype": "Int",
+   "label": "Total Still Affected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_headcounts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "This process's own Affected Employees dismissed within the preceding 12 months",
+   "fieldname": "total_dismissed_12m",
+   "fieldtype": "Int",
+   "label": "Total Dismissed (Preceding 12 Months)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "affected_employees_section",
+   "fieldtype": "Section Break",
+   "label": "Affected Employees"
+  },
+  {
+   "fieldname": "affected_employees",
+   "fieldtype": "Table",
+   "label": "Affected Employees / Designations per Branch",
+   "options": "Retrenchment Affected Employee"
+  },
+  {
+   "fieldname": "affected_designations_status",
+   "fieldtype": "HTML",
+   "label": "Affected Designations (Initial vs Current)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "affected_employees_status",
+   "fieldtype": "HTML",
+   "label": "Notice / Dismissal Status per Employee",
+   "read_only": 1
+  },
+  {
+   "description": "Trade Union(s) with members among the affected employees - s189 requires these unions to also be notified, in their own right",
+   "fieldname": "union_membership_status",
+   "fieldtype": "HTML",
+   "label": "Trade Union Membership",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_docs_section",
+   "fieldtype": "Section Break",
+   "label": "Linked Documents"
+  },
+  {
+   "fieldname": "linked_docs",
+   "fieldtype": "HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "statutory_disclosure_tab",
+   "fieldtype": "Tab Break",
+   "label": "Statutory Disclosure (s189(3))"
+  },
+  {
+   "description": "s189(3)(a) - the reasons for the proposed dismissals",
+   "fieldname": "reason_for_dismissals",
+   "fieldtype": "Text Editor",
+   "label": "Reason for the Contemplated Dismissals",
+   "reqd": 1
+  },
+  {
+   "description": "s189(3)(b) - alternatives considered before proposing the dismissals, and why they were rejected",
+   "fieldname": "alternatives_considered",
+   "fieldtype": "Text Editor",
+   "label": "Alternatives Considered"
+  },
+  {
+   "description": "s189(3)(d) - the proposed method for selecting which employees to dismiss",
+   "fieldname": "selection_method",
+   "fieldtype": "Text Editor",
+   "label": "Proposed Method of Selection",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_timing",
+   "fieldtype": "Section Break",
+   "label": "Timing and Severance"
+  },
+  {
+   "description": "s189(3)(e) - when, or the period during which, the dismissals are likely to take effect",
+   "fieldname": "proposed_implementation_date",
+   "fieldtype": "Date",
+   "label": "Proposed Implementation Date"
+  },
+  {
+   "fieldname": "implementation_notes",
+   "fieldtype": "Small Text",
+   "label": "Implementation / Notice Period Notes"
+  },
+  {
+   "fieldname": "column_break_timing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "s189(3)(f) - the severance pay proposed. Note: s41 of the Basic Conditions of Employment Act sets the statutory minimum at one week's remuneration per completed year of service - see Costing Parameters below for the actual calculation basis.",
+   "fieldname": "severance_pay_proposal",
+   "fieldtype": "Text Editor",
+   "label": "Proposed Severance Pay"
+  },
+  {
+   "fieldname": "section_break_assistance",
+   "fieldtype": "Section Break",
+   "label": "Assistance and Re-employment"
+  },
+  {
+   "description": "s189(3)(g) - any assistance the employer proposes to offer affected employees",
+   "fieldname": "assistance_offered",
+   "fieldtype": "Text Editor",
+   "label": "Assistance Offered"
+  },
+  {
+   "description": "s189(3)(h) - the possibility of future re-employment of employees who are dismissed",
+   "fieldname": "future_reemployment",
+   "fieldtype": "Text Editor",
+   "label": "Possibility of Future Re-employment"
+  },
+  {
+   "fieldname": "section_break_counts",
+   "fieldtype": "Section Break",
+   "label": "Statutory Headcounts"
+  },
+  {
+   "description": "s189(3)(i) - the number of employees employed by the employer (active employees, this Company) - calculated automatically",
+   "fieldname": "total_employees",
+   "fieldtype": "Int",
+   "label": "Total Employees (this Company)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_counts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "s189(3)(j) - employees dismissed for operational requirements in the preceding 12 months. Calculated automatically from submitted Dismissal Forms unless overridden below (e.g. if this system doesn't yet hold accurate historical dismissal data).",
+   "fieldname": "prior_operational_dismissals_12m",
+   "fieldtype": "Int",
+   "label": "Dismissed for Operational Requirements (Preceding 12 Months)",
+   "read_only_depends_on": "eval:!doc.override_prior_dismissals_12m"
+  },
+  {
+   "default": "0",
+   "description": "Enable to manually set the figure above instead of trusting this system's own submitted Dismissal Forms",
+   "fieldname": "override_prior_dismissals_12m",
+   "fieldtype": "Check",
+   "label": "Manually Override This Figure"
+  },
+  {
+   "fieldname": "costing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Costing"
+  },
+  {
+   "fieldname": "costing_parameters_section",
+   "fieldtype": "Section Break",
+   "label": "Costing Parameters (negotiated severance terms)"
+  },
+  {
+   "default": "1",
+   "description": "The multiplier per completed year of service. Statutory minimum per s41 of the Basic Conditions of Employment Act is 1 week per completed year - negotiable upward (e.g. 2), never below the statutory minimum.",
+   "fieldname": "severance_weeks_per_completed_year",
+   "fieldtype": "Float",
+   "label": "Severance Weeks Per Completed Year"
+  },
+  {
+   "default": "45",
+   "description": "What counts as \"one week's pay\" for severance purposes (basic rate only, no allowances)",
+   "fieldname": "severance_hours_per_week",
+   "fieldtype": "Float",
+   "label": "Severance Hours Per Week"
+  },
+  {
+   "fieldname": "column_break_costing_parameters",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "A guaranteed floor, e.g. set to 1 so employees with 0 completed years still receive a minimum of 1 week's severance",
+   "fieldname": "minimum_severance_weeks",
+   "fieldtype": "Float",
+   "label": "Minimum Severance Weeks"
+  },
+  {
+   "description": "Sum of every Affected Employee row's Estimated Total Cost, including Excluded/Transferred rows",
+   "fieldname": "estimated_total_retrenchment_cost",
+   "fieldtype": "Currency",
+   "label": "Estimated Total Retrenchment Cost",
+   "read_only": 1
+  },
+  {
+   "fieldname": "costing_editor_section",
+   "fieldtype": "Section Break",
+   "label": "Employee Costing"
+  },
+  {
+   "fieldname": "costing_editor",
+   "fieldtype": "HTML",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "employee_allowances_section",
+   "fieldtype": "Section Break",
+   "label": "Allowances Detail (advanced / fallback view)"
+  },
+  {
+   "description": "Per-employee allowance breakdown feeding each row's Weekly Rate - normally edited via the Employee Costing table above, not here directly",
+   "fieldname": "employee_allowances",
+   "fieldtype": "Table",
+   "label": "Employee Allowances",
+   "options": "Retrenchment Employee Allowance"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-23 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Retrenchment Process",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

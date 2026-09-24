@@ -94,6 +94,9 @@ def handle_doc_event_create(doc, method):
     if doc.doctype == "Job Requisition":
         return handle_job_requisition_create(doc, method)
 
+    if doc.doctype == "Retrenchment Process":
+        return handle_retrenchment_process_create(doc, method)
+
     return handle_doc_event(doc, method, "created")
 
 
@@ -654,6 +657,44 @@ def handle_external_dispute_resolution_create(doc, method=None):
         message += greeting(full_name)
         message += intro(f"A new External Dispute Resolution matter has been created ({forum}), case number {case_no}.")
         message += intro("Please attend to this matter urgently.")
+        message += view_link(url)
+
+        frappe.sendmail(
+            recipients=[email],
+            subject=subject,
+            message=message,
+            header=email_header(subject, "urgent"),
+            reference_doctype=doc.doctype,
+            reference_name=doc.name,
+        )
+
+
+def handle_retrenchment_process_create(doc, method=None):
+    # No Branch or Designation Limits apply - a Retrenchment Process can span
+    # multiple Branches (its own Affected Employees table, not a single Branch
+    # field), so the full retrenchment_recipients table is notified
+    # unconditionally (doc=None below), same as External Dispute Resolution.
+    recipient_emails, name_by_email = _collect_recipients_from_table("retrenchment_recipients")
+    if not recipient_emails:
+        return
+
+    process_type = doc.get("process_type") or "Section 189"
+    company = doc.get("company") or "Unknown Company"
+    affected_count = len(doc.get("affected_employees") or [])
+
+    subject = f"New Retrenchment Process Created: {doc.name} ({process_type})"
+    url = frappe.utils.get_url(doc.get_url())
+
+    for email in recipient_emails:
+        full_name = name_by_email.get(email) or "IR Team"
+
+        message = EMAIL_STYLE_BLOCK
+        message += greeting(full_name)
+        message += intro(
+            f"A new Retrenchment Process ({process_type}) has been created for {company}, "
+            f"affecting {affected_count} employee row(s)."
+        )
+        message += intro("Please review the statutory disclosure content and consultation proposal.")
         message += view_link(url)
 
         frappe.sendmail(

@@ -250,7 +250,7 @@
    "fieldname": "ir_intervention",
    "fieldtype": "Link",
    "label": "IR Intervention",
-   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Poor Performance\"]]]",
+   "link_filters": "[[\"DocType\",\"name\",\"in\",[\"Disciplinary Action\",\"Incapacity Proceedings\",\"Poor Performance\",\"Retrenchment Process\"]]]",
    "options": "DocType",
    "read_only": 1,
    "reqd": 1
@@ -276,7 +276,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-07-15 12:04:18.711766",
+ "modified": "2026-09-23 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dismissal Form",

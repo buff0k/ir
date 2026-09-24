@@ -1,0 +1,194 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 0,
+ "creation": "2026-09-23 09:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_admin",
+  "amended_from",
+  "ir_intervention",
+  "linked_intervention",
+  "company",
+  "letter_head",
+  "column_break_admin",
+  "consultation_date",
+  "consultation_time",
+  "venue",
+  "is_bulk_consultation",
+  "minutes_section",
+  "minutes",
+  "attendees_section",
+  "attendees"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_admin",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "S189 Consultation",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Retrenchment Process",
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "IR Intervention",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Retrenchment Process",
+   "options": "Retrenchment Process",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "label": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Read Only",
+   "label": "Letterhead"
+  },
+  {
+   "fieldname": "column_break_admin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "consultation_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Consultation Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "consultation_time",
+   "fieldtype": "Time",
+   "label": "Consultation Time"
+  },
+  {
+   "fieldname": "venue",
+   "fieldtype": "Data",
+   "label": "Venue"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_bulk_consultation",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Bulk Consultation"
+  },
+  {
+   "fieldname": "minutes_section",
+   "fieldtype": "Section Break",
+   "label": "Minutes"
+  },
+  {
+   "fieldname": "minutes",
+   "fieldtype": "Text Editor",
+   "label": "Minutes"
+  },
+  {
+   "fieldname": "attendees_section",
+   "fieldtype": "Section Break",
+   "label": "Attendees"
+  },
+  {
+   "fieldname": "attendees",
+   "fieldtype": "Table",
+   "label": "Attendees",
+   "options": "S189 Consultation Attendee"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-23 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "S189 Consultation",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

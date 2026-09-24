@@ -15,6 +15,7 @@ RECIPIENT_TABLE_FIELDS = (
     "external_dispute_recipients",
     "global_trainer",
     "job_requisition_recipients",
+    "retrenchment_recipients",
     "hr_per_branch",
     "trainer_per_branch",
 )

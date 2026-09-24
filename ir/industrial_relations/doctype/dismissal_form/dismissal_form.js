@@ -21,6 +21,10 @@ frappe.ui.form.on("Dismissal Form", {
             args: {
                 source_doctype: frm.doc.ir_intervention,
                 source_name: frm.doc.linked_intervention,
+                employee:
+                    frm.doc.ir_intervention === "Retrenchment Process"
+                        ? frm.doc.employee
+                        : undefined,
             },
             freeze: true,
             freeze_message: __("Loading intervention details ..."),

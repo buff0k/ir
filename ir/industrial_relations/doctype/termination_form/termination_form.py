@@ -52,6 +52,18 @@ class TerminationForm(Document):
 
     def after_insert(self):
         self._sync_employee_updates(stage="create")
+        self._link_retrenchment_row()
+
+    def _link_retrenchment_row(self):
+        if not self.retrenchment_process or not self.retrenchment_affected_employee_row:
+            return
+        frappe.db.set_value(
+            "Retrenchment Affected Employee",
+            self.retrenchment_affected_employee_row,
+            "termination_form",
+            self.name,
+            update_modified=False,
+        )
 
     def validate(self):
         self._guard_against_duplicate()
@@ -261,3 +273,44 @@ class TerminationForm(Document):
             emp_doc = frappe.get_doc("Employee", emp_name)
             emp_doc.reports_to = None
             emp_doc.save(ignore_permissions=True)
+
+
+RETRENCHMENT_REASON_FOR_TERMINATION = "Dismissal for Operational Requirements (Retrenchment)"
+
+
+@frappe.whitelist()
+def create_termination_form(source_name, source_doctype, employee):
+    """Pre-fill a new Termination Form from a Retrenchment Process's own
+    Affected Employee row - the administrative paperwork (documents
+    received, UI-19 etc.) that accompanies, but is separate from, the
+    Dismissal Form (the actual notice letter). Mirrors
+    dismissal_form.create_dismissal_form's shape/calling convention."""
+    if source_doctype != "Retrenchment Process":
+        frappe.throw(frappe._("Unsupported source DocType: {0}").format(source_doctype))
+
+    process = frappe.get_doc("Retrenchment Process", source_name)
+    row = next((r for r in process.affected_employees if r.employee == employee), None)
+    if not row:
+        frappe.throw(
+            frappe._("{0} is not listed as an Affected Employee on {1}.").format(employee, source_name)
+        )
+
+    id_number = frappe.db.get_value("Employee", employee, "za_id_number") or frappe.db.get_value(
+        "Employee", employee, "passport_number"
+    )
+    requested_by = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+
+    target = frappe.new_doc("Termination Form")
+    target.retrenchment_process = process.name
+    target.retrenchment_affected_employee_row = row.name
+    target.company = process.company
+    target.requested_for = employee
+    target.requested_for_names = row.employee_name
+    target.requested_for_designation = row.designation
+    target.requested_for_site = row.branch
+    target.id_number = id_number or ""
+    target.reason = RETRENCHMENT_REASON_FOR_TERMINATION
+    target.termination_date = row.outcome_date or process.proposed_implementation_date
+    if requested_by:
+        target.requested_by = requested_by
+    return target

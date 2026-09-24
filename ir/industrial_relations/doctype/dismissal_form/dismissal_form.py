@@ -12,6 +12,7 @@ SUPPORTED_INTERVENTIONS = {
     "Disciplinary Action",
     "Incapacity Proceedings",
     "Poor Performance",
+    "Retrenchment Process",
 }
 
 
@@ -53,6 +54,23 @@ class DismissalForm(Document):
         if not getattr(self, "__confirmed_save", False):
             self.clear_source_outcome()
 
+    def after_insert(self):
+        if self.ir_intervention == "Retrenchment Process":
+            self._link_retrenchment_row()
+
+    def _link_retrenchment_row(self):
+        # Denormalised back-reference so the Retrenchment Process's own
+        # per-employee status panel (get_affected_employee_status) can show
+        # "Dismissal Form: DISM-XXX (Submitted/Draft/Cancelled)" against the
+        # right row without re-deriving it from a live query every time -
+        # its docstatus is still read live from this link, never cached.
+        process = frappe.get_doc("Retrenchment Process", self.linked_intervention)
+        row = next((r for r in process.affected_employees if r.employee == self.employee), None)
+        if row and not row.dismissal_form:
+            frappe.db.set_value(
+                "Retrenchment Affected Employee", row.name, "dismissal_form", self.name, update_modified=False
+            )
+
     def before_submit(self):
         self._validate_submission()
         self._update_employee_as_left()
@@ -63,7 +81,10 @@ class DismissalForm(Document):
 
     def on_cancel(self):
         self._reinstate_employee()
-        clear_parent_outcome(self)
+        if self.ir_intervention == "Retrenchment Process":
+            self._clear_retrenchment_row_outcome(self._get_source_document())
+        else:
+            clear_parent_outcome(self)
 
     def _reinstate_employee(self):
         employee = frappe.get_doc("Employee", self.employee)
@@ -110,6 +131,10 @@ class DismissalForm(Document):
 
     def clear_source_outcome(self):
         source = self._get_source_document()
+        if source.doctype == "Retrenchment Process":
+            self._clear_retrenchment_row_outcome(source)
+            return
+
         previous = _get_outcome_values(source)
 
         if not any(previous.values()):
@@ -133,6 +158,10 @@ class DismissalForm(Document):
 
     def set_source_outcome(self):
         source = self._get_source_document()
+        if source.doctype == "Retrenchment Process":
+            self._set_retrenchment_row_outcome(source)
+            return
+
         previous = _get_outcome_values(source)
         updates = {
             "outcome": self.dismissal_type,
@@ -146,6 +175,41 @@ class DismissalForm(Document):
             _("Outcome for {0} ({1}) has been updated to {2} dated {3}.").format(
                 source.name,
                 source.doctype,
+                self.dismissal_type,
+                self.outcome_date,
+            ),
+            alert=True,
+        )
+
+    def _retrenchment_affected_row(self, process):
+        row = next((r for r in process.affected_employees if r.employee == self.employee), None)
+        if not row:
+            frappe.throw(
+                _("{0} is not listed as an Affected Employee on {1}.").format(self.employee, process.name)
+            )
+        return row
+
+    def _clear_retrenchment_row_outcome(self, process):
+        row = next((r for r in process.affected_employees if r.employee == self.employee), None)
+        if not row:
+            return
+        frappe.db.set_value(
+            "Retrenchment Affected Employee", row.name, {"outcome": None, "outcome_date": None}, update_modified=False
+        )
+
+    def _set_retrenchment_row_outcome(self, process):
+        row = self._retrenchment_affected_row(process)
+        frappe.db.set_value(
+            "Retrenchment Affected Employee",
+            row.name,
+            {"outcome": self.dismissal_type, "outcome_date": self.outcome_date},
+            update_modified=False,
+        )
+
+        frappe.msgprint(
+            _("Outcome for {0} on {1} has been updated to {2} dated {3}.").format(
+                self.employee,
+                process.name,
                 self.dismissal_type,
                 self.outcome_date,
             ),
@@ -207,20 +271,24 @@ def _create_manual_version(doc, fieldname, old_value, new_value):
 
 
 @frappe.whitelist()
-def create_dismissal_form(source_name, source_doctype):
+def create_dismissal_form(source_name, source_doctype, employee=None):
     if source_doctype not in SUPPORTED_INTERVENTIONS:
         frappe.throw(_("Unsupported source DocType: {0}").format(source_doctype))
+    if source_doctype == "Retrenchment Process" and not employee:
+        frappe.throw(_("Select the Employee being dismissed from this Retrenchment Process."))
 
     source = frappe.get_doc(source_doctype, source_name)
     target = frappe.new_doc("Dismissal Form")
     target.ir_intervention = source_doctype
     target.linked_intervention = source.name
     target.linked_intervention_processed = 0
+    if employee:
+        target.employee = employee
     return target
 
 
 @frappe.whitelist()
-def fetch_intervention_data(source_doctype, source_name):
+def fetch_intervention_data(source_doctype, source_name, employee=None):
     if source_doctype not in SUPPORTED_INTERVENTIONS:
         frappe.throw(_("Unsupported source DocType: {0}").format(source_doctype))
     if not frappe.db.exists(source_doctype, source_name):
@@ -230,7 +298,27 @@ def fetch_intervention_data(source_doctype, source_name):
         return _fetch_disciplinary_data(source_name)
     if source_doctype == "Incapacity Proceedings":
         return _fetch_incapacity_data(source_name)
+    if source_doctype == "Retrenchment Process":
+        if not employee:
+            frappe.throw(_("Employee is required to fetch Retrenchment Process details."))
+        return _fetch_retrenchment_data(source_name, employee)
     return _fetch_performance_data(source_name)
+
+
+def _fetch_retrenchment_data(source_name, employee):
+    process = frappe.get_doc("Retrenchment Process", source_name)
+    row = next((r for r in process.affected_employees if r.employee == employee), None)
+    if not row:
+        frappe.throw(
+            _("{0} is not listed as an Affected Employee on {1}.").format(employee, source_name)
+        )
+
+    return {
+        "employee": employee,
+        "names": row.employee_name or "",
+        "position": row.designation or "",
+        "company": process.company,
+    }
 
 
 def _fetch_disciplinary_data(source_name):

@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-23 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "designation",
+  "initial_count",
+  "current_count"
+ ],
+ "fields": [
+  {
+   "columns": 4,
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Designation",
+   "options": "Designation",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "description": "Number in this category when this Notice was drafted",
+   "fieldname": "initial_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Number Affected"
+  },
+  {
+   "columns": 3,
+   "description": "Number in this category still affected as of this Notice",
+   "fieldname": "current_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Still Affected"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-23 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Section 189 Notice Designation",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
