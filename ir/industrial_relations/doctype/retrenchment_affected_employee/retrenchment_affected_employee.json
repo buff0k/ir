@@ -1,0 +1,304 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-23 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "branch",
+  "designation",
+  "employee",
+  "employee_name",
+  "date_of_joining",
+  "inclusion_status",
+  "outcome",
+  "outcome_date",
+  "dismissal_form",
+  "create_dismissal_form",
+  "termination_form",
+  "create_termination_form",
+  "status_reason",
+  "status_date",
+  "transferred_via",
+  "rate_per_hour",
+  "hours_per_day",
+  "s189_notice_date",
+  "leave_days_balance",
+  "leave_days_projected",
+  "severance_weeks_per_completed_year",
+  "severance_hours_per_week",
+  "minimum_severance_weeks",
+  "total_allowances",
+  "thirty_days_date",
+  "completed_years",
+  "notice_weeks",
+  "notice_ends_date",
+  "weekly_rate",
+  "estimated_leave_pay",
+  "estimated_notice_pay",
+  "estimated_severance_pay",
+  "estimated_total_cost"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Branch",
+   "options": "Branch",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Designation",
+   "options": "Designation",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Employee Name"
+  },
+  {
+   "columns": 2,
+   "description": "For LIFO / length-of-service determinations",
+   "fetch_from": "employee.date_of_joining",
+   "fieldname": "date_of_joining",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Date of Joining"
+  },
+  {
+   "columns": 2,
+   "default": "Affected",
+   "fieldname": "inclusion_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Affected\nExcluded\nTransferred"
+  },
+  {
+   "columns": 2,
+   "fieldname": "outcome",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Outcome",
+   "options": "Offence Outcome",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "outcome_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Outcome Date",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "dismissal_form",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Dismissal Form",
+   "options": "Dismissal Form",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.employee && !doc.outcome && (!doc.inclusion_status || doc.inclusion_status==\"Affected\")",
+   "fieldname": "create_dismissal_form",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Create Dismissal Form"
+  },
+  {
+   "columns": 2,
+   "fieldname": "termination_form",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Termination Form",
+   "options": "Termination Form",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.employee && !doc.termination_form && (!doc.inclusion_status || doc.inclusion_status==\"Affected\")",
+   "fieldname": "create_termination_form",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Create Termination Form"
+  },
+  {
+   "depends_on": "eval:doc.inclusion_status && doc.inclusion_status != \"Affected\"",
+   "fieldname": "status_reason",
+   "fieldtype": "Small Text",
+   "label": "Reason for Exclusion / Transfer"
+  },
+  {
+   "depends_on": "eval:doc.inclusion_status && doc.inclusion_status != \"Affected\"",
+   "fieldname": "status_date",
+   "fieldtype": "Date",
+   "label": "Status Date"
+  },
+  {
+   "depends_on": "eval:doc.inclusion_status == \"Transferred\"",
+   "fieldname": "transferred_via",
+   "fieldtype": "Link",
+   "label": "Site Transfer Form",
+   "options": "Site Transfer Form"
+  },
+  {
+   "description": "Costing input - edited via the Retrenchment Process' Costing tab. Fetched once from the employee's latest Salary Slip/Structure Assignment when available, then freely editable.",
+   "fieldname": "rate_per_hour",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Rate Per Hour"
+  },
+  {
+   "default": "9",
+   "description": "Standard hours worked per day - varies by site/designation (8/9/12-hour shifts)",
+   "fieldname": "hours_per_day",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Hours Per Day"
+  },
+  {
+   "fieldname": "s189_notice_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "S189(3) Notice Date"
+  },
+  {
+   "description": "Costing input - fetched once from Leave Balance when available, then freely editable",
+   "fieldname": "leave_days_balance",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Leave Days Balance"
+  },
+  {
+   "description": "Defaults to Leave Days Balance + 2.5 (one month's accrual buffer), directly editable",
+   "fieldname": "leave_days_projected",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Leave Days Projected"
+  },
+  {
+   "description": "Defaults from the Retrenchment Process' own Costing Parameters, overridable per employee",
+   "fieldname": "severance_weeks_per_completed_year",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Severance Weeks Per Completed Year"
+  },
+  {
+   "description": "Defaults from the Retrenchment Process' own Costing Parameters, overridable per employee",
+   "fieldname": "severance_hours_per_week",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Severance Hours Per Week"
+  },
+  {
+   "description": "Defaults from the Retrenchment Process' own Costing Parameters, overridable per employee",
+   "fieldname": "minimum_severance_weeks",
+   "fieldtype": "Float",
+   "hidden": 1,
+   "label": "Minimum Severance Weeks"
+  },
+  {
+   "fieldname": "total_allowances",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Total Allowances",
+   "read_only": 1
+  },
+  {
+   "fieldname": "thirty_days_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "30 Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completed_years",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Completed Years",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notice_weeks",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Notice Weeks",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notice_ends_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Notice Ends",
+   "read_only": 1
+  },
+  {
+   "fieldname": "weekly_rate",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Weekly Rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_leave_pay",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Estimated Leave Pay",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_notice_pay",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Estimated Notice Pay",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_severance_pay",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Estimated Severance Pay",
+   "read_only": 1
+  },
+  {
+   "fieldname": "estimated_total_cost",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Estimated Total Cost",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-23 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Retrenchment Affected Employee",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

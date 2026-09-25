@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-23 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "recipient_type",
+  "employee",
+  "employee_name",
+  "branch",
+  "designation",
+  "trade_union",
+  "contact_name",
+  "contact_email",
+  "delivery_method",
+  "date_served",
+  "signed_copy",
+  "acknowledged"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "default": "Employee",
+   "fieldname": "recipient_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Employee\nTrade Union\nOther",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.recipient_type==\"Employee\"",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "mandatory_depends_on": "eval:doc.recipient_type==\"Employee\"",
+   "options": "Employee"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Employee Name"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.branch",
+   "fieldname": "branch",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Branch"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Read Only",
+   "label": "Designation"
+  },
+  {
+   "depends_on": "eval:doc.recipient_type==\"Trade Union\"",
+   "fieldname": "trade_union",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Trade Union",
+   "mandatory_depends_on": "eval:doc.recipient_type==\"Trade Union\"",
+   "options": "Trade Union"
+  },
+  {
+   "depends_on": "eval:doc.recipient_type!=\"Employee\"",
+   "description": "e.g. a specific union official's name, or a regional HR/legal contact for \"Other\"",
+   "fieldname": "contact_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact Name"
+  },
+  {
+   "depends_on": "eval:doc.recipient_type!=\"Employee\"",
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact Email",
+   "mandatory_depends_on": "eval:doc.recipient_type==\"Other\"",
+   "options": "Email"
+  },
+  {
+   "columns": 2,
+   "fieldname": "delivery_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Delivery Method",
+   "options": "\nBy Hand\nWhatsApp\nSMS\nEmail\nPost\nOther"
+  },
+  {
+   "columns": 2,
+   "fieldname": "date_served",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date Served"
+  },
+  {
+   "fieldname": "signed_copy",
+   "fieldtype": "Attach",
+   "label": "Signed / Acknowledged Copy"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "acknowledged",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Acknowledged"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-23 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Section 189 Notice Recipient",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

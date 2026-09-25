@@ -1,0 +1,336 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 0,
+ "creation": "2026-09-23 09:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_admin",
+  "amended_from",
+  "ir_intervention",
+  "linked_intervention_processed",
+  "linked_intervention",
+  "notice_date",
+  "column_break_admin",
+  "company",
+  "letter_head",
+  "operation_description",
+  "issued_by",
+  "statutory_disclosure_tab",
+  "reason_for_dismissals",
+  "alternatives_considered",
+  "section_break_categories",
+  "designation_breakdown",
+  "selection_method",
+  "section_break_timing",
+  "proposed_implementation_date",
+  "implementation_notes",
+  "column_break_timing",
+  "severance_pay_proposal",
+  "section_break_assistance",
+  "assistance_offered",
+  "future_reemployment",
+  "section_break_counts",
+  "total_initially_affected",
+  "total_employees",
+  "column_break_counts",
+  "prior_operational_dismissals_12m",
+  "consultation_tab",
+  "proposed_consultation_date",
+  "proposed_consultation_time",
+  "proposed_consultation_venue",
+  "recipients_tab",
+  "recipients"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_admin",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Section 189 Notice",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Retrenchment Process",
+   "fieldname": "ir_intervention",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "IR Intervention",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "linked_intervention_processed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Linked Intervention Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "linked_intervention",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Retrenchment Process",
+   "options": "Retrenchment Process",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "notice_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Notice Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_admin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "letter_head",
+   "fieldtype": "Read Only",
+   "label": "Letterhead"
+  },
+  {
+   "description": "e.g. \"Bankfontein Operation\" - pre-filled from recipients' branches, editable",
+   "fieldname": "operation_description",
+   "fieldtype": "Data",
+   "label": "Operation / Site Description"
+  },
+  {
+   "default": "__user",
+   "fieldname": "issued_by",
+   "fieldtype": "Link",
+   "label": "Issued By",
+   "options": "User"
+  },
+  {
+   "fieldname": "statutory_disclosure_tab",
+   "fieldtype": "Tab Break",
+   "label": "Statutory Disclosure (s189(3))"
+  },
+  {
+   "description": "s189(3)(a)",
+   "fieldname": "reason_for_dismissals",
+   "fieldtype": "Text Editor",
+   "label": "Reason for the Contemplated Dismissals"
+  },
+  {
+   "description": "s189(3)(b)",
+   "fieldname": "alternatives_considered",
+   "fieldtype": "Text Editor",
+   "label": "Alternatives Considered"
+  },
+  {
+   "fieldname": "section_break_categories",
+   "fieldtype": "Section Break",
+   "label": "Employees and Categories Affected"
+  },
+  {
+   "description": "s189(3)(c) - numbers/categories of employees likely to be affected, snapshotted from the Retrenchment Process when this Notice was populated",
+   "fieldname": "designation_breakdown",
+   "fieldtype": "Table",
+   "label": "Categories Affected",
+   "options": "Section 189 Notice Designation"
+  },
+  {
+   "description": "s189(3)(d)",
+   "fieldname": "selection_method",
+   "fieldtype": "Text Editor",
+   "label": "Proposed Method of Selection"
+  },
+  {
+   "fieldname": "section_break_timing",
+   "fieldtype": "Section Break",
+   "label": "Timing and Severance"
+  },
+  {
+   "description": "s189(3)(e)",
+   "fieldname": "proposed_implementation_date",
+   "fieldtype": "Date",
+   "label": "Proposed Implementation Date"
+  },
+  {
+   "fieldname": "implementation_notes",
+   "fieldtype": "Small Text",
+   "label": "Implementation / Notice Period Notes"
+  },
+  {
+   "fieldname": "column_break_timing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "s189(3)(f). Note: s41 of the Basic Conditions of Employment Act sets the statutory minimum at one week's remuneration per completed year of service.",
+   "fieldname": "severance_pay_proposal",
+   "fieldtype": "Text Editor",
+   "label": "Proposed Severance Pay"
+  },
+  {
+   "fieldname": "section_break_assistance",
+   "fieldtype": "Section Break",
+   "label": "Assistance and Re-employment"
+  },
+  {
+   "description": "s189(3)(g)",
+   "fieldname": "assistance_offered",
+   "fieldtype": "Text Editor",
+   "label": "Assistance Offered"
+  },
+  {
+   "description": "s189(3)(h)",
+   "fieldname": "future_reemployment",
+   "fieldtype": "Text Editor",
+   "label": "Possibility of Future Re-employment"
+  },
+  {
+   "fieldname": "section_break_counts",
+   "fieldtype": "Section Break",
+   "label": "Statutory Headcounts"
+  },
+  {
+   "description": "s189(3)(c) - total employees initially affected on the Retrenchment Process at the time this Notice was populated",
+   "fieldname": "total_initially_affected",
+   "fieldtype": "Int",
+   "label": "Total Employees Initially Affected"
+  },
+  {
+   "description": "s189(3)(i)",
+   "fieldname": "total_employees",
+   "fieldtype": "Int",
+   "label": "Total Employees (this Company)"
+  },
+  {
+   "fieldname": "column_break_counts",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "s189(3)(j)",
+   "fieldname": "prior_operational_dismissals_12m",
+   "fieldtype": "Int",
+   "label": "Dismissed for Operational Requirements (Preceding 12 Months)"
+  },
+  {
+   "fieldname": "consultation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Consultation Invite"
+  },
+  {
+   "fieldname": "proposed_consultation_date",
+   "fieldtype": "Date",
+   "label": "Proposed Consultation Date"
+  },
+  {
+   "fieldname": "proposed_consultation_time",
+   "fieldtype": "Time",
+   "label": "Proposed Consultation Time"
+  },
+  {
+   "fieldname": "proposed_consultation_venue",
+   "fieldtype": "Data",
+   "label": "Proposed Consultation Venue"
+  },
+  {
+   "fieldname": "recipients_tab",
+   "fieldtype": "Tab Break",
+   "label": "Recipients"
+  },
+  {
+   "description": "Employee recipients, Trade Union recipients (s189 requires any Trade Union with members among the affected employees to be a recipient in its own right), and any \"Other\" cc recipient (e.g. a regional HR/legal email address)",
+   "fieldname": "recipients",
+   "fieldtype": "Table",
+   "label": "Recipients",
+   "options": "Section 189 Notice Recipient"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-09-23 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Section 189 Notice",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

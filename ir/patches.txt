@@ -38,3 +38,4 @@ ir.patches.backfill_status_change_form_company_letter_head
 ir.patches.backfill_site_transfer_form_company_letter_head
 ir.patches.backfill_employee_induction_record_company_letter_head
 ir.patches.backfill_leave_application_letter_head
+ir.patches.delete_orphaned_custom_docperms

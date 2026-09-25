@@ -355,5 +355,26 @@
   "modified": "2026-07-20 07:44:50.715536",
   "name": "PRED",
   "severity_rank": 5
+ },
+ {
+  "disc_offence_out": "Dismissal for Operational Requirements (Retrenchment)",
+  "docstatus": 0,
+  "doctype": "Offence Outcome",
+  "expires_or_lapses": 0,
+  "expiry_days": null,
+  "is_a_grievance_without_foundation": 0,
+  "is_a_performance_improvement": 0,
+  "is_not_incapacitated": 0,
+  "iscancellation": 0,
+  "isdemotion": 0,
+  "isnotguilty": 0,
+  "ispaydeduction": 0,
+  "ispayreduction": 0,
+  "issuspension": 0,
+  "istermination": 1,
+  "iswarning": 0,
+  "modified": "2026-09-23 12:00:00.000000",
+  "name": "RETR",
+  "severity_rank": 6
  }
 ]
