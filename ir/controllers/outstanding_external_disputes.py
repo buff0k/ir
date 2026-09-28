@@ -9,7 +9,6 @@ from ir.industrial_relations.email_style import EMAIL_STYLE_BLOCK, email_header,
 
 
 def outstanding_external_disputes():
-    # Fetch External Dispute Resolution documents with no outcome
     outstanding_cases = frappe.get_all(
         "External Dispute Resolution",
         filters={"outcome": ""},
@@ -66,7 +65,6 @@ def outstanding_external_disputes():
 
     table_html += "</tbody></table>"
 
-    # Send email to each recipient
     for email in recipient_emails:
         full_name = name_by_email.get(email) or "Valued IR Team"
         first_name = (full_name.split(" ")[0] if full_name else "Valued IR Team")

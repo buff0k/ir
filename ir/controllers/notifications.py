@@ -101,11 +101,9 @@ def handle_doc_event_create(doc, method):
 
 
 def handle_doc_event_update(doc, method):
-    # Stop modification notifications for Termination Form only
     if doc.doctype == "Termination Form":
         return
 
-    # Do not send update notifications for Anonymous Report
     if doc.doctype == "Anonymous Report":
         return
 
@@ -119,7 +117,6 @@ def handle_doc_event_update(doc, method):
 
 
 def handle_doc_event_submit(doc, method):
-    # No submit notification for Anonymous Report unless you explicitly want one
     if doc.doctype == "Anonymous Report":
         return
 
@@ -220,7 +217,6 @@ def handle_notification(
     subject = subject_template.format(**doc.as_dict(), action=action)
     url = frappe.utils.get_url(doc.get_url())
 
-    # Get current user
     actor = frappe.session.user
     actor_fullname = frappe.db.get_value("User", actor, "full_name") or actor
 
@@ -543,7 +539,6 @@ def _collect_recipients_from_table(parentfield, doc=None):
         row_user = row.get("user")
         user_doc = user_map.get(row_user)
 
-        # Skip disabled / missing users where a User was selected
         if row_user and not user_doc:
             continue
 
@@ -889,7 +884,6 @@ def _send_training_expiry_notifications(rows, notification_type, subject_prefix,
     global_recipients, global_names = _collect_global_trainer_recipients()
     branch_recipients, branch_names = _collect_trainer_recipients_by_branch()
 
-    # Global trainers receive the full list.
     if global_recipients:
         _send_training_expiry_email(
             recipients=global_recipients,
@@ -901,7 +895,6 @@ def _send_training_expiry_notifications(rows, notification_type, subject_prefix,
             notification_type=notification_type,
         )
 
-    # Branch trainers receive only their own branch list.
     rows_by_branch = defaultdict(list)
     for row in rows:
         branch = row.get("branch") or "No Branch"
@@ -1100,7 +1093,6 @@ def _collect_trainer_recipients_by_branch():
 
         user_doc = user_rows.get(row.get("user"))
 
-        # If a User was selected but is disabled / missing, skip the row.
         if row.get("user") and not user_doc:
             continue
 
@@ -1131,7 +1123,6 @@ def _resolve_user_recipients(rows):
     for row in rows:
         user_doc = user_rows.get(row.get("user"))
 
-        # If a User was selected but is disabled / missing, skip the row.
         if row.get("user") and not user_doc:
             continue
 

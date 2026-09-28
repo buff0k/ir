@@ -3,14 +3,12 @@
 
 frappe.ui.form.on("External Dispute Resolution", {
   refresh(frm) {
-    // shared IR UI styles (same approach as your other doctype)
     frappe.require("/assets/ir/css/ir_ui.css");
 
     frm.trigger("render_linked_outcome");
   },
 
   render_linked_outcome(frm) {
-    // `linked_outcome` is now an HTML field
     const wrapper = frm.fields_dict.linked_outcome && frm.fields_dict.linked_outcome.$wrapper;
     if (!wrapper) return;
 
@@ -35,20 +33,47 @@ frappe.ui.form.on("External Dispute Resolution", {
   },
 
   employee(frm) {
-    let employees = (frm.doc.employee || []).map(e => e.employee); // Extract employee IDs
+    let employees = (frm.doc.employee || []).map(e => e.employee);
     let existing_applicants = (frm.doc.applicant_history || []).map(a => a.applicant);
 
-    // Remove rows for employees no longer selected
     frm.doc.applicant_history = (frm.doc.applicant_history || []).filter(a => employees.includes(a.applicant));
 
-    // Add missing employees
     employees.forEach(emp => {
       if (!existing_applicants.includes(emp)) {
         let row = frm.add_child("applicant_history");
         row.applicant = emp;
+        // frm.add_child() + a direct property assignment doesn't fire the
+        // child table's own "applicant" trigger below (that only fires on a
+        // real frappe.model.set_value, e.g. the user picking a value in the
+        // grid) - call the same lookup directly so rows added this way still
+        // get auto-populated.
+        populate_applicant_links(frm, row.doctype, row.name);
       }
     });
 
     frm.refresh_field("applicant_history");
   },
 });
+
+frappe.ui.form.on("External Dispute Resolution Applicants", {
+  applicant(frm, cdt, cdn) {
+    populate_applicant_links(frm, cdt, cdn);
+  },
+});
+
+function populate_applicant_links(frm, cdt, cdn) {
+  const row = frappe.get_doc(cdt, cdn);
+  if (!row.applicant) return;
+
+  frappe.call({
+    method:
+      "ir.industrial_relations.doctype.external_dispute_resolution.external_dispute_resolution.get_latest_linked_records",
+    args: { applicant: row.applicant, exclude_edr: frm.doc.name },
+    callback(r) {
+      const data = r.message || {};
+      Object.entries(data).forEach(([fieldname, value]) => {
+        frappe.model.set_value(cdt, cdn, fieldname, value || "");
+      });
+    },
+  });
+}

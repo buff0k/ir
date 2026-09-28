@@ -3,7 +3,6 @@
 
 frappe.ui.form.on("Voluntary Seperation Agreement", {
     refresh: function(frm) {
-        // Check the flags before triggering the handler
         if (frm.doc.linked_disciplinary_action && !frm.doc.linked_disciplinary_action_processed) {
             frm.trigger('linked_disciplinary_action');
         } else if (frm.doc.linked_incapacity_proceeding && !frm.doc.linked_incapacity_proceeding_processed) {
@@ -118,10 +117,9 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 frm.set_value('company', doc.company || '');
                 frm.set_value('engagement_date', doc.date_of_joining || '');
                 frm.set_value('custom_id_number', doc.za_id_number || '');
-            
-                // Combine the current address lines into a single line
+
                 const addressLines = (doc.current_address || '').split('\n').map(line => line.trim());
-                const combinedAddress = addressLines.join(', '); // Use a comma and space as a separator
+                const combinedAddress = addressLines.join(', ');
                 frm.set_value('current_address', combinedAddress);
             });
         }
@@ -161,15 +159,13 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
     },
 
     before_save: function(frm) {
-        console.log('Running before_save'); // Debug log
+        console.log('Running before_save');
 
-        // Skip if already confirmed for this save
         if (frm.__confirmed_save) {
-            console.log('Save already confirmed'); // Debug log
+            console.log('Save already confirmed');
             return;
         }
 
-        // Determine linked document
         let linked_doc_name = frm.doc.linked_disciplinary_action || frm.doc.linked_incapacity_proceeding || frm.doc.linked_poor_performance;
         let linked_doctype = frm.doc.linked_disciplinary_action
             ? 'Disciplinary Action'
@@ -178,7 +174,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 : 'Poor Performance';
 
         if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
+            console.log(`Fetching outcome for linked document: ${linked_doc_name}`);
 
             frappe.call({
                 method: 'ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.get_linked_outcome',
@@ -194,26 +190,25 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                         const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
 
                         if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation'); // Debug log
+                            console.log('No existing outcome, skipping confirmation');
                             frm.__confirmed_save = true;
                             frappe.validated = true;  // Allow save
                             frm.save();
                             return;
                         }
 
-                        // Prompt for confirmation
                         let msg = `The linked document ${linked_doc_name} (${linked_doctype}) currently has an outcome: ${outcome_str} and outcome date: ${outcome_date_str}. These will be cleared upon saving. Do you want to proceed?`;
 
                         frappe.confirm(
                             msg,
                             function() {
-                                console.log('User confirmed save'); // Debug log
+                                console.log('User confirmed save');
                                 frm.__confirmed_save = true;  // Set flag after confirmation
                                 frappe.validated = true;  // Allow save
                                 frm.save();
                             },
                             function() {
-                                console.log('User canceled save'); // Debug log
+                                console.log('User canceled save');
                                 frappe.msgprint(__('Save operation canceled.'));
                                 frappe.validated = false;  // Block save
                             }
@@ -222,14 +217,14 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 }
             });
 
-            console.log('Blocking save until confirmation'); // Debug log
+            console.log('Blocking save until confirmation');
             frappe.validated = false;  // Block save
         }
     },
 
     before_submit: function(frm) {
-        console.log('Running before_submit'); // Debug log
-    
+        console.log('Running before_submit');
+
         if (!frm.doc.signed_vsp) {
             frappe.msgprint(__('You must attach the signed Voluntary Seperation before submitting.'));
             frappe.validated = false;
@@ -237,7 +232,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
         }
 
         if (frm.__confirmed_submit) {
-            console.log('Submit already confirmed'); // Debug log
+            console.log('Submit already confirmed');
             return;
         }
 
@@ -249,7 +244,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 : 'Poor Performance';
 
         if (linked_doc_name) {
-            console.log(`Fetching outcome for linked document: ${linked_doc_name}`); // Debug log
+            console.log(`Fetching outcome for linked document: ${linked_doc_name}`);
 
             frappe.call({
                 method: 'ir.industrial_relations.doctype.voluntary_seperation_agreement.voluntary_seperation_agreement.get_linked_outcome',
@@ -265,7 +260,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                         const outcome_date_str = outcome_date ? frappe.datetime.str_to_user(outcome_date) : 'None';
 
                         if (!outcome && !outcome_date) {
-                            console.log('No existing outcome, skipping confirmation for submit'); // Debug log
+                            console.log('No existing outcome, skipping confirmation for submit');
                             frm.__confirmed_submit = true;
                             frm.save({ action: 'submit' });
                             return;
@@ -276,7 +271,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                         frappe.confirm(
                             msg,
                             function() {
-                                console.log('User confirmed submit'); // Debug log
+                                console.log('User confirmed submit');
                                 frm.__confirmed_submit = true;
                                 frm.save({ action: 'submit' });
                             },
@@ -289,7 +284,7 @@ frappe.ui.form.on("Voluntary Seperation Agreement", {
                 }
             });
 
-            console.log('Blocking submit until confirmation'); // Debug log
+            console.log('Blocking submit until confirmation');
             frappe.validated = false;  // Block submit
         }
     }

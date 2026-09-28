@@ -24,7 +24,6 @@ frappe.ui.form.on("Site Transfer Form", {
     });
   },
 
-  // Block submit if no attachment (client-side)
   before_submit(frm) {
     if (!frm.doc.attach) {
       frappe.throw(__("You must attach the signed transfer form before submitting."));

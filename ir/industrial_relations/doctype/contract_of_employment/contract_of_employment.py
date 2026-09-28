@@ -12,9 +12,7 @@ def format_with_space_separator(number):
     if number is None:
         return '__________'
     try:
-        # Format number with comma as thousands separator first
         formatted_number = f"{number:,.2f}"
-        # Replace comma with space
         formatted_number = formatted_number.replace(',', ' ')
         return formatted_number
     except (ValueError, TypeError):
@@ -59,7 +57,7 @@ def number_to_words(number):
         words = number_to_words(integer_part) + ' Point ' + get_decimal_words(decimal_part)
         return words
 
-    number = int(number)  # Handle numbers without decimals
+    number = int(number)
     if number < 1000:
         return get_words_below_1000(number)
     elif number < 1000000:
@@ -73,8 +71,8 @@ class ContractofEmployment(Document):
     def validate(self):
         self.update_contract_clauses()
         self.generate_contract()
-        
-        # Ensure requied fields are populated based on selections, used for Data Import Function
+
+        # Ensure required fields are populated based on selections, used for Data Import Function
         if not self.employee_name:
             self.employee_name = frappe.db.get_value('Employee', self.employee, 'employee_name')
         if not self.company:
@@ -93,11 +91,8 @@ class ContractofEmployment(Document):
             self.branch = frappe.db.get_value('Employee', self.employee, 'branch')
         if not self.retirement_age:
             self.retirement_age = frappe.db.get_value('Contract Type', self.contract_type, 'retirement_age')
-        
-        # Ensure all required fields have been populated
-        self.ensure_required_fields()
 
-        # Check for allowance rate fields and set allowance descriptions
+        self.ensure_required_fields()
         self.set_allowance_descriptions()
 
     def set_allowance_descriptions(self):
@@ -106,14 +101,11 @@ class ContractofEmployment(Document):
             allowance_fields = ['allowance_1_rate', 'allowance_2_rate', 'allowance_3_rate', 'allowance_4_rate', 'allowance_5_rate']
             allowance_desc_fields = ['allowance_1_desc', 'allowance_2_desc', 'allowance_3_desc', 'allowance_4_desc', 'allowance_5_desc']
 
-            # Check if any allowance rate is populated
             allowance_rates = {field: getattr(self, field) for field in allowance_fields if getattr(self, field)}
 
             if allowance_rates:
-                # Fetch the Contract Section for the remuneration
                 section_doc = frappe.get_doc('Contract Section', self.remuneration)
 
-                # Initialize allowance descriptions
                 allowance_descriptions = {
                     'allowance_1_desc': "",
                     'allowance_2_desc': "",
@@ -122,7 +114,6 @@ class ContractofEmployment(Document):
                     'allowance_5_desc': ""
                 }
 
-                # Iterate over the child table in the Contract Section to find matching clauses
                 for row in section_doc.sec_par:
                     if row.clause_text:
                         if "{allowance_1}" in row.clause_text:
@@ -136,7 +127,6 @@ class ContractofEmployment(Document):
                         elif "{allowance_5}" in row.clause_text:
                             allowance_descriptions['allowance_5_desc'] = row.clause_text
 
-                # Set the description fields
                 for i, field in enumerate(allowance_desc_fields):
                     self.set(field, allowance_descriptions[field])
 
@@ -163,18 +153,13 @@ class ContractofEmployment(Document):
         if not self.contract_type:
             return
 
-        # Clear existing clauses
         self.contract_clauses = []
 
-        # Fetch the Contract Type document
         contract_type_doc = frappe.get_doc('Contract Type', self.contract_type)
 
-        # Dictionary to map section heading to section number
         sec_head_to_number = {}
 
-        # Loop through contract terms in the contract type document
         for term in contract_type_doc.contract_terms:
-            # Determine which section to use
             if term.section == "Remuneration Placeholder":
                 section = frappe.get_doc('Contract Section', self.remuneration)
             elif term.section == "Working Hours Placeholder":
@@ -182,27 +167,21 @@ class ContractofEmployment(Document):
             else:
                 section = frappe.get_doc('Contract Section', term.section)
 
-            # Map section heading to section number
             sec_head_to_number[section.sec_head] = term.sec_no
 
-            # Numbered section header
             section_number = term.sec_no
             section_header = f"<b>{section.sec_head}</b><br>"
 
-            # Handle paragraph numbering and content
             numbered_content, clause_numbers = self.handle_section_numbering(section, section_number)
 
-            # Add the section header as an entry in the contract_clauses table
             self.append('contract_clauses', {
                 'section_number': section_number,
                 'clause_number': section_number,
                 'clause_content': section_header
             })
 
-            # Combine the header and content
             clause_content = section_header + numbered_content + "<br><br>"
 
-            # Append to the contract_clauses table
             for par_num, clause_text in clause_numbers:
                 self.append('contract_clauses', {
                     'section_number': section_number,
@@ -210,7 +189,6 @@ class ContractofEmployment(Document):
                     'clause_content': clause_text,
                 })
 
-        # Store the mapping in self for later use
         self.sec_head_to_number = sec_head_to_number
 
     def handle_section_numbering(self, section, section_number):
@@ -233,19 +211,15 @@ class ContractofEmployment(Document):
                parts.append(par.item_num)
             if par.sitem_num > 0:
                 parts.append(par.sitem_num)
-        
-            # Join all parts with dots
+
             return '.'.join(map(str, parts))
 
         for par in section.sec_par:
-            # Construct the paragraph number using the section number and paragraph number
             par_num = build_par_num(par)
             clause_text = f"{par.clause_text}<br>"
 
-            # Append the formatted text to content
             content += clause_text
 
-            # Append the paragraph number and text to the list
             clause_numbers.append((par_num, clause_text))
 
         return content, clause_numbers
@@ -254,16 +228,13 @@ class ContractofEmployment(Document):
         """Formats the date as 'day of the week, the day of month year'."""
         if not date:
             return "_____________________"
-        # Convert the date to a datetime object if it isn't already
         if isinstance(date, str):
             date = datetime.strptime(date, '%Y-%m-%d')
-        # Determine the day suffix
         day_suffix = "th"
         if 4 <= date.day <= 20 or 24 <= date.day <= 30:
             day_suffix = "th"
         else:
             day_suffix = ["st", "nd", "rd"][date.day % 10 - 1]
-        # Format the date
         formatted_date = date.strftime(f"%A, the {date.day}{day_suffix} of %B %Y")
         return formatted_date
 
@@ -271,7 +242,6 @@ class ContractofEmployment(Document):
         """Generates the final contract document by replacing placeholders with actual data."""
         contract_content = "<table border='0' cellpadding='5' cellspacing='0'>"
 
-        # Ensure sec_head_to_number is populated
         if not hasattr(self, 'sec_head_to_number'):
             self.update_contract_clauses()
 
@@ -279,15 +249,12 @@ class ContractofEmployment(Document):
             clause_number = clause.clause_number
             clause_content = clause.clause_content
 
-            # Format clause_number in bold
             bold_clause_number = f"<b>{clause_number}</b>"
 
-            # Add table row with bold clause_number and clause_content
             contract_content += f"<tr><td>{bold_clause_number}</td><td>{clause_content}</td></tr>"
 
         contract_content += "</table>"
 
-        # Apply replacements to the entire contract content
         replacements = {
             "{employee_name}": f"<b>{self.employee_name or '_____________________'}</b>",
             "{date_of_joining}": f"<b>{self.format_date(self.date_of_joining)}</b>",
@@ -326,17 +293,14 @@ class ContractofEmployment(Document):
             "{retirement_age}": f"<b>{str(self.retirement_age) + ' (' + number_to_words(self.retirement_age) + ')' if self.retirement_age is not None else '__________'}</b>"
         }
 
-        # Apply replacements to the contract content
         for placeholder, replacement in replacements.items():
             contract_content = contract_content.replace(placeholder, replacement)
 
-        # Replace section headings with section numbers
         for sec_head, section_number in self.sec_head_to_number.items():
             escaped_sec_head = re.escape(sec_head)
             pattern = rf'\{{par\."{escaped_sec_head}"\}}'
             contract_content = re.sub(pattern, str(section_number), contract_content)
 
-        # Apply text formatting
         contract_content = re.sub(r'//(.*?)//', r'<i>\1</i>', contract_content)  # Italic
         contract_content = re.sub(r'__(.*?)__', r'<u>\1</u>', contract_content)  # Underline
         contract_content = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', contract_content)  # Bold
@@ -344,23 +308,18 @@ class ContractofEmployment(Document):
         self.generated_contract = contract_content
 
     def before_submit(self):
-        # Ensure the contract is signed before submitting
         if not self.signed_contract:
             frappe.throw(_("You cannot submit the document without attaching the signed contract."))
 
-        # Ensure employee exists
         if not self.employee:
             frappe.throw(_("Please link an Employee before submitting."))
 
-        # Fetch the Employee document
         employee = frappe.get_doc("Employee", self.employee)
 
-        # If has_expiry is true, update employment_type and contract_end_date
         if self.has_expiry and self.end_date:
-            employee.employment_type = "Contract"  # Set employment type to "Contract"
-            employee.contract_end_date = self.end_date  # Update contract end date
+            employee.employment_type = "Contract"
+            employee.contract_end_date = self.end_date
 
-        # Calculate and update date_of_retirement
         if self.retirement_age and employee.date_of_birth:
             # Calculate retirement date: date_of_birth + retirement_age - 1 day
             retirement_date = add_days(

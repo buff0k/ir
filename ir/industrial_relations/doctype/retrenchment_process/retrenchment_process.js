@@ -36,6 +36,11 @@ frappe.ui.form.on("Retrenchment Process", {
 				() => create_generic_child_doc(frm, "S189 Consultation"),
 				__("Create")
 			);
+			frm.add_custom_button(
+				__("Dismissal Forms for Affected Employees"),
+				() => generate_dismissal_forms(frm),
+				__("Create")
+			);
 		}
 	},
 
@@ -60,6 +65,10 @@ frappe.ui.form.on("Retrenchment Process", {
 	},
 
 	process_type(frm) {
+		render_guidance(frm);
+	},
+
+	override_process_type(frm) {
 		render_guidance(frm);
 	},
 
@@ -187,6 +196,27 @@ function create_generic_child_doc(frm, target_doctype) {
 	});
 }
 
+function generate_dismissal_forms(frm) {
+	frappe.confirm(
+		__(
+			"This will create a Dismissal Form for every named Affected Employee who is " +
+				"still Affected and Active and doesn't already have one, then email every " +
+				"Dismissal Form linked to this process to you in its default Print Format. Continue?"
+		),
+		() => {
+			frappe.call({
+				method: `${RETRENCHMENT_PROCESS_PY}.generate_and_email_dismissal_forms`,
+				args: { process_name: frm.doc.name },
+				freeze: true,
+				freeze_message: __("Queuing Dismissal Form generation ..."),
+				callback() {
+					frappe.msgprint(__("Generating Dismissal Forms in the background - you'll receive an email shortly."));
+				},
+			});
+		}
+	);
+}
+
 function add_employees_from_branches(frm) {
 	if (!frm.doc.company) {
 		frappe.msgprint(__("Select a Company first."));
@@ -305,12 +335,24 @@ function render_guidance(frm) {
 		},
 		callback(r) {
 			const data = r.message || {};
-			const color = data.meets_threshold ? "yellow" : "green";
+			const color = data.meets_threshold ? "orange" : "green";
 			$wrapper.html(`
-				<div class="form-message ${color}">
+				<div class="ir-bubble ir-bubble--${color}">
 					<div>${frappe.utils.escape_html(data.message || "")}</div>
 				</div>
 			`);
+
+			if (
+				!frm.doc.override_process_type &&
+				data.meets_threshold &&
+				frm.doc.process_type === "Section 189"
+			) {
+				frm.set_value("process_type", "Section 189A");
+				frappe.show_alert({
+					message: __("This process meets the Section 189A threshold - Process Type has been upgraded to \"Section 189A\"."),
+					indicator: "orange",
+				});
+			}
 		},
 	});
 }

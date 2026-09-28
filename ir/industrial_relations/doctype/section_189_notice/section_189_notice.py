@@ -51,15 +51,17 @@ class Section189Notice(Document):
 			return
 
 		covered = {
-			row.trade_union for row in self.recipients or [] if row.recipient_type == "Trade Union" and row.trade_union
+			row.trade_union
+			for row in self.recipients or []
+			if row.recipient_type in ("Union Official", "Union Region") and row.trade_union
 		}
 		missing = [row["trade_union"] for row in unions if row["trade_union"] not in covered]
 		if missing:
 			frappe.throw(
 				_(
 					"The following Trade Union(s) have members among the affected employees and "
-					"must be added as Trade Union Recipients before submitting (s189): {0}. Use "
-					"\"Populate Union Recipients\"."
+					"must be added as a Recipient (Union Official or Union Region) before "
+					"submitting (s189): {0}."
 				).format(", ".join(missing))
 			)
 
@@ -94,55 +96,24 @@ def fetch_from_process(retrenchment_process):
 
 
 @frappe.whitelist()
-def populate_recipients(retrenchment_process):
-	process = frappe.get_doc("Retrenchment Process", retrenchment_process)
-
-	recipients = []
-	skipped = 0
-	for row in process.affected_employees or []:
-		if not row.employee or (row.inclusion_status and row.inclusion_status != "Affected") or row.outcome:
-			skipped += 1
-			continue
-		recipients.append(
-			{
-				"recipient_type": "Employee",
-				"employee": row.employee,
-				"employee_name": row.employee_name,
-				"branch": row.branch,
-			}
-		)
-
-	if skipped:
-		frappe.msgprint(
-			_(
-				"{0} row(s) on the Retrenchment Process were skipped - either they have no "
-				"named Employee yet (category-only slots), they're marked Excluded/Transferred, "
-				"or they've already been dismissed."
-			).format(skipped),
-			indicator="orange",
-			alert=True,
-		)
-
-	return recipients
+def get_union_officials(trade_union):
+	"""Officials of `trade_union`, for the "Select Official / Region" picker -
+	the Notice's Recipients table is hand-curated (no bulk auto-fill), so this
+	just gives the picker something real to choose from."""
+	return frappe.get_all(
+		"Union Official",
+		filters={"parent": trade_union, "parenttype": "Trade Union", "parentfield": "of_list"},
+		fields=["name", "of_name", "of_pos", "of_mail"],
+		order_by="idx asc",
+	)
 
 
 @frappe.whitelist()
-def populate_union_recipients(retrenchment_process):
-	from ir.industrial_relations.doctype.retrenchment_process.retrenchment_process import (
-		get_union_membership_summary,
+def get_union_regions(trade_union):
+	"""Regional/area offices of `trade_union`, for the same picker."""
+	return frappe.get_all(
+		"Union Region",
+		filters={"parent": trade_union, "parenttype": "Trade Union", "parentfield": "region_list"},
+		fields=["name", "region_name", "region_contact_name", "region_mail"],
+		order_by="idx asc",
 	)
-
-	rows = []
-	for union in get_union_membership_summary(retrenchment_process):
-		officials = union["officials"]
-		primary = officials[0] if officials else {}
-		rows.append(
-			{
-				"recipient_type": "Trade Union",
-				"trade_union": union["trade_union"],
-				"contact_name": primary.get("of_name") or "",
-				"contact_email": primary.get("of_mail") or "",
-			}
-		)
-
-	return rows

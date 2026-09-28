@@ -1,5 +1,4 @@
 // Copyright (c) 2026, BuFf0k and contributors
-// Site Plan Designer Page
 
 const SP_API = "ir.industrial_relations.page.ir_site_plan_design.ir_site_plan_design";
 const SITE_PLAN_PY = "ir.industrial_relations.doctype.site_plan.site_plan";
@@ -219,10 +218,6 @@ class SitePlanDesigner {
     this.render_save_state();
   }
 
-  // ---------------------------------------------------------------------
-  // Group Headings
-  // ---------------------------------------------------------------------
-
   new_group_key() {
     return `GRP::${frappe.utils.get_random(10)}`;
   }
@@ -300,10 +295,6 @@ class SitePlanDesigner {
       }
     });
   }
-
-  // ---------------------------------------------------------------------
-  // Slots
-  // ---------------------------------------------------------------------
 
   new_slot_key() {
     return `SLOT::${frappe.utils.get_random(10)}`;
@@ -492,11 +483,9 @@ class SitePlanDesigner {
     this.render_slots();
   }
 
-  // ---------------------------------------------------------------------
-  // Reporting Lines - visual layout ported from the Organogram Designer,
+  // Reporting Lines visual layout is ported from the Organogram Designer,
   // adapted to render Slot summaries instead of live Employee assignments
   // (a Plan has no Employees/Assets, only the shape of what should exist).
-  // ---------------------------------------------------------------------
 
   shift_design_team_count(designName) {
     const row = (this.bootstrap.shift_designs || []).find((d) => d.name === designName);
@@ -982,10 +971,6 @@ class SitePlanDesigner {
 
     dialog.$wrapper.find(".modal-footer").prepend($delete);
   }
-
-  // ---------------------------------------------------------------------
-  // Save / delete / misc
-  // ---------------------------------------------------------------------
 
   async save() {
     const validationError = this.validate();

@@ -11,16 +11,12 @@ frappe.ui.form.on("Section 189 Notice", {
 
 		if (frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.linked_intervention) {
 			frm.add_custom_button(__("Pull from Process"), () => pull_from_process(frm));
-			frm.add_custom_button(__("Populate Recipients"), () => populate_recipients(frm));
-			frm.add_custom_button(__("Populate Union Recipients"), () => populate_union_recipients(frm));
 		}
 	},
 
 	linked_intervention(frm) {
 		if (!frm.doc.linked_intervention) return;
 		pull_from_process(frm, { silent: true });
-		populate_recipients(frm, { silent: true });
-		populate_union_recipients(frm, { silent: true });
 		frm.set_value("linked_intervention_processed", 1);
 	},
 
@@ -40,6 +36,88 @@ frappe.ui.form.on("Section 189 Notice", {
 			frappe.msgprint(__("Add at least one Recipient before submitting this Notice."));
 			frappe.validated = false;
 		}
+	},
+});
+
+frappe.ui.form.on("Section 189 Notice Recipient", {
+	recipient_type(frm, cdt, cdn) {
+		const row = frappe.get_doc(cdt, cdn);
+		frappe.model.set_value(cdt, cdn, "union_official_row", "");
+		frappe.model.set_value(cdt, cdn, "union_region_row", "");
+		if (row.recipient_type !== "Other") {
+			frappe.model.set_value(cdt, cdn, "contact_name", "");
+			frappe.model.set_value(cdt, cdn, "contact_email", "");
+		}
+	},
+
+	trade_union(frm, cdt, cdn) {
+		frappe.model.set_value(cdt, cdn, "union_official_row", "");
+		frappe.model.set_value(cdt, cdn, "union_region_row", "");
+		frappe.model.set_value(cdt, cdn, "contact_name", "");
+		frappe.model.set_value(cdt, cdn, "contact_email", "");
+	},
+
+	select_union_contact(frm, cdt, cdn) {
+		const row = frappe.get_doc(cdt, cdn);
+		if (!row.trade_union) {
+			frappe.msgprint(__("Select a Trade Union first."));
+			return;
+		}
+
+		const is_region = row.recipient_type === "Union Region";
+		frappe.call({
+			method: `${SECTION_189_NOTICE_PY}.${is_region ? "get_union_regions" : "get_union_officials"}`,
+			args: { trade_union: row.trade_union },
+			freeze: true,
+			callback(r) {
+				const options = r.message || [];
+				if (!options.length) {
+					frappe.msgprint(
+						is_region
+							? __("{0} has no Regional/Area Offices on file.", [row.trade_union])
+							: __("{0} has no Officials on file.", [row.trade_union])
+					);
+					return;
+				}
+
+				const dialog = new frappe.ui.Dialog({
+					title: is_region ? __("Select Regional/Area Office") : __("Select Official"),
+					fields: [
+						{
+							fieldname: "contact_row",
+							fieldtype: "Autocomplete",
+							label: is_region ? __("Regional/Area Office") : __("Official"),
+							reqd: 1,
+							options: options.map((o) => ({
+								value: o.name,
+								label: is_region
+									? `${o.region_name}${o.region_contact_name ? " - " + o.region_contact_name : ""}`
+									: `${o.of_name}${o.of_pos ? " - " + o.of_pos : ""}`,
+							})),
+						},
+					],
+					primary_action_label: __("Select"),
+					primary_action(values) {
+						const picked = options.find((o) => o.name === values.contact_row);
+						if (!picked) {
+							dialog.hide();
+							return;
+						}
+						if (is_region) {
+							frappe.model.set_value(cdt, cdn, "union_region_row", picked.name);
+							frappe.model.set_value(cdt, cdn, "contact_name", picked.region_name);
+							frappe.model.set_value(cdt, cdn, "contact_email", picked.region_mail || "");
+						} else {
+							frappe.model.set_value(cdt, cdn, "union_official_row", picked.name);
+							frappe.model.set_value(cdt, cdn, "contact_name", picked.of_name);
+							frappe.model.set_value(cdt, cdn, "contact_email", picked.of_mail || "");
+						}
+						dialog.hide();
+					},
+				});
+				dialog.show();
+			},
+		});
 	},
 });
 

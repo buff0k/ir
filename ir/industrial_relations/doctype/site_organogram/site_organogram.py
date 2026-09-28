@@ -38,10 +38,6 @@ class SiteOrganogram(Document):
             frappe.throw(_("Effective Until cannot be before Effective From."))
 
 
-# -------------------------------------------------------------------
-# Generic helpers
-# -------------------------------------------------------------------
-
 def _as_list(value):
     if value is None:
         return []
@@ -385,20 +381,12 @@ def normalize_mappings(doc):
             row.row_order = key_order.get(row.row_key) or 1
 
 
-# -------------------------------------------------------------------
-# Branch / Location helpers
-# -------------------------------------------------------------------
-
 @frappe.whitelist()
 def get_matching_location_for_branch(branch):
     if not branch:
         return None
     return branch if frappe.db.exists("Location", branch) else None
 
-
-# -------------------------------------------------------------------
-# Employee / Asset sync
-# -------------------------------------------------------------------
 
 @frappe.whitelist()
 def sync_employees(branch, current_employees=None, auto_employees=None):
@@ -559,10 +547,6 @@ def debug_assets_query(location, asset_categories=None):
         "sample": sample,
     }
 
-
-# -------------------------------------------------------------------
-# Template / Clone helpers
-# -------------------------------------------------------------------
 
 @frappe.whitelist()
 def list_recent_site_organograms_for_branch(branch, exclude_name=None, limit=5):
@@ -794,10 +778,6 @@ def get_site_plan_template(site_plan_name):
         ],
     }
 
-
-# -------------------------------------------------------------------
-# Excel export
-# -------------------------------------------------------------------
 
 SHIFT_LETTERS = [chr(65 + i) for i in range(20)]
 
@@ -1505,9 +1485,6 @@ def export_site_organogram_excel(name):
     frappe.local.response.filename = filename
     frappe.local.response.filecontent = out.getvalue()
     frappe.local.response.type = "binary"
-# -------------------------------------------------------------------
-# Organogram Designer Page API
-# -------------------------------------------------------------------
 
 def _designer_child_rows(rows, fields):
     return [

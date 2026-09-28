@@ -24,7 +24,6 @@ frappe.query_reports["Schedule of Offences"] = {
     },
 
     onload: function(report) {
-        // Ensure report refreshes automatically on load
         report.refresh();
 
         // Same visual language as the "Schedule of Offences Standard" print

@@ -61,7 +61,7 @@ class RetrenchmentProcess(Document):
 		self.total_employees = guidance["total_employees"]
 		if not self.override_prior_dismissals_12m:
 			self.prior_operational_dismissals_12m = guidance["prior_dismissals"]
-		self._warn_on_process_type_mismatch(guidance)
+		self._apply_process_type_guidance(guidance)
 
 		from ir.industrial_relations.doctype.retrenchment_process.retrenchment_costing import (
 			_apply_costing,
@@ -142,16 +142,21 @@ class RetrenchmentProcess(Document):
 				).format(", ".join(sorted(protected)))
 			)
 
-	def _warn_on_process_type_mismatch(self, guidance):
-		if guidance["threshold"] is None:
+	def _apply_process_type_guidance(self, guidance):
+		"""Process Type defaults to Section 189 and is auto-upgraded to Section
+		189A the moment the numbers meet the threshold - a one-way nudge, never
+		auto-downgraded, since a process already filed as 189A shouldn't
+		silently revert just because a row was later excluded. Manually
+		Override This Selection opts out of the auto-upgrade entirely, so a
+		user who deliberately wants to keep filing as 189 despite meeting the
+		threshold isn't overruled on their next save."""
+		if guidance["threshold"] is None or self.override_process_type:
 			return
 
 		if guidance["meets_threshold"] and self.process_type == "Section 189":
+			self.process_type = "Section 189A"
 			frappe.msgprint(
-				_(
-					"Based on current numbers, this process meets the Section 189A threshold. "
-					"Consider changing Process Type to \"Section 189A\"."
-				),
+				_("This process meets the Section 189A threshold - Process Type has been upgraded to \"Section 189A\"."),
 				indicator="orange",
 				alert=True,
 			)
@@ -212,12 +217,11 @@ def _count_prior_operational_dismissals(company, reference_date=None, exclude_pr
 
 
 def _process_headcounts(process):
-	"""Live, process-scoped headcounts (not company-wide) - the three counts
-	the user asked for: how many were ever put forward on this process, how
-	many are still pending a decision, and how many of this process's own
-	employees have already been dismissed (within the trailing 12 months -
-	in practice almost always "all of them", since a single process rarely
-	runs longer than that)."""
+	"""Live, process-scoped headcounts (not company-wide): how many were ever
+	put forward on this process, how many are still pending a decision, and
+	how many of this process's own employees have already been dismissed
+	within the trailing 12 months (in practice almost always "all of them",
+	since a single process rarely runs longer than that)."""
 	reference_date = getdate(nowdate())
 	window_start = add_months(reference_date, -12)
 
@@ -314,6 +318,112 @@ def get_linked_docs_html(process_name):
 	)
 
 
+@frappe.whitelist()
+def generate_and_email_dismissal_forms(process_name):
+	"""Kick off the "Generate Dismissal Forms" bulk action as a background
+	job (PDF rendering + email for potentially many employees is too slow
+	for a single request/response cycle) and return immediately."""
+	frappe.has_permission("Retrenchment Process", "write", doc=process_name, throw=True)
+	frappe.enqueue(
+		"ir.industrial_relations.doctype.retrenchment_process.retrenchment_process._generate_and_email_dismissal_forms",
+		queue="short",
+		job_name=f"retrenchment-dismissal-forms-{process_name}",
+		process_name=process_name,
+		requesting_user=frappe.session.user,
+	)
+
+
+def _generate_and_email_dismissal_forms(process_name, requesting_user):
+	"""Create a Dismissal Form for every named row that's still Affected,
+	has no outcome/dismissal_form recorded yet, and whose Employee is
+	currently Active - skipping anyone Excluded/Transferred, already
+	dismissed, or already Left for an unrelated reason. Then email every
+	Dismissal Form linked to this process (new and pre-existing) to
+	whoever triggered the action, in its default Print Format.
+
+	Runs as a background job - frappe.enqueue only surfaces an exception in
+	the Error Log, not to the browser, so failures here are reported back to
+	the requesting user directly via a realtime msgprint instead of being
+	silently invisible to them."""
+	from ir.industrial_relations.doctype.dismissal_form.dismissal_form import (
+		build_retrenchment_dismissal_form,
+	)
+
+	try:
+		process = frappe.get_doc("Retrenchment Process", process_name)
+
+		created = []
+		for row in process.affected_employees or []:
+			if not row.employee or not _is_affected(row) or row.outcome or row.dismissal_form:
+				continue
+			if frappe.db.get_value("Employee", row.employee, "status") != "Active":
+				continue
+			dismissal_form = build_retrenchment_dismissal_form(process, row)
+			created.append(dismissal_form.name)
+
+		linked_forms = frappe.get_all(
+			"Dismissal Form",
+			filters={"ir_intervention": "Retrenchment Process", "linked_intervention": process_name},
+			pluck="name",
+		)
+
+		_email_dismissal_forms(process_name, linked_forms, created, requesting_user)
+	except Exception:
+		frappe.log_error(title=f"Generate Dismissal Forms failed for {process_name}")
+		frappe.publish_realtime(
+			event="msgprint",
+			message={
+				"message": _(
+					"Generating Dismissal Forms for {0} failed - see the Error Log for details."
+				).format(process_name),
+				"indicator": "red",
+			},
+			user=requesting_user,
+		)
+		raise
+
+
+def _email_dismissal_forms(process_name, linked_forms, newly_created, requesting_user):
+	recipient = frappe.db.get_value("User", requesting_user, "email") or requesting_user
+
+	if not linked_forms:
+		frappe.sendmail(
+			recipients=[recipient],
+			subject=_("Dismissal Forms - {0}").format(process_name),
+			message=_(
+				"No Dismissal Forms currently exist for {0} - no named employees on this "
+				"process are both still Affected and Active."
+			).format(process_name),
+			reference_doctype="Retrenchment Process",
+			reference_name=process_name,
+		)
+	else:
+		attachments = [
+			frappe.attach_print("Dismissal Form", name, print_format="Dismissal Form") for name in linked_forms
+		]
+		frappe.sendmail(
+			recipients=[recipient],
+			subject=_("Dismissal Forms - {0}").format(process_name),
+			message=_("{0} Dismissal Form(s) attached ({1} newly generated).").format(
+				len(linked_forms), len(newly_created)
+			),
+			attachments=attachments,
+			reference_doctype="Retrenchment Process",
+			reference_name=process_name,
+		)
+
+	frappe.publish_realtime(
+		event="msgprint",
+		message={
+			"message": _("Dismissal Forms for {0}: {1} generated, {2} emailed to {3}.").format(
+				process_name, len(newly_created), len(linked_forms), recipient
+			),
+			"indicator": "green",
+		},
+		user=requesting_user,
+	)
+
+
 def _is_affected(row):
 	return not row.inclusion_status or row.inclusion_status == "Affected"
 
@@ -395,10 +505,9 @@ def get_outstanding_recipients(process_name):
 @frappe.whitelist()
 def get_affected_employee_status(process_name):
 	"""Per-employee status for every NAMED row on `process_name`, regardless
-	of inclusion_status - the "why doesn't each listed employee show its
-	linked children" answer: computed live from Section 189 Notice
-	Recipients and Dismissal Forms rather than cached, so it can never drift
-	out of sync with what was actually issued/decided."""
+	of inclusion_status - computed live from Section 189 Notice Recipients
+	and Dismissal Forms rather than cached, so it can never drift out of
+	sync with what was actually issued/decided."""
 	process = frappe.get_doc("Retrenchment Process", process_name)
 	rows = [row for row in (process.affected_employees or []) if row.employee]
 	employees = [row.employee for row in rows]

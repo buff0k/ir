@@ -15,7 +15,7 @@ structure, confirmed against live data) - a per-Branch plan would collide
 with itself the moment two Branches under the same Company needed the same
 Designation.
 
-Company filtering convention (resolved with the user): a Company filter only
+Company filtering convention: a Company filter only
 narrows which *filled* slots count as filled - a slot occupied by a
 different Company's Employee, or genuinely empty, both fall to "vacant" from
 the selected Company's own point of view. `total` is never affected by it.

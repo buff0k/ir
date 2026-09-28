@@ -54,7 +54,6 @@ async function render_organogram_ui(frm) {
         .machine-grid { display: grid; grid-template-columns: 1fr repeat(3, 1fr); gap: 4px; align-items: start; }
     </style>`;
 
-    // Unassigned Employees Pool
     html += `<div class="panel-title">Unassigned Employees</div><div class="card-pool drop-zone" id="unassigned-pool" data-unassigned="true">`;
     for (let emp of employees) {
         if (assigned.find(a => a.employee === emp.name)) continue;
@@ -66,13 +65,11 @@ async function render_organogram_ui(frm) {
     }
     html += `</div>`;
 
-    // Day Shift and Support side-by-side
     html += `<div class="panel-title">Day Shift Assignments</div><div class="side-by-side">`;
     html += render_shift_panel('Day Shift', assigned, [], 'General Roles');
     html += render_shift_panel('Support', assigned, [], 'Support Team');
     html += `</div>`;
 
-    // Shift Teams - Asset column + Team columns
     html += `<div class="panel-title">Shift Teams</div><div class="machine-grid">`;
     html += `<div class="header-cell">Asset</div>`;
     for (let shift of team_shifts) html += `<div class="header-cell">${shift}</div>`;
@@ -88,7 +85,6 @@ async function render_organogram_ui(frm) {
     }
     html += `</div>`;
 
-    // Night Shift
     html += `<div class="panel-title">Night Shift (General Roles)</div>`;
     html += render_shift_panel('Night Shift', assigned);
 
@@ -144,7 +140,6 @@ function enable_organogram_drag_and_drop(frm) {
             const asset = zone.dataset.asset || null;
             const asset_name = zone.dataset.asset_name || null;
 
-            // Handle unassigned drag
             if (zone.dataset.unassigned) {
                 frm.doc.employee_list = frm.doc.employee_list.filter(r => r.employee !== data.employee);
                 frm.refresh_field('employee_list');
@@ -152,7 +147,6 @@ function enable_organogram_drag_and_drop(frm) {
                 return;
             }
 
-            // prevent duplicates
             const exists = frm.doc.employee_list.find(r =>
                 r.employee === data.employee &&
                 r.shift === shift &&
@@ -188,7 +182,6 @@ function enable_organogram_drag_and_drop(frm) {
         });
     });
 
-    // remove buttons
     document.querySelectorAll('.remove-btn').forEach(btn => {
         btn.addEventListener('click', e => {
             const id = btn.dataset.remove;

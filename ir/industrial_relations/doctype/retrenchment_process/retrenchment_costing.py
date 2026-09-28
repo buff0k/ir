@@ -2,29 +2,26 @@
 # For license information, please see license.txt
 
 """Retrenchment cost estimation - notice pay, severance pay, and leave payout
-per Affected Employee, replicating a real spreadsheet this team already uses
-(IS_BNK_CALC.xlsx) but generalised in two ways the workbook itself couldn't
-be, per the user:
+per Affected Employee, replicating the team's existing costing workbook
+(IS_BNK_CALC.xlsx) with two generalisations the fixed spreadsheet couldn't
+support:
 
 1. Allowances are an open-ended, per-employee list (Retrenchment Employee
    Allowance, a sibling child table on Retrenchment Process - Frappe has no
    nested child tables, so this can't live inside Retrenchment Affected
    Employee itself), not a fixed set of named columns - different
    sites/designations carry different allowances.
-2. Several of the workbook's own hardcoded numbers (9 hours/day, 45 severance
-   hours/week) are real, negotiable/variable terms, not universal constants -
-   hours/day varies by site/designation, and severance terms
-   (weeks-per-completed-year, the hourly "week" definition, a minimum-weeks
-   floor) get negotiated per process and are exposed as real fields rather
-   than literals.
+2. Several of the workbook's hardcoded numbers (9 hours/day, 45 severance
+   hours/week) are actually negotiable/variable terms - hours/day varies by
+   site/designation, and severance terms (weeks-per-completed-year, the
+   hourly "week" definition, a minimum-weeks floor) get negotiated per
+   process and are exposed as real fields rather than literals.
 
 Rate/allowance/leave fetch (get_employee_cost_inputs) targets Salary Structure
-Assignment / Salary Slip / Leave Balance - the correct, "Normal Way" sources -
-even though none of the first two have any submitted records in this system
-yet, and Leave Allocation has no baseline. That's fine: this returns blanks
-until real payroll/leave data exists, and the user fills the row in by hand
-until then - not a special case, just what "pull once, allow override" means
-before go-live.
+Assignment / Salary Slip / Leave Balance, even though none of those have any
+submitted records in this system yet. It returns blanks until real
+payroll/leave data exists, and the user fills the row in by hand until then -
+"pull once, allow override" applies before go-live too.
 """
 
 from __future__ import annotations

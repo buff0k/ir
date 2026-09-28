@@ -416,7 +416,7 @@ def execute(filters=None):
             "occupation": emp.designation,
 
             "total_hours_at_work": 0,  # Total man hours + Overtime(2.0)
-            "nt_hours": 0,             # N/T
+            "nt_hours": 0,
 
             "total_payment_hours": "",
 
@@ -566,7 +566,6 @@ def execute(filters=None):
                     if expected_daily is not None:
                         row["total_leave_hours"] += expected_daily
 
-        # totals
         row["total_hours_at_work"] = float(row.get("total_man_hours") or 0) + float(row.get("overtime_2_0") or 0)
 
         try:
@@ -579,10 +578,8 @@ def execute(filters=None):
         except Exception:
             man_val = 0.0
 
-        # N/T
         row["nt_hours"] = man_val if man_val < expected_val else expected_val
 
-        # overtime(1.0)
         diff = man_val - expected_val
         row["overtime_1_0"] = int(diff) if diff > 0 else 0
 
@@ -639,7 +636,7 @@ def _build_columns(dates):
         {"label": "Surname", "fieldname": "surname", "width": 120},
         {"label": "Occupation", "fieldname": "occupation", "width": 150},
 
-        # ✅ REQUIRED ORDER
+        # Required order
         {"label": "TOTAL HOURS AT WORK", "fieldname": "total_hours_at_work", "width": 170},
         {"label": "EXPECTED HOURS", "fieldname": "expected_hours", "width": 140},
         {"label": "TOTAL PAYMENT HOURS", "fieldname": "total_payment_hours", "width": 170},

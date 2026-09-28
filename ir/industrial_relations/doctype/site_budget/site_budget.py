@@ -656,11 +656,10 @@ def export_site_budget_summary_xlsx(site_budget):
 
 			row += 1
 
-		# --- Per-period subtotal - this is the actual "what does this pay
-		# period total" breakdown that was missing: every month gets its own
-		# subtotal row here, the same way the on-screen summary gives every
-		# month its own "Period Total" footer, instead of only a single
-		# combined figure at the very end of the sheet.
+		# --- Per-period subtotal: every month gets its own subtotal row
+		# here, the same way the on-screen summary gives every month its own
+		# "Period Total" footer, instead of one combined figure at the very
+		# end of the sheet.
 		if row > month_first_row:
 			month_last_row = row - 1
 			sheet.write_string(row, COL_DESIGNATION, f"Total - {_month_label(month_key)}", total_label_format)
