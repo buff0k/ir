@@ -782,6 +782,73 @@ body[data-theme="dark"] .so-card__warning {
   margin-bottom: 16px;
 }
 
+/* -------------------------------------------------
+   Reporting-lines matrix - per-branch columns
+   Each branch (and its own descendant rows) stacks in
+   its own independent column, so one unusually tall
+   branch never pushes empty space under its siblings.
+   ------------------------------------------------- */
+
+.so-org-columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.so-org-branch-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Scoped to this new per-column layout only - .so-org-grid__cell--branch is
+   also used (combined with the older .so-org-grid__cell base class) by the
+   still-unconverted Site Plan reporting-lines matrix, so its own layout
+   rules are left untouched; this just fills in what the base class used to
+   provide for this one context. */
+.so-org-branch-column > .so-org-grid__cell--branch {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.so-org-column-step {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  padding-top: 26px;
+  padding-bottom: 28px;
+  padding-left: 36px;
+}
+
+.so-org-column-step.is-last {
+  padding-bottom: 0;
+}
+
+/* Real elements, not ::before/::after - the PNG export (html2canvas) works
+   by baking every real element's *computed* style inline before capture
+   (see bake_computed_styles in ir_organogram_design.js), because it can't
+   reliably parse this file's color-mix()-based CSS variables on its own.
+   Pseudo-elements aren't part of that baking pass, so anything that must
+   survive PNG export needs to be a real node - matching
+   .so-org-grid__cell-connector below, which already is one. */
+.so-org-column-connector-out {
+  position: absolute;
+  left: var(--branch-spine-x);
+  bottom: 0;
+  width: calc(50% - var(--branch-spine-x));
+  height: 28px;
+  border-bottom: 2.5px solid var(--so-line-color);
+  border-right: 2.5px solid var(--so-line-color);
+  border-radius: 0 0 8px 0;
+  box-sizing: border-box;
+}
+
 .so-org-block {
   width: 320px;
   overflow: hidden;

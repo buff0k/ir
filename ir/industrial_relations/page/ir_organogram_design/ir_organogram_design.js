@@ -1642,81 +1642,46 @@ class SiteOrganogramDesigner {
     const rootInset = columnWidth / 2;
     const branchSpineInset = 18;
 
-    // A branch with zero descendant rows (e.g. a heading reporting straight
-    // to the root with nothing below it) shouldn't draw *any* "drops down
-    // further" connector - the old code drew one unconditionally for every
-    // branch, producing a stub hanging off branches that connect to
-    // nothing. Same idea per-row below: a branch's spine should only cover
-    // rows up to and including its own last row with a node in it, not the
-    // full height of every level row that happens to exist for *other*
-    // branches.
-    const lastRowIndexByBranch = new Map();
-    layout.branches.forEach(branch => {
-      let last = -1;
-      layout.rowDefs.forEach((row, idx) => {
-        if (layout.branchRows.get(branch.key)?.has(row.group_key)) last = idx;
-      });
-      lastRowIndexByBranch.set(branch.key, last);
-    });
+    // Each branch is laid out as its own independent vertical column -
+    // the branch box followed directly by *its own* descendant rows, in
+    // group_order. Branches used to share one page-wide row band per
+    // descendant level (so every branch's row N sat at the same height),
+    // which meant one unusually tall branch (e.g. a heading with dozens of
+    // rows stacked inside it, no descendants of its own) forced a huge
+    // blank gap under every *other* branch before their own, unrelated
+    // descendants could start. Stacking each branch's own content in its
+    // own column removes that cross-branch coupling entirely - a short
+    // branch's column is simply shorter.
+    const columnsHtml = layout.branches
+      .map(branch => {
+        const ownRows = layout.rowDefs
+          .map(row => layout.branchRows.get(branch.key)?.get(row.group_key))
+          .filter(Boolean);
 
-    const branchRow = layout.branches
-      .map((branch, index) => {
-        const hasDescendants = lastRowIndexByBranch.get(branch.key) >= 0;
-        return `
-        <div class="so-org-grid__cell so-org-grid__cell--branch${hasDescendants ? " has-descendants" : ""}"
-             style="--branch-spine-x:${branchSpineInset}px;">
-          ${this.organogram_block_html(this.reporting_present_node(branch))}
-        </div>
-      `;
-      })
-      .join("");
-
-    const levelRows = layout.rowDefs
-      .map((row, rowIndex) => {
-        const guides = layout.branches
-          .map((branch, index) => {
-            const lastIdx = lastRowIndexByBranch.get(branch.key);
-            if (lastIdx < 0 || rowIndex > lastIdx) return "";
-            const spineX = index * (columnWidth + columnGap) + branchSpineInset;
-            const isTerminal = rowIndex === lastIdx;
-            return `<span class="so-org-descendants__row-spine${isTerminal ? " is-terminal" : ""}" style="left:${spineX}px"></span>`;
-          })
-          .join("");
-
-        const cells = layout.branches
-          .map(branch => {
-            const node = layout.branchRows.get(branch.key)?.get(row.group_key);
+        const stepsHtml = ownRows
+          .map((node, index) => {
+            const isLast = index === ownRows.length - 1;
             return `
-                <div class="so-org-grid__cell ${node ? "has-node" : "is-empty"}"
-                     style="--branch-spine-x:${branchSpineInset}px;">
-                  ${node ? '<div class="so-org-grid__cell-connector"></div>' : ''}
-                  ${
-                    node
-                      ? this.organogram_block_html(this.reporting_present_node(node))
-                      : '<div class="so-org-grid__placeholder"></div>'
-                  }
-                </div>
-              `;
+            <div class="so-org-column-step${isLast ? " is-last" : ""}"
+                 style="--branch-spine-x:${branchSpineInset}px;">
+              <div class="so-org-grid__cell-connector"></div>
+              ${isLast ? "" : '<div class="so-org-column-connector-out"></div>'}
+              ${this.organogram_block_html(this.reporting_present_node(node))}
+            </div>
+          `;
           })
           .join("");
 
         return `
-        <div class="so-org-grid__row so-org-grid__row--level"
-             style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
-          <div class="so-org-grid__row-guides">${guides}</div>
-          ${cells}
-        </div>
-      `;
-      })
-      .join("");
-
-    const branchGuides = layout.branches
-      .map((branch, index) => {
-        if (lastRowIndexByBranch.get(branch.key) < 0) return "";
-        const columnLeft = index * (columnWidth + columnGap);
-        const centreX = columnLeft + columnWidth / 2;
-        const spineX = columnLeft + branchSpineInset;
-        return `<span class="so-org-descendants__branch-start" style="left:${spineX}px; width:${centreX - spineX}px"></span>`;
+          <div class="so-org-branch-column" style="width:${columnWidth}px;">
+            <div class="so-org-grid__cell--branch${ownRows.length ? " has-descendants" : ""}"
+                 style="--branch-spine-x:${branchSpineInset}px;">
+              ${ownRows.length ? '<div class="so-org-column-connector-out"></div>' : ""}
+              ${this.organogram_block_html(this.reporting_present_node(branch))}
+            </div>
+            ${stepsHtml}
+          </div>
+        `;
       })
       .join("");
 
@@ -1738,20 +1703,8 @@ class SiteOrganogramDesigner {
             .join("")}
         </div>
 
-        <div class="so-org-grid">
-          <div class="so-org-grid__row so-org-grid__row--branches"
-               style="grid-template-columns: repeat(${cols}, ${columnWidth}px); column-gap:${columnGap}px;">
-            ${branchRow}
-          </div>
-
-          ${layout.rowDefs.length
-            ? `
-              <div class="so-org-descendants" style="width:${connectorWidth}px;">
-                <div class="so-org-descendants__guides">${branchGuides}</div>
-                ${levelRows}
-              </div>
-            `
-            : ''}
+        <div class="so-org-columns" style="column-gap:${columnGap}px;">
+          ${columnsHtml}
         </div>
       </div>
     `;
