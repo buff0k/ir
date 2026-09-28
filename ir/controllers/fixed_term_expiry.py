@@ -9,7 +9,6 @@ from ir.industrial_relations.utils import filter_rows_for_recipient, get_ir_noti
 
 
 def fixed_term_expiry():
-    # Fetch contracts expiring within the next four weeks with additional filters
     expiring_contracts = frappe.get_all(
         "Contract of Employment",
         filters={
@@ -19,13 +18,11 @@ def fixed_term_expiry():
         fields=["name", "employee", "employee_name", "designation", "end_date", "branch"]
     )
 
-    # Exclude contracts where the linked Employee's status is "Left"
     filtered_contracts = [
         contract for contract in expiring_contracts
         if frappe.get_value("Employee", contract["employee"], "status") != "Left"
     ]
 
-    # Further filter contracts to exclude those with a later active contract for the same employee
     def has_later_contract(employee, current_end_date):
         later_contracts = frappe.get_all(
             "Contract of Employment",

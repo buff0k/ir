@@ -8,7 +8,7 @@ frappe.ui.form.on('Contract of Employment', {
         frm.events.toggle_retirement_fields(frm);
         frm.events.toggle_expiry_field(frm);
         frm.events.toggle_project_fields(frm);
-        frm.events.toggle_end_date_field(frm);  // Unified control
+        frm.events.toggle_end_date_field(frm);
     },
 
     employee: function(frm) {
@@ -55,7 +55,6 @@ frappe.ui.form.on('Contract of Employment', {
                     let retirement_age = contract_type_doc.retirement_age;
                     let retirement_date = addYears(frm.doc.date_of_birth, retirement_age);
                     let notification_date = frappe.datetime.add_months(retirement_date, -1);
-                    // Add notification logic if needed
                 }
 
                 if (contract_type_doc.has_expiry) {
@@ -72,7 +71,7 @@ frappe.ui.form.on('Contract of Employment', {
                     frm.set_df_property('project', 'reqd', 0);
                 }
 
-                frm.events.toggle_end_date_field(frm);  // Ensures consistent visibility
+                frm.events.toggle_end_date_field(frm);
             });
         }
     },
@@ -155,13 +154,11 @@ frappe.ui.form.on('Contract of Employment', {
 
     toggle_expiry_field: function(frm) {
         let should_display = frm.doc.has_expiry ? 1 : 0;
-        // Remove toggle_display on 'end_date' here
     },
 
     toggle_project_fields: function(frm) {
         let should_display = frm.doc.has_project ? 1 : 0;
         frm.toggle_display('project', should_display);
-        // Remove toggle_display on 'end_date' here
     },
 
     toggle_end_date_field: function(frm) {

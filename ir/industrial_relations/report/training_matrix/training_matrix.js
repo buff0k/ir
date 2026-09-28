@@ -83,21 +83,18 @@ frappe.query_reports["Training Matrix"] = {
   },
 
   formatter: function (value, row, column, data, default_formatter) {
-    // Tracking column: show just ID, clickable.
     if (column.fieldname === "tracking" && value) {
       const name_only = String(value).split(":")[0].trim();
       const url = frappe.utils.get_form_link("Employee Induction Tracking", name_only);
       return `<a href="${url}">${frappe.utils.escape_html(name_only)}</a>`;
     }
 
-    // Employee column: show just ID, clickable.
     if (column.fieldname === "employee" && value) {
       const emp = String(value).split(":")[0].trim();
       const url = frappe.utils.get_form_link("Employee", emp);
       return `<a href="${url}">${frappe.utils.escape_html(emp)}</a>`;
     }
 
-    // Only format dynamic induction columns.
     if (!column.fieldname || !column.fieldname.startsWith("ind_")) {
       return default_formatter(value, row, column, data);
     }
@@ -124,7 +121,6 @@ frappe.query_reports["Training Matrix"] = {
     const last_line = last ? `Last: ${last}` : "";
     const sched_line = scheduled ? `Scheduled: ${scheduled}` : "";
 
-    // Optional links from payload.
     const sub_rec = obj.submitted_record || null;
     const sch_rec = obj.scheduled_record || null;
 

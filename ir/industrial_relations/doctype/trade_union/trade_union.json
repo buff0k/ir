@@ -11,6 +11,7 @@
   "full_union_name_not_acronym",
   "recog_agreement",
   "of_list",
+  "region_list",
   "ss_list",
   "co_list"
  ],
@@ -32,6 +33,12 @@
    "fieldtype": "Table",
    "label": "Trade Union Officials",
    "options": "Union Official"
+  },
+  {
+   "fieldname": "region_list",
+   "fieldtype": "Table",
+   "label": "Regional/Area Offices",
+   "options": "Union Region"
   },
   {
    "fieldname": "ss_list",
@@ -72,7 +79,7 @@
    "link_fieldname": "company_name"
   }
  ],
- "modified": "2026-07-01 13:17:53.142581",
+ "modified": "2026-09-28 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Trade Union",

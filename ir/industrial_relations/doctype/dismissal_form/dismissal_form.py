@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint
+from frappe.utils import cint, nowdate
 
 from ir.industrial_relations.utils import clear_parent_outcome, fetch_performance_data
 
@@ -14,6 +14,9 @@ SUPPORTED_INTERVENTIONS = {
     "Poor Performance",
     "Retrenchment Process",
 }
+
+RETRENCHMENT_DISMISSAL_TYPE = "RETR"
+DISMISSAL_RIGHTS_TEMPLATE = "Dismissal"
 
 
 class DismissalForm(Document):
@@ -284,6 +287,32 @@ def create_dismissal_form(source_name, source_doctype, employee=None):
     target.linked_intervention_processed = 0
     if employee:
         target.employee = employee
+    return target
+
+
+def build_retrenchment_dismissal_form(process, row):
+    """Fully server-side equivalent of create_dismissal_form() plus the
+    client's fetch_intervention_data()/apply_intervention_data() flow (which
+    both need a browser to run) - used for the unattended bulk generation
+    triggered by Retrenchment Process's own "Generate Dismissal Forms"
+    action. Inserts the form as a Draft; nothing here submits it."""
+    target = frappe.new_doc("Dismissal Form")
+    target.ir_intervention = "Retrenchment Process"
+    target.linked_intervention = process.name
+    target.linked_intervention_processed = 1
+    target.employee = row.employee
+    target.names = row.employee_name
+    target.position = row.designation
+    target.company = process.company
+    target.applied_rights = DISMISSAL_RIGHTS_TEMPLATE
+    target.dismissal_type = RETRENCHMENT_DISMISSAL_TYPE
+    target.outcome_date = process.proposed_implementation_date or nowdate()
+
+    rights_doc = frappe.get_cached_doc("Employee Rights", DISMISSAL_RIGHTS_TEMPLATE)
+    for right_row in rights_doc.applicable_rights:
+        target.append("employee_rights", {"individual_right": right_row.individual_right})
+
+    target.insert()
     return target
 
 

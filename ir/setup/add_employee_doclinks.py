@@ -92,6 +92,27 @@ REQUIRED_LINKS = [
         "link_doctype": "Site Transfer Form",
         "link_fieldname": "employee",
     },
+    {
+        "link_doctype": "Retrenchment Affected Employee",
+        "link_fieldname": "employee",
+        "parent_doctype": "Retrenchment Process",
+        "table_fieldname": "affected_employees",
+        "is_child_table": 1,
+    },
+    {
+        "link_doctype": "Section 189 Notice Recipient",
+        "link_fieldname": "employee",
+        "parent_doctype": "Section 189 Notice",
+        "table_fieldname": "recipients",
+        "is_child_table": 1,
+    },
+    {
+        "link_doctype": "S189 Consultation Attendee",
+        "link_fieldname": "employee",
+        "parent_doctype": "S189 Consultation",
+        "table_fieldname": "attendees",
+        "is_child_table": 1,
+    },
 ]
 
 

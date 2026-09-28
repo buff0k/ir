@@ -17,7 +17,6 @@ class StatusChangeForm(Document):
         name = f"{self.employee} - {self.current_designation} to {self.new_designation} - {effective_date}"
         self.name = _clean(name)
 
-        # Duplicate check
         if frappe.db.exists(self.doctype, self.name):
             frappe.throw(
                 f"Duplicate record: a Status Change Form already exists for "
@@ -26,8 +25,6 @@ class StatusChangeForm(Document):
 
     def validate(self):
         """Server-side autopopulation (covers UI + API/import)."""
-
-        # requested_by -> requested_by_name, requested_by_designation
         if self.requested_by:
             vals = frappe.db.get_value(
                 "Employee",
@@ -38,12 +35,11 @@ class StatusChangeForm(Document):
             self.requested_by_name = vals.get("employee_name")
             self.requested_by_designation = vals.get("designation")
 
-        # employee -> employee_name + current_designation + company + letter_head
-        # (Company/Letterhead were missing entirely until now, so a Status
+        # Company/Letterhead were missing entirely until now, so a Status
         # Change Form always printed with the site's default Letter Head
         # instead of the Employee's own Company's - see
         # ir.patches.backfill_status_change_form_company_letter_head for the
-        # retroactive fix on already-submitted records.)
+        # retroactive fix on already-submitted records.
         if self.employee:
             vals = frappe.db.get_value(
                 "Employee",
@@ -61,10 +57,7 @@ class StatusChangeForm(Document):
             frappe.throw("You must attach the signed status change form before submitting.")
 
     def on_submit(self):
-        """
-        Update Employee internal_work_history only if designation actually changes.
-        Branch remains unchanged; we scope change around designation.
-        """
+        """Only touches Employee internal_work_history if designation actually changes; branch is left as-is."""
         if not self.employee:
             frappe.throw("Employee is required.")
         if not self.effective_date:
@@ -77,7 +70,6 @@ class StatusChangeForm(Document):
         current_desig = getattr(emp, "designation", None)
         new_desig = self.new_designation
 
-        # If designation does not change: do nothing to Employee/history
         if (current_desig or "") == (new_desig or ""):
             return
 
@@ -92,7 +84,6 @@ class StatusChangeForm(Document):
             return rows[-1]
 
         if not history:
-            # Create an initial row reflecting current state up to the effective date
             emp.append("internal_work_history", {
                 "branch": getattr(emp, "branch", None),
                 "department": getattr(emp, "department", None),
@@ -107,14 +98,11 @@ class StatusChangeForm(Document):
             if not latest:
                 frappe.throw("Could not determine latest internal work history record.")
 
-            # Close off the latest row
             latest.to_date = self.effective_date
 
-            # Carry forward branch/department from latest (fallback to Employee if missing)
             prev_branch = getattr(latest, "branch", None) or getattr(emp, "branch", None)
             prev_department = getattr(latest, "department", None) or getattr(emp, "department", None)
 
-        # Add the new row with updated designation; branch unchanged
         emp.append("internal_work_history", {
             "branch": prev_branch,
             "department": prev_department,
@@ -123,9 +111,8 @@ class StatusChangeForm(Document):
             "to_date": None,
         })
 
-        # Save child table updates first
         emp.save(ignore_permissions=True)
 
-        # Then update Employee.designation (tracked change) and save again
+        # Employee.designation is updated only after the child table save above, in a second save.
         emp.designation = new_desig
         emp.save(ignore_permissions=True)

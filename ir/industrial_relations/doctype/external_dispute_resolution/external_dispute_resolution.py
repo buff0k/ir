@@ -54,6 +54,63 @@ def _chips_block(label: str, doctype: str, names: list[str]) -> str:
     """
 
 
+# fieldname on External Dispute Resolution Applicants -> (doctype to search,
+# the Employee-link field on that doctype). Retrenchment Process is
+# deliberately absent here - it's multi-employee via a child table, handled
+# separately below, same reasoning as External Dispute Resolution itself.
+LATEST_LINK_SOURCES = {
+    "contract": ("Contract of Employment", "employee"),
+    "disc_action": ("Disciplinary Action", "accused"),
+    "incap_proceeding": ("Incapacity Proceedings", "accused"),
+    "appeal": ("Appeal Against Outcome", "employee"),
+}
+
+
+@frappe.whitelist()
+def get_latest_linked_records(applicant: str, exclude_edr: str | None = None) -> dict:
+    """For a given Employee (an EDR "Applicant"), find the latest (most
+    recently created) linked record of each related IR intervention type.
+    Where more than one linked record of a type exists, the latest one
+    wins."""
+    result = {}
+
+    for fieldname, (doctype, employee_field) in LATEST_LINK_SOURCES.items():
+        rows = frappe.get_all(
+            doctype,
+            filters={employee_field: applicant},
+            fields=["name"],
+            order_by="creation desc",
+            limit_page_length=1,
+        )
+        result[fieldname] = rows[0].name if rows else None
+
+    # Retrenchment Process only carries the Employee link via its own
+    # affected_employees child table - resolve to that row's parent (the
+    # actual process), not the child row's own name.
+    retrenchment_rows = frappe.get_all(
+        "Retrenchment Affected Employee",
+        filters={"employee": applicant},
+        fields=["parent"],
+        order_by="creation desc",
+        limit_page_length=1,
+    )
+    result["retrenchment"] = retrenchment_rows[0].parent if retrenchment_rows else None
+
+    # External Dispute Resolution is itself multi-employee - find the latest
+    # OTHER EDR case this applicant was linked to, excluding the one this
+    # row itself lives on, so a case never links to itself.
+    edr_rows = frappe.get_all(
+        "External Dispute Resolution Applicants",
+        filters={"applicant": applicant, "parenttype": "External Dispute Resolution"},
+        fields=["parent"],
+        order_by="creation desc",
+    )
+    other_edr = [row.parent for row in edr_rows if row.parent != exclude_edr]
+    result["external_dispute"] = other_edr[0] if other_edr else None
+
+    return result
+
+
 @frappe.whitelist()
 def get_linked_outcome_html(edr_name: str | None):
     """

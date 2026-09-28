@@ -5,12 +5,12 @@ import frappe
 from frappe.utils import getdate, nowdate
 
 
-MIN_VALID_DATE = getdate("2000-01-01")  # adjust if your org legitimately has earlier relieving dates
+MIN_VALID_DATE = getdate("2000-01-01")  # adjust if this org legitimately has earlier relieving dates
 
 
 def run_daily():
     """
-    Daily job (SAFE VERSION):
+    Daily job:
       - Only act on Employees where relieving_date is set AND is a sane date
       - relieving_date strictly < today AND status == Active => set to Left (after clearing reports_to chains)
       - Disable linked users for:
@@ -19,7 +19,6 @@ def run_daily():
     """
     today = getdate(nowdate())
 
-    # Pull Active employees with a relieving_date that is set (avoids NULL/empty)
     candidates = frappe.get_all(
         "Employee",
         fields=["name", "relieving_date", "status", "user_id"],
@@ -36,7 +35,6 @@ def run_daily():
         if not rd:
             continue
         if rd < MIN_VALID_DATE:
-            # Guard against placeholder ancient/zero dates
             continue
         if rd < today:
             overdue.append((emp["name"], emp.get("user_id")))
@@ -48,7 +46,6 @@ def run_daily():
         if user_id:
             _disable_user(user_id)
 
-    # Extra precaution: Left employees with enabled users
     left_with_users = frappe.get_all(
         "Employee",
         fields=["name", "user_id"],
@@ -68,13 +65,12 @@ def _safe_get_date(value):
     if not value:
         return None
 
-    # Handle MariaDB zero-date strings if they exist in your DB
+    # Handle MariaDB zero-date strings, if present.
     if isinstance(value, str) and value.strip() in ("0000-00-00", "0000-00-00 00:00:00"):
         return None
 
     try:
         d = getdate(value)
-        # Some edge cases still parse to None
         return d
     except Exception:
         return None

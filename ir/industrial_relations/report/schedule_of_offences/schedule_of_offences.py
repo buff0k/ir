@@ -34,21 +34,19 @@ def execute(filters=None):
 
     current_category = None
     for offence in offences:
-        # Insert category as a header row in `offence_description`
         if offence.category_of_offence != current_category:
             category_desc = frappe.get_value("Offence Category", offence.category_of_offence, "disc_cat_desc")
             data.append({
-                "name": "",  # Leave name blank
-                "offence_description": "<b>{}</b>".format(category_desc),  # Place header in this field
+                "name": "",
+                "offence_description": "<b>{}</b>".format(category_desc),
                 "sanction_on_first_offence": "",
                 "sanction_on_second_offence": "",
                 "sanction_on_third_offence": "",
                 "sanction_on_fourth_offence": "",
-                "is_header": 1  # Indicate header row
+                "is_header": 1
             })
             current_category = offence.category_of_offence
 
-        # Retrieve outcomes and format offence description
         first_offence_outcome = frappe.get_value("Offence Outcome", offence.sanction_on_first_offence, "disc_offence_out") or ""
         second_offence_outcome = frappe.get_value("Offence Outcome", offence.sanction_on_second_offence, "disc_offence_out") or ""
         third_offence_outcome = frappe.get_value("Offence Outcome", offence.sanction_on_third_offence, "disc_offence_out") or ""
@@ -58,7 +56,6 @@ def execute(filters=None):
         if offence.notes:
             offence_description += "<br><i>{}</i>".format(offence.notes)
 
-        # Add regular row
         data.append({
             "name": offence.name,
             "offence_description": offence_description,
@@ -66,7 +63,7 @@ def execute(filters=None):
             "sanction_on_second_offence": second_offence_outcome,
             "sanction_on_third_offence": third_offence_outcome,
             "sanction_on_fourth_offence": fourth_offence_outcome,
-            "is_header": 0  # Regular row
+            "is_header": 0
         })
 
     return columns, data

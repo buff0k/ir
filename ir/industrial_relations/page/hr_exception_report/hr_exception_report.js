@@ -1,5 +1,4 @@
 // Copyright (c) 2026, BuFf0k and contributors
-// HR Excpetion Report Page
 
 frappe.pages["hr-exception-report"].on_page_load = function (wrapper) {
   new HRExceptionReport(wrapper);

@@ -283,6 +283,7 @@ doc_events = {
     },
     "Retrenchment Process": {
         "after_insert": "ir.controllers.notifications.handle_doc_event_create",
+        "validate": "ir.permissions.validate_retrenchment_process",
     },
     "Written Outcome": {
         "validate": "ir.permissions.validate_written_outcome",
@@ -330,6 +331,9 @@ permission_query_conditions = {
     "Pay Reduction Form": "ir.permissions.pay_reduction_form_permission_query_conditions",
     "No Further Action Form": "ir.permissions.no_further_action_form_permission_query_conditions",
     "Appeal Against Outcome": "ir.permissions.appeal_against_outcome_permission_query_conditions",
+    "Retrenchment Process": "ir.permissions.retrenchment_process_permission_query_conditions",
+    "Section 189 Notice": "ir.permissions.section_189_notice_permission_query_conditions",
+    "S189 Consultation": "ir.permissions.s189_consultation_permission_query_conditions",
 }
 has_permission = {
     "Contract of Employment": "ir.permissions.contract_of_employment_has_permission",
@@ -349,4 +353,7 @@ has_permission = {
     "Pay Reduction Form": "ir.permissions.pay_reduction_form_has_permission",
     "No Further Action Form": "ir.permissions.no_further_action_form_has_permission",
     "Appeal Against Outcome": "ir.permissions.appeal_against_outcome_has_permission",
+    "Retrenchment Process": "ir.permissions.retrenchment_process_has_permission",
+    "Section 189 Notice": "ir.permissions.section_189_notice_has_permission",
+    "S189 Consultation": "ir.permissions.s189_consultation_has_permission",
 }

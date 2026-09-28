@@ -191,9 +191,6 @@ def execute(filters=None):
     # Resolve branch scope ONCE (supports direct Branch filter and Area Setup -> branches).
     branches = _resolve_branch_set(filters)
 
-    # If a branch scope is provided, we must scope BOTH:
-    #  - Tracking docs
-    #  - Employees list
     employees, tracking_docs_all = _get_employees_and_tracking_scoped(filters, branches)
 
     if not employees:
@@ -202,7 +199,6 @@ def execute(filters=None):
     emp_ids = [e["name"] for e in employees]
     emp_map = {e["name"]: e for e in employees}
 
-    # Ensure tracking docs are limited to these employees.
     tracking_docs_all = [t for t in tracking_docs_all if t.get("employee") in emp_map]
 
     # Apply designation filter:
@@ -230,7 +226,6 @@ def execute(filters=None):
     included_emp_ids = [e["name"] for e in included_employees]
     included_emp_map = {e["name"]: e for e in included_employees}
 
-    # Re-filter tracking docs to included employees only.
     tracking_docs = [t for t in tracking_docs if t["employee"] in included_emp_map]
 
     # Build competency columns from union of required inductions across tracking docs in scope.
@@ -263,7 +258,6 @@ def execute(filters=None):
     else:
         comp_columns, comp_field_map, ordered_inductions = [], {}, []
 
-    # Index records for included employees.
     record_index = _index_records(included_emp_ids, today)
 
     # Output rows:
@@ -317,10 +311,6 @@ def execute(filters=None):
     return columns, data
 
 
-# -----------------------
-# General helpers
-# -----------------------
-
 def _coerce_filters(filters):
     if not filters:
         return {}
@@ -348,10 +338,6 @@ def _extract_expiry(value):
 
     return obj.get("expiry")
 
-
-# -----------------------
-# Columns / Rows
-# -----------------------
 
 def _base_columns():
     return [
@@ -422,10 +408,6 @@ def _base_row_employee_only(emp_row):
         "designation": emp_row.get("designation"),
     }
 
-
-# -----------------------
-# Branch scope helpers
-# -----------------------
 
 def _resolve_branch_set(filters):
     branch = (filters.get("branch") or "").strip() or None
@@ -553,7 +535,6 @@ def _get_employees_and_tracking_scoped(filters, branches):
             limit_page_length=5000,
         )
 
-    # Merge unique by Employee.name.
     merged = {}
 
     for e in employees_branch:
@@ -569,10 +550,6 @@ def _get_employees_and_tracking_scoped(filters, branches):
 
     return employees, tracking_docs_all
 
-
-# -----------------------
-# Employees - no branch scope
-# -----------------------
 
 def _get_employees(filters):
     employee = (filters.get("employee") or "").strip() or None
@@ -601,10 +578,6 @@ def _get_employees(filters):
         limit_page_length=2000,
     )
 
-
-# -----------------------
-# Tracking Docs
-# -----------------------
 
 def _get_tracking_docs(employee_ids=None, branches=None, extra_filters=None):
     """
@@ -675,10 +648,6 @@ def _filter_employees_by_designation_fallback(
 
     return out
 
-
-# -----------------------
-# Required inductions per tracking doc
-# -----------------------
 
 def _get_required_inductions(tracking_names):
     tracking_names = [t for t in tracking_names if t]
@@ -807,10 +776,6 @@ def _build_competency_columns(induction_ids, induction_name_map):
 
     return columns, field_map, ordered
 
-
-# -----------------------
-# Records index - employee + training
-# -----------------------
 
 def _index_records(employee_ids, today):
     rows = frappe.get_all(

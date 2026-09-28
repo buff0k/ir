@@ -17,6 +17,7 @@
   "letter_head",
   "process_type_section",
   "process_type",
+  "override_process_type",
   "column_break_guidance",
   "s189a_guidance",
   "headcounts_section",
@@ -112,6 +113,8 @@
    "label": "Process Type"
   },
   {
+   "default": "Section 189",
+   "description": "Defaults to Section 189, and is upgraded to Section 189A automatically once the numbers meet the s189A threshold - unless \"Manually Override This Selection\" below is enabled.",
    "fieldname": "process_type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -119,6 +122,13 @@
    "label": "Process Type",
    "options": "\nSection 189\nSection 189A",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Enable to stop this system from automatically upgrading Process Type to Section 189A once the threshold is met",
+   "fieldname": "override_process_type",
+   "fieldtype": "Check",
+   "label": "Manually Override This Selection"
   },
   {
    "fieldname": "column_break_guidance",
@@ -368,7 +378,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-23 20:00:00.000000",
+ "modified": "2026-09-27 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Retrenchment Process",

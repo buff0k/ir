@@ -514,6 +514,121 @@ def _validate_designation(doc, user: str | None = None) -> None:
         )
 
 
+# Retrenchment Process is inherently multi-employee (via its own
+# affected_employees child table, not a single Employee field), so it doesn't
+# fit BRANCH_LIMITED_DOCTYPES/_is_own_case's one-doc-one-employee-field model.
+# This is a deliberately separate, narrower mechanism: only the specific
+# protection needed here (nobody who is themselves one of the process's
+# Affected Employees can see the process or its own s189 paperwork), not the
+# full Designation/Branch Limits treatment those other doctypes get - a
+# process's own Company/multi-Branch scope doesn't map onto that model anyway.
+# Deliberately excludes Dismissal Form/Termination Form (retrenchment-linked
+# or not) - those are single-employee OUTCOME documents an employee is already
+# allowed to see once concluded, same convention as ROOT_CASE_DOCTYPES.
+RETRENCHMENT_CHILD_DOCTYPES = ("Section 189 Notice", "S189 Consultation")
+
+
+def _retrenchment_process_name(doc) -> str | None:
+    if doc.doctype == "Retrenchment Process":
+        return doc.name
+    if doc.doctype in RETRENCHMENT_CHILD_DOCTYPES:
+        return doc.get("linked_intervention")
+    return None
+
+
+def _is_retrenchment_affected_employee(process_name: str | None, user: str | None = None) -> bool:
+    """True if `user`'s own linked Employee record appears anywhere in
+    `process_name`'s own Affected Employees table - checked against the
+    Retrenchment Process's own master list, not a downstream Section 189
+    Notice/S189 Consultation's own possibly-partial recipients/attendees, so
+    nobody named on the process can see it (or its own s189 paperwork) even
+    before they've personally received a specific notice yet."""
+    if not process_name:
+        return False
+    own_employee = _own_employee(user)
+    if not own_employee:
+        return False
+    return bool(
+        frappe.db.exists("Retrenchment Affected Employee", {"parent": process_name, "employee": own_employee})
+    )
+
+
+def _is_own_retrenchment_case_in_doc(doc, user: str | None = None) -> bool:
+    """Document-level counterpart for validate() on a Retrenchment Process
+    that may not be saved yet (so its rows aren't in the DB to query) - checks
+    the in-memory affected_employees table directly."""
+    own_employee = _own_employee(user)
+    if not own_employee:
+        return False
+    return any(row.employee == own_employee for row in (doc.get("affected_employees") or []))
+
+
+def _retrenchment_has_permission(doc, user: str | None = None, ptype: str | None = None) -> bool:
+    user = user or frappe.session.user
+    if not effective_ir_role(user):
+        return True
+    if ptype not in PROTECTED_PERMISSION_TYPES:
+        return True
+    if _is_retrenchment_affected_employee(_retrenchment_process_name(doc), user):
+        return False
+    return True
+
+
+def _retrenchment_permission_query(doctype: str, user: str | None) -> str:
+    user = user or frappe.session.user
+    if not effective_ir_role(user):
+        return ""
+    own_employee = _own_employee(user)
+    if not own_employee:
+        return ""
+
+    affected_processes = (
+        f"(select parent from `tabRetrenchment Affected Employee` where employee = {frappe.db.escape(own_employee)})"
+    )
+    field = "name" if doctype == "Retrenchment Process" else "linked_intervention"
+    return f"`tab{doctype}`.`{field}` not in {affected_processes}"
+
+
+def retrenchment_process_has_permission(doc, user=None, ptype=None) -> bool:
+    return _retrenchment_has_permission(doc, user, ptype)
+
+
+def section_189_notice_has_permission(doc, user=None, ptype=None) -> bool:
+    return _retrenchment_has_permission(doc, user, ptype)
+
+
+def s189_consultation_has_permission(doc, user=None, ptype=None) -> bool:
+    return _retrenchment_has_permission(doc, user, ptype)
+
+
+def retrenchment_process_permission_query_conditions(user: str | None = None) -> str:
+    return _retrenchment_permission_query("Retrenchment Process", user)
+
+
+def section_189_notice_permission_query_conditions(user: str | None = None) -> str:
+    return _retrenchment_permission_query("Section 189 Notice", user)
+
+
+def s189_consultation_permission_query_conditions(user: str | None = None) -> str:
+    return _retrenchment_permission_query("S189 Consultation", user)
+
+
+def validate_retrenchment_process(doc, method=None):
+    """Mirrors _validate_designation's own-case block for ROOT_CASE_DOCTYPES -
+    closes the create/edit side of the same protection has_permission closes
+    for read/etc. Checked against the doc's own in-memory rows (not a DB
+    query) since this runs on every save, including the first, before the
+    child rows necessarily exist in the database."""
+    user = frappe.session.user
+    if not effective_ir_role(user):
+        return
+    if _is_own_retrenchment_case_in_doc(doc, user):
+        frappe.throw(
+            _("You cannot create or edit this Retrenchment Process - you are listed as one of the Affected Employees."),
+            frappe.PermissionError,
+        )
+
+
 def passes_limits(doctype: str, user: str | None, *, designation: str | None = None, employee: str | None = None) -> bool:
     """Whether `user` would be permitted to view a `doctype` record with this
     designation/employee, combining Designation Limits and Branch Limits. Takes

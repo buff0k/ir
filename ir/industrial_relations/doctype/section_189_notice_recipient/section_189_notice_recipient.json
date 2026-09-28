@@ -11,6 +11,9 @@
   "branch",
   "designation",
   "trade_union",
+  "select_union_contact",
+  "union_official_row",
+  "union_region_row",
   "contact_name",
   "contact_email",
   "delivery_method",
@@ -26,7 +29,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "Employee\nTrade Union\nOther",
+   "options": "Employee\nUnion Official\nUnion Region\nOther",
    "reqd": 1
   },
   {
@@ -63,21 +66,42 @@
    "label": "Designation"
   },
   {
-   "depends_on": "eval:doc.recipient_type==\"Trade Union\"",
+   "depends_on": "eval:doc.recipient_type==\"Union Official\" || doc.recipient_type==\"Union Region\"",
    "fieldname": "trade_union",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Trade Union",
-   "mandatory_depends_on": "eval:doc.recipient_type==\"Trade Union\"",
+   "mandatory_depends_on": "eval:doc.recipient_type==\"Union Official\" || doc.recipient_type==\"Union Region\"",
    "options": "Trade Union"
   },
   {
+   "depends_on": "eval:doc.trade_union && (doc.recipient_type==\"Union Official\" || doc.recipient_type==\"Union Region\")",
+   "fieldname": "select_union_contact",
+   "fieldtype": "Button",
+   "label": "Select Official / Region"
+  },
+  {
+   "fieldname": "union_official_row",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Union Official Row",
+   "read_only": 1
+  },
+  {
+   "fieldname": "union_region_row",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Union Region Row",
+   "read_only": 1
+  },
+  {
    "depends_on": "eval:doc.recipient_type!=\"Employee\"",
-   "description": "e.g. a specific union official's name, or a regional HR/legal contact for \"Other\"",
+   "description": "Union Official/Union Region: pulled automatically via \"Select Official / Region\" above. Other: type a specific contact's name.",
    "fieldname": "contact_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Contact Name"
+   "label": "Contact Name",
+   "read_only_depends_on": "eval:doc.recipient_type==\"Union Official\" || doc.recipient_type==\"Union Region\""
   },
   {
    "depends_on": "eval:doc.recipient_type!=\"Employee\"",
@@ -86,7 +110,8 @@
    "in_list_view": 1,
    "label": "Contact Email",
    "mandatory_depends_on": "eval:doc.recipient_type==\"Other\"",
-   "options": "Email"
+   "options": "Email",
+   "read_only_depends_on": "eval:doc.recipient_type==\"Union Official\" || doc.recipient_type==\"Union Region\""
   },
   {
    "columns": 2,
@@ -120,7 +145,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-23 20:00:00.000000",
+ "modified": "2026-09-28 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Section 189 Notice Recipient",

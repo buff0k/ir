@@ -159,10 +159,6 @@ def _team_count(shift_design):
 		return 0
 
 
-# -------------------------------------------------------------------
-# Excel export
-# -------------------------------------------------------------------
-
 @frappe.whitelist()
 def export_site_plan_excel(name):
 	if not name:

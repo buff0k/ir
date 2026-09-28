@@ -10,16 +10,9 @@ frappe.ui.form.on('KPI Review', {
 
     date_of_review: function(frm) {
         if (frm.doc.date_of_review) {
-            // Create a JS Date object from the input date
             let dateOfReview = frappe.datetime.str_to_obj(frm.doc.date_of_review);
-
-            // Subtract one month
             dateOfReview.setMonth(dateOfReview.getMonth() - 1);
-
-            // Convert back to string in YYYY-MM-DD format
             let dateUnderReview = frappe.datetime.obj_to_str(dateOfReview);
-
-            // Set the target field value
             frm.set_value('date_under_review', dateUnderReview);
         }
     },
@@ -150,7 +143,6 @@ function render_kpi_sections(frm) {
             frm.set_value("score", `${flt(total_score, 2)} / ${flt(total_max, 2)} (${total_pct}%)`);
         };
 
-        // Score input
         frm.fields_dict.kpi_rendered.$wrapper.find('.score-input').on('input', function () {
             const i = parseInt($(this).data('row'));
             const val = parseFloat($(this).val()) || 0;
@@ -161,7 +153,6 @@ function render_kpi_sections(frm) {
             updateScoreSummary();
         });
 
-        // Notes input
         frm.fields_dict.kpi_rendered.$wrapper.find('.note-input').on('input', function () {
             const i = parseInt($(this).data('row'));
             const val = $(this).val();

@@ -11,7 +11,6 @@ class VoluntarySeperationAgreement(Document):
         linked_field = None
         linked_field_name = None
 
-        # Check which linked field is populated
         if self.linked_disciplinary_action:
             linked_field = self.linked_disciplinary_action
             linked_field_name = 'linked_disciplinary_action'
@@ -22,31 +21,24 @@ class VoluntarySeperationAgreement(Document):
             linked_field = self.linked_poor_performance
             linked_field_name = 'linked_poor_performance'
 
-        # If neither linked field is populated, return None (default naming)
         if not linked_field:
             return
 
-        # Check if this is the first document for the linked field
         existing_docs = frappe.get_all(self.doctype, filters={linked_field_name: linked_field}, fields=["name"])
 
-        # If no existing documents are found, this is the first document
         if len(existing_docs) == 0:
-            # Naming format for the first document
             self.name = f"VSP-{linked_field}"
         else:
-            # If not the first document, find the latest revision number specific to this linked field
             latest_revision = 0
             for doc in existing_docs:
-                # Extract the revision number (after the dash)
                 if doc.name.startswith(f"VSP-{linked_field}-"):
                     revision_number = doc.name.split('-')[-1]
                     try:
                         revision_number = int(revision_number)
                         latest_revision = max(latest_revision, revision_number)
                     except ValueError:
-                        pass  # Skip invalid revision numbers
+                        pass
 
-            # Increment the revision number for the next document
             new_revision = latest_revision + 1
             self.name = f"VSP-{linked_field}-{new_revision}"
 
@@ -55,21 +47,18 @@ class VoluntarySeperationAgreement(Document):
             self.clear_outcome_in_linked_documents()
 
     def before_submit(self):
-        # Ensure required fields are set
         if not self.employee:
             frappe.throw(_("Please link an Employee before submitting."))
 
         if not self.notice_ends:
             frappe.throw(_("Notice Ends Date is required before submitting."))
 
-        # Fetch the Employee document
         employee = frappe.get_doc("Employee", self.employee)
 
-        # Update Employee status and relieving date
         employee.status = "Left"
         employee.relieving_date = self.notice_ends
 
-        # Save the Employee document to trigger Track Changes
+        # Save (not db_set) so this update goes through Track Changes.
         employee.save(ignore_permissions=True)
 
         frappe.msgprint(
@@ -105,13 +94,11 @@ class VoluntarySeperationAgreement(Document):
                 linked_doc.db_set("outcome_date", None)
                 linked_doc.db_set("outcome_start", None)
                 linked_doc.db_set("outcome_end", None)
-                # Create a manual version entry for the submitted document
                 create_manual_version(linked_doc, "outcome", previous_outcome, None)
                 create_manual_version(linked_doc, "outcome_date", previous_outcome_date, None)
                 create_manual_version(linked_doc, "outcome_start", previous_outcome_date, None)
                 create_manual_version(linked_doc, "outcome_end", previous_outcome_date, None)
 
-            # Notify the user
             frappe.msgprint(
                 _("Outcome, Outcome Date, Outcome Start, and Outcome End for {0} ({1}) have been cleared.").format(linked_doc_name, linked_doctype),
                 alert=True
@@ -136,11 +123,9 @@ class VoluntarySeperationAgreement(Document):
                 linked_doc.db_set("outcome", self.vsp_type)
                 linked_doc.db_set("outcome_date", self.outcome_date)
 
-                # Create a manual version entry for the submitted document
                 create_manual_version(linked_doc, "outcome", previous_outcome, self.vsp_type)
                 create_manual_version(linked_doc, "outcome_date", previous_outcome_date, self.outcome_date)
 
-            # Notify the user
             frappe.msgprint(
                 _("Outcome and Outcome Date for {0} ({1}) have been updated to {2} and {3}, respectively.")
                 .format(linked_doc_name, linked_doctype, self.vsp_type, self.outcome_date),

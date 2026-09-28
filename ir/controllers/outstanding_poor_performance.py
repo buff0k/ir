@@ -93,8 +93,6 @@ def _get_outstanding_poor_performance_cases():
         current_creation = row.get("creation")
         current_name = row.get("name")
 
-        # Requirement 1:
-        # All Poor Performance records that are not yet submitted.
         if docstatus != 1:
             row["status_reason"] = "Pending submission"
             row["outcome_label"] = _get_outcome_label(outcome)
@@ -105,10 +103,8 @@ def _get_outstanding_poor_performance_cases():
         if _outcome_is_terminal(outcome):
             continue
 
-        # Requirement 2:
-        # Submitted Poor Performance records remain open unless there is a later
-        # Poor Performance record for the same employee with terminal outcome:
-        # Performance Improved or Dismissal.
+        # Submitted records remain open unless a later Poor Performance record
+        # for the same employee has a terminal outcome (Performance Improved or Dismissal).
         if not _has_later_terminal_poor_performance(employee, current_creation, current_name):
             row["status_reason"] = "Open - no later Performance Improved or Dismissal outcome"
             row["outcome_label"] = _get_outcome_label(outcome)

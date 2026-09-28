@@ -1,5 +1,4 @@
 // Copyright (c) 2026, BuFf0k and contributors
-// Organogram Designer Page
 
 const SO_PY = "ir.industrial_relations.doctype.site_organogram.site_organogram";
 
@@ -397,8 +396,6 @@ class SiteOrganogramDesigner {
       addedRows++;
     }
 
-    // Reporting lines: add any not already present (matched on source/target
-    // group_key + scope + shift).
     const lineKey = (l) => `${l.source_group_key}::${l.source_scope}::${l.source_shift || ""}=>${l.target_group_key}::${l.target_scope}::${l.target_shift || ""}`;
     const existingLineKeys = new Set(this.state.reporting_lines.map(lineKey));
     let addedLines = 0;

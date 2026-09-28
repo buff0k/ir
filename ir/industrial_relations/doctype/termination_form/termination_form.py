@@ -68,7 +68,6 @@ class TerminationForm(Document):
     def validate(self):
         self._guard_against_duplicate()
 
-        # validate runs on save and also during submit, but we only want the "save stage" logic here
         if self.docstatus == 0:
             self._sync_employee_updates(stage="save")
 
@@ -140,7 +139,7 @@ class TerminationForm(Document):
             return False
 
         today = getdate(nowdate())
-        should_be_left = relieving_date < today  # strictly "in the past"
+        should_be_left = relieving_date < today
         new_status = "Left" if should_be_left else "Active"
         reason_text = self._get_reason_text()
 
@@ -154,19 +153,13 @@ class TerminationForm(Document):
         ):
             return False
 
-        # 4) reason_for_leaving (Small Text) should receive the text value of the Link
         employee.reason_for_leaving = reason_text
-
-        # 1) set relieving_date always to the effective date
         employee.relieving_date = relieving_date
 
-        # 2) status depends on whether relieving_date is in the past
         if should_be_left:
-            # 3) before setting to Left, clear reports_to for anyone pointing (directly or indirectly) to this employee
             self._clear_reports_to_chain_for_terminated_employee(self.requested_for)
         employee.status = new_status
 
-        # Save Employee
         employee.save(ignore_permissions=True)
 
         if show_message:
@@ -201,7 +194,6 @@ class TerminationForm(Document):
         if not self.reason:
             return ""
 
-        # Prefer a common "reason" field if present, otherwise fall back to the document name (which is what the Link stores).
         try:
             val = frappe.db.get_value("Reason for Termination", self.reason, "reason")
             if val:
@@ -225,7 +217,6 @@ class TerminationForm(Document):
         if not terminated_employee:
             return
 
-        # Build map of employee -> reports_to for all employees that have a manager set
         rows = frappe.get_all(
             "Employee",
             fields=["name", "reports_to"],
@@ -243,7 +234,6 @@ class TerminationForm(Document):
             visited = set()
             current = emp_name
 
-            # Walk up the chain: emp -> manager -> manager's manager -> ...
             while True:
                 if current in visited:
                     # cycle protection
@@ -258,7 +248,6 @@ class TerminationForm(Document):
                     to_clear.append(emp_name)
                     break
 
-                # continue upwards
                 current = manager
 
         if not to_clear:
