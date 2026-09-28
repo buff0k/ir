@@ -20,7 +20,8 @@
   "row_type",
   "spare_swing",
   "missing_asset",
-  "missing_employee"
+  "missing_employee",
+  "plan_slot_key"
  ],
  "fields": [
   {
@@ -116,13 +117,21 @@
    "hidden": 1,
    "label": "Group Key",
    "read_only": 1
+  },
+  {
+   "description": "The originating Site Plan Slot's own row_key - kept separately from this row's own row_key (which Populate from Plan/asset assignment rewrite once a real Asset is committed) purely so a later re-populate from the same Plan can still recognise this row as already covered, instead of adding a duplicate.",
+   "fieldname": "plan_slot_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Plan Slot Key",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-28 11:38:49.895085",
+ "modified": "2026-09-28 14:48:04.578658",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Site Organogram Mappings",

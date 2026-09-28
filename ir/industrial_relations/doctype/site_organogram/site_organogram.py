@@ -648,6 +648,7 @@ def get_site_organogram_template(source_name):
                 "missing_asset": getattr(r, "missing_asset", 0),
                 "missing_employee": getattr(r, "missing_employee", 0),
                 "acting": getattr(r, "acting", 0),
+                "plan_slot_key": getattr(r, "plan_slot_key", None),
             }
             for r in (getattr(doc, "shift_mappings", None) or [])
         ],
@@ -743,6 +744,14 @@ def get_site_plan_template(site_plan_name):
                     "spare_swing": slot.spare_swing,
                     "missing_asset": 0,
                     "missing_employee": 0,
+                    # The Slot's own row_key, untouched by anything that later
+                    # happens on the Organogram (unlike this dict's own
+                    # "row_key" above, which gets rewritten to ASSET::<id>
+                    # the moment a real Asset is assigned - see assign_asset()
+                    # in the JS). Populate-from-Plan matches on this instead,
+                    # so re-populating after Assets have already been
+                    # committed doesn't mistake a resolved row for a new one.
+                    "plan_slot_key": slot.row_key,
                 }
             )
 
@@ -1618,7 +1627,7 @@ def _designer_payload(doc):
             [
                 "group_key", "group", "shift", "employee", "asset", "designation",
                 "row_key", "row_order", "row_label", "row_type", "spare_swing",
-                "missing_asset", "missing_employee", "acting",
+                "missing_asset", "missing_employee", "acting", "plan_slot_key",
             ],
         ),
         "reporting_lines": _designer_child_rows(
@@ -1770,7 +1779,7 @@ def save_site_organogram_designer_state(payload):
         [
             "group_key", "group", "shift", "employee", "asset", "designation", "row_key",
             "row_order", "row_label", "row_type", "spare_swing",
-            "missing_asset", "missing_employee", "acting",
+            "missing_asset", "missing_employee", "acting", "plan_slot_key",
         ],
     )
     _replace_child_table(
