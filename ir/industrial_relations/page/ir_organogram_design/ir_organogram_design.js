@@ -312,6 +312,7 @@ class SiteOrganogramDesigner {
     this.page.add_inner_button("Export Excel", () => this.export_excel(), "Actions");
     this.page.add_inner_button("Export Diagram PNG", () => this.export_reporting_png(), "Actions");
     this.page.add_inner_button("Export Diagram PNG (Collapsed)", () => this.export_reporting_png_collapsed(), "Actions");
+    this.page.add_inner_button("Import Mappings from Previous Organogram", () => this.import_mappings_from_organogram(), "Actions");
 
     this.page.add_menu_item("Reload", () => this.reload());
     this.page.add_menu_item("Open DocType Record", () => {
@@ -707,6 +708,159 @@ class SiteOrganogramDesigner {
       message: `Recovered ${sourceName} as the basis for a new organogram.`,
       indicator: "green",
     });
+  }
+
+  // Pulls Employee assignments from a previously-built Site Organogram onto
+  // this one's *current* structure (typically already populated from a new
+  // Site Plan via populate_from_plan()) - unlike apply_previous_organogram()
+  // above, which replaces the whole structure wholesale, this only overlays
+  // mappings row by row and leaves every row this organogram doesn't share
+  // with the source untouched. Asset rows match by the actual Asset (a
+  // stable identity); Designation rows have no such identity (row_key's own
+  // token is random - see _row_key_for_designation() server-side), so
+  // duplicate Designation rows within the same Group/Shift/label are paired
+  // positionally, in row_order, oldest first - the 1st Dozer Operator row in
+  // the old organogram lines up with the 1st Dozer Operator row here, the
+  // 2nd with the 2nd, and so on.
+  async import_mappings_from_organogram() {
+    if (!this.state.branch) return frappe.msgprint(__("Select a Site first."));
+
+    const result = await frappe.call({
+      method: `${SO_PY}.list_site_organograms_for_designer`,
+      args: { branch: this.state.branch, limit: 50 },
+      freeze: true,
+      freeze_message: __("Looking for previous organograms..."),
+    });
+
+    const matches = (result.message || []).filter(row => row.name && row.name !== this.state.name);
+    if (!matches.length) {
+      frappe.msgprint(__("No other Site Organograms exist yet for Site {0}.", [this.state.branch]));
+      return;
+    }
+
+    const labels = matches.map(row => {
+      const modified = row.modified ? frappe.datetime.str_to_user(row.modified) : "";
+      const loc = row.location ? ` (${row.location})` : "";
+      return modified ? `${row.name}${loc} — ${modified}` : `${row.name}${loc}`;
+    });
+
+    const values = await new Promise(resolve => {
+      let completed = false;
+      const dialog = new frappe.ui.Dialog({
+        title: __("Import Mappings from Previous Organogram"),
+        fields: [
+          {
+            fieldtype: "Select",
+            fieldname: "source",
+            label: __("Source Site Organogram"),
+            options: labels.join("\n"),
+            default: labels[0],
+            reqd: 1,
+          },
+          {
+            fieldtype: "Check",
+            fieldname: "overwrite",
+            label: __("Overwrite slots that already have an Employee assigned here"),
+            default: 0,
+          },
+        ],
+        primary_action_label: __("Import"),
+        primary_action(vals) {
+          completed = true;
+          dialog.hide();
+          resolve(vals);
+        },
+      });
+      dialog.onhide = () => { if (!completed) resolve(null); };
+      dialog.show();
+    });
+
+    if (!values || !values.source) return;
+
+    const index = labels.indexOf(values.source);
+    if (index < 0) return;
+    const sourceName = matches[index].name;
+
+    const templateResult = await frappe.call({
+      method: `${SO_PY}.get_site_organogram_template`,
+      args: { source_name: sourceName },
+      freeze: true,
+      freeze_message: __("Loading {0}...", [sourceName]),
+    });
+
+    const sourceMappings = (templateResult.message || {}).shift_mappings || [];
+    const summary = this.apply_mapping_import(sourceMappings, !!values.overwrite);
+
+    this.mark_dirty();
+    this.render_all();
+
+    frappe.msgprint({
+      title: __("Mappings Imported"),
+      indicator: "green",
+      message: __(
+        "From {0}: {1} slot(s) filled. {2} already had an Employee assigned and were left as-is. {3} matched a row in the source organogram that was itself vacant. {4} had no equivalent row in the source organogram.",
+        [sourceName, summary.filled, summary.skipped, summary.source_vacant, summary.no_match]
+      ),
+    });
+  }
+
+  // Pure matching/merge logic, split out from import_mappings_from_organogram()
+  // so it operates purely on this.state.shift_mappings with no network
+  // round-trip inside the matching itself.
+  apply_mapping_import(sourceMappings, overwrite) {
+    const bucketKey = (group, shift, label) => `${group}::${shift}::${label}`;
+
+    const sortedSource = [...sourceMappings].sort(
+      (a, b) => Number(a.row_order || 999999) - Number(b.row_order || 999999)
+    );
+
+    const assetIndex = new Map();
+    const designationBuckets = new Map();
+
+    for (const row of sortedSource) {
+      if (row.row_type === "Asset" && row.asset) {
+        assetIndex.set(`${row.group}::${row.shift}::${row.asset}`, row);
+      } else if (row.row_type === "Designation") {
+        const key = bucketKey(row.group, row.shift, row.row_label || "");
+        if (!designationBuckets.has(key)) designationBuckets.set(key, []);
+        designationBuckets.get(key).push(row);
+      }
+    }
+
+    const designationCursors = new Map();
+    let filled = 0, skipped = 0, source_vacant = 0, no_match = 0;
+
+    const targetRows = [...(this.state.shift_mappings || [])].sort(
+      (a, b) => Number(a.row_order || 999999) - Number(b.row_order || 999999)
+    );
+
+    for (const target of targetRows) {
+      if (target.spare_swing) continue;
+
+      let source = null;
+      if (target.row_type === "Asset" && target.asset) {
+        source = assetIndex.get(`${target.group}::${target.shift}::${target.asset}`) || null;
+      } else if (target.row_type === "Designation") {
+        const key = bucketKey(target.group, target.shift, target.row_label || "");
+        const bucket = designationBuckets.get(key);
+        if (bucket) {
+          const cursor = designationCursors.get(key) || 0;
+          source = bucket[cursor] || null;
+          designationCursors.set(key, cursor + 1);
+        }
+      }
+
+      if (!source) { no_match += 1; continue; }
+      if (!source.employee) { source_vacant += 1; continue; }
+      if (target.employee && !overwrite) { skipped += 1; continue; }
+
+      target.employee = source.employee;
+      target.missing_employee = source.missing_employee ? 1 : 0;
+      target.acting = source.acting ? 1 : 0;
+      filled += 1;
+    }
+
+    return { filled, skipped, source_vacant, no_match };
   }
 
   async sync_pools(show_message) {
