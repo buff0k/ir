@@ -1072,6 +1072,13 @@ class SiteOrganogramDesigner {
     $w.find("[data-pool-search]").on("input",this.debounce(e=>{this.pool_query=e.target.value||"";this.render_planner();},150));
     $w.find("[data-pool-designation]").on("change",e=>{this.pool_designation=e.target.value||"";this.render_planner();});
     $w.find('[draggable="true"]').on("dragstart",e=>{
+      // dragstart bubbles, and a row's own draggable="true" wrapper
+      // (so-rowdrag) contains draggable employee cards - without this, the
+      // card's dragstart (correctly setting a type:"assigned" payload) would
+      // bubble up into the ancestor row's own dragstart handler, which
+      // overwrites dataTransfer with a type:"row" payload instead, so
+      // dropping an employee on the "unassign" zone deleted the whole row.
+      e.stopPropagation();
       const el=e.currentTarget; const type=el.dataset.dragType; let p={type};
       if(type==="employee"||type==="assigned"){p.employee=el.dataset.employee;if(el.dataset.payload)try{p.from=JSON.parse(el.dataset.payload);}catch(_){}}
       if(type==="asset")p.asset=el.dataset.asset;
