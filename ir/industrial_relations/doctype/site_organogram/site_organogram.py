@@ -647,6 +647,7 @@ def get_site_organogram_template(source_name):
                 "spare_swing": getattr(r, "spare_swing", 0),
                 "missing_asset": getattr(r, "missing_asset", 0),
                 "missing_employee": getattr(r, "missing_employee", 0),
+                "acting": getattr(r, "acting", 0),
             }
             for r in (getattr(doc, "shift_mappings", None) or [])
         ],
