@@ -20,6 +20,7 @@ from ir.industrial_relations.doctype.site_organogram.site_organogram import (
 	_parse_row_key,
 	_row_key_for_asset,
 	_row_key_for_designation,
+	compute_plan_slot_key_backfill,
 	get_designation_headcounts,
 	get_designation_mismatches,
 	get_designation_slots_by_group,
@@ -566,3 +567,116 @@ class IntegrationTestSiteOrganogramDbBacked(IRSyntheticDataTestCase):
 		])
 
 		self.assertEqual(get_designation_mismatches(doc), [])
+
+
+class TestComputePlanSlotKeyBackfill(unittest.TestCase):
+	"""compute_plan_slot_key_backfill() is the Python twin of
+	populate_from_plan()'s own matching in ir_organogram_design.js - both
+	exist because an Asset row's row_key changes (MISSING_ASSET::<token> ->
+	ASSET::<id>) the moment a real Asset is committed (assign_asset()), but
+	a Site Plan's own Slot has no such identity to give it, so a literal
+	row_key match alone can no longer find that row on a later re-populate."""
+
+	def test_already_resolved_asset_row_is_relinked_not_duplicated(self):
+		# Simulates real legacy data: an Asset row already committed to a
+		# real Asset before plan_slot_key existed - row_key is now
+		# ASSET::<id>, and plan_slot_key was never set.
+		existing = _row(
+			name="mapping-1", group_key="G1", shift="Shift A", row_type="Asset",
+			row_key="ASSET::DZ-001", row_order=1, plan_slot_key="", employee="EMP-1",
+		)
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotA", "plan_slot_key": "SLOT::slotA", "row_order": 1},
+		]
+
+		writes, matched, relinked = compute_plan_slot_key_backfill([existing], template_rows)
+
+		self.assertEqual(writes, [("mapping-1", "SLOT::slotA")])
+		self.assertEqual(matched, 1)
+		self.assertEqual(relinked, 1)
+
+	def test_row_already_carrying_plan_slot_key_is_left_alone(self):
+		existing = _row(
+			name="mapping-1", group_key="G1", shift="Shift A", row_type="Asset",
+			row_key="ASSET::DZ-001", row_order=1, plan_slot_key="SLOT::slotA", employee="EMP-1",
+		)
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotA", "plan_slot_key": "SLOT::slotA", "row_order": 1},
+		]
+
+		writes, matched, relinked = compute_plan_slot_key_backfill([existing], template_rows)
+
+		self.assertEqual(writes, [])
+		self.assertEqual(matched, 1)
+		self.assertEqual(relinked, 0)
+
+	def test_designation_row_matches_directly_by_row_key_no_relink_needed(self):
+		# Designation row_keys are never rewritten client-side, so the
+		# literal row_key match already finds these - only the missing
+		# plan_slot_key itself needs backfilling.
+		existing = _row(
+			name="mapping-1", group_key="G1", shift="Shift A", row_type="Designation",
+			row_key="DESIG::Dozer Operator::tok1", row_order=1, plan_slot_key="", employee="EMP-2",
+		)
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Designation",
+			 "row_key": "DESIG::Dozer Operator::tok1", "plan_slot_key": "SLOT::slotB", "row_order": 1},
+		]
+
+		writes, matched, relinked = compute_plan_slot_key_backfill([existing], template_rows)
+
+		self.assertEqual(writes, [("mapping-1", "SLOT::slotB")])
+		self.assertEqual(relinked, 0)
+
+	def test_genuinely_new_slot_with_no_existing_row_is_not_matched(self):
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotA", "plan_slot_key": "SLOT::slotA", "row_order": 1},
+		]
+
+		writes, matched, relinked = compute_plan_slot_key_backfill([], template_rows)
+
+		self.assertEqual(writes, [])
+		self.assertEqual(matched, 0)
+		self.assertEqual(relinked, 0)
+
+	def test_multiple_resolved_asset_rows_relink_positionally_in_row_order(self):
+		# Two already-resolved Asset rows in the same group/shift - must
+		# pair up oldest-first (by row_order), not by insertion order.
+		row_a = _row(name="mapping-A", group_key="G1", shift="Shift A", row_type="Asset",
+			row_key="ASSET::DZ-002", row_order=2, plan_slot_key="", employee="EMP-2")
+		row_b = _row(name="mapping-B", group_key="G1", shift="Shift A", row_type="Asset",
+			row_key="ASSET::DZ-001", row_order=1, plan_slot_key="", employee="EMP-1")
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotA", "plan_slot_key": "SLOT::slotA", "row_order": 1},
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotB", "plan_slot_key": "SLOT::slotB", "row_order": 2},
+		]
+
+		# Insertion order deliberately doesn't match row_order.
+		writes, matched, relinked = compute_plan_slot_key_backfill([row_a, row_b], template_rows)
+
+		self.assertEqual(dict(writes), {"mapping-B": "SLOT::slotA", "mapping-A": "SLOT::slotB"})
+		self.assertEqual(relinked, 2)
+
+	def test_idempotent_second_pass_after_backfill_writes_nothing(self):
+		existing = _row(
+			name="mapping-1", group_key="G1", shift="Shift A", row_type="Asset",
+			row_key="ASSET::DZ-001", row_order=1, plan_slot_key="", employee="EMP-1",
+		)
+		template_rows = [
+			{"group_key": "G1", "shift": "Shift A", "row_type": "Asset",
+			 "row_key": "MISSING_ASSET::slotA", "plan_slot_key": "SLOT::slotA", "row_order": 1},
+		]
+
+		writes, _, _ = compute_plan_slot_key_backfill([existing], template_rows)
+		existing.plan_slot_key = writes[0][1]  # simulate the write actually landing
+
+		writes_again, matched_again, relinked_again = compute_plan_slot_key_backfill([existing], template_rows)
+
+		self.assertEqual(writes_again, [])
+		self.assertEqual(matched_again, 1)
+		self.assertEqual(relinked_again, 0)
