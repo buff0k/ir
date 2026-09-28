@@ -934,6 +934,63 @@ def _get_vacancy_summary(doc):
     }
 
 
+def _get_asset_category_summary(doc):
+    """Total Asset-type slots committed to this organogram, per asset
+    category, split into primary vs Spare/Swing - e.g. "how many ADTs are
+    committed to the Organogram", which the per-shift tables above don't
+    answer directly since they show the same fleet fanned out across shift
+    columns rather than a single fleet total.
+
+    Counted once per (group, row_key) - i.e. once per physical asset slot,
+    matching row_keys_by_group's own deduplication - regardless of how many
+    shift columns reference that slot. A slot counts as Spare/Swing if any
+    of its per-shift mappings is flagged as such.
+
+    Category comes from the linked Asset's own asset_category where one is
+    linked; Site Organogram Mappings rows have no asset_category field of
+    their own, so an unlinked/"Missing" placeholder slot falls back to its
+    row_label instead (e.g. "ADT"), the same fallback _row_label_for_export
+    already uses for display.
+
+    Returns: {category: {"primary": n, "spare_swing": n}}
+    """
+    assets = _asset_lookup(doc)
+    _, row_keys_by_group = _mapping_indexes(doc)
+
+    spare_slots = set()
+    for row in getattr(doc, "shift_mappings", None) or []:
+        if _clean(getattr(row, "row_type", None)) != "Asset":
+            continue
+        if not _safe_int(getattr(row, "spare_swing", 0), 0):
+            continue
+        group = _clean(getattr(row, "group", None))
+        row_key = _clean(getattr(row, "row_key", None))
+        if group and row_key:
+            spare_slots.add((group, row_key))
+
+    summary = defaultdict(lambda: {"primary": 0, "spare_swing": 0})
+
+    for group, row_keys in row_keys_by_group.items():
+        for row_key, row_identity in row_keys.items():
+            if _clean(getattr(row_identity, "row_type", None)) != "Asset":
+                continue
+
+            if _safe_int(getattr(row_identity, "missing_asset", 0), 0):
+                category = _clean(getattr(row_identity, "row_label", None)) or "Unspecified"
+            else:
+                asset = assets.get(_clean(getattr(row_identity, "asset", None)), {})
+                category = (
+                    asset.get("asset_category")
+                    or _clean(getattr(row_identity, "row_label", None))
+                    or "Unspecified"
+                )
+
+            bucket = "spare_swing" if (group, row_key) in spare_slots else "primary"
+            summary[category][bucket] += 1
+
+    return dict(summary)
+
+
 def _iter_designation_slots(doc):
     """Yield one dict per staffable FTE slot - a Designation row, or an
     Asset row with a default Designation set (Spare/Swing Asset rows are
@@ -1457,6 +1514,27 @@ def export_site_organogram_excel(name):
         "TOTAL UNFILLED VACANCIES",
         ["TOTAL"],
         [[vacancy_summary["total"]]],
+        styles,
+    )
+
+    asset_category_summary = _get_asset_category_summary(doc)
+    asset_category_rows = []
+    for category in sorted(asset_category_summary.keys()):
+        counts = asset_category_summary[category]
+        # Only a row for what's actually committed - a category with, say,
+        # zero Spare/Swing units doesn't need a "Category Spare/Swing = 0"
+        # line asserting the existence of something that isn't there.
+        if counts["primary"]:
+            asset_category_rows.append([category, counts["primary"]])
+        if counts["spare_swing"]:
+            asset_category_rows.append([f"{category} Spare/Swing", counts["spare_swing"]])
+
+    row_no = _write_simple_list(
+        ws,
+        row_no,
+        "TOTAL ASSETS PER CATEGORY (COMMITTED TO THIS ORGANOGRAM)",
+        ["ASSET CATEGORY", "COUNT"],
+        asset_category_rows,
         styles,
     )
 

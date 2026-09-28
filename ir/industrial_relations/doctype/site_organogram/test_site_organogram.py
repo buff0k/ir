@@ -14,6 +14,7 @@ from ir.industrial_relations.doctype.site_organogram.branch_staffing import (
 )
 from ir.industrial_relations.doctype.site_organogram.site_organogram import (
 	_derive_row_key,
+	_get_asset_category_summary,
 	_get_vacancy_summary,
 	_iter_designation_slots,
 	_parse_row_key,
@@ -351,6 +352,48 @@ class TestVacancyAndDesignationHelpers(unittest.TestCase):
 		self.assertEqual(len(summary["vacant_assets"]), 1)
 		# Counted once in `total`, even though it appears in both buckets.
 		self.assertEqual(summary["total"], 1)
+
+	def test_asset_category_summary_counts_primary_and_spare_swing_per_category(self):
+		"""Mirrors a real site's fleet: 4 Dozers, 6 Excavators, 20 primary ADTs
+		plus 4 Spare/Swing ADTs - all unlinked ("Missing") placeholder slots,
+		so category comes from row_label, matching this app's real current
+		data on at least one live site."""
+		rows = []
+		for i in range(4):
+			rows.append(_row(row_type="Asset", group="Dozers", row_key=f"ASSET::D{i}", row_label="Dozer", missing_asset=1, spare_swing=0, shift="Shift A"))
+		for i in range(6):
+			rows.append(_row(row_type="Asset", group="Excavators", row_key=f"ASSET::E{i}", row_label="Excavator", missing_asset=1, spare_swing=0, shift="Shift A"))
+		for i in range(20):
+			rows.append(_row(row_type="Asset", group="ADTs", row_key=f"ASSET::A{i}", row_label="ADT", missing_asset=1, spare_swing=0, shift="Shift A"))
+		for i in range(4):
+			rows.append(_row(row_type="Asset", group="ADTs", row_key=f"ASSET::AS{i}", row_label="ADT", missing_asset=1, spare_swing=1, shift="Shift A"))
+		doc = _row(shift_mappings=rows, assets=[])
+
+		summary = _get_asset_category_summary(doc)
+
+		self.assertEqual(summary["Dozer"], {"primary": 4, "spare_swing": 0})
+		self.assertEqual(summary["Excavator"], {"primary": 6, "spare_swing": 0})
+		self.assertEqual(summary["ADT"], {"primary": 20, "spare_swing": 4})
+
+	def test_asset_category_summary_uses_linked_asset_category_over_row_label(self):
+		row = _row(row_type="Asset", group="ADTs", row_key="ASSET::PLANT-1", row_label="ADT", asset="PLANT-1", missing_asset=0, spare_swing=0, shift="Shift A")
+		doc = _row(shift_mappings=[row], assets=[_row(asset="PLANT-1", item_name="Bell ADT", asset_category="Articulated Dump Truck")])
+
+		summary = _get_asset_category_summary(doc)
+
+		self.assertEqual(summary, {"Articulated Dump Truck": {"primary": 1, "spare_swing": 0}})
+
+	def test_asset_category_summary_slot_is_spare_if_any_shift_copy_is(self):
+		"""Same physical asset slot (group + row_key) referenced once per
+		shift column - spare_swing set on only one shift's copy should still
+		mark the whole slot as Spare/Swing, not just that one shift."""
+		shift_a = _row(row_type="Asset", group="ADTs", row_key="ASSET::A1", row_label="ADT", missing_asset=1, spare_swing=0, shift="Shift A")
+		shift_b = _row(row_type="Asset", group="ADTs", row_key="ASSET::A1", row_label="ADT", missing_asset=1, spare_swing=1, shift="Shift B")
+		doc = _row(shift_mappings=[shift_a, shift_b], assets=[])
+
+		summary = _get_asset_category_summary(doc)
+
+		self.assertEqual(summary["ADT"], {"primary": 0, "spare_swing": 1})
 
 	def test_iter_designation_slots_skips_spare_swing_and_asset_without_designation(self):
 		spare = _row(row_type="Asset", asset="PLANT-1", designation="Dozer Operator", spare_swing=1, employee="", shift="Shift A", group="G", group_key="GK", row_label="")
