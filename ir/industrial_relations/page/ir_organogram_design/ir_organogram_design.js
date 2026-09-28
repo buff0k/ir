@@ -365,36 +365,80 @@ class SiteOrganogramDesigner {
       addedGroups++;
     }
 
-    // Slots -> shift_mappings: add any (group_key, shift, row_key) combination
-    // not already present. A Plan Slot's row_key is stable (server-generated
-    // once, on the Plan), so re-running this after an earlier populate never
-    // re-adds - and never touches live assignment data (employee/asset/
-    // spare_swing) on - a row that's since been assigned.
+    // Slots -> shift_mappings: add any Slot not already represented here,
+    // and never touch live assignment data (employee/asset/spare_swing) on a
+    // row that's since been assigned.
     //
-    // The Slot's own Designation (the role that should operate an Asset row,
-    // used purely for vacancy counting) is structural Plan data though, not
-    // a live assignment - if it was added to the Plan *after* this row was
-    // first populated, an already-present row needs to pick it up too, or a
-    // re-populate can never actually bring in that change. Only backfills an
-    // empty designation - a designation the designer's own "Set Designation"
-    // button already set on this row is a deliberate per-Organogram override
-    // and is never clobbered.
+    // Matching a Slot against an already-populated row can't rely on plain
+    // row_key equality alone: a Designation row's row_key never changes
+    // after populate, but an Asset row's does - the moment a real Asset is
+    // committed, assign_asset() rekeys it from MISSING_ASSET::<token> to
+    // ASSET::<id> (normalize_mappings() only recognises that prefix), and a
+    // Site Plan Slot is asset-agnostic by design, so the template can only
+    // ever regenerate the *old* MISSING_ASSET:: key for that same Slot - a
+    // literal-key comparison would then never find that row again and
+    // duplicate it every time the plan is re-populated. plan_slot_key (the
+    // Slot's own row_key, copied once and never touched by anything else)
+    // is the actual stable identity and is checked first; the literal
+    // row_key match remains as a fallback for rows that predate this field.
+    // A resolved Asset row that predates plan_slot_key has no way to prove
+    // which Slot it came from any more, so as a last resort it's matched
+    // positionally - the Nth still-unlinked existing Asset row in this
+    // group/shift claims the Nth such Slot - and plan_slot_key is backfilled
+    // onto it so this is a one-time repair, not a recurring guess.
     const rowKey = (row) => `${row.group_key}::${row.shift}::${row.row_key}`;
+    const planKey = (row) => (row.plan_slot_key ? `${row.group_key}::${row.shift}::${row.plan_slot_key}` : null);
+
     const existingRowsByKey = new Map(this.state.shift_mappings.map(r => [rowKey(r), r]));
+    const existingRowsByPlanKey = new Map(
+      this.state.shift_mappings.filter(r => r.plan_slot_key).map(r => [planKey(r), r])
+    );
+
+    const unlinkedAssetQueues = new Map(); // "group_key::shift" -> [rows...], row_order ascending
+    for (const r of this.state.shift_mappings) {
+      if (r.row_type !== "Asset" || r.plan_slot_key) continue;
+      const qKey = `${r.group_key}::${r.shift}`;
+      if (!unlinkedAssetQueues.has(qKey)) unlinkedAssetQueues.set(qKey, []);
+      unlinkedAssetQueues.get(qKey).push(r);
+    }
+    for (const queue of unlinkedAssetQueues.values()) {
+      queue.sort((a, b) => Number(a.row_order || 999999) - Number(b.row_order || 999999));
+    }
+
     let addedRows = 0;
     let refreshedDesignations = 0;
+    let relinkedRows = 0;
     for (const row of (template.shift_mappings || [])) {
       const key = rowKey(row);
-      const existing = existingRowsByKey.get(key);
+      const pKey = planKey(row);
+      let existing = (pKey && existingRowsByPlanKey.get(pKey)) || existingRowsByKey.get(key);
+
+      if (!existing && row.row_type === "Asset") {
+        const qKey = `${row.group_key}::${row.shift}`;
+        const queue = unlinkedAssetQueues.get(qKey);
+        if (queue && queue.length) {
+          existing = queue.shift();
+          existing.plan_slot_key = row.plan_slot_key;
+          if (pKey) existingRowsByPlanKey.set(pKey, existing);
+          relinkedRows++;
+        }
+      }
+
       if (existing) {
+        if (!existing.plan_slot_key && row.plan_slot_key) {
+          existing.plan_slot_key = row.plan_slot_key;
+          if (pKey) existingRowsByPlanKey.set(pKey, existing);
+        }
         if (existing.row_type === "Asset" && !existing.designation && row.designation) {
           existing.designation = row.designation;
           refreshedDesignations++;
         }
         continue;
       }
+
       this.state.shift_mappings.push({ ...row });
       existingRowsByKey.set(key, row);
+      if (pKey) existingRowsByPlanKey.set(pKey, row);
       addedRows++;
     }
 
@@ -446,7 +490,7 @@ class SiteOrganogramDesigner {
     this.render_all();
 
     frappe.show_alert({
-      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s), ${addedCategories} asset categor${addedCategories === 1 ? "y" : "ies"} added${refreshedDesignations ? `, ${refreshedDesignations} designation(s) refreshed` : ""}.`,
+      message: `Populated from ${template.plan_name || sitePlan}: ${addedGroups} group(s), ${addedRows} slot row(s), ${addedLines} reporting line(s), ${addedCategories} asset categor${addedCategories === 1 ? "y" : "ies"} added${refreshedDesignations ? `, ${refreshedDesignations} designation(s) refreshed` : ""}${relinkedRows ? `, ${relinkedRows} existing Asset row(s) relinked to their Plan Slot (one-time repair)` : ""}.`,
       indicator: "green",
     });
   }
