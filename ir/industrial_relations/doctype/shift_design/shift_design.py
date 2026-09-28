@@ -184,7 +184,12 @@ class ShiftDesign(Document):
 				"Shift Type", shift_type, ["start_time", "end_time"]
 			) or (None, None)
 
-			if not start_time or not end_time:
+			# start_time/end_time come back as datetime.timedelta (Time
+			# fieldtype) - timedelta(0), i.e. a shift starting/ending exactly
+			# at midnight, is falsy, so this must check identity against None
+			# rather than truthiness or a midnight-anchored Shift Type would
+			# be wrongly rejected as "not set".
+			if start_time is None or end_time is None:
 				frappe.throw(
 					_(
 						"Shift Type '{0}' has no Start Time/End Time set, so its hours "

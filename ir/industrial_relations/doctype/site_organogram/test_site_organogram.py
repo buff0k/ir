@@ -272,6 +272,38 @@ class TestNormalizeMappings(unittest.TestCase):
 		self.assertEqual(row.employee, "")
 		self.assertEqual(row.missing_employee, 0)
 
+	def test_acting_is_cleared_when_no_employee_assigned(self):
+		row = _row(row_key="DESIG::Driver::tok1", row_type="", asset="", row_label="", employee="", acting=1, group="G", idx=1)
+		doc = _row(shift_mappings=[row])
+
+		normalize_mappings(doc)
+
+		self.assertEqual(row.acting, 0)
+
+	def test_acting_is_cleared_when_employee_is_missing(self):
+		row = _row(
+			row_key="DESIG::Driver::tok1", row_type="", asset="", row_label="",
+			employee="ZZ-BOGUS-EMPLOYEE-DOES-NOT-EXIST", acting=1, group="G", idx=1,
+		)
+		doc = _row(shift_mappings=[row])
+
+		normalize_mappings(doc)
+
+		self.assertEqual(row.employee, "")
+		self.assertEqual(row.acting, 0)
+
+	def test_acting_is_cleared_when_row_marked_spare_swing(self):
+		row = _row(
+			row_key="ASSET::FAKE", row_type="Asset", asset="", row_label="Missing",
+			spare_swing=1, employee="ZZ-BOGUS-EMPLOYEE", acting=1, group="G", idx=1,
+		)
+		doc = _row(shift_mappings=[row])
+
+		normalize_mappings(doc)
+
+		self.assertEqual(row.employee, "")
+		self.assertEqual(row.acting, 0)
+
 	def test_nonexistent_employee_is_cleared_and_flagged_missing(self):
 		row = _row(
 			row_key="DESIG::Driver::tok1", row_type="", asset="", row_label="",

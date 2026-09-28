@@ -9,6 +9,7 @@ import frappe
 from frappe.utils import getdate
 
 from ir.industrial_relations.doctype.shift_design.shift_design import (
+	ShiftDesign,
 	_apply_continuation_takeover,
 	_assignments_for_date,
 	_base_assignment,
@@ -24,6 +25,7 @@ from ir.industrial_relations.doctype.shift_design.shift_design import (
 	pay_period_month_key,
 	team_color,
 )
+from ir.tests.test_helpers import IRSyntheticDataTestCase, synthetic_name
 
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
@@ -299,6 +301,61 @@ class TestAssignmentsForDate(unittest.TestCase):
 		)
 
 		self.assertEqual(assignments["T1"], "Day Shift")
+
+
+class TestValidateShiftTypes(IRSyntheticDataTestCase):
+	"""validate_shift_types() rejects a Shift Type it can't compute hours for -
+	but start_time/end_time come back from frappe.db.get_value() as
+	datetime.timedelta (Time fieldtype), and timedelta(0) - i.e. a shift
+	starting or ending exactly at midnight - is falsy in Python. A truthiness
+	check would wrongly reject a perfectly valid midnight-anchored Shift Type
+	(e.g. a Night Shift running 15:00-00:00) as "not set"."""
+
+	def test_shift_type_ending_at_midnight_is_not_rejected(self):
+		shift_type = frappe.get_doc({
+			"doctype": "Shift Type",
+			"name": synthetic_name("Night"),
+			"start_time": "15:00:00",
+			"end_time": "00:00:00",
+		})
+		shift_type.insert(ignore_permissions=True)
+		self.track("Shift Type", shift_type.name)
+
+		fake_self = frappe._dict(shift_types=[frappe._dict(shift_type=shift_type.name)])
+
+		# Should not raise.
+		ShiftDesign.validate_shift_types(fake_self)
+
+	def test_shift_type_starting_at_midnight_is_not_rejected(self):
+		shift_type = frappe.get_doc({
+			"doctype": "Shift Type",
+			"name": synthetic_name("Night"),
+			"start_time": "00:00:00",
+			"end_time": "06:00:00",
+		})
+		shift_type.insert(ignore_permissions=True)
+		self.track("Shift Type", shift_type.name)
+
+		fake_self = frappe._dict(shift_types=[frappe._dict(shift_type=shift_type.name)])
+
+		# Should not raise.
+		ShiftDesign.validate_shift_types(fake_self)
+
+	def test_shift_type_with_no_times_set_is_still_rejected(self):
+		shift_type = frappe.get_doc({
+			"doctype": "Shift Type",
+			"name": synthetic_name("Blank"),
+			"start_time": "08:00:00",
+			"end_time": "16:00:00",
+		})
+		shift_type.insert(ignore_permissions=True)
+		self.track("Shift Type", shift_type.name)
+		frappe.db.set_value("Shift Type", shift_type.name, {"start_time": None, "end_time": None})
+
+		fake_self = frappe._dict(shift_types=[frappe._dict(shift_type=shift_type.name)])
+
+		with self.assertRaises(frappe.ValidationError):
+			ShiftDesign.validate_shift_types(fake_self)
 
 
 class TestTeamColor(unittest.TestCase):

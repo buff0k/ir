@@ -47,6 +47,7 @@ class SitePlanDesigner {
     this.page.set_primary_action(__("Save Site Plan"), () => this.save());
     this.page.add_menu_item(__("Export Excel"), () => this.export_excel());
     this.page.add_menu_item(__("Export Diagram PNG"), () => this.export_reporting_png());
+    this.page.add_menu_item(__("Export Diagram PNG (Collapsed)"), () => this.export_reporting_png_collapsed());
     this.page.add_menu_item(__("Delete Site Plan"), () => this.delete_plan());
 
     this.bind_events();
@@ -698,6 +699,48 @@ class SitePlanDesigner {
           .join("")
       : `<div class="so-org-block__empty">${__("No Slots defined for this heading.")}</div>`;
 
+    return this.plan_block_wrap(node, rowsHtml);
+  }
+
+  // Groups a block's own rows by their displayed label (e.g. "Dozer",
+  // "Dozer Operator"), Spare/Swing counted separately - mirrors
+  // organogram_block_rows_collapsed() in ir_organogram_design.js.
+  plan_block_rows_collapsed(rows) {
+    const counts = new Map();
+    (rows || []).forEach((row) => {
+      const key = `${row.left_title}::${row.spare ? 1 : 0}`;
+      if (!counts.has(key)) {
+        counts.set(key, { label: row.left_title, spare: !!row.spare, count: 0 });
+      }
+      counts.get(key).count += 1;
+    });
+    return [...counts.values()].sort(
+      (a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }) || a.spare - b.spare,
+    );
+  }
+
+  plan_block_html_collapsed(node) {
+    const block = node.block;
+    const collapsed = this.plan_block_rows_collapsed(block.rows);
+
+    const rowsHtml = collapsed.length
+      ? collapsed
+          .map(
+            (item) => `
+            <div class="so-org-collapsed-row${item.spare ? " is-spare" : ""}">
+              <div class="so-org-collapsed-row__label">${this.esc(item.label)}${item.spare ? ` ${__("Spare/Swing")}` : ""}</div>
+              <div class="so-org-collapsed-row__count">${item.count}</div>
+            </div>`,
+          )
+          .join("")
+      : `<div class="so-org-block__empty">${__("No Slots defined for this heading.")}</div>`;
+
+    return this.plan_block_wrap(node, rowsHtml);
+  }
+
+  plan_block_wrap(node, bodyHtml) {
+    const block = node.block;
+
     const secondaryHtml = node.secondary_parents.length
       ? `<div class="so-org-block__secondary">${__("Additional reporting from:")} ${node.secondary_parents.map((parent) => this.esc(`${parent.group} — ${parent.shift}`)).join(", ")}</div>`
       : "";
@@ -708,13 +751,14 @@ class SitePlanDesigner {
           <div class="so-org-block__heading">${this.esc(block.group)}</div>
           <div class="so-org-block__shift">${this.esc(block.shift)}</div>
         </div>
-        <div class="so-org-block__body">${rowsHtml}</div>
+        <div class="so-org-block__body">${bodyHtml}</div>
         ${secondaryHtml}
       </div>
     `;
   }
 
-  reporting_matrix_html(layout, matrixIndex) {
+  reporting_matrix_html(layout, matrixIndex, blockRenderer) {
+    const renderBlock = blockRenderer || this.plan_block_html.bind(this);
     const cols = Math.max(layout.branches.length, 1);
     const columnWidth = 360;
     const columnGap = 36;
@@ -745,12 +789,12 @@ class SitePlanDesigner {
         const stepsHtml = ownRows
           .map((node) => `
             <div class="so-org-column-connector"></div>
-            ${this.plan_block_html(this.reporting_present_node(node))}`)
+            ${renderBlock(this.reporting_present_node(node))}`)
           .join("");
 
         return `
           <div class="so-org-branch-column" style="width:${columnWidth}px;">
-            ${this.plan_block_html(this.reporting_present_node(branch))}
+            ${renderBlock(this.reporting_present_node(branch))}
             ${stepsHtml}
           </div>`;
       })
@@ -758,7 +802,7 @@ class SitePlanDesigner {
 
     return `
       <div class="so-org-matrix" data-matrix-index="${matrixIndex}">
-        <div class="so-org-root-row">${this.plan_block_html(this.reporting_present_node(layout.root))}</div>
+        <div class="so-org-root-row">${renderBlock(this.reporting_present_node(layout.root))}</div>
 
         <div class="so-org-root-links" style="width:${connectorWidth}px; --root-line-inset:${rootInset}px;">
           <div class="so-org-root-links__trunk"></div>
@@ -771,6 +815,24 @@ class SitePlanDesigner {
         </div>
       </div>
     `;
+  }
+
+  // Builds just the tree/forest markup (no toolbar) for a given block
+  // renderer - shared by render_reporting() (the live, on-screen, always-
+  // detailed view) and the collapsed PNG export, which needs the exact
+  // same tree structure but with each block's rows rendered as counts.
+  build_forest_html(blockRenderer) {
+    const layout = this.build_reporting_layout();
+
+    const matricesHtml = layout.matrices.length
+      ? layout.matrices.map((matrix, index) => this.reporting_matrix_html(matrix, index, blockRenderer)).join("")
+      : "";
+
+    const standaloneHtml = layout.standalone.length
+      ? `<div class="so-org-unlinked"><div class="so-org-unlinked__title">${__("Unlinked Headings")}</div><div class="so-org-unlinked__list">${layout.standalone.map((node) => blockRenderer(this.reporting_present_node(node))).join("")}</div></div>`
+      : "";
+
+    return matricesHtml || standaloneHtml ? `${matricesHtml}${standaloneHtml}` : "";
   }
 
   render_reporting() {
@@ -1167,6 +1229,79 @@ class SitePlanDesigner {
       frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
     } finally {
       if (iframe) iframe.remove();
+    }
+  }
+
+  // Same tree/connectors as export_reporting_png(), but each block's own
+  // Slot rows are rendered as counts (e.g. "Dozer: 3") rather than one row
+  // per slot. The live on-screen view stays the full detailed one always;
+  // this is an export-only alternative, so unlike export_reporting_png()
+  // there's no on-screen .so-org-forest to clone - the collapsed forest is
+  // built fresh and briefly attached off-screen on the *live* page (not the
+  // capture iframe) purely so bake_computed_styles() has a real, laid-out
+  // source to read computed styles from, then removed again.
+  async export_reporting_png_collapsed() {
+    const layout = this.build_reporting_layout();
+    if (!layout.matrices.length && !layout.standalone.length) {
+      frappe.msgprint(__("Add Group Headings and Reporting Lines before exporting a diagram."));
+      return;
+    }
+
+    let iframe;
+    let sourceHolder;
+    try {
+      await this.ensure_html2canvas();
+
+      const forestHtml = this.build_forest_html(this.plan_block_html_collapsed.bind(this));
+
+      sourceHolder = document.createElement("div");
+      sourceHolder.className = "so-org-forest";
+      Object.assign(sourceHolder.style, { position: "fixed", left: "-20000px", top: "0" });
+      sourceHolder.innerHTML = forestHtml;
+      document.body.appendChild(sourceHolder);
+
+      const frame = this.create_capture_frame();
+      iframe = frame.iframe;
+      const doc = frame.doc;
+
+      const wrapper = doc.createElement("div");
+      wrapper.style.cssText = "display:inline-block; padding:24px; background:#fff;";
+
+      const title = doc.createElement("div");
+      title.style.cssText = "font:700 20px/1.4 Arial, sans-serif; margin-bottom:14px; color:#1a1a1a;";
+      title.textContent = `${this.png_title()} (${__("Collapsed")})`;
+      wrapper.appendChild(title);
+
+      const forestClone = sourceHolder.cloneNode(true);
+      this.with_forced_light_theme(() => this.bake_computed_styles(sourceHolder, forestClone));
+      wrapper.appendChild(forestClone);
+      doc.body.appendChild(wrapper);
+
+      const canvas = await window.html2canvas(wrapper, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 4000,
+        windowHeight: 3000,
+      });
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(__("PNG creation failed.")))), "image/png")
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${this.png_filename()}-Collapsed.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
+    } finally {
+      if (iframe) iframe.remove();
+      if (sourceHolder) sourceHolder.remove();
     }
   }
 
