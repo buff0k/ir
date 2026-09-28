@@ -897,6 +897,16 @@ body[data-theme="dark"] .so-card__warning {
   );
 }
 
+.so-org-person-row.is-acting {
+  border-color: var(--orange-500, #f59e0b);
+  background: color-mix(in srgb, var(--orange-500, #f59e0b) 14%, var(--control-bg));
+}
+
+.so-org-acting-badge {
+  font-weight: 800;
+  color: var(--orange-500, #f59e0b);
+}
+
 .so-org-person-row__role,
 .so-org-person-row__employee {
   min-width: 0;
@@ -919,6 +929,39 @@ body[data-theme="dark"] .so-card__warning {
   font-size: 10px;
   opacity: 0.7;
   overflow-wrap: anywhere;
+}
+
+/* Collapsed export view - one row per distinct Asset/Designation label,
+   showing a count instead of every individual slot. */
+.so-org-collapsed-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--control-bg);
+}
+
+.so-org-collapsed-row.is-spare {
+  border-color: color-mix(
+    in srgb,
+    var(--gray-500, #6b7280) 45%,
+    var(--border-color)
+  );
+}
+
+.so-org-collapsed-row__label {
+  font-size: 11px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.so-org-collapsed-row__count {
+  font-size: 13px;
+  font-weight: 900;
+  flex: 0 0 auto;
 }
 
 .so-org-block__empty {
@@ -1135,6 +1178,28 @@ body[data-theme="dark"] .so-card__warning {
   background: color-mix(in srgb, var(--blue-500, #3b82f6) 16%, transparent);
   opacity: 1;
   text-transform: none;
+}
+.so-acting-toggle {
+  margin-top: 6px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background: var(--control-bg);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+.so-acting-toggle.is-active {
+  border-color: color-mix(in srgb, var(--orange-500, #f59e0b) 55%, var(--border-color));
+  background: color-mix(in srgb, var(--orange-500, #f59e0b) 18%, transparent);
+  opacity: 1;
+}
+.so-slot.is-acting {
+  border-color: var(--orange-500, #f59e0b);
+  background: color-mix(in srgb, var(--orange-500, #f59e0b) 14%, transparent);
 }
 
 .so-org-person-row.is-spare {

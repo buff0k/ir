@@ -457,8 +457,8 @@ def _shift_type_options():
 	return [
 		{
 			"name": row.name,
-			"start_time": str(row.get("start_time") or ""),
-			"end_time": str(row.get("end_time") or ""),
+			"start_time": str(row.get("start_time")) if row.get("start_time") is not None else "",
+			"end_time": str(row.get("end_time")) if row.get("end_time") is not None else "",
 			"color": row.get("color") or "",
 			"hours": _duration_hours(
 				row.get("start_time"),

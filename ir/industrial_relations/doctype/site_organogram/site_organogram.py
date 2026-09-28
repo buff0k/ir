@@ -321,6 +321,9 @@ def normalize_mappings(doc):
         else:
             row.missing_employee = _safe_int(getattr(row, "missing_employee", 0), 0)
 
+        # Acting only makes sense against an actual, present Employee.
+        row.acting = _safe_int(getattr(row, "acting", 0), 0) if _clean(getattr(row, "employee", None)) else 0
+
     # Spare/Swing is a property of the physical row (one row_key spans one
     # Site Organogram Mappings record per active shift) - if any shift-row for
     # a given row_key was marked Spare/Swing, every sibling shift-row for that
@@ -1323,8 +1326,13 @@ def _write_group(ws, row_no, doc, group_row, shifts, row_keys, by_slot, employee
                 ws.cell(row_no, col + 1, "")
             else:
                 name, coy_no = _employee_display(emp)
-                ws.cell(row_no, col, name or "Vacant")
+                acting = mapping and _safe_int(getattr(mapping, "acting", 0), 0)
+                name_cell = ws.cell(row_no, col, f"{name} (Acting)" if name and acting else name or "Vacant")
                 ws.cell(row_no, col + 1, coy_no)
+                if name and acting:
+                    name_cell.font = styles["acting_font"]
+                    name_cell.fill = styles["acting_fill"]
+                    ws.cell(row_no, col + 1).fill = styles["acting_fill"]
 
             col += 2
 
@@ -1372,6 +1380,8 @@ def export_site_organogram_excel(name):
         "section_fill": PatternFill("solid", fgColor="D9EAD3"),
         "shift_fill": PatternFill("solid", fgColor="D9EAF7"),
         "header_fill": PatternFill("solid", fgColor="E7E6E6"),
+        "acting_fill": PatternFill("solid", fgColor="FCE5CD"),
+        "acting_font": Font(bold=True, color="B45309"),
         "center": Alignment(horizontal="center", vertical="center", wrap_text=True),
         "wrap": Alignment(vertical="top", wrap_text=True),
         "thin_border": Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side),
@@ -1607,7 +1617,7 @@ def _designer_payload(doc):
             [
                 "group_key", "group", "shift", "employee", "asset", "designation",
                 "row_key", "row_order", "row_label", "row_type", "spare_swing",
-                "missing_asset", "missing_employee",
+                "missing_asset", "missing_employee", "acting",
             ],
         ),
         "reporting_lines": _designer_child_rows(
@@ -1759,7 +1769,7 @@ def save_site_organogram_designer_state(payload):
         [
             "group_key", "group", "shift", "employee", "asset", "designation", "row_key",
             "row_order", "row_label", "row_type", "spare_swing",
-            "missing_asset", "missing_employee",
+            "missing_asset", "missing_employee", "acting",
         ],
     )
     _replace_child_table(

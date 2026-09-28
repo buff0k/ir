@@ -311,6 +311,7 @@ class SiteOrganogramDesigner {
     this.page.add_inner_button("Print", () => this.print_organogram(), "Actions");
     this.page.add_inner_button("Export Excel", () => this.export_excel(), "Actions");
     this.page.add_inner_button("Export Diagram PNG", () => this.export_reporting_png(), "Actions");
+    this.page.add_inner_button("Export Diagram PNG (Collapsed)", () => this.export_reporting_png_collapsed(), "Actions");
 
     this.page.add_menu_item("Reload", () => this.reload());
     this.page.add_menu_item("Open DocType Record", () => {
@@ -1064,7 +1065,7 @@ class SiteOrganogramDesigner {
   asset_card(a) { return `<div class="so-card" draggable="true" data-drag-type="asset" data-asset="${this.esc(a.asset)}"><div class="so-card__title">${this.esc(a.asset)}</div><div class="so-card__meta">${this.esc(a.item_name||a.asset_category||"")}</div></div>`; }
   designation_card(d) { return `<div class="so-card" draggable="true" data-drag-type="designation" data-designation="${this.esc(d)}"><div class="so-card__title">${this.esc(d)}</div></div>`; }
   row_label(r) { if(r.row_type==="Asset"){ const a=this.asset_by_id(r.asset); const spare=!!r.spare_swing; return `<div class="so-rowlabel ${spare?"is-spare":""}"><div class="so-rowlabel__title">${this.esc(a?.asset||r.row_label||"Missing")}</div><div class="so-rowlabel__meta">${this.esc(a?.item_name||a?.asset_category||"")}</div><button type="button" class="so-spare-toggle ${spare?"is-active":""}" data-action="toggle-spare" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Mark this Asset as Spare / Swing — it won't accept Employees")}">${spare?__("Spare / Swing"):__("Mark Spare / Swing")}</button><button type="button" class="so-designation-toggle ${r.designation?"is-active":""}" data-action="set-designation" data-group-key="${this.esc(r.group_key)}" data-row-key="${this.esc(r.row_key)}" title="${__("Set the default Designation for this Asset — used to count vacancies by role")}">${this.esc(r.designation||__("Set Designation"))}</button></div>`;} return `<div class="so-rowlabel so-rowlabel--desig"><div class="so-rowlabel__title">${this.esc(r.row_label||"Designation")}</div></div>`; }
-  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const spare=!!r?.spare_swing; const e=r?.employee?this.employee_by_id(r.employee):null; const stateClass=spare?"is-spare":e?"is-filled":"is-empty"; const dropAttr=spare?"":`data-drop="cell"`; return `<div class="so-slot ${stateClass}" ${dropAttr} data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):spare?'<span class="so-vacant so-vacant--spare">Spare</span>':'<span class="so-vacant">Vacant</span>'}</div>`; }
+  slot_html(g,shift,identity) { const r=this.find_mapping(g.group_key,shift,identity.row_key); const spare=!!r?.spare_swing; const e=r?.employee?this.employee_by_id(r.employee):null; const acting=!!(e&&r?.acting); const stateClass=spare?"is-spare":e?"is-filled":"is-empty"; const dropAttr=spare?"":`data-drop="cell"`; const actingToggle=e?`<button type="button" class="so-acting-toggle ${acting?"is-active":""}" data-action="toggle-acting" data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}" title="${__("Mark this Employee as Acting in this role")}">${acting?__("Acting"):__("Mark Acting")}</button>`:""; return `<div class="so-slot ${stateClass} ${acting?"is-acting":""}" ${dropAttr} data-group-key="${this.esc(g.group_key)}" data-shift="${this.esc(shift)}" data-row-key="${this.esc(identity.row_key)}">${e?this.employee_card(e,"assigned",{group_key:g.group_key,shift,row_key:identity.row_key}):spare?'<span class="so-vacant so-vacant--spare">Spare</span>':'<span class="so-vacant">Vacant</span>'}${actingToggle}</div>`; }
 
   bind_planner_events($w) {
     $w.find("[data-pool-mode]").on("click",e=>{this.pool_mode=e.currentTarget.dataset.poolMode;this.render_planner();});
@@ -1087,6 +1088,7 @@ class SiteOrganogramDesigner {
       if(type==="pool"){if(p.type==="assigned"&&p.from)this.unassign(p.from);if(p.type==="row")this.remove_row(p.group_key,p.row_key);}
     });
     $w.find('[data-action="toggle-spare"]').on("click",e=>{e.stopPropagation();this.toggle_spare_swing(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey);});
+    $w.find('[data-action="toggle-acting"]').on("click",e=>{e.stopPropagation();this.toggle_acting(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.shift,e.currentTarget.dataset.rowKey);});
     $w.find('[data-action="set-designation"]').on("click",e=>{e.stopPropagation();this.prompt_row_designation(e.currentTarget.dataset.groupKey,e.currentTarget.dataset.rowKey);});
   }
 
@@ -1158,9 +1160,14 @@ class SiteOrganogramDesigner {
   assign_employee(groupKey,shift,rowKey,employee,from) {
     const target=this.find_mapping(groupKey,shift,rowKey); if(!target||target.spare_swing)return;
     if(from)this.unassign(from,false);
-    target.employee=employee;target.missing_employee=0;this.mark_dirty();this.render_planner();
+    target.employee=employee;target.missing_employee=0;target.acting=0;this.mark_dirty();this.render_planner();
   }
-  unassign(from,render=true){const r=this.find_mapping(from.group_key,from.shift,from.row_key);if(r){r.employee="";r.missing_employee=0;this.mark_dirty();if(render)this.render_planner();}}
+  unassign(from,render=true){const r=this.find_mapping(from.group_key,from.shift,from.row_key);if(r){r.employee="";r.missing_employee=0;r.acting=0;this.mark_dirty();if(render)this.render_planner();}}
+
+  toggle_acting(groupKey,shift,rowKey) {
+    const r=this.find_mapping(groupKey,shift,rowKey); if(!r||!r.employee)return;
+    r.acting=r.acting?0:1;this.mark_dirty();this.render_planner();
+  }
   remove_row(groupKey,rowKey){this.state.shift_mappings=this.state.shift_mappings.filter(r=>!(r.group_key===groupKey&&r.row_key===rowKey));this.mark_dirty();this.render_planner();}
 
   toggle_spare_swing(groupKey,rowKey) {
@@ -1257,6 +1264,7 @@ class SiteOrganogramDesigner {
         missing: !!mapping.missing_employee,
         spare: !!mapping.spare_swing,
         vacant: !employee && !mapping.missing_employee && !mapping.spare_swing,
+        acting: !!(employee && mapping.acting),
       });
     }
 
@@ -1432,7 +1440,7 @@ class SiteOrganogramDesigner {
                 : row.vacant
                 ? "is-vacant"
                 : "is-filled"
-            }">
+            } ${row.acting ? "is-acting" : ""}">
               <div class="so-org-person-row__role">
                 <div class="so-org-person-row__role-title">
                   ${this.esc(row.left_title)}
@@ -1453,6 +1461,11 @@ class SiteOrganogramDesigner {
                       ? ` <span>(${this.esc(row.employee_id)})</span>`
                       : ""
                   }
+                  ${
+                    row.acting
+                      ? ` <span class="so-org-acting-badge">${__("(Acting)")}</span>`
+                      : ""
+                  }
                 </div>
                 ${
                   row.designation
@@ -1470,6 +1483,56 @@ class SiteOrganogramDesigner {
           No Asset/Designation rows assigned to this block.
         </div>
       `;
+
+    return this.organogram_block_wrap(node, rowsHtml);
+  }
+
+  // Groups a block's own rows by their displayed label (e.g. "Dozer",
+  // "Dozer Operator") - Asset-type rows are further split by Spare/Swing,
+  // matching the same distinction the Excel export's own asset-category
+  // summary makes, since a spare unit is a materially different thing to
+  // count than an operational one. Designation rows can never be Spare/
+  // Swing (see normalize_mappings), so they only ever land in one bucket.
+  organogram_block_rows_collapsed(rows) {
+    const counts = new Map();
+    (rows || []).forEach(row => {
+      const key = `${row.left_title}::${row.spare ? 1 : 0}`;
+      if (!counts.has(key)) {
+        counts.set(key, { label: row.left_title, spare: !!row.spare, count: 0 });
+      }
+      counts.get(key).count += 1;
+    });
+    return [...counts.values()].sort((a, b) =>
+      a.label.localeCompare(b.label, undefined, { numeric: true }) || a.spare - b.spare
+    );
+  }
+
+  organogram_block_html_collapsed(node) {
+    const block = node.block;
+    const collapsed = this.organogram_block_rows_collapsed(block.rows);
+
+    const rowsHtml = collapsed.length
+      ? collapsed
+          .map(item => `
+            <div class="so-org-collapsed-row${item.spare ? " is-spare" : ""}">
+              <div class="so-org-collapsed-row__label">
+                ${this.esc(item.label)}${item.spare ? ` ${__("Spare/Swing")}` : ""}
+              </div>
+              <div class="so-org-collapsed-row__count">${item.count}</div>
+            </div>
+          `)
+          .join("")
+      : `
+        <div class="so-org-block__empty">
+          No Asset/Designation rows assigned to this block.
+        </div>
+      `;
+
+    return this.organogram_block_wrap(node, rowsHtml);
+  }
+
+  organogram_block_wrap(node, bodyHtml) {
+    const block = node.block;
 
     const secondaryHtml = node.secondary_parents.length
       ? `
@@ -1489,7 +1552,7 @@ class SiteOrganogramDesigner {
           <div class="so-org-block__heading">${this.esc(block.group)}</div>
           <div class="so-org-block__shift">${this.esc(block.shift)}</div>
         </div>
-        <div class="so-org-block__body">${rowsHtml}</div>
+        <div class="so-org-block__body">${bodyHtml}</div>
         ${secondaryHtml}
       </div>
     `;
@@ -1633,7 +1696,8 @@ class SiteOrganogramDesigner {
     };
   }
 
-  reporting_matrix_html(layout, matrixIndex) {
+  reporting_matrix_html(layout, matrixIndex, blockRenderer) {
+    const renderBlock = blockRenderer || this.organogram_block_html.bind(this);
     const cols = Math.max(layout.branches.length, 1);
     const columnWidth = 360;
     const columnGap = 36;
@@ -1665,13 +1729,13 @@ class SiteOrganogramDesigner {
         const stepsHtml = ownRows
           .map(node => `
             <div class="so-org-column-connector"></div>
-            ${this.organogram_block_html(this.reporting_present_node(node))}
+            ${renderBlock(this.reporting_present_node(node))}
           `)
           .join("");
 
         return `
           <div class="so-org-branch-column" style="width:${columnWidth}px;">
-            ${this.organogram_block_html(this.reporting_present_node(branch))}
+            ${renderBlock(this.reporting_present_node(branch))}
             ${stepsHtml}
           </div>
         `;
@@ -1681,7 +1745,7 @@ class SiteOrganogramDesigner {
     return `
       <div class="so-org-matrix" data-matrix-index="${matrixIndex}">
         <div class="so-org-root-row">
-          ${this.organogram_block_html(this.reporting_present_node(layout.root))}
+          ${renderBlock(this.reporting_present_node(layout.root))}
         </div>
 
         <div class="so-org-root-links"
@@ -1701,6 +1765,37 @@ class SiteOrganogramDesigner {
         </div>
       </div>
     `;
+  }
+
+  // Builds just the tree/forest markup (no toolbar) for a given block
+  // renderer - shared by render_reporting() (the live, on-screen, always-
+  // detailed view) and the collapsed PNG export, which needs the exact
+  // same tree structure but with each block's rows rendered as counts.
+  build_forest_html(blockRenderer) {
+    const layout = this.build_reporting_layout();
+
+    const matricesHtml = layout.matrices.length
+      ? layout.matrices
+          .map((matrix, index) => this.reporting_matrix_html(matrix, index, blockRenderer))
+          .join("")
+      : "";
+
+    const standaloneHtml = layout.standalone.length
+      ? `
+          <div class="so-org-unlinked">
+            <div class="so-org-unlinked__title">Unlinked Blocks</div>
+            <div class="so-org-unlinked__list">
+              ${layout.standalone
+                .map(node => blockRenderer(this.reporting_present_node(node)))
+                .join("")}
+            </div>
+          </div>
+        `
+      : "";
+
+    return matricesHtml || standaloneHtml
+      ? `${matricesHtml}${standaloneHtml}`
+      : "";
   }
 
   render_reporting() {
@@ -2203,6 +2298,80 @@ class SiteOrganogramDesigner {
       frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
     } finally {
       if (iframe) iframe.remove();
+    }
+  }
+
+  // Same tree/connectors as export_reporting_png(), but each block's own
+  // Asset/Designation rows are rendered as counts (e.g. "Dozer: 3") rather
+  // than one row per slot - for a quick, high-level read of a large
+  // organogram. The live on-screen view stays the full detailed one always;
+  // this is an export-only alternative, so unlike export_reporting_png()
+  // there's no on-screen .so-org-forest to clone - the collapsed forest is
+  // built fresh and briefly attached off-screen on the *live* page (not the
+  // capture iframe) purely so bake_computed_styles() has a real, laid-out
+  // source to read computed styles from, then removed again.
+  async export_reporting_png_collapsed() {
+    const layout = this.build_reporting_layout();
+    if (!layout.matrices.length && !layout.standalone.length) {
+      frappe.msgprint(__("Add Group Headings, mappings and Reporting Lines before exporting a diagram."));
+      return;
+    }
+
+    let iframe;
+    let sourceHolder;
+    try {
+      await this.ensure_html2canvas();
+
+      const forestHtml = this.build_forest_html(this.organogram_block_html_collapsed.bind(this));
+
+      sourceHolder = document.createElement("div");
+      sourceHolder.className = "so-org-forest";
+      Object.assign(sourceHolder.style, { position: "fixed", left: "-20000px", top: "0" });
+      sourceHolder.innerHTML = forestHtml;
+      document.body.appendChild(sourceHolder);
+
+      const frame = this.create_capture_frame();
+      iframe = frame.iframe;
+      const doc = frame.doc;
+
+      const wrapper = doc.createElement("div");
+      wrapper.style.cssText = "display:inline-block; padding:24px; background:#fff;";
+
+      const title = doc.createElement("div");
+      title.style.cssText = "font:700 20px/1.4 Arial, sans-serif; margin-bottom:14px; color:#1a1a1a;";
+      title.textContent = `${this.png_title()} (${__("Collapsed")})`;
+      wrapper.appendChild(title);
+
+      const forestClone = sourceHolder.cloneNode(true);
+      this.with_forced_light_theme(() => this.bake_computed_styles(sourceHolder, forestClone));
+      wrapper.appendChild(forestClone);
+      doc.body.appendChild(wrapper);
+
+      const canvas = await window.html2canvas(wrapper, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 4000,
+        windowHeight: 3000,
+      });
+      const blob = await new Promise((resolve, reject) =>
+        canvas.toBlob(b => (b ? resolve(b) : reject(new Error(__("PNG creation failed.")))), "image/png")
+      );
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${this.png_filename()}-Collapsed.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      frappe.msgprint({ title: __("Export failed"), message: error.message, indicator: "red" });
+    } finally {
+      if (iframe) iframe.remove();
+      if (sourceHolder) sourceHolder.remove();
     }
   }
 
