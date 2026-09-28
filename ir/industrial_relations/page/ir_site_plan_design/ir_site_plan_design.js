@@ -720,18 +720,22 @@ class SitePlanDesigner {
     const columnGap = 36;
     const connectorWidth = cols * columnWidth + Math.max(0, cols - 1) * columnGap;
     const rootInset = columnWidth / 2;
-    const branchSpineInset = 18;
 
     // Each branch is laid out as its own independent vertical column - the
     // branch box followed directly by *its own* descendant rows, in
-    // group_order. Branches used to share one page-wide row band per
+    // group_order, joined by a single straight connector between each
+    // consecutive pair. Branches used to share one page-wide row band per
     // descendant level (so every branch's row N sat at the same height),
-    // which meant one unusually tall branch (e.g. a heading with dozens of
-    // rows stacked inside it, no descendants of its own) forced a huge
-    // blank gap under every *other* branch before their own, unrelated
-    // descendants could start. Stacking each branch's own content in its
-    // own column removes that cross-branch coupling entirely - a short
-    // branch's column is simply shorter.
+    // which meant one unusually tall branch forced a huge blank gap under
+    // every *other* branch before their own, unrelated descendants could
+    // start. Stacking each branch's own content in its own column removes
+    // that cross-branch coupling - a short branch's column is simply
+    // shorter. Every box in the column (branch and its own rows alike) is
+    // centred on the same vertical axis via the column's own
+    // align-items:center, so a plain straight connector between two
+    // consecutive boxes always lands exactly where it needs to - no offset
+    // hooks/elbows needed, and nothing for two independently-curved pieces
+    // to fail to line up into.
     const columnsHtml = layout.branches
       .map((branch) => {
         const ownRows = layout.rowDefs
@@ -739,23 +743,14 @@ class SitePlanDesigner {
           .filter(Boolean);
 
         const stepsHtml = ownRows
-          .map((node, index) => {
-            const isLast = index === ownRows.length - 1;
-            return `
-            <div class="so-org-column-step${isLast ? " is-last" : ""}" style="--branch-spine-x:${branchSpineInset}px;">
-              <div class="so-org-grid__cell-connector"></div>
-              ${isLast ? "" : '<div class="so-org-column-connector-out"></div>'}
-              ${this.plan_block_html(this.reporting_present_node(node))}
-            </div>`;
-          })
+          .map((node) => `
+            <div class="so-org-column-connector"></div>
+            ${this.plan_block_html(this.reporting_present_node(node))}`)
           .join("");
 
         return `
           <div class="so-org-branch-column" style="width:${columnWidth}px;">
-            <div class="so-org-grid__cell--branch${ownRows.length ? " has-descendants" : ""}" style="--branch-spine-x:${branchSpineInset}px;">
-              ${ownRows.length ? '<div class="so-org-column-connector-out"></div>' : ""}
-              ${this.plan_block_html(this.reporting_present_node(branch))}
-            </div>
+            ${this.plan_block_html(this.reporting_present_node(branch))}
             ${stepsHtml}
           </div>`;
       })
