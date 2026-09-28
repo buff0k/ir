@@ -2344,6 +2344,14 @@ class SiteOrganogramDesigner {
 
       const forestClone = sourceHolder.cloneNode(true);
       this.with_forced_light_theme(() => this.bake_computed_styles(sourceHolder, forestClone));
+      // bake_computed_styles() copies position/top/left onto every element,
+      // including the root - sourceHolder's own off-screen position:fixed;
+      // left:-20000px (needed to give it real layout for baking) would
+      // otherwise land on forestClone too, and once that's dropped into the
+      // capture iframe's own (much smaller) coordinate space, the whole
+      // diagram renders 20000px outside the canvas - a blank export. Only
+      // the root needs correcting; nothing else in the tree is positioned.
+      Object.assign(forestClone.style, { position: "static", top: "auto", left: "auto", right: "auto", bottom: "auto" });
       wrapper.appendChild(forestClone);
       doc.body.appendChild(wrapper);
 
