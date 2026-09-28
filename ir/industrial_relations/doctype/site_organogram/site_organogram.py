@@ -792,6 +792,143 @@ def get_site_plan_template(site_plan_name):
     }
 
 
+@frappe.whitelist()
+def backfill_plan_slot_keys(dry_run=1, organogram=None):
+    """One-off repair for Site Organograms populated before plan_slot_key
+    existed: backfills it onto already-committed rows so the *next*
+    Populate from Plan is a true no-op there instead of duplicating rows.
+
+    This is the exact same, already-tested relinking populate_from_plan()
+    itself performs automatically (see ir_organogram_design.js) - this just
+    lets every affected Organogram be repaired in one pass up front, instead
+    of waiting for each one to be reopened and re-populated by hand. It only
+    ever *sets* plan_slot_key where missing; employee/asset/designation/
+    spare_swing and every other field are never touched, and no row is ever
+    added, removed or renamed.
+
+    Call with dry_run=1 (the default) first - it changes nothing and just
+    reports what it *would* do. Only call with dry_run=0 once that report
+    looks right. Safe to re-run any number of times (idempotent) - a fully
+    backfilled Organogram reports everything as already-linked and skips it.
+
+    Usage (bench console or `bench execute`):
+        bench --site <site> execute ir.industrial_relations.doctype.site_organogram.site_organogram.backfill_plan_slot_keys --kwargs "{'dry_run': 1}"
+    """
+    # Deliberately not _safe_int() - it does int(value or default), so
+    # _safe_int(0, 1) returns 1: a caller passing dry_run=0 to mean "run for
+    # real" would silently get a dry run back and nothing would ever write.
+    dry_run = str(dry_run).strip().lower() not in ("0", "false", "no", "")
+
+    filters = {"site_plan": ["is", "set"]}
+    if organogram:
+        filters["name"] = organogram
+
+    targets = frappe.get_all("Site Organogram", filters=filters, fields=["name", "site_plan"])
+
+    report = []
+    for row in targets:
+        try:
+            result = _backfill_plan_slot_keys_for_one(row.name, row.site_plan, dry_run)
+        except Exception:
+            frappe.log_error(title=f"backfill_plan_slot_keys failed for {row.name}")
+            result = {"error": True}
+        if result.get("relinked") or result.get("matched") or result.get("error"):
+            report.append({"organogram": row.name, "site_plan": row.site_plan, **result})
+
+    if not dry_run:
+        frappe.db.commit()
+
+    return {
+        "dry_run": dry_run,
+        "organograms_scanned": len(targets),
+        "organograms_with_changes": len(report),
+        "detail": report,
+    }
+
+
+def _backfill_plan_slot_keys_for_one(organogram_name, site_plan_name, dry_run):
+    doc = frappe.get_doc("Site Organogram", organogram_name)
+    template_rows = get_site_plan_template(site_plan_name).get("shift_mappings") or []
+    rows = getattr(doc, "shift_mappings", None) or []
+
+    writes, matched, relinked = compute_plan_slot_key_backfill(rows, template_rows)
+
+    if not dry_run:
+        for child_name, value in writes:
+            frappe.db.set_value("Site Organogram Mappings", child_name, "plan_slot_key", value, update_modified=False)
+
+    return {"matched": matched, "relinked": relinked, "written": len(writes)}
+
+
+def compute_plan_slot_key_backfill(rows, template_rows):
+    """Pure matching logic behind backfill_plan_slot_keys() - kept separate
+    from the DB/doc plumbing above so it can be unit tested directly with
+    plain frappe._dict rows, the same way the rest of this module's
+    normalize_* logic is. `rows` are existing Site Organogram Mappings
+    (real child docs or _dict stand-ins exposing .name); `template_rows`
+    are get_site_plan_template()'s own plain dicts. Mirrors
+    populate_from_plan()'s matching in ir_organogram_design.js exactly:
+    plan_slot_key first, literal row_key as a fallback, and a positional
+    relink (oldest row_order first) as a last resort for Asset rows that
+    predate plan_slot_key entirely. Returns (writes, matched, relinked)
+    where writes is a list of (child_row_name, plan_slot_key) pairs -
+    nothing is written here, only computed.
+    """
+
+    def row_key_of(r):
+        return f"{_clean(getattr(r, 'group_key', None))}::{_clean(getattr(r, 'shift', None))}::{_clean(getattr(r, 'row_key', None))}"
+
+    def plan_key_of(r):
+        pk = _clean(getattr(r, "plan_slot_key", None))
+        if not pk:
+            return None
+        return f"{_clean(getattr(r, 'group_key', None))}::{_clean(getattr(r, 'shift', None))}::{pk}"
+
+    existing_by_row_key = {row_key_of(r): r for r in rows}
+    existing_by_plan_key = {plan_key_of(r): r for r in rows if plan_key_of(r)}
+
+    unlinked_asset_queues = defaultdict(list)
+    for r in rows:
+        if _clean(getattr(r, "row_type", None)) != "Asset" or _clean(getattr(r, "plan_slot_key", None)):
+            continue
+        q_key = f"{_clean(getattr(r, 'group_key', None))}::{_clean(getattr(r, 'shift', None))}"
+        unlinked_asset_queues[q_key].append(r)
+    for q in unlinked_asset_queues.values():
+        q.sort(key=lambda r: _safe_int(getattr(r, "row_order", 0), 999999) or 999999)
+
+    matched = 0
+    relinked = 0
+    writes = []
+
+    for template_row in template_rows:
+        t_row_key = f"{template_row.get('group_key')}::{template_row.get('shift')}::{template_row.get('row_key')}"
+        t_plan_key = (
+            f"{template_row.get('group_key')}::{template_row.get('shift')}::{template_row.get('plan_slot_key')}"
+            if template_row.get("plan_slot_key")
+            else None
+        )
+
+        existing = (t_plan_key and existing_by_plan_key.get(t_plan_key)) or existing_by_row_key.get(t_row_key)
+
+        if not existing and template_row.get("row_type") == "Asset":
+            q_key = f"{template_row.get('group_key')}::{template_row.get('shift')}"
+            queue = unlinked_asset_queues.get(q_key)
+            if queue:
+                existing = queue.pop(0)
+                relinked += 1
+
+        if not existing:
+            continue
+
+        matched += 1
+        if not _clean(getattr(existing, "plan_slot_key", None)) and template_row.get("plan_slot_key"):
+            writes.append((existing.name, template_row.get("plan_slot_key")))
+            if t_plan_key:
+                existing_by_plan_key[t_plan_key] = existing
+
+    return writes, matched, relinked
+
+
 SHIFT_LETTERS = [chr(65 + i) for i in range(20)]
 
 
