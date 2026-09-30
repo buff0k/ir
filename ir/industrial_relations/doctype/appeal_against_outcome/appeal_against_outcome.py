@@ -160,6 +160,7 @@ def _get_disciplinary_action_data(name):
         "names": source.accused_name,
         "coy": source.accused_coy,
         "position": source.accused_pos,
+        "branch": source.branch,
         "company": source.company,
         "outcome": source.outcome,
         "dismissal_charges": [
@@ -185,6 +186,7 @@ def _get_incapacity_data(name):
         "names": source.accused_name,
         "coy": source.accused_coy,
         "position": source.accused_pos,
+        "branch": source.branch,
         "company": source.company,
         "outcome": source.outcome,
         "type_of_incapacity": source.get("type_of_incapacity"),
@@ -208,6 +210,7 @@ def _get_poor_performance_data(name):
         "names": data.get("employee_name"),
         "coy": data.get("employee"),
         "position": data.get("employee_designation"),
+        "branch": data.get("branch"),
         "company": data.get("company"),
         "outcome": data.get("outcome"),
         "performance_details": data.get("details_of_poor_performance"),

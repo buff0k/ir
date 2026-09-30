@@ -395,6 +395,7 @@ def fetch_performance_data(poor_performance):
             "employee",
             "employee_name",
             "employee_designation",
+            "branch",
             "company",
             "details_of_poor_performance",
             "outcome",

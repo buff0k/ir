@@ -410,6 +410,8 @@ def create_written_outcome(source_name=None, source_doctype=None):
     elif source_doctype == "Appeal Against Outcome":
         doc.employee = getattr(source, "employee", None)
         doc.employee_name = getattr(source, "names", None)
+        doc.employee_designation = getattr(source, "position", None)
+        doc.employee_branch = getattr(source, "branch", None)
         doc.company = getattr(source, "company", None)
         doc.letter_head = getattr(source, "letter_head", None)
 
@@ -488,8 +490,8 @@ def fetch_intervention_data(intervention, intervention_type):
             ],
         },
         "Appeal Against Outcome": {
-            "source_fields": ["employee", "names", "company"],
-            "target_fields": ["employee", "employee_name", "company"],
+            "source_fields": ["employee", "names", "position", "branch", "company"],
+            "target_fields": ["employee", "employee_name", "employee_designation", "employee_branch", "company"],
         },
         "External Dispute Resolution": {
             "source_fields": ["employee", "employee_name", "company"],
