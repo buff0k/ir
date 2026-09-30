@@ -6,7 +6,10 @@ from __future__ import annotations
 import frappe
 from frappe.utils import now_datetime, nowdate
 
-from ir.industrial_relations.doctype.written_outcome.written_outcome import get_outcome_body
+from ir.industrial_relations.doctype.written_outcome.written_outcome import (
+	fetch_intervention_data,
+	get_outcome_body,
+)
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
 	get_reference_branch,
@@ -42,6 +45,7 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Disciplinary Action",
 	"Incapacity Proceedings",
 	"Poor Performance",
+	"Appeal Against Outcome",
 ]
 
 
@@ -93,6 +97,45 @@ class IntegrationTestWrittenOutcome(IRSyntheticDataTestCase):
 		doc.insert(ignore_permissions=True)
 		self.track("Written Outcome", doc.name)
 		return doc
+
+	def _make_appeal_against_outcome(self, employee, poor_performance, **overrides):
+		values = {
+			"doctype": "Appeal Against Outcome",
+			"employee": employee.name,
+			"names": employee.employee_name,
+			"company": employee.company,
+			# _validate_intervention() requires a real linked record of a
+			# supported type - Poor Performance is one, and reusing
+			# _make_poor_performance() keeps this fixture minimal.
+			"ir_intervention": "Poor Performance",
+			"linked_intervention": poor_performance.name,
+			"appeal_decision": "Pending",
+		}
+		values.update(overrides)
+
+		doc = frappe.get_doc(values)
+		doc.insert(ignore_permissions=True, ignore_mandatory=True)
+		self.track("Appeal Against Outcome", doc.name)
+		return doc
+
+	def test_fetch_intervention_data_maps_appeal_against_outcome_employee_fields(self):
+		# Regression test: Appeal Against Outcome has no appellant/
+		# appellant_name fields - the real fields are employee/names. A
+		# stale field_maps entry referencing appellant/appellant_name broke
+		# this with a raw MySQL "Unknown column" error, since
+		# fetch_intervention_data() builds its column list straight from
+		# field_maps and hands it to frappe.db.get_value().
+		employee = self._make_employee()
+		poor_performance = self._make_poor_performance(employee)
+		appeal = self._make_appeal_against_outcome(employee, poor_performance)
+
+		result = fetch_intervention_data(
+			intervention=appeal.name, intervention_type="Appeal Against Outcome"
+		)
+
+		self.assertEqual(result["employee"], employee.name)
+		self.assertEqual(result["employee_name"], employee.employee_name)
+		self.assertEqual(result["company"], employee.company)
 
 	def test_autoname_first_record_and_revision_numbering(self):
 		employee = self._make_employee()
