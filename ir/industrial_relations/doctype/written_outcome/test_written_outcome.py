@@ -103,6 +103,8 @@ class IntegrationTestWrittenOutcome(IRSyntheticDataTestCase):
 			"doctype": "Appeal Against Outcome",
 			"employee": employee.name,
 			"names": employee.employee_name,
+			"position": get_reference_designation(),
+			"branch": get_reference_branch(),
 			"company": employee.company,
 			# _validate_intervention() requires a real linked record of a
 			# supported type - Poor Performance is one, and reusing
@@ -124,7 +126,10 @@ class IntegrationTestWrittenOutcome(IRSyntheticDataTestCase):
 		# stale field_maps entry referencing appellant/appellant_name broke
 		# this with a raw MySQL "Unknown column" error, since
 		# fetch_intervention_data() builds its column list straight from
-		# field_maps and hands it to frappe.db.get_value().
+		# field_maps and hands it to frappe.db.get_value(). Also covers
+		# Position/Site (employee_designation/employee_branch), which the
+		# original field_maps entry dropped entirely - unlike Disciplinary
+		# Action's own mapping, which does carry those across.
 		employee = self._make_employee()
 		poor_performance = self._make_poor_performance(employee)
 		appeal = self._make_appeal_against_outcome(employee, poor_performance)
@@ -135,6 +140,8 @@ class IntegrationTestWrittenOutcome(IRSyntheticDataTestCase):
 
 		self.assertEqual(result["employee"], employee.name)
 		self.assertEqual(result["employee_name"], employee.employee_name)
+		self.assertEqual(result["employee_designation"], appeal.position)
+		self.assertEqual(result["employee_branch"], appeal.branch)
 		self.assertEqual(result["company"], employee.company)
 
 	def test_autoname_first_record_and_revision_numbering(self):

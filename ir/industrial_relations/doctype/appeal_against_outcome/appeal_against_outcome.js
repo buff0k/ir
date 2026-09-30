@@ -100,9 +100,10 @@ frappe.ui.form.on("Appeal Against Outcome", {
                 frm.doc.names = data.names || '';
                 frm.doc.coy = data.coy || '';
                 frm.doc.position = data.position || '';
+                frm.doc.branch = data.branch || '';
                 frm.doc.company = data.company || '';
                 frm.doc.outcome = data.outcome || '';
-                ['employee', 'names', 'coy', 'position', 'company', 'outcome'].forEach(f => frm.refresh_field(f));
+                ['employee', 'names', 'coy', 'position', 'branch', 'company', 'outcome'].forEach(f => frm.refresh_field(f));
 
                 if (frm.fields_dict.details_of_incapacity) {
                     frm.set_value('type_of_incapacity', data.type_of_incapacity || '');
