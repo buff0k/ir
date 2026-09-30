@@ -36,6 +36,68 @@ SUPPORTED_INTERVENTIONS = {
 
 SUCCESSFUL_DECISIONS = {"Upheld", "Partially Upheld"}
 
+# accused/accused_name for Disciplinary Action and Incapacity Proceedings,
+# employee/employee_name for Poor Performance - same split used throughout
+# this module's own _get_*_data() functions.
+_EMPLOYEE_FIELDS_BY_INTERVENTION = {
+    "Disciplinary Action": ("accused", "accused_name"),
+    "Incapacity Proceedings": ("accused", "accused_name"),
+    "Poor Performance": ("employee", "employee_name"),
+}
+
+
+@frappe.whitelist()
+def preview_appeal_amendment(ir_intervention, linked_intervention):
+    """Read-only preview of what appeal_and_amend_source() would actually do
+    if this Appeal is submitted with a successful decision (Upheld/Partially
+    Upheld) - which final-outcome document (if any) it would cancel, and
+    which source record it would cancel and replace with a fresh amended
+    copy. Used to build an explicit, specific confirmation before that
+    (effectively irreversible via the UI) cancellation happens, instead of
+    submitting silently."""
+    if ir_intervention not in SUPPORTED_INTERVENTIONS or not linked_intervention:
+        return {}
+    if not frappe.db.exists(ir_intervention, linked_intervention):
+        return {}
+
+    employee_field, employee_name_field = _EMPLOYEE_FIELDS_BY_INTERVENTION.get(
+        ir_intervention, ("employee", "employee_name")
+    )
+    employee, employee_name = frappe.db.get_value(
+        ir_intervention, linked_intervention, [employee_field, employee_name_field]
+    ) or (None, None)
+
+    # Mirrors _cancel_latest_final_outcome()'s own candidate selection
+    # exactly - the latest submitted final-outcome document across *all*
+    # FINAL_OUTCOME_DOCTYPES, not just the first type that has any match.
+    candidates = []
+    for doctype in utils.FINAL_OUTCOME_DOCTYPES:
+        rows = frappe.get_all(
+            doctype,
+            filters={
+                "ir_intervention": ir_intervention,
+                "linked_intervention": linked_intervention,
+                "docstatus": 1,
+            },
+            fields=["name", "modified"],
+        )
+        for row in rows:
+            candidates.append((row.modified, doctype, row.name))
+
+    final_outcome_doctype = None
+    final_outcome_name = None
+    if candidates:
+        candidates.sort(key=lambda item: item[0])
+        _modified, final_outcome_doctype, final_outcome_name = candidates[-1]
+
+    return {
+        "source_doctype": ir_intervention,
+        "source_name": linked_intervention,
+        "employee_name": employee_name or employee or "",
+        "final_outcome_doctype": final_outcome_doctype,
+        "final_outcome_name": final_outcome_name,
+    }
+
 
 class AppealAgainstOutcome(Document):
     def autoname(self):

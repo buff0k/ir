@@ -77,9 +77,12 @@ frappe.ui.form.on("Appeal Against Outcome", {
     ir_intervention(frm) {
         frm.set_value('linked_intervention', '');
         frm.set_value('linked_intervention_processed', 0);
+        frm._appeal_amendment_confirmed = false;
     },
 
     linked_intervention: function(frm) {
+        frm._appeal_amendment_confirmed = false;
+
         if (!frm.doc.ir_intervention || !frm.doc.linked_intervention) {
             return;
         }
@@ -172,7 +175,83 @@ frappe.ui.form.on("Appeal Against Outcome", {
         if (!frm.doc.appeal_decision || frm.doc.appeal_decision === 'Pending') {
             frappe.msgprint(__('Select the Appeal Decision before submitting.'));
             frappe.validated = false;
+            return;
         }
+
+        if (!SUCCESSFUL_DECISIONS.includes(frm.doc.appeal_decision)) {
+            return;
+        }
+
+        // "Upheld"/"Partially Upheld" silently cancels the linked final
+        // outcome (e.g. a Dismissal Form - reversing whatever it did to the
+        // Employee record) and the source intervention itself, replacing it
+        // with a fresh amended copy - see appeal_and_amend_source(). That's
+        // easy to trigger by mistake: "Upheld" means the *appeal* succeeded
+        // (sanction set aside), not that the original decision is upheld -
+        // the opposite of what the word suggests at a glance, and the one
+        // real incident that prompted this check happened exactly that way.
+        // frappe.validated=false blocks *this* submit attempt so the
+        // confirmation can be shown; frm.savesubmit() below re-starts a
+        // fresh one once confirmed, and the flag lets that second pass
+        // through without asking again.
+        if (frm._appeal_amendment_confirmed) {
+            return;
+        }
+
+        frappe.validated = false;
+
+        frappe.call({
+            method: 'ir.industrial_relations.doctype.appeal_against_outcome.appeal_against_outcome.preview_appeal_amendment',
+            args: {
+                ir_intervention: frm.doc.ir_intervention,
+                linked_intervention: frm.doc.linked_intervention,
+            },
+            callback: function(r) {
+                const preview = r.message || {};
+                const sourceDoctype = preview.source_doctype || frm.doc.ir_intervention;
+                const sourceName = preview.source_name || frm.doc.linked_intervention;
+                const employeeName = preview.employee_name || __('the employee');
+
+                const lines = [];
+                lines.push(__(
+                    '"{0}" means this appeal succeeded - the decision against {1} on {2} {3} will be set aside, not confirmed.',
+                    [frm.doc.appeal_decision, employeeName, sourceDoctype, sourceName]
+                ));
+                lines.push('');
+                lines.push(__('Submitting will:'));
+
+                if (preview.final_outcome_doctype && preview.final_outcome_name) {
+                    lines.push(__(
+                        '1. Cancel {0} {1} - reversing whatever it did to the Employee record (e.g. reinstating {2} if it was a Dismissal Form).',
+                        [preview.final_outcome_doctype, preview.final_outcome_name, employeeName]
+                    ));
+                    lines.push(__(
+                        '2. Cancel {0} {1} and create a new amended copy, ready for a fresh outcome to be issued.',
+                        [sourceDoctype, sourceName]
+                    ));
+                } else {
+                    lines.push(__(
+                        '1. Cancel {0} {1} and create a new amended copy, ready for a fresh outcome to be issued (no final outcome document is currently linked to it).',
+                        [sourceDoctype, sourceName]
+                    ));
+                }
+
+                lines.push('');
+                lines.push(__(
+                    'If the original sanction should stand instead, choose "Dismissed" (the appeal is dismissed/rejected) - not "{0}".',
+                    [frm.doc.appeal_decision]
+                ));
+
+                frappe.confirm(lines.join('<br>'), function() {
+                    frm._appeal_amendment_confirmed = true;
+                    frm.savesubmit();
+                });
+            }
+        });
+    },
+
+    appeal_decision: function(frm) {
+        frm._appeal_amendment_confirmed = false;
     }
 });
 
