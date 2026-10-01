@@ -114,11 +114,29 @@ REQUIRED_LINKS = [
         "is_child_table": 1,
     },
     {
-        "link_doctype": "External Dispute Resolution Applicants",
+        # Not is_child_table: that shape feeds Frappe's internal_links/
+        # get_internal_links(), which only resolves a count when VIEWING the
+        # doctype that owns the child table (e.g. open a Retrenchment
+        # Process, see its Affected Employees) - never the reverse. Viewed
+        # from Employee, it always reads 0 and silently falls back to the
+        # single *global* fieldname guess shared by every doctype on this
+        # page (whichever non-child link was registered first with a given
+        # link_fieldname - here "employee"), which only coincidentally
+        # matches the other entries above because their own child-table
+        # field also happens to be named "employee". External Dispute
+        # Resolution's real field is "applicant", so that fallback misses
+        # entirely and the connection always shows 0.
+        #
+        # A plain entry instead makes add_doctype_links() record this exact
+        # fieldname in non_standard_fieldnames, which get_external_links()
+        # uses directly - frappe.get_all(doctype, filters={fieldname: ...})
+        # already auto-resolves against a doctype's own child table when the
+        # field isn't a direct column (confirmed directly: filtering
+        # External Dispute Resolution by applicant=<employee> returns the
+        # real matching matters), so no is_child_table bookkeeping is needed
+        # here at all - see _doctype_or_child_table_has_field() below.
+        "link_doctype": "External Dispute Resolution",
         "link_fieldname": "applicant",
-        "parent_doctype": "External Dispute Resolution",
-        "table_fieldname": "applicant_history",
-        "is_child_table": 1,
     },
 ]
 
@@ -128,6 +146,9 @@ OBSOLETE_LINK_DOCTYPES = {
     "Disciplinary Outcome Report",
     "Not Guilty Form",
     "Performance Improved",
+    # Replaced by a plain (non-is_child_table) link straight to "External
+    # Dispute Resolution" - see the comment on that entry in REQUIRED_LINKS.
+    "External Dispute Resolution Applicants",
 }
 
 
@@ -252,7 +273,7 @@ def _is_valid_link(link):
     if not frappe.db.exists("DocType", link_doctype):
         return False
 
-    if not frappe.db.has_column(link_doctype, link_fieldname):
+    if not _doctype_or_child_table_has_field(link_doctype, link_fieldname):
         return False
 
     if not is_child_table:
@@ -294,3 +315,24 @@ def _value(link, fieldname):
         return link.get(fieldname)
 
     return getattr(link, fieldname, None)
+
+
+def _doctype_or_child_table_has_field(doctype, fieldname):
+    """A link_fieldname is valid either as a direct column on `doctype`, or
+    as a column on one of `doctype`'s own child tables - frappe.get_all()
+    already auto-resolves filters={fieldname: value} against a child table
+    in exactly that second case (confirmed directly against this site's own
+    data: filtering External Dispute Resolution by applicant=<employee>
+    correctly matches via its applicant_history child table), so a plain
+    (non-is_child_table) link entry doesn't need link_fieldname to be a
+    direct column to actually work."""
+    if frappe.db.has_column(doctype, fieldname):
+        return True
+
+    for table_field in frappe.get_meta(doctype).get_table_fields():
+        if frappe.db.exists("DocType", table_field.options) and frappe.db.has_column(
+            table_field.options, fieldname
+        ):
+            return True
+
+    return False
