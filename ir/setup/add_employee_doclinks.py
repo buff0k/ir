@@ -113,6 +113,13 @@ REQUIRED_LINKS = [
         "table_fieldname": "attendees",
         "is_child_table": 1,
     },
+    {
+        "link_doctype": "External Dispute Resolution Applicants",
+        "link_fieldname": "applicant",
+        "parent_doctype": "External Dispute Resolution",
+        "table_fieldname": "applicant_history",
+        "is_child_table": 1,
+    },
 ]
 
 
