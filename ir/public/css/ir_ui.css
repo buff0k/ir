@@ -1501,6 +1501,10 @@ body[data-theme="dark"] .so-card__warning {
   text-align: left;
   font-weight: 900;
 }
+.sdm-summary-table .sdm-hours-emphasis td {
+  font-weight: 900;
+  background: color-mix(in srgb, var(--gray-500, #6b7280) 10%, transparent);
+}
 .sdm-rules-table th,
 .sdm-rules-table td {
   text-align: left;
