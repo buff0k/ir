@@ -11,7 +11,7 @@ from datetime import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import add_months, cint, formatdate, getdate, nowdate
+from frappe.utils import add_months, cint, flt, formatdate, getdate, nowdate
 
 
 SHIFT_DESIGN = "Shift Design"
@@ -217,6 +217,7 @@ def export_shift_design_excel(name, range_start=None, range_end=None):
 
 	from ir.industrial_relations.doctype.shift_design.shift_design import (
 		get_roster_calendar_data,
+		simulate_team_hours_by_month,
 	)
 
 	# Same default window the Designer's own on-screen calendar opens with
@@ -368,6 +369,12 @@ def export_shift_design_excel(name, range_start=None, range_end=None):
 		Alignment, Border, Font, PatternFill, Side, get_column_letter,
 	)
 
+	hours_by_team_month = simulate_team_hours_by_month(doc.name, calendar_start, calendar_end)
+	_write_hours_summary_sheet(
+		wb, teams, hours_by_team_month, calendar_start, calendar_end, styles,
+		Alignment, Font, get_column_letter,
+	)
+
 	out = BytesIO()
 	wb.save(out)
 	out.seek(0)
@@ -489,6 +496,96 @@ def _write_roster_calendar_sheet(
 
 	for col_idx in range(1, total_cols + 1):
 		ws.column_dimensions[get_column_letter(col_idx)].width = 24
+
+
+def _month_label(month_key):
+	"""'2026-06' -> 'June 2026' - month_key as produced by
+	pay_period_month_key()/simulate_team_hours_by_month() (keyed by whichever
+	calendar month a pay period counts as, via its End date - not
+	necessarily the month(s) its days fall in)."""
+	year, month = month_key.split("-")
+	return f"{_calendar.month_name[int(month)]} {year}"
+
+
+def _write_hours_summary_sheet(
+	wb, teams, hours_by_team_month, range_start, range_end, styles, Alignment, Font, get_column_letter,
+):
+	"""Per-team, per-month Ordinary/Overtime hours, from the exact same
+	simulate_team_hours_by_month() Site Budget's own cost engine uses - so
+	this can never disagree with what Site Budget charges for this Shift
+	Design's hours. Monthly, not by pay period, because a pay period can
+	straddle two calendar months (see pay_period_month_key()) and "how many
+	hours this month" is the actual question being asked here."""
+	ws = wb.create_sheet("Hours Summary")
+	headers = [
+		"TEAM", "MONTH", "ORDINARY HOURS", "OVERTIME (NORMAL)",
+		"OVERTIME (SATURDAY)", "OVERTIME (SUNDAY)", "OVERTIME (PUBLIC HOLIDAY)", "TOTAL HOURS",
+	]
+	total_cols = len(headers)
+
+	row_no = 1
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	title_cell = ws.cell(row_no, 1, "HOURS SUMMARY")
+	title_cell.font = styles["title_font"]
+	title_cell.alignment = styles["center"]
+	row_no += 1
+
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	ws.cell(
+		row_no, 1,
+		f"Period: {formatdate(range_start, 'yyyy-mm-dd')} to {formatdate(range_end, 'yyyy-mm-dd')}",
+	)
+	row_no += 2
+
+	table_rows = []
+	total_row_indexes = []
+
+	for team in teams:
+		months = hours_by_team_month.get(team.team_key, {})
+		team_label = team.team_name or team.team_key
+		team_total = {"ordinary": 0.0, "overtime": {"normal": 0.0, "saturday": 0.0, "sunday": 0.0, "public_holiday": 0.0}}
+
+		for month_key in sorted(months.keys()):
+			month_data = months[month_key]
+			overtime = month_data.get("overtime") or {}
+			ordinary = flt(month_data.get("ordinary"))
+			total_row_overtime = flt(sum(overtime.values()))
+
+			table_rows.append([
+				team_label, _month_label(month_key),
+				round(ordinary, 2), round(flt(overtime.get("normal")), 2),
+				round(flt(overtime.get("saturday")), 2), round(flt(overtime.get("sunday")), 2),
+				round(flt(overtime.get("public_holiday")), 2), round(ordinary + total_row_overtime, 2),
+			])
+
+			team_total["ordinary"] += ordinary
+			for category in team_total["overtime"]:
+				team_total["overtime"][category] += flt(overtime.get(category))
+
+		if not months:
+			continue
+
+		team_overtime_total = flt(sum(team_total["overtime"].values()))
+		table_rows.append([
+			team_label, "ALL MONTHS",
+			round(team_total["ordinary"], 2), round(team_total["overtime"]["normal"], 2),
+			round(team_total["overtime"]["saturday"], 2), round(team_total["overtime"]["sunday"], 2),
+			round(team_total["overtime"]["public_holiday"], 2),
+			round(team_total["ordinary"] + team_overtime_total, 2),
+		])
+		total_row_indexes.append(len(table_rows) - 1)
+
+	table_start_row = row_no
+	row_no = _write_table(ws, table_start_row, "HOURS BY TEAM AND MONTH", headers, table_rows, styles)
+
+	data_start_row = table_start_row + 2  # section title row, then header row
+	for offset in total_row_indexes:
+		for col_idx in range(1, total_cols + 1):
+			ws.cell(data_start_row + offset, col_idx).font = styles["header_font"]
+
+	for col_idx in range(1, total_cols + 1):
+		ws.column_dimensions[get_column_letter(col_idx)].width = 14 if col_idx > 1 else 22
+	ws.column_dimensions[get_column_letter(1)].width = 22
 
 
 def _write_table(ws, row_no, title, headers, rows, styles):
