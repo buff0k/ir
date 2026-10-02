@@ -1792,7 +1792,15 @@ class ShiftPatternModeller {
       frappe.msgprint(__("Save the Shift Design so the export includes the latest changes."));
       return;
     }
-    const url = `/api/method/${SD_API}.export_shift_design_excel?name=${encodeURIComponent(this.state.name)}`;
+    // Same Simulation start/end the on-screen calendar is currently showing
+    // (see render_calendar()/date_range()), so the exported Roster Calendar
+    // sheet matches what the user is actually looking at.
+    const params = new URLSearchParams({ name: this.state.name });
+    if (this.simulation.simulation_start) params.set("range_start", this.simulation.simulation_start);
+    const simulationEnd = this.simulation_end_date();
+    if (simulationEnd) params.set("range_end", simulationEnd);
+
+    const url = `/api/method/${SD_API}.export_shift_design_excel?${params.toString()}`;
     window.open(url, "_blank");
   }
 

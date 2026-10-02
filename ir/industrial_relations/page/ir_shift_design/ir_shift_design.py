@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
+import calendar as _calendar
 import json
+from collections import defaultdict
+from datetime import date as _date
 from datetime import datetime
 
 import frappe
 from frappe import _
-from frappe.utils import cint, getdate
+from frappe.utils import add_months, cint, formatdate, getdate, nowdate
 
 
 SHIFT_DESIGN = "Shift Design"
@@ -196,7 +199,7 @@ def get_sa_public_holidays(start_date, end_date):
 
 
 @frappe.whitelist()
-def export_shift_design_excel(name):
+def export_shift_design_excel(name, range_start=None, range_end=None):
 	if not name:
 		frappe.throw(_("Shift Design is required."))
 
@@ -211,6 +214,23 @@ def export_shift_design_excel(name):
 		frappe.throw(_("openpyxl is required for this export but is not installed."))
 
 	from io import BytesIO
+
+	from ir.industrial_relations.doctype.shift_design.shift_design import (
+		get_roster_calendar_data,
+	)
+
+	# Same default window the Designer's own on-screen calendar opens with
+	# (today -> +3 months, clamped to Effective Until) - see
+	# ir_shift_design.js's blank_simulation()/simulation_end_date(). The JS
+	# passes through whatever the user currently has the Simulation
+	# start/end controls set to, so the export matches what's on screen;
+	# this default only applies to a direct API call with neither supplied.
+	calendar_start = getdate(range_start) if range_start else getdate(nowdate())
+	calendar_end = getdate(range_end) if range_end else add_months(calendar_start, 3)
+	if doc.effective_until and getdate(doc.effective_until) < calendar_end:
+		calendar_end = getdate(doc.effective_until)
+	if calendar_end < calendar_start:
+		calendar_end = calendar_start
 
 	wb = Workbook()
 	ws = wb.active
@@ -342,6 +362,12 @@ def export_shift_design_excel(name):
 		letter = get_column_letter(col_idx)
 		ws.column_dimensions[letter].width = 26 if col_idx == 1 else 16
 
+	calendar_data = get_roster_calendar_data(doc.name, calendar_start, calendar_end)
+	_write_roster_calendar_sheet(
+		wb, calendar_data, calendar_start, calendar_end, styles,
+		Alignment, Border, Font, PatternFill, Side, get_column_letter,
+	)
+
 	out = BytesIO()
 	wb.save(out)
 	out.seek(0)
@@ -350,6 +376,119 @@ def export_shift_design_excel(name):
 	frappe.local.response.filename = filename
 	frappe.local.response.filecontent = out.getvalue()
 	frappe.local.response.type = "binary"
+
+
+def _write_roster_calendar_sheet(
+	wb, calendar_data, range_start, range_end, styles,
+	Alignment, Border, Font, PatternFill, Side, get_column_letter,
+):
+	"""A real month-grid calendar (Mon-Sun columns, one cell per day) on its
+	own sheet, resolved from the exact same get_roster_calendar_data() the
+	Designer's own on-screen calendar and Site Budget's roster calendar use -
+	so this can never disagree with what's shown elsewhere in the app. Each
+	day cell lists every enabled team's resolved assignment for that date
+	("Off" when none), with a "(!)" marker on an assignment that isn't
+	configured to apply on that weekday - the same conflict Shift Design's
+	own calendar flags in red."""
+	ws = wb.create_sheet("Roster Calendar")
+	total_cols = 7
+	weekday_labels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+
+	row_no = 1
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	title_cell = ws.cell(row_no, 1, "ROSTER CALENDAR")
+	title_cell.font = styles["title_font"]
+	title_cell.alignment = styles["center"]
+	row_no += 1
+
+	ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+	ws.cell(
+		row_no, 1,
+		f"Period: {formatdate(range_start, 'yyyy-mm-dd')} to {formatdate(range_end, 'yyyy-mm-dd')}",
+	)
+	row_no += 2
+
+	teams = calendar_data.get("teams") or []
+	holidays = calendar_data.get("holidays") or {}
+	days = calendar_data.get("days") or {}
+	dates_present = sorted(getdate(d) for d in days.keys())
+
+	if not dates_present:
+		ws.cell(row_no, 1, "No roster data for this date range.")
+		for col_idx in range(1, total_cols + 1):
+			ws.column_dimensions[get_column_letter(col_idx)].width = 24
+		return
+
+	holiday_fill = PatternFill("solid", fgColor="FCE5CD")
+	sunday_fill = PatternFill("solid", fgColor="F4CCCC")
+	row_height = max(60, 14 * (len(teams) + 2))
+
+	months = defaultdict(set)
+	for date in dates_present:
+		months[(date.year, date.month)].add(date.day)
+
+	for year, month in sorted(months.keys()):
+		days_present = months[(year, month)]
+
+		ws.merge_cells(start_row=row_no, start_column=1, end_row=row_no, end_column=total_cols)
+		month_cell = ws.cell(row_no, 1, f"{_calendar.month_name[month]} {year}".upper())
+		month_cell.font = styles["section_font"]
+		month_cell.alignment = styles["center"]
+		month_cell.fill = styles["section_fill"]
+		row_no += 1
+
+		for col_idx, label in enumerate(weekday_labels, start=1):
+			header_cell = ws.cell(row_no, col_idx, label)
+			header_cell.font = styles["header_font"]
+			header_cell.fill = styles["header_fill"]
+			header_cell.alignment = styles["center"]
+		row_no += 1
+
+		# Python's monthrange() weekday is already Monday=0..Sunday=6, so it
+		# lines up directly with this grid's own Mon-Sun columns.
+		leading_blanks, days_in_month = _calendar.monthrange(year, month)
+		ws.row_dimensions[row_no].height = row_height
+		col_idx = 1 + leading_blanks
+
+		for day in range(1, days_in_month + 1):
+			if col_idx > total_cols:
+				row_no += 1
+				ws.row_dimensions[row_no].height = row_height
+				col_idx = 1
+
+			cell = ws.cell(row_no, col_idx)
+			cell.alignment = styles["wrap"]
+			cell.border = styles["thin_border"]
+
+			if day not in days_present:
+				cell.value = str(day)
+				col_idx += 1
+				continue
+
+			date = _date(year, month, day)
+			date_key = str(date)
+			holiday_name = holidays.get(date_key, "")
+			day_data = days.get(date_key, {})
+
+			lines = [f"Day {day}" + (f" - {holiday_name}" if holiday_name else "")]
+			for team in teams:
+				team_entry = day_data.get(team["team_key"]) or {}
+				assignment = team_entry.get("assignment") or "Off"
+				conflict_marker = " (!)" if team_entry.get("conflict") else ""
+				lines.append(f"{team['team_name']}: {assignment}{conflict_marker}")
+			cell.value = "\n".join(lines)
+
+			if holiday_name:
+				cell.fill = holiday_fill
+			elif date.weekday() == 6:
+				cell.fill = sunday_fill
+
+			col_idx += 1
+
+		row_no += 2
+
+	for col_idx in range(1, total_cols + 1):
+		ws.column_dimensions[get_column_letter(col_idx)].width = 24
 
 
 def _write_table(ws, row_no, title, headers, rows, styles):
