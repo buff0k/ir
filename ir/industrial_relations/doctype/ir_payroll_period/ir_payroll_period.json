@@ -1,0 +1,123 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:payroll_period",
+ "creation": "2026-10-01 18:18:59.809691",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_vel6",
+  "amended_from",
+  "payroll_period",
+  "period_start",
+  "period_end"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_vel6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "IR Payroll Period",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "payroll_period",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Payroll Period Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "period_start",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "First Day of Period",
+   "non_negative": 1,
+   "reqd": 1,
+   "min_value": 1,
+   "max_value": 1
+  },
+  {
+   "fieldname": "period_end",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Last Day of Period",
+   "non_negative": 1,
+   "reqd": 1,
+   "min_value": 1,
+   "max_value": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-01 18:27:24.487239",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "IR Payroll Period",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "payroll_period",
+ "track_changes": 1
+}

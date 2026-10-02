@@ -458,8 +458,37 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Staffing Overview",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Branch Staffing Dashboard",
+   "link_count": 0,
+   "link_to": "ir-branch-staffing",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Branch Staffing Overview",
+   "link_count": 0,
+   "link_to": "Branch Staffing Overview",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "General IR Documents",
-   "link_count": 9,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -497,30 +526,10 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Site Organogram List",
-   "link_count": 0,
-   "link_to": "Site Organogram",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Site Organogram Designer",
    "link_count": 0,
    "link_to": "ir-organogram-design",
    "link_type": "Page",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Shift Design List",
-   "link_count": 0,
-   "link_to": "Shift Design",
-   "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
@@ -537,54 +546,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Site Budget",
-   "link_count": 0,
-   "link_to": "Site Budget",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Site Plan Designer",
    "link_count": 0,
    "link_to": "ir-site-plan-design",
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Staffing Overview",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Branch Staffing Dashboard",
-   "link_count": 0,
-   "link_to": "ir-branch-staffing",
-   "link_type": "Page",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Branch Staffing Overview",
-   "link_count": 0,
-   "link_to": "Branch Staffing Overview",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2026-09-23 11:43:10.539558",
+ "modified": "2026-10-02 15:39:54.828093",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",
