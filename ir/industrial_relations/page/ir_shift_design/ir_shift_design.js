@@ -1214,6 +1214,7 @@ class ShiftPatternModeller {
 
     this.render_calendar();
     this.render_hours();
+    this.render_monthly_hours_table(start, end);
   }
 
   render_calendar() {
@@ -1329,7 +1330,6 @@ class ShiftPatternModeller {
     const teams = this.enabled_teams();
     const dates = this.date_range();
     const totals = {};
-    const periods = {};
     const ordinaryUsed = {};
 
     teams.forEach((team) => {
@@ -1340,11 +1340,6 @@ class ShiftPatternModeller {
       const assignments = this.assignments_for_date(date);
       const period = this.pay_period_for_date(date);
 
-      periods[period.key] ||= {
-        label: period.label,
-        rows: {},
-      };
-
       for (const team of teams) {
         const assignment = assignments[team.team_key] || "";
         if (!assignment) {
@@ -1353,25 +1348,24 @@ class ShiftPatternModeller {
 
         const hours = this.hours_for(assignment, date);
         const totalRow = totals[team.team_key];
-        const periodRows = periods[period.key].rows;
-        periodRows[team.team_key] ||= this.empty_hours_row(team.team_key, team.team_name);
-        const periodRow = periodRows[team.team_key];
 
         this.add_assignment_hours(totalRow, assignment, hours);
-        this.add_assignment_hours(periodRow, assignment, hours);
 
         if (this.holidays.has(date)) {
           totalRow.holiday += hours;
-          periodRow.holiday += hours;
           continue;
         }
 
         if (moment(date).day() === 0) {
           totalRow.sunday += hours;
-          periodRow.sunday += hours;
           continue;
         }
 
+        // Ordinary Hours Limit bucketing still resets per pay period (same
+        // precedence simulate_team_hours_by_month() uses server-side), even
+        // though the Monthly Breakdown table showing where it lands is now
+        // rendered from that server function instead - see
+        // render_monthly_hours_table().
         const ordinaryKey = `${team.team_key}:${period.key}`;
         ordinaryUsed[ordinaryKey] ||= 0;
         const limit = flt(this.state.ordinary_hours_limit || 0);
@@ -1382,15 +1376,95 @@ class ShiftPatternModeller {
 
         totalRow.ordinary += ordinary;
         totalRow.overtime += hours - ordinary;
-        periodRow.ordinary += ordinary;
-        periodRow.overtime += hours - ordinary;
         ordinaryUsed[ordinaryKey] += hours;
       }
     }
 
     this.render_total_hours_table(Object.values(totals));
-    this.render_pay_period_hours_table(periods);
     this.render_coverage(teams, dates);
+  }
+
+  async render_monthly_hours_table(start, end) {
+    const $container = this.$main.find(".sdm-monthly-hours");
+
+    if (!this.state.name) {
+      $container.html(`<div class="sdm-empty">${__("Save the Shift Design to see the Monthly Breakdown.")}</div>`);
+      return;
+    }
+
+    const response = await frappe.call({
+      method: `${SD_API}.get_monthly_hours_summary`,
+      args: { name: this.state.name, range_start: start, range_end: end },
+    });
+
+    const blocks = response.message || [];
+    const body = blocks.map((block) => this.monthly_hours_block_html(block)).join("");
+
+    this.$main.find(".sdm-monthly-hours").html(`
+      <h4 class="sdm-subheading">${__("Monthly Breakdown")}</h4>
+      ${this.monthly_hours_table_html(body)}
+    `);
+  }
+
+  monthly_hours_table_html(body) {
+    return `
+      <div class="sdm-table-scroll">
+        <table class="sdm-summary-table">
+          <thead>
+            <tr>
+              <th>${__("Month")}</th>
+              <th>${__("Team")}</th>
+              <th>${__("Ordinary")}</th>
+              <th>${__("Normal OT")}</th>
+              <th>${__("Saturday OT")}</th>
+              <th>${__("Sunday OT")}</th>
+              <th>${__("Public Holiday OT")}</th>
+              <th>${__("Total")}</th>
+            </tr>
+          </thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  monthly_hours_block_html(block) {
+    // month cell rowspans across every team row plus the Total/Average rows
+    // that close the block out - one visible grouping per calendar month,
+    // teams in their own display order (not alphabetical), matching the
+    // Excel "Hours Summary" sheet's own monthly_hours_summary()-derived rows.
+    const rowCount = block.rows.length + 2;
+    const monthCell = `<td rowspan="${rowCount}">${frappe.utils.escape_html(block.month_label)}</td>`;
+
+    const teamRowsHtml = block.rows
+      .map((row, index) => this.monthly_hours_row_html(row, index === 0 ? monthCell : "", false))
+      .join("");
+    const totalHtml = this.monthly_hours_row_html(
+      { team_name: __("TOTAL"), ...block.total }, "", true,
+    );
+    const averageHtml = this.monthly_hours_row_html(
+      { team_name: __("AVERAGE"), ...block.average }, "", true,
+    );
+
+    return teamRowsHtml + totalHtml + averageHtml;
+  }
+
+  monthly_hours_row_html(row, monthCell, isEmphasis) {
+    const teamColor = row.team_key ? this.team_color(row.team_key) : "";
+    const teamStyle = teamColor ? `style="border-left:3px solid ${teamColor}"` : "";
+
+    return `
+      <tr class="${isEmphasis ? "sdm-hours-emphasis" : ""}">
+        ${monthCell}
+        <td class="sdm-team-cell" ${teamStyle}>${frappe.utils.escape_html(row.team_name)}</td>
+        <td>${this.num(row.ordinary)}</td>
+        <td>${this.num(row.overtime.normal)}</td>
+        <td>${this.num(row.overtime.saturday)}</td>
+        <td>${this.num(row.overtime.sunday)}</td>
+        <td>${this.num(row.overtime.public_holiday)}</td>
+        <td>${this.num(row.total)}</td>
+      </tr>
+    `;
   }
 
   empty_hours_row(teamKey, teamName) {
@@ -1418,43 +1492,16 @@ class ShiftPatternModeller {
   render_total_hours_table(rows) {
     const shiftTypeNames = this.shift_type_names();
     const body = rows
-      .map((row) => this.hours_table_row(row, false, shiftTypeNames))
+      .map((row) => this.hours_table_row(row, shiftTypeNames))
       .join("");
 
     this.$main.find(".sdm-hours-summary").html(`
       <h4 class="sdm-subheading">${__("Simulation Totals")}</h4>
-      ${this.hours_table_html(body, false, shiftTypeNames)}
+      ${this.hours_table_html(body, shiftTypeNames)}
     `);
   }
 
-  render_pay_period_hours_table(periods) {
-    const shiftTypeNames = this.shift_type_names();
-    const body = Object.values(periods)
-      .sort((left, right) => left.label.localeCompare(right.label))
-      .map((period) => {
-        const rows = Object.values(period.rows).sort((left, right) =>
-          left.team.localeCompare(right.team),
-        );
-
-        return rows
-          .map((row, index) => {
-            const periodCell =
-              index === 0
-                ? `<td rowspan="${rows.length}">${frappe.utils.escape_html(period.label)}</td>`
-                : "";
-            return this.hours_table_row(row, true, shiftTypeNames, periodCell);
-          })
-          .join("");
-      })
-      .join("");
-
-    this.$main.find(".sdm-monthly-hours").html(`
-      <h4 class="sdm-subheading">${__("Pay Period Breakdown")}</h4>
-      ${this.hours_table_html(body, true, shiftTypeNames)}
-    `);
-  }
-
-  hours_table_html(body, includePeriod, shiftTypeNames) {
+  hours_table_html(body, shiftTypeNames) {
     const typeHeaders = (shiftTypeNames || [])
       .map((name) => `<th>${frappe.utils.escape_html(name)}</th>`)
       .join("");
@@ -1464,7 +1511,6 @@ class ShiftPatternModeller {
         <table class="sdm-summary-table">
           <thead>
             <tr>
-              ${includePeriod ? `<th>${__("Pay Period")}</th>` : ""}
               <th>${__("Team")}</th>
               <th>${__("Ordinary")}</th>
               <th>${__("Normal OT")}</th>
@@ -1480,7 +1526,7 @@ class ShiftPatternModeller {
     `;
   }
 
-  hours_table_row(row, includePeriod, shiftTypeNames, periodCell) {
+  hours_table_row(row, shiftTypeNames) {
     const typeCells = (shiftTypeNames || [])
       .map((name) => `<td>${this.num(row.by_type[name] || 0)}</td>`)
       .join("");
@@ -1488,7 +1534,6 @@ class ShiftPatternModeller {
 
     return `
       <tr>
-        ${includePeriod ? (periodCell ?? `<td>${frappe.utils.escape_html(row.period || "")}</td>`) : ""}
         <td class="sdm-team-cell" style="border-left:3px solid ${teamColor}">${frappe.utils.escape_html(row.team)}</td>
         <td>${this.num(row.ordinary)}</td>
         <td>${this.num(row.overtime)}</td>

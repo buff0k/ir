@@ -507,18 +507,115 @@ def _month_label(month_key):
 	return f"{_calendar.month_name[int(month)]} {year}"
 
 
+_OVERTIME_CATEGORIES = ("normal", "saturday", "sunday", "public_holiday")
+
+
+def _empty_overtime():
+	return {category: 0.0 for category in _OVERTIME_CATEGORIES}
+
+
+def _hours_entry(ordinary, overtime):
+	ordinary = flt(ordinary)
+	overtime = {category: flt(overtime.get(category)) for category in _OVERTIME_CATEGORIES}
+	return {
+		"ordinary": round(ordinary, 2),
+		"overtime": {category: round(hours, 2) for category, hours in overtime.items()},
+		"total": round(ordinary + sum(overtime.values()), 2),
+	}
+
+
+def monthly_hours_summary(teams, hours_by_team_month):
+	"""Per-month blocks (chronological - month_key is "YYYY-MM" from
+	pay_period_month_key(), so a plain string sort is already chronological),
+	each with one row per team in *display* order (not alphabetical - that
+	doesn't track display_order) plus a TOTAL (sum across teams) and an
+	AVERAGE (mean across teams) row. Shared by the Excel "Hours Summary"
+	sheet and the on-screen Pay Period Breakdown replacement, so they can't
+	disagree with each other - both are read straight from
+	simulate_team_hours_by_month(), the same function Site Budget's cost
+	engine uses, so none of the three can disagree either.
+
+	Returns [{"month_key", "month_label", "rows": [{"team_key", "team_name",
+	"ordinary", "overtime", "total"}, ...], "total": {...}, "average": {...}}]
+	- "total"/"average" and each row share the same ordinary/overtime/total
+	shape as _hours_entry()."""
+	all_month_keys = sorted({
+		month_key for months in hours_by_team_month.values() for month_key in months.keys()
+	})
+
+	blocks = []
+	for month_key in all_month_keys:
+		rows = []
+		month_ordinary = 0.0
+		month_overtime = _empty_overtime()
+
+		for team in teams:
+			month_data = hours_by_team_month.get(team.team_key, {}).get(month_key)
+			if month_data is None:
+				continue
+
+			overtime = month_data.get("overtime") or {}
+			ordinary = flt(month_data.get("ordinary"))
+			rows.append({
+				"team_key": team.team_key,
+				"team_name": team.team_name or team.team_key,
+				**_hours_entry(ordinary, overtime),
+			})
+
+			month_ordinary += ordinary
+			for category in _OVERTIME_CATEGORIES:
+				month_overtime[category] += flt(overtime.get(category))
+
+		if not rows:
+			continue
+
+		team_count = len(rows)
+		average_overtime = {category: hours / team_count for category, hours in month_overtime.items()}
+
+		blocks.append({
+			"month_key": month_key,
+			"month_label": _month_label(month_key),
+			"rows": rows,
+			"total": _hours_entry(month_ordinary, month_overtime),
+			"average": _hours_entry(month_ordinary / team_count, average_overtime),
+		})
+
+	return blocks
+
+
+@frappe.whitelist()
+def get_monthly_hours_summary(name, range_start, range_end):
+	"""JSON wrapper around monthly_hours_summary() for the on-screen Pay
+	Period Breakdown table - see that function's own docstring for why this
+	exists instead of the page's own client-side pay-period simulation."""
+	from ir.industrial_relations.doctype.shift_design.shift_design import (
+		simulate_team_hours_by_month,
+	)
+
+	doc = frappe.get_doc(SHIFT_DESIGN, name)
+	doc.check_permission("read")
+
+	teams = sorted(
+		[row for row in doc.teams or [] if cint(row.enabled)],
+		key=lambda row: cint(row.display_order),
+	)
+	hours_by_team_month = simulate_team_hours_by_month(name, getdate(range_start), getdate(range_end))
+	return monthly_hours_summary(teams, hours_by_team_month)
+
+
 def _write_hours_summary_sheet(
 	wb, teams, hours_by_team_month, range_start, range_end, styles, Alignment, Font, get_column_letter,
 ):
-	"""Per-team, per-month Ordinary/Overtime hours, from the exact same
+	"""Per-month, per-team Ordinary/Overtime hours, from the exact same
 	simulate_team_hours_by_month() Site Budget's own cost engine uses - so
 	this can never disagree with what Site Budget charges for this Shift
-	Design's hours. Monthly, not by pay period, because a pay period can
-	straddle two calendar months (see pay_period_month_key()) and "how many
-	hours this month" is the actual question being asked here."""
+	Design's hours. Grouped by calendar month (not pay period - a pay
+	period can straddle two calendar months, see pay_period_month_key()),
+	months in chronological order, teams in their own display order within
+	each month, with a TOTAL and AVERAGE row closing out each month block."""
 	ws = wb.create_sheet("Hours Summary")
 	headers = [
-		"TEAM", "MONTH", "ORDINARY HOURS", "OVERTIME (NORMAL)",
+		"MONTH", "TEAM", "ORDINARY HOURS", "OVERTIME (NORMAL)",
 		"OVERTIME (SATURDAY)", "OVERTIME (SUNDAY)", "OVERTIME (PUBLIC HOLIDAY)", "TOTAL HOURS",
 	]
 	total_cols = len(headers)
@@ -537,49 +634,31 @@ def _write_hours_summary_sheet(
 	)
 	row_no += 2
 
+	def _row_values(entry):
+		overtime = entry["overtime"]
+		return [
+			entry["ordinary"], overtime["normal"], overtime["saturday"],
+			overtime["sunday"], overtime["public_holiday"], entry["total"],
+		]
+
 	table_rows = []
-	total_row_indexes = []
+	emphasis_row_indexes = []
 
-	for team in teams:
-		months = hours_by_team_month.get(team.team_key, {})
-		team_label = team.team_name or team.team_key
-		team_total = {"ordinary": 0.0, "overtime": {"normal": 0.0, "saturday": 0.0, "sunday": 0.0, "public_holiday": 0.0}}
+	for block in monthly_hours_summary(teams, hours_by_team_month):
+		for row in block["rows"]:
+			table_rows.append([block["month_label"], row["team_name"], *_row_values(row)])
 
-		for month_key in sorted(months.keys()):
-			month_data = months[month_key]
-			overtime = month_data.get("overtime") or {}
-			ordinary = flt(month_data.get("ordinary"))
-			total_row_overtime = flt(sum(overtime.values()))
+		table_rows.append([block["month_label"], "TOTAL", *_row_values(block["total"])])
+		emphasis_row_indexes.append(len(table_rows) - 1)
 
-			table_rows.append([
-				team_label, _month_label(month_key),
-				round(ordinary, 2), round(flt(overtime.get("normal")), 2),
-				round(flt(overtime.get("saturday")), 2), round(flt(overtime.get("sunday")), 2),
-				round(flt(overtime.get("public_holiday")), 2), round(ordinary + total_row_overtime, 2),
-			])
-
-			team_total["ordinary"] += ordinary
-			for category in team_total["overtime"]:
-				team_total["overtime"][category] += flt(overtime.get(category))
-
-		if not months:
-			continue
-
-		team_overtime_total = flt(sum(team_total["overtime"].values()))
-		table_rows.append([
-			team_label, "ALL MONTHS",
-			round(team_total["ordinary"], 2), round(team_total["overtime"]["normal"], 2),
-			round(team_total["overtime"]["saturday"], 2), round(team_total["overtime"]["sunday"], 2),
-			round(team_total["overtime"]["public_holiday"], 2),
-			round(team_total["ordinary"] + team_overtime_total, 2),
-		])
-		total_row_indexes.append(len(table_rows) - 1)
+		table_rows.append([block["month_label"], "AVERAGE", *_row_values(block["average"])])
+		emphasis_row_indexes.append(len(table_rows) - 1)
 
 	table_start_row = row_no
-	row_no = _write_table(ws, table_start_row, "HOURS BY TEAM AND MONTH", headers, table_rows, styles)
+	row_no = _write_table(ws, table_start_row, "HOURS BY MONTH AND TEAM", headers, table_rows, styles)
 
 	data_start_row = table_start_row + 2  # section title row, then header row
-	for offset in total_row_indexes:
+	for offset in emphasis_row_indexes:
 		for col_idx in range(1, total_cols + 1):
 			ws.cell(data_start_row + offset, col_idx).font = styles["header_font"]
 
