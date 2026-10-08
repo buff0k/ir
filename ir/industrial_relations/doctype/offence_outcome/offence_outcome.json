@@ -152,7 +152,7 @@
    "link_fieldname": "sanction_on_fourth_offence"
   }
  ],
- "modified": "2026-07-20 07:44:07.367631",
+ "modified": "2026-10-08 13:45:41.082137",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Offence Outcome",
@@ -173,15 +173,24 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "IR Manager",
+   "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
   },
   {
    "email": 1,
@@ -189,7 +198,8 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR User",
+   "role": "IR Officer",
+   "select": 1,
    "share": 1
   }
  ],

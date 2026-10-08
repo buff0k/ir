@@ -392,7 +392,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-07-28 15:44:24.690642",
+ "modified": "2026-10-08 13:45:41.118021",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
@@ -433,6 +433,20 @@
    "role": "IR User",
    "select": 1,
    "share": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

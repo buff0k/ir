@@ -41,7 +41,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-01 08:39:28.529496",
+ "modified": "2026-10-08 13:45:41.078268",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "KPI Template",
@@ -62,7 +62,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

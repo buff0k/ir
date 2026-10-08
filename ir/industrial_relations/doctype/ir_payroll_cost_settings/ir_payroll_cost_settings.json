@@ -25,7 +25,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-08-18 06:52:38.441945",
+ "modified": "2026-10-08 13:45:41.071332",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Payroll Cost Settings",
@@ -43,7 +43,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,

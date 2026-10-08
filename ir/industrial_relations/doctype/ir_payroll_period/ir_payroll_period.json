@@ -42,27 +42,27 @@
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "First Day of Period",
-   "non_negative": 1,
-   "reqd": 1,
+   "max_value": 1,
    "min_value": 1,
-   "max_value": 1
+   "non_negative": 1,
+   "reqd": 1
   },
   {
    "fieldname": "period_end",
    "fieldtype": "Int",
    "in_list_view": 1,
    "label": "Last Day of Period",
-   "non_negative": 1,
-   "reqd": 1,
+   "max_value": 1,
    "min_value": 1,
-   "max_value": 1
+   "non_negative": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-01 18:27:24.487239",
+ "modified": "2026-10-08 13:45:41.071889",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Payroll Period",

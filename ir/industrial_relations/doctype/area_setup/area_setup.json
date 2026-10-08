@@ -29,7 +29,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 14:37:47.647023",
+ "modified": "2026-10-08 13:45:41.052854",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Area Setup",
@@ -50,7 +50,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
