@@ -39,7 +39,7 @@
    "link_fieldname": "category_of_offence"
   }
  ],
- "modified": "2025-05-16 11:39:37.661843",
+ "modified": "2026-10-08 13:45:41.081798",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Offence Category",
@@ -60,13 +60,13 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "IR Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -81,14 +81,10 @@
    "share": 1
   },
   {
-   "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
-   "report": 1,
    "role": "IR User",
-   "select": 1,
-   "share": 1
+   "select": 1
   }
  ],
  "row_format": "Dynamic",

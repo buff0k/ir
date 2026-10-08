@@ -378,7 +378,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-27 21:00:00.000000",
+ "modified": "2026-10-08 13:45:41.088962",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Retrenchment Process",
@@ -400,7 +400,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

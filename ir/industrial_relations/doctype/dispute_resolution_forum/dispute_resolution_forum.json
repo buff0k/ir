@@ -27,7 +27,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-04 15:46:46.679397",
+ "modified": "2026-10-08 13:45:41.060859",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Dispute Resolution Forum",
@@ -48,7 +48,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -66,6 +65,16 @@
    "read": 1,
    "report": 1,
    "role": "IR User",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
    "select": 1,
    "share": 1
   }

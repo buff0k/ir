@@ -112,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-16 11:47:09.709815",
+ "modified": "2026-10-08 13:45:41.056902",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract Type",
@@ -133,10 +133,11 @@
    "write": 1
   },
   {
+   "cancel": 1,
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,

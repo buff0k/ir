@@ -225,7 +225,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-07 12:00:00.000000",
+ "modified": "2026-10-08 13:45:41.117362",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Warning Form",
@@ -246,8 +246,9 @@
    "write": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -260,6 +261,7 @@
    "write": 1
   },
   {
+   "amend": 1,
    "create": 1,
    "email": 1,
    "export": 1,

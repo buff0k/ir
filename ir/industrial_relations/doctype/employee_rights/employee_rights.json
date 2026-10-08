@@ -20,7 +20,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-14 09:53:45.249615",
+ "modified": "2026-10-08 13:45:41.064900",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employee Rights",
@@ -51,7 +51,6 @@
   },
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -61,6 +60,16 @@
    "select": 1,
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",
