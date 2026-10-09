@@ -201,7 +201,8 @@ fixtures = [
         "2WW",
         "1WW",
         "FIT",
-        "PRED"
+        "PRED",
+        "RETR"
 	]]]}
 ]
 jinja = {
