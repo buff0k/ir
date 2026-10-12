@@ -1,6 +1,9 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
+from dataclasses import dataclass, field
+from datetime import timedelta
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -350,6 +353,50 @@ class ShiftDesign(Document):
 					)
 				)
 			seen.add(key)
+
+	def get_contract_working_hours(self):
+		"""This roster's working hours as a Contract of Employment words them.
+
+		Fixed: one enabled team on a 7-day cycle - the same hours every week, so
+		the contract lists each working day ("Mondays: 07:00 to 16:00"), as the
+		legacy Working Hours (Monday to Friday/Sunday) sections did.
+		Rotating: anything else (several teams, or a cycle longer than a week) -
+		hours follow the roster, so the contract describes the roster instead.
+
+		The fixed week is walked through the same pattern -> calendar rule
+		resolution the roster uses; public holidays and date overrides are
+		exceptions, not standing hours, so they're left out.
+		"""
+		teams = sorted(
+			[row for row in self.teams or [] if cint(row.enabled)],
+			key=lambda row: cint(row.display_order),
+		)
+		if not teams:
+			frappe.throw(_("Shift Design {0} has no enabled teams.").format(frappe.bold(self.name)))
+
+		style = FIXED_SHIFT if len(teams) == 1 and cint(self.cycle_length) == 7 else ROTATING_SHIFT
+		times = _shift_type_times(self)
+
+		days, shifts = [], []
+		if style == FIXED_SHIFT:
+			days = _fixed_week_days(self, teams, times)
+		else:
+			used = {row.assignment for row in self.pattern or [] if row.assignment}
+			shifts = [
+				{"name": name, "start": times[name][0], "end": times[name][1]}
+				for name in sorted(used, key=lambda n: (times.get(n, ("", ""))[0], n))
+				if name in times
+			]
+
+		return ContractWorkingHours(
+			shift_design=self.name,
+			style=style,
+			ordinary_hours_limit=flt(self.ordinary_hours_limit),
+			cycle_length=cint(self.cycle_length),
+			number_of_teams=len(teams),
+			days=days,
+			shifts=shifts,
+		)
 
 
 def _clean(value):
@@ -837,3 +884,70 @@ def get_roster_calendar_data(shift_design, range_start, range_end):
 		"teams": [{"team_key": team.team_key, "team_name": team.team_name} for team in context["teams"]],
 		"days": days,
 	}
+
+
+# ---- Contract of Employment wording (see ShiftDesign.get_contract_working_hours) ----
+
+FIXED_SHIFT = "Fixed"
+ROTATING_SHIFT = "Rotating"
+# Contract of Employment Template condition each style switches on.
+CONTRACT_STYLE_CONDITIONS = {FIXED_SHIFT: "shift:fixed", ROTATING_SHIFT: "shift:rotating"}
+
+_WEEKDAY_NAMES = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+
+@dataclass
+class ContractWorkingHours:
+	shift_design: str
+	style: str
+	ordinary_hours_limit: float
+	cycle_length: int
+	number_of_teams: int
+	# Fixed: {"day", "start", "end"} per working day, Monday first.
+	days: list[dict] = field(default_factory=list)
+	# Rotating: {"name", "start", "end"} per shift type in the roster.
+	shifts: list[dict] = field(default_factory=list)
+
+	@property
+	def condition(self) -> str:
+		return CONTRACT_STYLE_CONDITIONS[self.style]
+
+
+def _fixed_week_days(doc, teams, times):
+	"""Walk one 7-day cycle from the anchor date through the roster rules."""
+	start = getdate(doc.anchor_date)
+	by_weekday = {}
+	for offset in range(7):
+		date = add_days(start, offset)
+		assignment = _assignments_for_date(
+			teams, doc.pattern or [], doc.calendar_rules or [], [], doc.anchor_date, doc.cycle_length, date, set()
+		).get(teams[0].team_key)
+		if assignment and assignment in times:
+			by_weekday[getdate(date).weekday()] = times[assignment]
+	return [
+		{"day": _WEEKDAY_NAMES[day], "start": by_weekday[day][0], "end": by_weekday[day][1]}
+		for day in range(7)
+		if day in by_weekday
+	]
+
+
+def _shift_type_times(doc):
+	names = {row.assignment for row in doc.pattern or [] if row.assignment}
+	names.update(row.target_shift_type for row in doc.calendar_rules or [] if row.target_shift_type)
+	if not names:
+		return {}
+	return {
+		row.name: (_hhmm(row.start_time), _hhmm(row.end_time))
+		for row in frappe.get_all(
+			"Shift Type", filters={"name": ["in", list(names)]}, fields=["name", "start_time", "end_time"]
+		)
+	}
+
+
+def _hhmm(value):
+	if value is None:
+		return ""
+	if isinstance(value, timedelta):
+		minutes = int(value.total_seconds() // 60) % (24 * 60)
+		return f"{minutes // 60:02d}:{minutes % 60:02d}"
+	return str(value)[:5]

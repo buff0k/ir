@@ -35,3 +35,56 @@ class BargainingUnit(Document):
 			)
 
 		self.name = candidate_name
+
+	def validate(self):
+		self.check_designation_conflicts()
+
+	def check_designation_conflicts(self):
+		# A Bargaining Unit only "exists" once submitted, so a Designation is
+		# only a real conflict if it's already sitting in another SUBMITTED
+		# Bargaining Unit - a draft overlapping a draft is just work in
+		# progress. This mirrors the live, per-row check in bargaining_unit.js
+		# and acts as the backstop for bulk edit / Data Import / API inserts,
+		# which never go through that client-side check.
+		for row in self.applicable_designations:
+			if not row.designation:
+				continue
+			conflict = find_conflicting_bargaining_unit(row.designation, exclude=self.name)
+			if conflict:
+				frappe.throw(
+					_(
+						"Designation {0} is already assigned to the submitted Bargaining "
+						"Unit {1}. A Designation cannot belong to more than one Bargaining "
+						"Unit."
+					).format(frappe.bold(row.designation), frappe.bold(conflict)),
+					title=_("Designation Conflict"),
+				)
+
+
+@frappe.whitelist()
+def find_conflicting_bargaining_unit(designation, exclude=None):
+	"""Name of a SUBMITTED Bargaining Unit (other than `exclude`) that already
+	carries this designation, or None if there is no conflict."""
+	if not designation:
+		return None
+
+	rows = frappe.get_all(
+		"Designation Selector",
+		filters={
+			"parenttype": "Bargaining Unit",
+			"parentfield": "applicable_designations",
+			"designation": designation,
+		},
+		fields=["parent"],
+	)
+	parents = {r.parent for r in rows if r.parent != exclude}
+	if not parents:
+		return None
+
+	submitted = frappe.get_all(
+		"Bargaining Unit",
+		filters={"name": ["in", list(parents)], "docstatus": 1},
+		pluck="name",
+		limit=1,
+	)
+	return submitted[0] if submitted else None

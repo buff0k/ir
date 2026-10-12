@@ -1,0 +1,145 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-10-12 14:21:03.487725",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tab_template",
+  "section_break_y4fx",
+  "amended_from",
+  "contract_name",
+  "source_contract_type",
+  "text_editor",
+  "contract_wording",
+  "tab_markdown",
+  "contract_markdown"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_y4fx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Contract of Employment Template",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Editor content (Quill Delta). Edited through the Contract Wording editor above, never directly.",
+   "fieldname": "contract_wording",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Contract Wording Data"
+  },
+  {
+   "fieldname": "text_editor",
+   "fieldtype": "HTML",
+   "label": "Contract Wording"
+  },
+  {
+   "fieldname": "contract_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contract of Employment Template Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tab_template",
+   "fieldtype": "Tab Break",
+   "label": "Template"
+  },
+  {
+   "fieldname": "source_contract_type",
+   "fieldtype": "Link",
+   "label": "Imported From Contract Type",
+   "options": "Contract Type",
+   "read_only": 1,
+   "description": "Set when this template was converted from a legacy Contract Type."
+  },
+  {
+   "fieldname": "tab_markdown",
+   "fieldtype": "Tab Break",
+   "label": "Markdown (Power Users)"
+  },
+  {
+   "fieldname": "contract_markdown",
+   "fieldtype": "Code",
+   "label": "Contract Markdown",
+   "options": "Markdown",
+   "description": "The same wording as the editor, kept in step both ways. <b>#</b> Heading &middot; <b>1.</b> Clause (indent 4 spaces per level) &middot; plain line = unnumbered text &middot; <b>**bold**</b> <b>*italic*</b> <b>&lt;u&gt;underline&lt;/u&gt;</b> &middot; <b>{{variable}}</b> &middot; <b>[label](#anchor)</b> reference &middot; line options at the end: <b>{#anchor when=pay:hourly repeat=earnings}</b> (quote values with spaces: when=\"deduction:Employee Provident Fund\") &middot; escape * { [ &lt; with \\."
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-12 18:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Contract of Employment Template",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "contract_name",
+ "track_changes": 1
+}
