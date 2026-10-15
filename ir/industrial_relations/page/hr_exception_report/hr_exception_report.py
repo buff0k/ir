@@ -30,15 +30,6 @@ EE_LEVELS = [
 
 TERMINAL_POOR_PERFORMANCE_OUTCOMES = {"Performance Improved", "Dismissal"}
 
-# Employee.status values that mean "not actually employed here", independent of
-# whether relieving_date happens to be set. A person can be marked Inactive (or
-# Left) without ever going through a proper separation that backfills
-# relieving_date, so every "who counts as active as at this snapshot date" query
-# below must exclude these statuses explicitly - relieving_date alone is not a
-# reliable signal. Suspended is deliberately NOT included here: a suspended
-# employee is still employed, just not currently working.
-INACTIVE_EMPLOYEE_STATUSES = ("Left", "Inactive")
-
 
 def _field_exists(doctype, fieldname):
     return bool(frappe.get_meta(doctype).get_field(fieldname))
@@ -306,13 +297,20 @@ def _build_ee_profile(company, snapshot_date, branches=None):
     values = {
         "company": company,
         "snapshot_date": snapshot_date,
-        "inactive_statuses": INACTIVE_EMPLOYEE_STATUSES,
     }
     branch_clause = ""
     if branches:
         branch_clause = "AND e.branch IN %(branches)s"
         values["branches"] = tuple(branches)
 
+    # Deliberately no `e.status` filter: status is a live/current field with
+    # no historical trace of when it changed, so filtering a PAST
+    # snapshot_date by current status corrupts that snapshot the moment the
+    # employee's status later changes (e.g. someone who was still employed as
+    # at snapshot_date gets marked "Left" today for a relieving_date AFTER
+    # snapshot_date - they'd vanish from this and every earlier snapshot even
+    # though they were genuinely still here then). date_of_joining and
+    # relieving_date are the only fields that are actually point-in-time.
     rows = frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -321,7 +319,6 @@ def _build_ee_profile(company, snapshot_date, branches=None):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
-          AND e.status NOT IN %(inactive_statuses)s
           {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
@@ -480,12 +477,14 @@ def _employee_movements(company, from_date, to_date, branches=None):
     for row in terminated_employees:
         reasons[row.get("reason_for_leaving") or _("Unspecified")] += 1
 
-    # Headcount is "as at this date" - unlike new_employees/terminated_employees
-    # above (which report historical join/leave events regardless of an
-    # employee's current status), so it must also exclude anyone whose status
-    # says they aren't actually employed (see INACTIVE_EMPLOYEE_STATUSES), not
-    # just rely on relieving_date being set.
-    active_filters = {**base_filters, "status": ["not in", list(INACTIVE_EMPLOYEE_STATUSES)]}
+    # Headcount is "as at this date", determined purely by date_of_joining and
+    # relieving_date (below). Deliberately NOT also filtering by current
+    # status: status has no historical trace of when it changed, so using it
+    # to gate a PAST date corrupts that date's headcount the moment an
+    # employee's status later flips to "Left" for a relieving_date that's
+    # still after the date being reconstructed - this was the actual cause of
+    # the same month's closing headcount changing on a later report run.
+    active_filters = base_filters
 
     opening_headcount = frappe.db.count(
         "Employee",
@@ -908,13 +907,20 @@ def _employee_snapshot_rows(company, snapshot_date, branches=None):
     values = {
         "company": company,
         "snapshot_date": snapshot_date,
-        "inactive_statuses": INACTIVE_EMPLOYEE_STATUSES,
     }
     branch_clause = ""
     if branches:
         branch_clause = "AND e.branch IN %(branches)s"
         values["branches"] = tuple(branches)
 
+    # Deliberately no `e.status` filter: status is a live/current field with
+    # no historical trace of when it changed, so filtering a PAST
+    # snapshot_date by current status corrupts that snapshot the moment the
+    # employee's status later changes (e.g. someone who was still employed as
+    # at snapshot_date gets marked "Left" today for a relieving_date AFTER
+    # snapshot_date - they'd vanish from this and every earlier snapshot even
+    # though they were genuinely still here then). date_of_joining and
+    # relieving_date are the only fields that are actually point-in-time.
     rows = frappe.db.sql(
         f"""
         SELECT {', '.join(selected)}
@@ -923,7 +929,6 @@ def _employee_snapshot_rows(company, snapshot_date, branches=None):
         WHERE e.company = %(company)s
           AND e.date_of_joining <= %(snapshot_date)s
           AND (e.relieving_date IS NULL OR e.relieving_date = '' OR e.relieving_date > %(snapshot_date)s)
-          AND e.status NOT IN %(inactive_statuses)s
           {branch_clause}
         ORDER BY e.employee_name, e.name
         """,
@@ -1255,10 +1260,12 @@ def _new_employee_export_rows(company, from_date, to_date, branches=None):
         level = _normalise_level(row.get("occupational_level") or row.get("designation_occupational_level"))
         skill_type = "Skilled" if level in {EE_LEVELS[2], EE_LEVELS[3]} else "Semi-skilled" if level == EE_LEVELS[4] else "Unskilled" if level == EE_LEVELS[5] else ""
         age = _employee_age(row, to_date)
-        still_employed = (
-            (not row.get("relieving_date") or getdate(row.relieving_date) > to_date)
-            and row.get("status") not in INACTIVE_EMPLOYEE_STATUSES
-        )
+        # Point-in-time as at to_date, via relieving_date only - current
+        # status isn't historically tracked, so checking it here would wrongly
+        # flip "Still Employed" to "No" for this past to_date once the
+        # employee's status later changes to "Left", even when their actual
+        # relieving_date is still after to_date.
+        still_employed = not row.get("relieving_date") or getdate(row.relieving_date) > to_date
         disabled = cint(row.get("disabled")) == 1 or str(row.get("disabled") or "").strip().lower() in {"yes", "y", "true", "disabled"}
         result.append([
             index,
