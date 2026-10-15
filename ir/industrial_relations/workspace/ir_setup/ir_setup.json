@@ -1,7 +1,6 @@
 {
- "app": "ir",
  "charts": [],
- "content": "[{\"id\":\"PO8X5ucXs1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Setup</span>\",\"col\":12}},{\"id\":\"r05iE0vQnT\",\"type\":\"card\",\"data\":{\"card_name\":\"Disciplinary Code\",\"col\":4}},{\"id\":\"Am4X2Lc3sa\",\"type\":\"card\",\"data\":{\"card_name\":\"External Dispute Resolution\",\"col\":4}},{\"id\":\"gHXTKTYoRu\",\"type\":\"card\",\"data\":{\"card_name\":\"General\",\"col\":4}},{\"id\":\"vcT_JKBPhf\",\"type\":\"card\",\"data\":{\"card_name\":\"Contract of Employment\",\"col\":4}},{\"id\":\"Z5DfkyDX8P\",\"type\":\"card\",\"data\":{\"card_name\":\"KPIs\",\"col\":4}},{\"id\":\"SfeHMIz1Ru\",\"type\":\"card\",\"data\":{\"card_name\":\"Termination\",\"col\":4}},{\"id\":\"bsfav3h06v\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}},{\"id\":\"jrU051f2it\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll\",\"col\":4}}]",
+ "content": "[{\"id\": \"PO8X5ucXs1\", \"type\": \"header\", \"data\": {\"text\": \"\\u003cspan class=\\\"h4\\\"\\u003eSetup\\u003c/span\\u003e\", \"col\": 12}}, {\"id\": \"r05iE0vQnT\", \"type\": \"card\", \"data\": {\"card_name\": \"Disciplinary Code\", \"col\": 4}}, {\"id\": \"Am4X2Lc3sa\", \"type\": \"card\", \"data\": {\"card_name\": \"External Dispute Resolution\", \"col\": 4}}, {\"id\": \"gHXTKTYoRu\", \"type\": \"card\", \"data\": {\"card_name\": \"General\", \"col\": 4}}, {\"id\": \"vcT_JKBPhf\", \"type\": \"card\", \"data\": {\"card_name\": \"Contract of Employment\", \"col\": 4}}, {\"id\": \"Z5DfkyDX8P\", \"type\": \"card\", \"data\": {\"card_name\": \"KPIs\", \"col\": 4}}, {\"id\": \"SfeHMIz1Ru\", \"type\": \"card\", \"data\": {\"card_name\": \"Termination\", \"col\": 4}}, {\"id\": \"bsfav3h06v\", \"type\": \"card\", \"data\": {\"card_name\": \"Training\", \"col\": 4}}, {\"id\": \"jrU051f2it\", \"type\": \"card\", \"data\": {\"card_name\": \"Payroll\", \"col\": 4}}]",
  "creation": "2026-01-27 13:55:32.314678",
  "custom_blocks": [],
  "docstatus": 0,
@@ -118,6 +117,16 @@
    "label": "Contract Type",
    "link_count": 0,
    "link_to": "Contract Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract of Employment Template",
+   "link_count": 0,
+   "link_to": "Contract of Employment Template",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -396,9 +405,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Salary Structure",
+   "link_count": 0,
+   "link_to": "IR Salary Structure",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-10-02 15:39:29.083833",
+ "modified": "2026-10-12 14:12:39.863851",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Setup",
@@ -426,6 +445,7 @@
  ],
  "sequence_id": 52.0,
  "shortcuts": [],
+ "standard": 1,
  "title": "IR Setup",
  "type": "Workspace"
 }

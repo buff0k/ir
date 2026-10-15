@@ -367,3 +367,65 @@ class TestTeamColor(unittest.TestCase):
 
 	def test_wraps_around_when_index_exceeds_palette_size(self):
 		self.assertEqual(team_color(0), team_color(10))
+
+
+class TestContractWorkingHours(IRSyntheticDataTestCase):
+	"""get_contract_working_hours(): Fixed (one team, 7-day cycle) lists each
+	working day through the roster rules; anything else is Rotating."""
+
+	def setUp(self):
+		super().setUp()
+		self.day = self.shift_type("Day", "07:00:00", "16:00:00")
+		self.sat = self.shift_type("Sat", "07:00:00", "12:00:00")
+		self.night = self.shift_type("Night", "18:00:00", "06:00:00")
+
+	def shift_type(self, label, start, end):
+		doc = frappe.get_doc({"doctype": "Shift Type", "name": synthetic_name(label), "start_time": start, "end_time": end})
+		doc.insert(ignore_permissions=True)
+		self.track("Shift Type", doc.name)
+		return doc.name
+
+	def design(self, teams, cycle_length, pattern, calendar_rules=()):
+		# Unsaved: the method only reads the document.
+		return frappe.get_doc({
+			"doctype": "Shift Design",
+			"name": synthetic_name("Design"),
+			"cycle_length": cycle_length,
+			"anchor_date": "2026-10-12",  # a Monday
+			"ordinary_hours_limit": 195,
+			"teams": [{"team_key": t, "team_name": t, "enabled": 1, "display_order": i} for i, t in enumerate(teams)],
+			"pattern": [{"team_key": t, "pattern_day": d, "assignment": a} for t, d, a in pattern],
+			"calendar_rules": list(calendar_rules),
+		})
+
+	def test_fixed_week_lists_working_days_and_honours_calendar_rules(self):
+		pattern = [("A", d, self.day) for d in range(1, 6)] + [("A", 6, self.sat), ("A", 7, self.day)]
+		rules = [{"rule_type": "Weekday", "day_of_week": "Sunday", "action": "No Work", "enabled": 1}]
+		hours = self.design(["A"], 7, pattern, rules).get_contract_working_hours()
+
+		self.assertEqual(hours.style, "Fixed")
+		self.assertEqual(hours.condition, "shift:fixed")
+		self.assertEqual(hours.days[0], {"day": "Monday", "start": "07:00", "end": "16:00"})
+		self.assertEqual(hours.days[-1], {"day": "Saturday", "start": "07:00", "end": "12:00"})
+		self.assertEqual(len(hours.days), 6)  # Sunday removed by the calendar rule
+		self.assertEqual(hours.shifts, [])
+
+	def test_multiple_teams_is_rotating_and_lists_shift_types(self):
+		pattern = [("A", 1, self.day), ("A", 2, self.night), ("B", 1, self.night), ("B", 2, self.day)]
+		hours = self.design(["A", "B"], 14, pattern).get_contract_working_hours()
+
+		self.assertEqual(hours.style, "Rotating")
+		self.assertEqual(hours.condition, "shift:rotating")
+		self.assertEqual(hours.number_of_teams, 2)
+		self.assertEqual(
+			hours.shifts,
+			[
+				{"name": self.day, "start": "07:00", "end": "16:00"},
+				{"name": self.night, "start": "18:00", "end": "06:00"},
+			],
+		)
+		self.assertEqual(hours.days, [])
+
+	def test_one_team_on_a_fortnight_cycle_is_rotating(self):
+		hours = self.design(["A"], 14, [("A", 1, self.day)]).get_contract_working_hours()
+		self.assertEqual(hours.style, "Rotating")
