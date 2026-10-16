@@ -281,7 +281,6 @@
    "fieldname": "responsible_ir",
    "fieldtype": "Link",
    "label": "Responsible IR",
-   "link_filters": "[[\"User\",\"role\",\"in\",[\"IR Officer\",\"IR Manager\"]]]",
    "options": "User"
   },
   {
@@ -316,7 +315,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-08 13:45:41.058265",
+ "modified": "2026-10-16 06:53:02.903843",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action",
