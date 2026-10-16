@@ -698,3 +698,54 @@ def filter_users_by_role(doctype, txt, searchfield, start, page_len, filters):
         as_list=True,
         distinct=True,
     )
+
+
+def sync_complainant_read_access(doc, fieldname="complainant"):
+    """Give the User linked to this doc's Complainant Employee a read-only
+    DocShare on this document.
+
+    This is deliberately a DocShare, not a change to has_permission()/
+    permission_query_conditions in ir/permissions.py: DocShare is Frappe's
+    own mechanism for granting one specific user access to one specific
+    document, completely independent of their role. It sits alongside the
+    Branch/Designation role-based restrictions without touching them, so a
+    Complainant with no IR role at all (the normal case - they're usually
+    just the Employee who raised the issue) gets exactly this one document
+    and nothing else; everyone else's permissions are entirely unaffected.
+
+    Child tables aren't permission-checked on their own in Frappe - they're
+    only ever visible as part of their parent - so sharing the parent
+    document is all that's needed to also cover "and children".
+
+    Called from validate() on each Main Action doctype, so it fires on every
+    save (draft included), not just submit.
+    """
+    old_doc = doc.get_doc_before_save()
+    old_employee = old_doc.get(fieldname) if old_doc else None
+    new_employee = doc.get(fieldname)
+
+    if old_employee and old_employee != new_employee:
+        old_user = frappe.db.get_value("Employee", old_employee, "user_id")
+        if old_user:
+            frappe.share.remove(doc.doctype, doc.name, old_user)
+
+    if not new_employee:
+        return
+
+    new_user = frappe.db.get_value("Employee", new_employee, "user_id")
+    if not new_user or new_user == doc.owner:
+        # No linked system user to share with, or they already own the
+        # document (and therefore already have full access to it anyway).
+        return
+
+    frappe.share.add(
+        doc.doctype,
+        doc.name,
+        new_user,
+        read=1,
+        write=0,
+        submit=0,
+        share=0,
+        notify=0,
+        flags={"ignore_share_permission": True},
+    )

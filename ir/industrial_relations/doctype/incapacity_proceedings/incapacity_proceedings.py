@@ -8,7 +8,11 @@ from ir.industrial_relations import utils
 
 
 class IncapacityProceedings(Document):
-    pass
+    def on_update(self):
+        # Not in validate(): for a brand-new document, validate() runs
+        # before the row exists in the DB, and DocShare's own link
+        # validation requires the shared document to already exist.
+        utils.sync_complainant_read_access(self)
 
 
 @frappe.whitelist()
