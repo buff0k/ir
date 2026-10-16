@@ -13,6 +13,12 @@ class DisciplinaryAction(Document):
     def validate(self):
         self._sync_offence_codes_and_final_charges()
 
+    def on_update(self):
+        # Not in validate(): for a brand-new document, validate() runs
+        # before the row exists in the DB, and DocShare's own link
+        # validation requires the shared document to already exist.
+        utils.sync_complainant_read_access(self)
+
     def _sync_offence_codes_and_final_charges(self):
         """Keep the offence display code current, and create exactly one
         Charges row per Offence, the first time each Offence appears - never
