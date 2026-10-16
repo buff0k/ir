@@ -2,6 +2,16 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Disciplinary Action", {
+  onload(frm) {
+    // link_filters can't express "User has this Role" (it only ever filters
+    // a plain column on the linked doctype - see filter_users_by_role's own
+    // docstring for why), so this is done via a real server-side query.
+    frm.set_query("responsible_ir", () => ({
+      query: "ir.industrial_relations.utils.filter_users_by_role",
+      filters: { roles: ["IR Manager", "IR Officer"] },
+    }));
+  },
+
   refresh(frm) {
     render_linked_docs(frm);
     render_untracked_disciplinary_actions(frm);
