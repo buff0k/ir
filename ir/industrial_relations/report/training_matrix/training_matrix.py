@@ -413,6 +413,17 @@ def _resolve_branch_set(filters):
     branch = (filters.get("branch") or "").strip() or None
     area_setup = (filters.get("area_setup") or "").strip() or None
 
+    # Additive multi-select support (used by the Training Compliance
+    # Dashboard page's MultiSelectList Branch filter) - the report's own
+    # single-Link "branch" filter above is untouched and still works exactly
+    # as before.
+    branches_list = filters.get("branches") or []
+    if isinstance(branches_list, str):
+        try:
+            branches_list = json.loads(branches_list)
+        except Exception:
+            branches_list = []
+
     branches = set()
 
     if area_setup:
@@ -432,6 +443,10 @@ def _resolve_branch_set(filters):
 
     if branch:
         branches.add(branch)
+
+    for b in branches_list:
+        if b:
+            branches.add(b)
 
     return sorted(branches)
 
@@ -879,3 +894,165 @@ def _build_cell_payload(emp, induction, idx, today, warn_date):
         payload["status"] = "green"
 
     return payload
+
+
+@frappe.whitelist()
+def get_compliance_summary(filters=None):
+    """Compliance rollup for the Training Compliance Dashboard page.
+
+    Reuses every scoping/status rule the report itself already uses -
+    target is the count of (tracking, induction) pairs where that induction
+    is actually listed as required on the employee's Employee Induction
+    Tracking record for that branch; complete is how many of those required
+    pairs currently evaluate "green" (valid, not expired) via the exact same
+    _build_cell_payload status logic the report's own cells use. Grouped by
+    induction type (Training/Licence/Qualification/Authorisation, the same
+    categories the existing "Induction Type" filter already uses) plus one
+    "Overall" row - no new category concepts invented. Each type category
+    also carries an "items" list - the same target/complete/pct breakdown,
+    but one row per individual Employee Induction within that type, so the
+    dashboard can drill from "Licence: 71.9%" down to each specific licence.
+    """
+    filters = _coerce_filters(filters)
+
+    today = getdate(nowdate())
+    warn_date = getdate(add_days(today, 90))
+
+    branches = _resolve_branch_set(filters)
+    employees, tracking_docs_all = _get_employees_and_tracking_scoped(filters, branches)
+
+    if not employees:
+        return {"categories": [], "scope": {"employees": 0, "branches": branches}}
+
+    emp_map = {e["name"]: e for e in employees}
+    tracking_docs_all = [t for t in tracking_docs_all if t.get("employee") in emp_map]
+
+    designation_filter = (filters.get("designation") or "").strip() or None
+    tracking_docs = _filter_tracking_by_designation(tracking_docs_all, emp_map, designation_filter)
+
+    included_employees = _filter_employees_by_designation_fallback(
+        employees,
+        tracking_docs,
+        designation_filter,
+    )
+
+    if not included_employees:
+        return {"categories": [], "scope": {"employees": 0, "branches": branches}}
+
+    included_emp_ids = [e["name"] for e in included_employees]
+    included_emp_map = {e["name"]: e for e in included_employees}
+    tracking_docs = [t for t in tracking_docs if t["employee"] in included_emp_map]
+
+    tracking_names = [t["name"] for t in tracking_docs]
+    required_by_tracking, all_inductions = _get_required_inductions(tracking_names)
+
+    induction_meta = _get_induction_meta(all_inductions) if all_inductions else {}
+
+    all_inductions = _filter_inductions_by_type(
+        all_inductions,
+        induction_meta,
+        filters.get("induction_type"),
+    )
+    required_by_tracking = _filter_required_by_allowed_inductions(required_by_tracking, all_inductions)
+
+    record_index = _index_records(included_emp_ids, today)
+
+    pair_status = {}
+    for t in tracking_docs:
+        emp_id = t["employee"]
+        for induction_id in required_by_tracking.get(t["name"], []):
+            payload = _build_cell_payload(
+                emp=emp_id,
+                induction=induction_id,
+                idx=record_index,
+                today=today,
+                warn_date=warn_date,
+            )
+            pair_status[(t["name"], induction_id)] = payload["status"]
+
+    def _tally(predicate):
+        target = 0
+        complete = 0
+
+        for (_tracking_name, induction_id), status in pair_status.items():
+            if not predicate(induction_id):
+                continue
+
+            target += 1
+
+            if status == "green":
+                complete += 1
+
+        return target, complete
+
+    induction_name_map = {
+        name: (meta.get("training_name") or name)
+        for name, meta in induction_meta.items()
+    }
+
+    def _per_induction_rows(matching_inductions):
+        by_induction = {}
+
+        for (_tracking_name, induction_id), status in pair_status.items():
+            if induction_id not in matching_inductions:
+                continue
+
+            row = by_induction.setdefault(induction_id, {"target": 0, "complete": 0})
+            row["target"] += 1
+
+            if status == "green":
+                row["complete"] += 1
+
+        items = [
+            _category_row(induction_name_map.get(ind) or ind, counts["target"], counts["complete"])
+            for ind, counts in by_induction.items()
+        ]
+        items.sort(key=lambda r: r["label"].lower())
+        return items
+
+    categories = []
+
+    for label, type_field in INDUCTION_TYPE_FIELD_MAP.items():
+        matching = {ind for ind in all_inductions if (induction_meta.get(ind) or {}).get(type_field)}
+        target, complete = _tally(lambda ind, f=type_field: (induction_meta.get(ind) or {}).get(f))
+        row = _category_row(label, target, complete)
+        row["items"] = _per_induction_rows(matching)
+        categories.append(row)
+
+    overall_target, overall_complete = _tally(lambda ind: True)
+    overall_row = _category_row("Overall", overall_target, overall_complete)
+    overall_row["items"] = []
+    categories.append(overall_row)
+
+    return {
+        "categories": categories,
+        "scope": {"employees": len(included_employees), "branches": branches},
+    }
+
+
+def _category_row(label, target, complete):
+    outstanding = max(target - complete, 0)
+    pct = round((complete / target) * 100, 1) if target else 0.0
+
+    return {
+        "label": label,
+        "target": target,
+        "complete": complete,
+        "outstanding": outstanding,
+        "pct": pct,
+    }
+
+
+@frappe.whitelist()
+def get_training_matrix_payload(filters=None):
+    """The exact same {columns, data} execute() produces for the standard
+    Query Report view, as a plain whitelisted call - for the Training
+    Compliance Dashboard page's own "Training Matrix" view, which renders it
+    as a plain HTML table instead of going through the Report/DataTable
+    framework. Same data, same status rules, just without the generic
+    Report chrome (toolbar, column/group-by menus) that comes bundled with
+    frappe.query_reports.
+    """
+    filters = _coerce_filters(filters)
+    columns, data = execute(filters)
+    return {"columns": columns, "data": data}

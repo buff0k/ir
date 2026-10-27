@@ -19,7 +19,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Training and Induction",
-   "link_count": 3,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -53,9 +53,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training Compliance Dashboard",
+   "link_count": 0,
+   "link_to": "training-compliance-dashboard",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-07-23 14:19:15.389056",
+ "modified": "2026-10-27 12:14:08.479413",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Training",
