@@ -8,6 +8,9 @@ from ir.industrial_relations import utils
 
 
 class PoorPerformance(Document):
+    def before_submit(self):
+        utils.require_outcome_before_submit(self)
+
     def on_update(self):
         # Not in validate(): for a brand-new document, validate() runs
         # before the row exists in the DB, and DocShare's own link
