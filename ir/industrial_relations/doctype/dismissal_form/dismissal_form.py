@@ -256,7 +256,11 @@ def _apply_source_updates(source, updates, previous):
         old_value = previous.get(fieldname)
         if old_value == value:
             continue
-        source.db_set(fieldname, value, update_modified=False)
+        # update_modified (the default) deliberately left on: this is what
+        # makes Frappe's own staleness check catch a stale-open tab on the
+        # source intervention on its next save/submit, instead of letting
+        # it silently clobber the outcome just set here.
+        source.db_set(fieldname, value)
         _create_manual_version(source, fieldname, old_value, value)
 
 

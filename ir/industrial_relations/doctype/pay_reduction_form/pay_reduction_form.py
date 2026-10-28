@@ -120,7 +120,12 @@ class PayReductionForm(Document):
             if linked_doc.meta.has_field(fieldname)
         }
         if values:
-            linked_doc.db_set(values, update_modified=False)
+            # update_modified (the default) deliberately left on: this is
+            # what makes Frappe's own staleness check catch a stale-open
+            # tab on the parent intervention on its next save/submit,
+            # instead of letting it silently clobber the outcome just set
+            # here with the blank values it had cached from before.
+            linked_doc.db_set(values)
 
     def _set_linked_outcome(self):
         linked_doc = self._get_linked_document()
@@ -138,7 +143,7 @@ class PayReductionForm(Document):
             values["outcome_end"] = _build_outcome_end(self)
 
         if values:
-            linked_doc.db_set(values, update_modified=False)
+            linked_doc.db_set(values)
 
 
 @frappe.whitelist()

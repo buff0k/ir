@@ -749,3 +749,29 @@ def sync_complainant_read_access(doc, fieldname="complainant"):
         notify=0,
         flags={"ignore_share_permission": True},
     )
+
+
+def require_outcome_before_submit(doc):
+    """Block submitting a Main Action (Disciplinary Action, Incapacity
+    Proceedings, Poor Performance) with no Outcome recorded.
+
+    This is defence-in-depth, not the primary fix for the stale-tab race
+    that caused this: that race is closed by having every outcome
+    document's write-back (Warning/Dismissal/Pay Deduction/Pay Reduction
+    Form) bump `modified` on the way in, so Frappe's own staleness check
+    now catches a stale-open tab before it can even reach here. This gate
+    additionally covers any other path that could leave Outcome/Outcome
+    Date blank at submit time (a cancelled outcome document, a direct API
+    call, manual data entry) - submitting without a recorded outcome should
+    never be possible, regardless of how that gap was reached.
+    """
+    if not doc.get("outcome") or not doc.get("outcome_date"):
+        frappe.throw(
+            _(
+                "{0} cannot be submitted without an Outcome and Outcome Date. "
+                "If an outcome was already recorded elsewhere (e.g. a Warning "
+                "or Dismissal Form), refresh this document to load it before "
+                "submitting."
+            ).format(_(doc.doctype)),
+            title=_("Outcome Required"),
+        )

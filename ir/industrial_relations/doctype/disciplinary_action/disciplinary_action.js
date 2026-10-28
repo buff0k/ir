@@ -12,10 +12,15 @@ frappe.ui.form.on("Disciplinary Action", {
     }));
   },
 
+  outcome(frm) {
+    toggle_outcome_period_fields(frm);
+  },
+
   refresh(frm) {
     render_linked_docs(frm);
     render_untracked_disciplinary_actions(frm);
     sync_offences_and_render_sanctions(frm);
+    toggle_outcome_period_fields(frm);
 
     frm.toggle_display(
       ["make_warning_form", "make_nta_hearing"],
@@ -474,4 +479,36 @@ function render_offence_sanction_summary(frm, supplied_html = null) {
       );
     },
   });
+}
+
+function toggle_outcome_period_fields(frm) {
+  // Outcome Start/End only mean anything for outcomes that run over a
+  // period (demotion, suspension, pay deduction, pay reduction) - a
+  // Warning or Dismissal never sets them, so showing two permanently-blank
+  // Read Only fields for those outcomes is just noise. "Has a period" isn't
+  // a property of this doctype's own data - it's a property of whichever
+  // Offence Outcome is linked, so this has to look that up rather than
+  // branch on anything stored here.
+  if (!frm.doc.outcome) {
+    frm.toggle_display(["outcome_start", "outcome_end"], false);
+    return;
+  }
+
+  frappe.db
+    .get_value("Offence Outcome", frm.doc.outcome, [
+      "isdemotion",
+      "issuspension",
+      "ispaydeduction",
+      "ispayreduction",
+    ])
+    .then((r) => {
+      const flags = r.message || {};
+      const has_period =
+        !!flags.isdemotion ||
+        !!flags.issuspension ||
+        !!flags.ispaydeduction ||
+        !!flags.ispayreduction;
+
+      frm.toggle_display(["outcome_start", "outcome_end"], has_period);
+    });
 }

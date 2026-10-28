@@ -13,6 +13,9 @@ class DisciplinaryAction(Document):
     def validate(self):
         self._sync_offence_codes_and_final_charges()
 
+    def before_submit(self):
+        utils.require_outcome_before_submit(self)
+
     def on_update(self):
         # Not in validate(): for a brand-new document, validate() runs
         # before the row exists in the DB, and DocShare's own link
