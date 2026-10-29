@@ -112,7 +112,10 @@ class SuspensionForm(Document):
                 linked.outcome_end = None
                 linked.save(ignore_permissions=True)
             else:
-                linked.db_set("outcome_end", None, update_modified=False)
+                # update_modified (the default) deliberately left on - see
+                # the identical note on _set_linked_outcome in
+                # warning_form.py for why.
+                linked.db_set("outcome_end", None)
 
 
 @frappe.whitelist()
