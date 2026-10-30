@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2024-02-21 13:52:45.724895",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "against_salary_slip",
+  "column_break_y9ap4",
+  "date",
+  "eti_amount",
+  "carry_forwarding_eti_amount",
+  "eligibility_section",
+  "is_qualifying_month",
+  "qualifying_month_number",
+  "eligibility_reason",
+  "calculation_section",
+  "hours",
+  "monthly_remuneration",
+  "column_break_calculation",
+  "wage_paid",
+  "minimum_wage",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Employee Name"
+  },
+  {
+   "fieldname": "column_break_y9ap4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "eti_amount",
+   "fieldtype": "Currency",
+   "label": "ETI Amount"
+  },
+  {
+   "fieldname": "carry_forwarding_eti_amount",
+   "fieldtype": "Currency",
+   "label": "Carry Forwarding ETI Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee ETI Log",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "against_salary_slip",
+   "fieldtype": "Link",
+   "label": "Against Salary Slip",
+   "options": "Salary Slip",
+   "reqd": 1
+  },
+  {
+   "fieldname": "eligibility_section",
+   "fieldtype": "Section Break",
+   "label": "ETI Eligibility"
+  },
+  {
+   "fieldname": "is_qualifying_month",
+   "fieldtype": "Check",
+   "label": "Qualifying Month",
+   "read_only": 1
+  },
+  {
+   "fieldname": "qualifying_month_number",
+   "fieldtype": "Int",
+   "label": "Qualifying Month Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "eligibility_reason",
+   "fieldtype": "Small Text",
+   "label": "Eligibility Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "calculation_section",
+   "fieldtype": "Section Break",
+   "label": "Calculation Evidence"
+  },
+  {
+   "fieldname": "hours",
+   "fieldtype": "Float",
+   "label": "Ordinary Hours",
+   "read_only": 1
+  },
+  {
+   "fieldname": "monthly_remuneration",
+   "fieldtype": "Currency",
+   "label": "Monthly Remuneration",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_calculation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "wage_paid",
+   "fieldtype": "Currency",
+   "label": "Wage Paid",
+   "read_only": 1
+  },
+  {
+   "fieldname": "minimum_wage",
+   "fieldtype": "Currency",
+   "label": "Applicable Minimum Wage",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-30 10:12:13.963668",
+ "modified_by": "Administrator",
+ "module": "ir_payroll",
+ "name": "Employee ETI Log",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee"
+}

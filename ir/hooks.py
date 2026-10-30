@@ -1,8 +1,19 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
+import frappe
 from frappe import _
 from . import __version__ as app_version
+
+
+def _is_hrms_installed():
+	# required_apps lists frappe/hrms, but that doesn't gate hooks.py loading
+	# itself - this mirrors za_local.utils.hrms_detection.is_hrms_installed,
+	# inlined so this check still works once za_local is retired.
+	try:
+		return "hrms" in (frappe.get_installed_apps() or [])
+	except Exception:
+		return False
 app_name = "ir"
 app_title = "Industrial Relations"
 app_publisher = "BuFf0k"
@@ -30,6 +41,7 @@ code_only_modules = {
 	"ir_coida": ["Industrial Relations"],
 	"ir_labour": ["Industrial Relations"],
 	"ir_vat": ["Industrial Relations"],
+	"ir_payroll": ["Industrial Relations"],
 }
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [
@@ -230,7 +242,12 @@ fixtures = [
 		"SA Payment Entry",
 		"SA Credit Note",
 		"SA Debit Note",
-		"SA VAT201 Return"
+		"SA VAT201 Return",
+		"IRP5 Employee Certificate",
+		"IRP5-it3 Certificate",
+		"SA Salary Slip",
+		"SA EMP201 Submission",
+		"SA EMP501 Reconciliation"
 	]]]}
 ]
 doctype_js = {
@@ -240,10 +257,34 @@ doctype_js = {
 	"Sales Invoice": "public/js/vat_tax_calculation.js",
 	"Purchase Invoice": "public/js/vat_tax_calculation.js",
 }
+# Only register HRMS-dependent doctype JS if HRMS is installed (mirrors
+# za_local.utils.hooks_utils.get_hrms_doctype_js, absorbed with ir_payroll).
+if _is_hrms_installed():
+	doctype_js.update({
+		"Employee": "public/js/employee.js",
+		"Payroll Entry": "public/js/payroll_entry.js",
+		"Employee Benefit Claim": "public/js/employee_benefit_claim.js",
+		"Salary Structure": "public/js/salary_structure.js",
+		"Salary Structure Assignment": "public/js/salary_structure_assignment.js",
+	})
 extend_doctype_class = {
 	"Sales Invoice": "ir.overrides.vat_invoices.ZASalesInvoice",
 	"Purchase Invoice": "ir.overrides.vat_invoices.ZAPurchaseInvoice",
 }
+# Only register HRMS overrides if HRMS is installed (mirrors za_local's own
+# guard for these same classes, absorbed from za_local/overrides/*.py).
+if _is_hrms_installed():
+	extend_doctype_class["Salary Slip"] = [
+		"ir.ir_payroll.fringe_benefits.salary_slip.FringeBenefitSalarySlipMixin",
+	]
+	override_doctype_class = {
+		"Salary Slip": "ir.overrides.salary_slip.ZASalarySlip",
+		"Payroll Entry": "ir.overrides.payroll_entry.ZAPayrollEntry",
+		"Additional Salary": "ir.overrides.additional_salary.ZAAdditionalSalary",
+		"Leave Application": "ir.overrides.leave_application.ZALeaveApplication",
+		"Employee Separation": "ir.overrides.employee_separation.ZAEmployeeSeparation",
+		"Salary Structure Assignment": "ir.overrides.salary_structure_assignment.ZASalaryStructureAssignment",
+	}
 jinja = {
 	"methods": [
 		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_outcome_body",
@@ -268,7 +309,10 @@ scheduler_events = {
 	"daily": [
 		"ir.controllers.employee_termination_sync.run_daily",
         "ir.controllers.demotion_expiry.run_daily",
-	]
+	],
+	"daily_long": [
+		"ir.ir_payroll.fringe_benefits.tasks.refresh_fringe_benefit_statuses",
+	],
 }
 after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links"
