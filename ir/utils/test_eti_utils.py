@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import frappe
 
 from ir.utils import eti_utils
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestEtiCalculationQueries(UnitTestCase):

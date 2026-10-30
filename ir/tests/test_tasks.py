@@ -3,7 +3,7 @@ from unittest.mock import patch
 import frappe
 from frappe.utils import add_days, getdate, today
 
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class FakeNotification:

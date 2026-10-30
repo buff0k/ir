@@ -6,7 +6,7 @@ from ir.ir_payroll.doctype.emp201_submission.emp201_submission import (
 	EMP201Submission,
 	calculate_eti_utilisation,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestEMP201Submission(UnitTestCase):

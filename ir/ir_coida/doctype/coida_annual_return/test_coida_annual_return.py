@@ -4,7 +4,7 @@ import frappe
 from frappe.utils import getdate
 
 from ir.ir_coida.doctype.coida_annual_return.coida_annual_return import COIDAAnnualReturn
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestCOIDAAnnualReturn(UnitTestCase):

@@ -28,7 +28,7 @@ from ir.utils.travel_allowance_utils import (
 	calculate_fixed_allowance,
 	calculate_reimbursive_allowance,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PRIOR_YEAR_PACKS = {
 	"2024-2025": {"date": "2024-03-31", "file": "statutory_rates_2025.json"},

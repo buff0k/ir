@@ -13,7 +13,7 @@ from ir.ir_vat.tax_invoice import (
 	check_tax_invoice_readiness,
 	get_sales_invoice_print_profile,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 

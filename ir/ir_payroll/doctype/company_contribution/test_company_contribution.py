@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestCompanyContribution(UnitTestCase):

@@ -6,7 +6,7 @@ import frappe
 from frappe.utils import add_days, today
 
 from ir.ir_coida.doctype.workplace_injury.workplace_injury import WorkplaceInjury
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3]
 

@@ -8,7 +8,7 @@ from ir.utils.coida_utils import (
 	get_oid_claims_for_period,
 	get_workplace_injuries_for_period,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestCOIDAUtils(UnitTestCase):

@@ -10,7 +10,7 @@ from ir.ir_payroll.report.retirement_fund_deductions.retirement_fund_deductions 
 from ir.ir_payroll.report.statutory_submissions_summary.statutory_submissions_summary import (
 	get_data as get_statutory_summary,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestPayrollReports(UnitTestCase):

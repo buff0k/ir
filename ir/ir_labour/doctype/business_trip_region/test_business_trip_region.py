@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from ir.ir_labour.doctype.business_trip_region.business_trip_region import get_active_regions
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestBusinessTripRegion(UnitTestCase):

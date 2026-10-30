@@ -3,7 +3,7 @@ from unittest.mock import patch
 import frappe
 
 from ir.overrides.payroll_entry import PayrollEntry, ZAPayrollEntry
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestPayrollEntryValidation(UnitTestCase):

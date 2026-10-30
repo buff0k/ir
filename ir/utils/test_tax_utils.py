@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import frappe
 
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 from ir.utils.tax_utils import (
 	calculate_south_african_tax,
 	get_medical_aid_credit,

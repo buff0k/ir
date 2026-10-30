@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import frappe
 
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestWhitelistedEndpointPermissions(UnitTestCase):

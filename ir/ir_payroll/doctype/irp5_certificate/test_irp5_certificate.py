@@ -9,7 +9,7 @@ from ir.ir_payroll.doctype.irp5_certificate.irp5_certificate import (
 	build_certificate_key,
 	require_certificate_generation_permissions,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3]
 

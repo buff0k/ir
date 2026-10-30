@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import frappe
 
 from ir.ir_vat.doctype.vat201_return.vat201_return import VAT201Return
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3]
 

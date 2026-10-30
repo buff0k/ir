@@ -24,7 +24,7 @@ from ir.ir_vat.tax_invoice import (
 	build_sales_invoice_print_profile,
 	get_invoice_type,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestSouthAfricaVATSettings(UnitTestCase):

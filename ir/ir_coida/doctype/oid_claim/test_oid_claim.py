@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import add_days, today
 
 from ir.ir_coida.doctype.oid_claim.oid_claim import OIDClaim
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestOIDClaim(UnitTestCase):

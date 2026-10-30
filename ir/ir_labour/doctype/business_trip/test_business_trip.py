@@ -8,7 +8,7 @@ from ir.ir_labour.doctype.business_trip.business_trip import (
 	generate_allowances_for_date_range,
 	get_business_trip_mileage_rate,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestBusinessTrip(UnitTestCase):

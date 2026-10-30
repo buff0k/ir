@@ -3,7 +3,7 @@ from unittest.mock import patch
 import frappe
 
 from ir.utils import payroll_utils
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestAdditionalSalarySelection(UnitTestCase):

@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import frappe
 
 from ir.overrides.salary_slip import SalarySlip, ZASalarySlip
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestSalarySlipTaxRegressions(UnitTestCase):

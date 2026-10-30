@@ -6,7 +6,7 @@ from ir.ir_labour.report.eea2_income_differentials.eea2_income_differentials imp
 	get_data as get_eea2_data,
 )
 from ir.ir_labour.report_utils import get_permitted_company
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestLabourReports(UnitTestCase):

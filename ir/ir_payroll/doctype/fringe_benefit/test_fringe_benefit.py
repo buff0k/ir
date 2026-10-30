@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ir.ir_payroll.doctype.fringe_benefit.fringe_benefit import _assessment_year_end
 from ir.ir_payroll.fringe_benefits.tasks import _status_for_dates
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[3]
 

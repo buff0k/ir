@@ -10,7 +10,7 @@ from ir.ir_payroll.fringe_benefits.calculations import (
 	get_housing_formula_percentage,
 	get_official_interest_rate,
 )
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestFringeBenefitCalculations(UnitTestCase):

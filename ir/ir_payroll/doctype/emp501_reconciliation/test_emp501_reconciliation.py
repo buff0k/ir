@@ -4,7 +4,7 @@ import frappe
 
 from ir.ir_payroll.doctype.emp501_reconciliation.emp501_reconciliation import EMP501Reconciliation
 from ir.utils.emp501_utils import generate_emp501_csv
-from za_local.tests.compat import UnitTestCase
+from ir.tests.compat import UnitTestCase
 
 
 class TestEMP501Reconciliation(UnitTestCase):
