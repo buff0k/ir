@@ -592,7 +592,11 @@ scheduler_events = {
 # formats for a freshly created South African company).
 setup_wizard_stages = "ir.ir_setup.setup_wizard.get_sa_localization_stages"
 after_migrate = [
-	"ir.setup.add_employee_doclinks.ensure_employee_links",
+	"ir.setup.doctype_connections.ensure_employee_links",
+	# Absorbed from za_local.sa_setup.custom_fields._get_doctype_link_records
+	# - a "custom_records" hook that was never a real Frappe/ERPNext/HRMS
+	# hook, so it was never actually consumed.
+	"ir.setup.doctype_connections.ensure_doctype_connection_links",
 	# Absorbed from za_local - company-scoped SA payroll/VAT setup that
 	# can't be a fixture (varies per Company). Each is independently
 	# idempotent and self-guards on table existence.

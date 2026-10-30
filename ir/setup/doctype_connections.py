@@ -3,7 +3,6 @@
 
 import frappe
 
-
 EMPLOYEE_DOCTYPE = "Employee"
 LINK_GROUP = "Industrial Relations"
 
@@ -12,62 +11,77 @@ REQUIRED_LINKS = [
     {
         "link_doctype": "Disciplinary Action",
         "link_fieldname": "accused",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Contract of Employment",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Incapacity Proceedings",
         "link_fieldname": "accused",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Poor Performance",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Appeal Against Outcome",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "NTA Enquiry",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Written Outcome",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "No Further Action Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Warning Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Suspension Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Demotion Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Pay Deduction Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Pay Reduction Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Dismissal Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Voluntary Seperation Agreement",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "KPI Review Employees",
@@ -75,22 +89,27 @@ REQUIRED_LINKS = [
         "parent_doctype": "KPI Review",
         "table_fieldname": "employees",
         "is_child_table": 1,
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Termination Form",
         "link_fieldname": "requested_for",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Employee Induction Tracking",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Status Change Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Site Transfer Form",
         "link_fieldname": "employee",
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Retrenchment Affected Employee",
@@ -98,6 +117,7 @@ REQUIRED_LINKS = [
         "parent_doctype": "Retrenchment Process",
         "table_fieldname": "affected_employees",
         "is_child_table": 1,
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "Section 189 Notice Recipient",
@@ -105,6 +125,7 @@ REQUIRED_LINKS = [
         "parent_doctype": "Section 189 Notice",
         "table_fieldname": "recipients",
         "is_child_table": 1,
+        "group": LINK_GROUP,
     },
     {
         "link_doctype": "S189 Consultation Attendee",
@@ -112,6 +133,7 @@ REQUIRED_LINKS = [
         "parent_doctype": "S189 Consultation",
         "table_fieldname": "attendees",
         "is_child_table": 1,
+        "group": LINK_GROUP,
     },
     {
         # Not is_child_table: that shape feeds Frappe's internal_links/
@@ -137,6 +159,73 @@ REQUIRED_LINKS = [
         # here at all - see _doctype_or_child_table_has_field() below.
         "link_doctype": "External Dispute Resolution",
         "link_fieldname": "applicant",
+        "group": LINK_GROUP,
+    },
+    # Absorbed from za_local.sa_setup.custom_fields._get_doctype_link_records
+    # as part of absorbing za_local into ir - that function was wired to a
+    # "custom_records" hook that is not a real Frappe/ERPNext/HRMS hook and
+    # has never actually been consumed; these records only existed on this
+    # site because of a one-time manual backfill. ir hard-requires HRMS, so
+    # (unlike za_local) these need no HRMS-availability filtering.
+    {
+        "link_doctype": "Tax Directive",
+        "link_fieldname": "employee",
+        "group": "Tax & Compliance",
+    },
+    {
+        "link_doctype": "Uif U19 Declaration",
+        "link_fieldname": "employee",
+        "group": "Tax & Compliance",
+    },
+    {
+        "link_doctype": "Fringe Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Company Car Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Housing Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Low Interest Loan Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Cellphone Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Fuel Card Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Bursary Benefit",
+        "link_fieldname": "employee",
+        "group": "Benefits",
+    },
+    {
+        "link_doctype": "Leave Encashment Sa",
+        "link_fieldname": "employee",
+        "group": "Payroll",
+    },
+    {
+        "link_doctype": "Employee Final Settlement",
+        "link_fieldname": "employee",
+        "group": "Separation",
+    },
+    {
+        "link_doctype": "Skills Development Record",
+        "link_fieldname": "employee",
+        "group": "Training & Development",
     },
 ]
 
@@ -152,9 +241,60 @@ OBSOLETE_LINK_DOCTYPES = {
 }
 
 
+# Absorbed from za_local.sa_setup.custom_fields._get_doctype_link_records,
+# for parent DocTypes other than Employee.
+
+COMPANY_REQUIRED_LINKS = [
+    {
+        "link_doctype": "Retirement Fund",
+        "link_fieldname": "company",
+        "group": "Payroll",
+    },
+    {
+        "link_doctype": "Travel Allowance Rate",
+        "link_fieldname": "company",
+        "group": "Payroll",
+    },
+    {
+        "link_doctype": "Workplace Skills Plan",
+        "link_fieldname": "company",
+        "group": "Training & Development",
+    },
+    {
+        "link_doctype": "Annual Training Report",
+        "link_fieldname": "company",
+        "group": "Training & Development",
+    },
+]
+
+PAYROLL_ENTRY_REQUIRED_LINKS = [
+    {
+        "link_doctype": "Payroll Payment Batch",
+        "link_fieldname": "payroll_entry",
+        "group": "Payroll",
+    },
+]
+
+BARGAINING_COUNCIL_REQUIRED_LINKS = [
+    {
+        "link_doctype": "Industry Specific Contribution",
+        "link_fieldname": "bargaining_council",
+        "group": "Sectoral Compliance",
+    },
+]
+
+EXPENSE_CLAIM_REQUIRED_LINKS = [
+    {
+        "link_doctype": "Business Trip",
+        "link_fieldname": "expense_claim",
+        "group": "Travel",
+    },
+]
+
+
 def ensure_employee_links():
     """
-    Synchronise the Industrial Relations links shown on Employee.
+    Synchronise the Connections-tab links shown on Employee.
 
     Behaviour:
     - removes explicitly retired DocType links;
@@ -164,39 +304,70 @@ def ensure_employee_links():
     - creates only currently valid required links;
     - leaves links belonging to other apps/groups untouched.
     """
-    if not frappe.db.exists("DocType", EMPLOYEE_DOCTYPE):
+    sync_doctype_links(EMPLOYEE_DOCTYPE, REQUIRED_LINKS, OBSOLETE_LINK_DOCTYPES)
+
+
+def ensure_doctype_connection_links():
+    """Synchronise the Connections-tab links absorbed from za_local for
+    parent DocTypes other than Employee (Company/Payroll Entry/Bargaining
+    Council/Expense Claim). Same behaviour as ensure_employee_links()."""
+    sync_doctype_links("Company", COMPANY_REQUIRED_LINKS)
+    sync_doctype_links("Payroll Entry", PAYROLL_ENTRY_REQUIRED_LINKS)
+    sync_doctype_links("Bargaining Council", BARGAINING_COUNCIL_REQUIRED_LINKS)
+    sync_doctype_links("Expense Claim", EXPENSE_CLAIM_REQUIRED_LINKS)
+
+
+def sync_doctype_links(parent_doctype, required_links, obsolete_link_doctypes=frozenset()):
+    """
+    Synchronise a DocType's own Link ("Connections tab") rows against
+    `required_links`. Each entry must carry its own "group" - this
+    reconciler only ever adds/removes/dedupes rows within the exact set of
+    groups named across `required_links`, so it never touches a Connections
+    link that belongs to some other app or feature grouped differently on
+    the same parent DocType.
+
+    Behaviour:
+    - removes explicitly retired DocType links (`obsolete_link_doctypes`);
+    - removes managed links whose target DocType no longer exists;
+    - removes malformed managed links whose configured field no longer exists;
+    - removes duplicate managed links;
+    - creates only currently valid required links.
+    """
+    if not frappe.db.exists("DocType", parent_doctype):
         return
 
-    _remove_obsolete_links()
-    _remove_invalid_ir_links()
-    _remove_duplicate_ir_links()
-    _add_missing_links()
+    owned_groups = {link["group"] for link in required_links}
+
+    _remove_obsolete_links(parent_doctype, obsolete_link_doctypes)
+    _remove_invalid_links(parent_doctype, owned_groups, obsolete_link_doctypes)
+    _remove_duplicate_links(parent_doctype, owned_groups)
+    _add_missing_links(parent_doctype, owned_groups, required_links, obsolete_link_doctypes)
 
 
-def _remove_obsolete_links():
-    for doctype in OBSOLETE_LINK_DOCTYPES:
+def _remove_obsolete_links(parent_doctype, obsolete_link_doctypes):
+    for doctype in obsolete_link_doctypes:
         frappe.db.delete(
             "DocType Link",
             {
-                "parent": EMPLOYEE_DOCTYPE,
+                "parent": parent_doctype,
                 "parenttype": "DocType",
                 "link_doctype": doctype,
             },
         )
 
 
-def _remove_invalid_ir_links():
-    existing_links = _get_existing_ir_links()
+def _remove_invalid_links(parent_doctype, owned_groups, obsolete_link_doctypes):
+    existing_links = _get_existing_links(parent_doctype, owned_groups)
 
     for link in existing_links:
-        if _is_valid_link(link):
+        if _is_valid_link(link, obsolete_link_doctypes):
             continue
 
         frappe.db.delete("DocType Link", link.name)
 
 
-def _remove_duplicate_ir_links():
-    existing_links = _get_existing_ir_links()
+def _remove_duplicate_links(parent_doctype, owned_groups):
+    existing_links = _get_existing_links(parent_doctype, owned_groups)
     seen = set()
 
     for link in existing_links:
@@ -209,15 +380,15 @@ def _remove_duplicate_ir_links():
         frappe.db.delete("DocType Link", link.name)
 
 
-def _add_missing_links():
+def _add_missing_links(parent_doctype, owned_groups, required_links, obsolete_link_doctypes):
     existing_keys = {
         _key(link)
-        for link in _get_existing_ir_links()
-        if _is_valid_link(link)
+        for link in _get_existing_links(parent_doctype, owned_groups)
+        if _is_valid_link(link, obsolete_link_doctypes)
     }
 
-    for link in REQUIRED_LINKS:
-        if not _is_valid_link(link):
+    for link in required_links:
+        if not _is_valid_link(link, obsolete_link_doctypes):
             continue
 
         key = _key(link)
@@ -228,10 +399,9 @@ def _add_missing_links():
         frappe.get_doc(
             {
                 "doctype": "DocType Link",
-                "parent": EMPLOYEE_DOCTYPE,
+                "parent": parent_doctype,
                 "parentfield": "links",
                 "parenttype": "DocType",
-                "group": LINK_GROUP,
                 **link,
             }
         ).insert(ignore_permissions=True)
@@ -239,13 +409,13 @@ def _add_missing_links():
         existing_keys.add(key)
 
 
-def _get_existing_ir_links():
+def _get_existing_links(parent_doctype, owned_groups):
     return frappe.get_all(
         "DocType Link",
         filters={
-            "parent": EMPLOYEE_DOCTYPE,
+            "parent": parent_doctype,
             "parenttype": "DocType",
-            "group": LINK_GROUP,
+            "group": ["in", list(owned_groups)],
         },
         fields=[
             "name",
@@ -259,7 +429,7 @@ def _get_existing_ir_links():
     )
 
 
-def _is_valid_link(link):
+def _is_valid_link(link, obsolete_link_doctypes):
     link_doctype = _value(link, "link_doctype")
     link_fieldname = _value(link, "link_fieldname")
     is_child_table = int(_value(link, "is_child_table") or 0)
@@ -267,7 +437,7 @@ def _is_valid_link(link):
     if not link_doctype or not link_fieldname:
         return False
 
-    if link_doctype in OBSOLETE_LINK_DOCTYPES:
+    if link_doctype in obsolete_link_doctypes:
         return False
 
     if not frappe.db.exists("DocType", link_doctype):
