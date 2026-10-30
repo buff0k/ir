@@ -22,6 +22,11 @@ add_to_apps_screen = [
 	}
 ]
 app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
+# Modules absorbed from za_local ship their own doctypes/workspaces but carry
+# no separate dock/sidebar entry - their workspaces are linked into the
+# "Industrial Relations" sidebar instead, so nav stays unified as more
+# modules land here (same pattern frappe.Core uses for its own doctypes).
+code_only_modules = {"ir_coida": ["Industrial Relations"]}
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
