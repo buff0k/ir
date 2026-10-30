@@ -203,8 +203,17 @@ fixtures = [
         "FIT",
         "PRED",
         "RETR"
+	]]]},
+	{"dt": "Print Format", "filters": [["name", "in", [
+		"SA COIDA Annual Return",
+		"SA OID Claim"
 	]]]}
 ]
+doctype_js = {
+	"COIDA Annual Return": "public/js/coida_annual_return.js",
+	"Workplace Injury": "public/js/workplace_injury.js",
+	"OID Claim": "public/js/oid_claim.js",
+}
 jinja = {
 	"methods": [
 		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_outcome_body",
