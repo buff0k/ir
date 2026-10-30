@@ -401,30 +401,11 @@ fixtures = [
         "PRED",
         "RETR"
 	]]]},
-	{"dt": "Print Format", "filters": [["name", "in", [
-		"SA COIDA Annual Return",
-		"SA OID Claim",
-		"SA Business Trip",
-		"SA Workplace Skills Plan",
-		"SA Annual Training Report",
-		"SA Sales Invoice",
-		"SA Full Tax Invoice",
-		"SA Abridged Tax Invoice",
-		"SA Quotation",
-		"SA Sales Order",
-		"SA Delivery Note",
-		"SA Purchase Invoice",
-		"SA Purchase Order",
-		"SA Payment Entry",
-		"SA Credit Note",
-		"SA Debit Note",
-		"SA VAT201 Return",
-		"IRP5 Employee Certificate",
-		"IRP5-it3 Certificate",
-		"SA Salary Slip",
-		"SA EMP201 Submission",
-		"SA EMP501 Reconciliation"
-	]]]},
+	# Print Format is NOT a fixture here - the absorbed SA print formats ship
+	# as standard=Yes module-doc files under each module's print_format/
+	# folder (same mechanism ir's own print formats already use), synced
+	# automatically by bench migrate. A fixture entry would duplicate that
+	# and risk silently overwriting a module-file edit on the next migrate.
 	# South African reference/master data absorbed from za_local - generic
 	# lookup data with no company/account linkage, so it's a plain fixture
 	# rather than a seed function. (Salary Component is the one exception
@@ -597,6 +578,10 @@ scheduler_events = {
 		"ir.ir_payroll.fringe_benefits.tasks.refresh_fringe_benefit_statuses",
 	],
 }
+# Absorbed from za_local - the post-ERPNext-setup-wizard SA stage (chart of
+# accounts augmentation + salary component account repair + default print
+# formats for a freshly created South African company).
+setup_wizard_stages = "ir.ir_setup.setup_wizard.get_sa_localization_stages"
 after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links",
 	# Absorbed from za_local - company-scoped SA payroll/VAT setup that

@@ -42,3 +42,7 @@ ir.patches.backfill_leave_application_letter_head
 ir.patches.delete_orphaned_custom_docperms
 ir.patches.ensure_statutory_tax_configuration
 ir.patches.backfill_emp201_submission_keys
+ir.patches.cleanup_invalid_doctype_links
+ir.patches.migrate_irp5_legacy_source_fields
+ir.patches.ensure_eti_payroll_settings_defaults
+ir.patches.set_accounts_settings_for_za_vat
