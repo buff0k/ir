@@ -1,13 +1,11 @@
 # Copyright (c) 2026, BuFf0k and contributors
 # For license information, please see license.txt
 
-"""Repo-hygiene checks ported from za_local/tests/test_repo_hygiene.py as part
-of absorbing za_local into ir - these three specifically read files that
-moved to ir during that absorption (public/js/payroll_entry.js, public/js/
-salary_structure.js, and the whole practitioner_guide package). The CSS half
-of the flexible-benefit check still reads za_local's own public/css/
-za_local.css, which has not moved - that file is still genuinely za_local's
-own, loaded site-wide via its own app_include_css.
+"""Repo-hygiene checks ported from za_local/tests/test_repo_hygiene.py and
+test_statutory_setup.py as part of absorbing za_local into ir - these read
+files/fixtures that moved to ir during that absorption (public/js/
+payroll_entry.js, public/js/salary_structure.js, public/css/ir_ui.css, the
+whole practitioner_guide package, and fixtures/custom_field.json).
 """
 
 import json
@@ -103,3 +101,25 @@ class TestRepositoryHygiene(unittest.TestCase):
 		}
 		missing = [relative for relative in expected if not (APP_ROOT / relative).exists()]
 		self.assertFalse(missing, msg=f"Missing expected module onboarding standard docs: {missing}")
+
+	def test_custom_field_fixture_names_are_unique(self):
+		fixtures = json.loads((APP_ROOT / "fixtures" / "custom_field.json").read_text())
+		names = [row["name"] for row in fixtures]
+		self.assertEqual(len(names), len(set(names)))
+
+	def test_controller_consumed_compliance_fields_are_owned_by_ir(self):
+		fixtures = json.loads((APP_ROOT / "fixtures" / "custom_field.json").read_text())
+		fixture_set = {(row["dt"], row["fieldname"]) for row in fixtures}
+		required = {
+			("Salary Component", "za_is_annual_bonus"),
+			("Salary Slip", "za_paye_inclusion_adjustment"),
+			("Payroll Settings", "za_official_interest_rate"),
+			("Leave Type", "za_bcea_compliant"),
+			("Leave Type", "za_applicable_gender"),
+			("Leave Type", "za_medical_certificate_required_after"),
+			("Employee Separation", "za_termination_type"),
+			("Employee Separation", "za_notice_period_days"),
+			("Employee Separation", "za_severance_pay"),
+			("Employee Separation", "za_leave_payout"),
+		}
+		self.assertTrue(required.issubset(fixture_set), required - fixture_set)
