@@ -596,6 +596,9 @@ doc_events = {
 	"Item": {
 		"validate": "ir.ir_vat.item_sync.sync_item_zero_rated_flag",
 	},
+	"Customer": {
+		"validate": "ir.overrides.customer.validate",
+	},
 	# SARS audit-trail deletion protection, absorbed from za_local/custom/
 	# {sales,purchase}.py - found disconnected from any hook there.
 	"Quotation": {"on_trash": "ir.overrides.sales.on_trash"},
