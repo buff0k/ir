@@ -286,7 +286,19 @@ fixtures = [
 		"Salary Slip-za_retirement_fund_taxable_excess",
 		"Salary Structure Assignment-za_annual_bonus",
 		"Salary Structure-company_contribution",
-		"Salary Structure-company_contribution_section"
+		"Salary Structure-company_contribution_section",
+		# VAT custom fields absorbed from ir.ir_vat.setup.ensure_vat_custom_fields
+		# (a second, separate custom-field source from za_local's main
+		# custom_fields.py, found while retiring that function's own call).
+		"Account-custom_sa_vat_compliance_section",
+		"Account-custom_vat_return_debit_classification",
+		"Account-custom_vat_return_credit_classification",
+		"Item-is_zero_rated",
+		"Item-custom_sa_vat_category",
+		"Sales Invoice Item-is_zero_rated",
+		"Sales Invoice Item-custom_sa_vat_category",
+		"Purchase Invoice Item-is_zero_rated",
+		"Purchase Invoice Item-custom_sa_vat_category"
 	]]]},
 	{"dt": "Property Setter", "filters": [["name", "in", [
         "Designation-ir_occupational_level",
