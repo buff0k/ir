@@ -1,0 +1,16 @@
+{
+ "content": null,
+ "creation": "2026-04-22 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "modified": "2026-10-30 10:50:56.268551",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "sa_local_help",
+ "owner": "Administrator",
+ "page_name": "sa-local-help",
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "title": "SA Local Help"
+}

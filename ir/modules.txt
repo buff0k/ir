@@ -3,3 +3,4 @@ ir_coida
 ir_labour
 ir_vat
 ir_payroll
+ir_setup
