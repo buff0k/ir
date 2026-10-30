@@ -9,7 +9,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate
 
-from za_local.utils.statutory_rates import get_reimbursive_travel_rate
+from ir.utils.statutory_rates import get_reimbursive_travel_rate
 
 
 class BusinessTrip(Document):

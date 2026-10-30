@@ -46,7 +46,7 @@
 			schedule_sa_print_format_update(frm);
 			frm.add_custom_button(__("Check SA Tax Invoice"), () => {
 				frappe.call({
-					method: "za_local.sa_vat.tax_invoice.check_tax_invoice_readiness",
+					method: "ir.ir_vat.tax_invoice.check_tax_invoice_readiness",
 					type: "GET",
 					args: { sales_invoice: frm.doc.name },
 					freeze: true,
@@ -147,7 +147,7 @@
 		if (!frm.doc.company) return;
 
 		frappe.call({
-			method: "za_local.sa_vat.tax_invoice.get_sales_invoice_print_profile",
+			method: "ir.ir_vat.tax_invoice.get_sales_invoice_print_profile",
 			type: "GET",
 			args: {
 				company: frm.doc.company,

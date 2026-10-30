@@ -14,14 +14,13 @@ from frappe import _
 from frappe.utils import escape_html, flt, getdate
 from hrms.payroll.doctype.payroll_entry.payroll_entry import PayrollEntry, get_employee_list
 
-# Import ZA Local utilities
-from za_local.utils.payroll_utils import (
+from ir.utils.payroll_utils import (
     get_current_block_period,
     get_employee_frequency_map,
     is_payroll_processed,
 )
 
-LOGGER = frappe.logger("za_local_payroll")
+LOGGER = frappe.logger("ir_payroll")
 
 
 class ZAPayrollEntry(PayrollEntry):

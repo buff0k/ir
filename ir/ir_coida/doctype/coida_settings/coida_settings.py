@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from za_local.utils.coida_utils import validate_industry_rates
+from ir.utils.coida_utils import validate_industry_rates
 
 
 class COIDASettings(Document):

@@ -9,7 +9,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, escape_html, flt, getdate, today
 
-from za_local.utils.statutory_rates import get_rate_pack
+from ir.utils.statutory_rates import get_rate_pack
 
 pdf_generation_available = False
 try:

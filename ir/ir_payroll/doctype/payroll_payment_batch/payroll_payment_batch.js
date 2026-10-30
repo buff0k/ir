@@ -22,7 +22,7 @@ frappe.ui.form.on("Payroll Payment Batch", {
 		frm.add_custom_button(__("Generate FNB OBE CSV"), async () => {
 			try {
 				const response = await frappe.call({
-					method: "za_local.utils.integrations.eft_file_generator.generate_eft_file",
+					method: "ir.utils.integrations.eft_file_generator.generate_eft_file",
 					args: {payment_batch: frm.doc.name},
 					freeze: true,
 					freeze_message: __("Validating payroll and generating the private FNB file..."),

@@ -5,8 +5,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, add_years, flt, getdate
 
-from za_local.utils.coida_utils import get_coida_earnings_by_employee, get_company_industry_rate
-from za_local.utils.statutory_rates import get_coida_annual_earnings_cap
+from ir.utils.coida_utils import get_coida_earnings_by_employee, get_company_industry_rate
+from ir.utils.statutory_rates import get_coida_annual_earnings_cap
 
 DIRECTOR_DESIGNATIONS = {"Director", "Executive Director", "Managing Director"}
 

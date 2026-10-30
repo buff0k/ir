@@ -66,7 +66,7 @@ frappe.ui.form.on("Business Trip Journey", {
 		// Fetch mileage rate if private car
 		if (row.transport_mode === "Car (Private)") {
 			frappe.call({
-				method: "za_local.sa_labour.doctype.business_trip_settings.business_trip_settings.get_mileage_rate",
+				method: "ir.ir_labour.doctype.business_trip_settings.business_trip_settings.get_mileage_rate",
 				args: {
 					date_value: row.date || frm.doc.to_date || frm.doc.from_date,
 				},
@@ -146,7 +146,7 @@ function add_custom_buttons(frm) {
 				],
 				(values) => {
 					frappe.call({
-						method: "za_local.sa_labour.doctype.business_trip.business_trip.generate_allowances_for_date_range",
+						method: "ir.ir_labour.doctype.business_trip.business_trip.generate_allowances_for_date_range",
 						args: {
 							business_trip_name: frm.doc.name,
 							region: values.region,
@@ -163,7 +163,7 @@ function add_custom_buttons(frm) {
 		// Create Expense Claim button
 		frm.add_custom_button(__("Create Expense Claim"), function() {
 			frappe.call({
-				method: "za_local.sa_labour.doctype.business_trip.business_trip.create_expense_claim_from_trip",
+				method: "ir.ir_labour.doctype.business_trip.business_trip.create_expense_claim_from_trip",
 				args: {
 					business_trip_name: frm.doc.name
 				},

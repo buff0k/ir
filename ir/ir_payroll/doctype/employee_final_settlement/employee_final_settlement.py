@@ -6,8 +6,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, getdate, today
 
-from za_local.utils.tax_utils import calculate_south_african_tax, calculate_uif_contribution
-from za_local.utils.termination_utils import calculate_severance_tax
+from ir.utils.tax_utils import calculate_south_african_tax, calculate_uif_contribution
+from ir.utils.termination_utils import calculate_severance_tax
 
 
 class EmployeeFinalSettlement(Document):

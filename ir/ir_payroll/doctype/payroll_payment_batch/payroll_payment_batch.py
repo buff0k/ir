@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from za_local.utils.integrations.eft_file_generator import (
+from ir.utils.integrations.eft_file_generator import (
 	build_payment_batch_snapshot,
 	normalize_bank_format,
 	validate_payment_batch_header,

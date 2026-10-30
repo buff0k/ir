@@ -17,7 +17,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, get_first_day, get_last_day, getdate
 
-from za_local.utils.statutory_rates import get_rate_pack
+from ir.utils.statutory_rates import get_rate_pack
 
 
 def calculate_company_car_values(

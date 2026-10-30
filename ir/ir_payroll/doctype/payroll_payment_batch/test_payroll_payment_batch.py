@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import frappe
 
 from za_local.tests.compat import UnitTestCase
-from za_local.utils.integrations.eft_file_generator import (
+from ir.utils.integrations.eft_file_generator import (
 	FNB_COLUMNS,
 	FNB_VERSION,
 	PaymentBatchSnapshot,
@@ -96,8 +96,8 @@ class TestFNBPaymentCSV(UnitTestCase):
 
 
 class TestPaymentBatchSnapshot(UnitTestCase):
-	@patch("za_local.utils.integrations.eft_file_generator.validate_payment_batch_header")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.get_all")
+	@patch("ir.utils.integrations.eft_file_generator.validate_payment_batch_header")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.get_all")
 	def test_uses_submitted_slips_and_linked_employee_bank_accounts(self, get_all, validate_header):
 		company_account = frappe._dict(name="COMPANY-BANK", bank_account_no="62000031451")
 		validate_header.return_value = (
@@ -145,9 +145,9 @@ class TestPaymentBatchSnapshot(UnitTestCase):
 
 
 class TestPaymentBatchExportEndpoint(UnitTestCase):
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.get_doc")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.has_permission")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.only_for")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.get_doc")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.has_permission")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.only_for")
 	def test_requires_write_permission_before_loading_batch(self, only_for, has_permission, get_doc):
 		has_permission.side_effect = frappe.PermissionError("Not permitted")
 		with self.assertRaises(frappe.PermissionError):
@@ -159,14 +159,14 @@ class TestPaymentBatchExportEndpoint(UnitTestCase):
 		)
 		get_doc.assert_not_called()
 
-	@patch("za_local.utils.integrations.eft_file_generator.now_datetime", return_value="2026-08-01 10:00:00")
-	@patch("za_local.utils.integrations.eft_file_generator.save_file")
-	@patch("za_local.utils.integrations.eft_file_generator.render_fnb_obe_csv")
-	@patch("za_local.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.get_doc")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.db.get_value")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.has_permission")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.only_for")
+	@patch("ir.utils.integrations.eft_file_generator.now_datetime", return_value="2026-08-01 10:00:00")
+	@patch("ir.utils.integrations.eft_file_generator.save_file")
+	@patch("ir.utils.integrations.eft_file_generator.render_fnb_obe_csv")
+	@patch("ir.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.get_doc")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.db.get_value")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.has_permission")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.only_for")
 	def test_generates_and_attaches_privately_without_returning_content(
 		self, only_for, has_permission, get_value, get_doc, build_snapshot,
 		render_csv, save_file_mock, now_datetime,
@@ -195,12 +195,12 @@ class TestPaymentBatchExportEndpoint(UnitTestCase):
 		self.assertEqual(save_file_mock.call_args.kwargs["df"], "eft_file_path")
 		batch.db_set.assert_called_once()
 
-	@patch("za_local.utils.integrations.eft_file_generator._get_existing_private_file")
-	@patch("za_local.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.get_doc")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.db.get_value")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.has_permission")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.only_for")
+	@patch("ir.utils.integrations.eft_file_generator._get_existing_private_file")
+	@patch("ir.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.get_doc")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.db.get_value")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.has_permission")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.only_for")
 	def test_reuses_existing_private_attachment_idempotently(
 		self, only_for, has_permission, get_value, get_doc, build_snapshot, get_existing,
 	):
@@ -215,17 +215,17 @@ class TestPaymentBatchExportEndpoint(UnitTestCase):
 			file_name="FNB_OBE.csv", file_url="/private/files/FNB_OBE.csv"
 		)
 
-		with patch("za_local.utils.integrations.eft_file_generator.save_file") as save_file_mock:
+		with patch("ir.utils.integrations.eft_file_generator.save_file") as save_file_mock:
 			result = generate_eft_file(batch.name)
 
 		self.assertTrue(result["reused"])
 		save_file_mock.assert_not_called()
 
-	@patch("za_local.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.get_doc")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.db.get_value")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.has_permission")
-	@patch("za_local.utils.integrations.eft_file_generator.frappe.only_for")
+	@patch("ir.utils.integrations.eft_file_generator.build_payment_batch_snapshot")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.get_doc")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.db.get_value")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.has_permission")
+	@patch("ir.utils.integrations.eft_file_generator.frappe.only_for")
 	def test_rejects_changed_source_after_submission(
 		self, only_for, has_permission, get_value, get_doc, build_snapshot,
 	):

@@ -6,7 +6,7 @@ frappe.ui.form.on("Bargaining Council", {
 
 		frm.add_custom_button(__("Import Common Councils"), () => {
 			frappe.call({
-				method: "za_local.sa_labour.doctype.bargaining_council.bargaining_council.import_common_councils",
+				method: "ir.ir_labour.doctype.bargaining_council.bargaining_council.import_common_councils",
 			}).then((response) => {
 				const stats = response.message || {};
 				frappe.msgprint(

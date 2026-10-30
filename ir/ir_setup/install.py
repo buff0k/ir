@@ -21,7 +21,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
-from za_local.utils.statutory_rates import get_tax_year_for_date
+from ir.utils.statutory_rates import get_tax_year_for_date
 
 
 def _data_path(filename: str) -> Path:
