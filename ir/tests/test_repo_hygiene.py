@@ -28,7 +28,7 @@ class TestRepositoryHygiene(unittest.TestCase):
 		self.assertIn("encodeURIComponent(row.employee)", text)
 
 	def test_flexible_benefit_hiding_never_targets_shared_form_sections(self):
-		css_path = Path(frappe.get_app_path("za_local")) / "public" / "css" / "za_local.css"
+		css_path = APP_ROOT / "public" / "css" / "ir_ui.css"
 		css = css_path.read_text()
 		javascript = (APP_ROOT / "public" / "js" / "salary_structure.js").read_text()
 		css_rules = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)

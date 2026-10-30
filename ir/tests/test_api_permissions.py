@@ -5,9 +5,10 @@
 
 Ported from za_local/tests/test_api_permissions.py and test_statutory_
 workflow_regressions.py as part of absorbing za_local into ir - these span
-several unrelated modules (ir_vat.setup, overrides.payroll_entry, utils.
-integrations.eft_file_generator, print format registration across every
-absorbed module) rather than belonging to one doctype.
+several unrelated modules (ir_vat.setup, overrides.payroll_entry,
+overrides.journal_entry, utils.integrations.eft_file_generator, print
+format registration across every absorbed module) rather than belonging
+to one doctype.
 """
 
 import json
@@ -22,6 +23,10 @@ from za_local.tests.compat import UnitTestCase
 class TestWhitelistedEndpointPermissions(UnitTestCase):
 	def test_state_changing_endpoints_accept_post_only(self):
 		from ir.ir_vat.setup import bootstrap_company_vat_setup
+		from ir.overrides.journal_entry import (
+			force_delete_all_cancelled_payroll_journal_entries,
+			force_delete_cancelled_payroll_journal_entry,
+		)
 		from ir.overrides.payroll_entry import make_payment_entry_for_payroll
 		from ir.utils.integrations.eft_file_generator import generate_eft_file
 
@@ -29,6 +34,8 @@ class TestWhitelistedEndpointPermissions(UnitTestCase):
 			bootstrap_company_vat_setup,
 			make_payment_entry_for_payroll,
 			generate_eft_file,
+			force_delete_all_cancelled_payroll_journal_entries,
+			force_delete_cancelled_payroll_journal_entry,
 		):
 			self.assertEqual(
 				frappe.allowed_http_methods_for_whitelisted_func[method],

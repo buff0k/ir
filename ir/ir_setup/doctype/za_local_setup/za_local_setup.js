@@ -52,8 +52,8 @@ frappe.ui.form.on("ZA Local Setup", {
 							freeze_message: __("Publishing the SA Practitioner Guide to Wiki..."),
 							callback: (res) => {
 								const result = res && res.message;
-								if (window.za_local && window.za_local.show_action_feedback) {
-									window.za_local.show_action_feedback(
+								if (window.ir && window.ir.show_action_feedback) {
+									window.ir.show_action_feedback(
 										result,
 										__("Practitioner Guide Published")
 									);
@@ -132,8 +132,8 @@ frappe.ui.form.on("ZA Local Setup", {
 			frappe.realtime.off("za_local_setup_progress");
 			frappe.realtime.off("za_local_setup_done");
 			frm.reload_doc().then(() => {
-				if (window.za_local && window.za_local.show_action_feedback) {
-					window.za_local.show_action_feedback(result, __("ZA Local Setup Complete"));
+				if (window.ir && window.ir.show_action_feedback) {
+					window.ir.show_action_feedback(result, __("ZA Local Setup Complete"));
 				} else if (result) {
 					frappe.msgprint({
 						title: result.title || __("ZA Local Setup Complete"),

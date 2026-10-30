@@ -34,6 +34,7 @@ code_only_modules = {
 	"ir_setup": ["Industrial Relations"],
 }
 app_include_css = ["/assets/ir/css/ir_ui.css"]
+app_include_js = ["/assets/ir/js/ir_feedback.js"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
 		"IR Manager",
@@ -576,6 +577,15 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"ir.ir_payroll.fringe_benefits.tasks.refresh_fringe_benefit_statuses",
+		# Absorbed from za_local.tasks as part of absorbing za_local into ir.
+		"ir.tasks.daily",
+	],
+	"weekly_long": [
+		"ir.tasks.weekly",
+	],
+	"monthly_long": [
+		"ir.tasks.monthly",
+		"ir.tasks.quarterly",
 	],
 }
 # Absorbed from za_local - the post-ERPNext-setup-wizard SA stage (chart of
@@ -611,6 +621,12 @@ doc_events = {
 	"Purchase Invoice": {"on_trash": "ir.overrides.purchase.on_trash"},
 	"Company": {
 		"after_insert": "ir.ir_setup.install.configure_new_south_african_company",
+	},
+	# Absorbed from za_local/overrides/journal_entry.py as part of
+	# absorbing za_local into ir.
+	"Journal Entry": {
+		"on_trash": "ir.overrides.journal_entry.on_trash",
+		"on_cancel": "ir.overrides.journal_entry.on_cancel",
 	},
 	"Termination Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",

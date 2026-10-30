@@ -74,8 +74,8 @@ function run_vat_settings_action(frm, opts) {
 }
 
 function show_za_feedback(result, fallback_title) {
-	if (window.za_local && window.za_local.show_action_feedback) {
-		window.za_local.show_action_feedback(result, fallback_title);
+	if (window.ir && window.ir.show_action_feedback) {
+		window.ir.show_action_feedback(result, fallback_title);
 		return;
 	}
 

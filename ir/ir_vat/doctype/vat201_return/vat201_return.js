@@ -30,8 +30,8 @@ frappe.ui.form.on("VAT201 Return", {
 					callback(r) {
 						const result = r && r.message;
 						frm.reload_doc().then(() => {
-							if (window.za_local && window.za_local.show_action_feedback) {
-								window.za_local.show_action_feedback(result, __("VAT Transactions Fetched"));
+							if (window.ir && window.ir.show_action_feedback) {
+								window.ir.show_action_feedback(result, __("VAT Transactions Fetched"));
 							} else if (result) {
 								frappe.msgprint({
 									title: result.title || __("VAT Transactions Fetched"),
