@@ -4,9 +4,14 @@
 from __future__ import annotations
 
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate
 
-from ir.tests.test_helpers import IRSyntheticDataTestCase, get_reference_branch, get_reference_company
+from ir.tests.test_helpers import (
+	IRSyntheticDataTestCase,
+	get_reference_branch,
+	get_reference_company,
+	get_reference_offence_outcome,
+)
 
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
@@ -57,6 +62,9 @@ class IntegrationTestAppealAgainstOutcome(IRSyntheticDataTestCase):
 		code_item = _reference_disciplinary_offence()
 		if not code_item:
 			self.skipTest("No Disciplinary Offence exists on this site.")
+		outcome = get_reference_offence_outcome()
+		if not outcome:
+			self.skipTest("No Offence Outcome exists on this site.")
 
 		doc = frappe.get_doc(
 			{
@@ -66,6 +74,11 @@ class IntegrationTestAppealAgainstOutcome(IRSyntheticDataTestCase):
 				"branch": get_reference_branch(),
 				"complainant": complainant.name,
 				"request_date": now_datetime(),
+				# require_outcome_before_submit requires these two fields
+				# before this doc's own submit - the appeal under test here
+				# is decided against this already-recorded outcome.
+				"outcome": outcome,
+				"outcome_date": nowdate(),
 				"offences": [
 					{
 						"code_item": code_item,

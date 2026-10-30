@@ -50,6 +50,15 @@ def get_reference_designation() -> str | None:
 	return frappe.db.get_value("Designation", {}, "name", order_by="creation asc")
 
 
+def get_reference_offence_outcome() -> str | None:
+	"""Any existing Offence Outcome - used to satisfy Disciplinary Action/
+	Incapacity Proceedings/Poor Performance's before_submit requirement
+	(utils.require_outcome_before_submit) in tests whose actual subject is
+	something downstream of an already-outcome-recorded Main Action, not
+	the outcome value itself."""
+	return frappe.db.get_value("Offence Outcome", {}, "name", order_by="creation asc")
+
+
 class IRSyntheticDataTestCase(IntegrationTestCase):
 	"""Base class for ir functional tests that create real DB rows on the
 	live site. Use make_employee()/track() rather than raw frappe.get_doc()
