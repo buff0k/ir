@@ -474,7 +474,6 @@ fixtures = [
 		"Basic",
 		"Income Tax"
 	]]]},
-	{"dt": "Tax Rebates and Medical Tax Credit", "filters": [["name", "=", "Tax Rebates and Medical Tax Credit"]]},
 	{"dt": "Business Trip Region", "filters": [["name", "in", [
 		"International - Oceania",
 		"International - Middle East",
