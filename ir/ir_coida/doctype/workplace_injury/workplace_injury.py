@@ -5,17 +5,12 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_days, cint, date_diff, getdate
 
-from za_local.utils.hrms_detection import is_hrms_installed
-
 
 class WorkplaceInjury(Document):
 	def validate(self):
 		self.validate_dates()
-		if self.requires_leave:
-			if not is_hrms_installed():
-				frappe.throw(_("HRMS is required to create leave for a workplace injury."))
-			if not self.leave_days:
-				self.calculate_leave_days()
+		if self.requires_leave and not self.leave_days:
+			self.calculate_leave_days()
 
 	def validate_dates(self):
 		if getdate(self.injury_date) > getdate():
@@ -41,8 +36,6 @@ class WorkplaceInjury(Document):
 		"""Create and submit an approved leave application or fail the injury transaction."""
 		if self.leave_application:
 			return self.leave_application
-		if not is_hrms_installed() or not frappe.db.table_exists("Leave Application"):
-			frappe.throw(_("Leave Application is unavailable. Install and configure HRMS first."))
 
 		leave_type = frappe.db.get_value("Leave Type", {"name": ["like", "%Injury%"]}, "name")
 		if not leave_type and frappe.db.exists("Leave Type", "Sick Leave"):
@@ -133,9 +126,7 @@ class WorkplaceInjury(Document):
 
 	def on_cancel(self):
 		"""Reverse linked drafts/submissions or fail cancellation."""
-		if self.leave_application and is_hrms_installed() and frappe.db.exists(
-			"Leave Application", self.leave_application
-		):
+		if self.leave_application and frappe.db.exists("Leave Application", self.leave_application):
 			leave_application = frappe.get_doc("Leave Application", self.leave_application)
 			if leave_application.docstatus == 1:
 				leave_application.cancel()

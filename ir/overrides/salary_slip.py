@@ -4,7 +4,7 @@ South African Salary Slip Override
 This module extends the standard HRMS Salary Slip functionality to support
 South African payroll requirements including PAYE, UIF, SDL, COIDA, and ETI.
 
-Note: This module only works when HRMS is installed.
+ir requires HRMS (required_apps in hooks.py), so it is always installed here.
 """
 
 from math import ceil
@@ -12,40 +12,12 @@ from math import ceil
 import frappe
 from frappe import _
 from frappe.utils import flt, getdate
-
-from za_local.utils.hrms_detection import get_hrms_doctype_class, require_hrms, safe_import_hrms
-
-# Conditionally import HRMS classes
-SalarySlip = get_hrms_doctype_class("hrms.payroll.doctype.salary_slip.salary_slip", "SalarySlip")
-
-if SalarySlip is None:
-    # HRMS not available - create a dummy class to prevent import errors
-    class SalarySlip:
-        pass
-
-
-# Try to import other HRMS functions
-(get_salary_component_data,) = safe_import_hrms(
-    "hrms.payroll.doctype.salary_slip.salary_slip", "get_salary_component_data"
+from hrms.payroll.doctype.payroll_period.payroll_period import get_period_factor
+from hrms.payroll.doctype.salary_slip.salary_slip import (
+    SalarySlip,
+    calculate_tax_by_tax_slab,
+    get_salary_component_data,
 )
-
-(get_period_factor,) = safe_import_hrms(
-    "hrms.payroll.doctype.payroll_period.payroll_period", "get_period_factor"
-)
-
-if get_salary_component_data is None:
-
-    def get_salary_component_data(*args, **kwargs):
-        require_hrms("Salary Slip")
-        return {}
-
-
-if get_period_factor is None:
-
-    def get_period_factor(*args, **kwargs):
-        require_hrms("Salary Slip")
-        return 1.0
-
 
 # Import ZA Local utilities
 from za_local.utils.eti_utils import (
@@ -92,17 +64,10 @@ class ZASalarySlip(SalarySlip):
     - Company contributions
     """
 
-    def __init__(self, *args, **kwargs):
-        """Ensure HRMS is available before initialization"""
-        if SalarySlip is None:
-            require_hrms("Salary Slip")
-        super().__init__(*args, **kwargs)
-
     def validate(self):
         """
         Validate salary slip with SA-specific checks.
         """
-        require_hrms("Salary Slip")
         if self.is_new() and not flt(self.get("za_eti_hours")) and self.employee:
             self.za_eti_hours = flt(
                 frappe.get_cached_value("Employee", self.employee, "za_hours_per_month")
@@ -526,41 +491,35 @@ class ZASalarySlip(SalarySlip):
         # Calculate total structured tax amount using tax slab (same as HRMS)
         # Uses the same calculate_tax_by_tax_slab as standard HRMS, just ensures eval_locals is not None
         eval_locals, _default_data = self.get_data_for_eval()
-        require_hrms("Salary Slip - Tax Calculation")
-        try:
-            from hrms.payroll.doctype.salary_slip.salary_slip import calculate_tax_by_tax_slab
+        self.total_structured_tax_amount, __ = calculate_tax_by_tax_slab(
+            self.total_taxable_earnings_without_full_tax_addl_components,
+            self.tax_slab,
+            self.whitelisted_globals,
+            eval_locals if eval_locals is not None else {},  # Ensure not None
+        )
 
-            self.total_structured_tax_amount, __ = calculate_tax_by_tax_slab(
-                self.total_taxable_earnings_without_full_tax_addl_components,
+        # Calculate current structured tax amount (standard HRMS logic)
+        if has_additional_salary_tax_component:
+            self.current_structured_tax_amount = self.additional_salary_amount
+        elif self.remaining_sub_periods > 0:
+            self.current_structured_tax_amount = (
+                self.total_structured_tax_amount - self.previous_total_paid_taxes
+            ) / self.remaining_sub_periods
+        else:
+            self.current_structured_tax_amount = 0.0
+
+        # Handle additional earnings with full tax (standard HRMS logic)
+        self.full_tax_on_additional_earnings = 0.0
+        if self.current_additional_earnings_with_full_tax:
+            self.total_tax_amount, __ = calculate_tax_by_tax_slab(
+                self.total_taxable_earnings,
                 self.tax_slab,
                 self.whitelisted_globals,
                 eval_locals if eval_locals is not None else {},  # Ensure not None
             )
-
-            # Calculate current structured tax amount (standard HRMS logic)
-            if has_additional_salary_tax_component:
-                self.current_structured_tax_amount = self.additional_salary_amount
-            elif self.remaining_sub_periods > 0:
-                self.current_structured_tax_amount = (
-                    self.total_structured_tax_amount - self.previous_total_paid_taxes
-                ) / self.remaining_sub_periods
-            else:
-                self.current_structured_tax_amount = 0.0
-
-            # Handle additional earnings with full tax (standard HRMS logic)
-            self.full_tax_on_additional_earnings = 0.0
-            if self.current_additional_earnings_with_full_tax:
-                self.total_tax_amount, __ = calculate_tax_by_tax_slab(
-                    self.total_taxable_earnings,
-                    self.tax_slab,
-                    self.whitelisted_globals,
-                    eval_locals if eval_locals is not None else {},  # Ensure not None
-                )
-                self.full_tax_on_additional_earnings = (
-                    self.total_tax_amount - self.total_structured_tax_amount
-                )
-        except ImportError:
-            frappe.throw(_("HRMS is required for tax calculations. Please install HRMS app."))
+            self.full_tax_on_additional_earnings = (
+                self.total_tax_amount - self.total_structured_tax_amount
+            )
 
         # Calculate current tax amount (standard HRMS logic)
         self.current_tax_amount = max(

@@ -5,8 +5,9 @@ import frappe
 from frappe import _
 from frappe.utils import getdate
 
+from hrms.hr.doctype.leave_application.leave_application import LeaveApplication
+
 from ir.industrial_relations.utils import fetch_company_letter_head
-from za_local.utils.hrms_detection import get_hrms_doctype_class, require_hrms
 
 
 def validate_signed_leave_form_attached(doc, method=None):
@@ -46,20 +47,9 @@ def set_letter_head_from_company(doc, method=None):
 
 
 # South African BCEA compliance override, absorbed from za_local/overrides/
-# leave_application.py. Registered via override_doctype_class (hooks.py),
-# only when HRMS is installed - a separate mechanism from the doc_events
-# functions above, which apply regardless of HRMS/za_local.
-LeaveApplication = get_hrms_doctype_class(
-    "hrms.hr.doctype.leave_application.leave_application",
-    "LeaveApplication"
-)
-
-if LeaveApplication is None:
-    # HRMS not available - create a dummy class to prevent import errors
-    class LeaveApplication:
-        pass
-
-
+# leave_application.py. Registered via override_doctype_class (hooks.py) - a
+# separate mechanism from the doc_events functions above, which apply
+# regardless of HRMS.
 class ZALeaveApplication(LeaveApplication):
 	"""
 	South African Leave Application implementation.
@@ -71,15 +61,8 @@ class ZALeaveApplication(LeaveApplication):
 	- Leave accrual validations
 	"""
 
-	def __init__(self, *args, **kwargs):
-		"""Ensure HRMS is available before initialization"""
-		if LeaveApplication is None:
-			require_hrms("Leave Application")
-		super().__init__(*args, **kwargs)
-
 	def validate(self):
 		"""Validate leave application with SA-specific checks"""
-		require_hrms("Leave Application")
 		super().validate()
 		self.validate_medical_certificate()
 		self.validate_bcea_requirements()

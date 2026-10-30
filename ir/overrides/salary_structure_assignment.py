@@ -5,24 +5,14 @@ This module fixes the validation logic for opening entries to correctly handle
 zero values. The original HRMS code treats 0 as falsy, causing warnings even
 when values are explicitly set to zero.
 
-Note: This module only works when HRMS is installed.
+ir requires HRMS (required_apps in hooks.py), so it is always installed here.
 """
 
 import frappe
 from frappe import _
-
-from za_local.utils.hrms_detection import get_hrms_doctype_class, require_hrms
-
-# Conditionally import HRMS classes
-SalaryStructureAssignment = get_hrms_doctype_class(
-    "hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignment",
-    "SalaryStructureAssignment"
+from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignment import (
+    SalaryStructureAssignment,
 )
-
-if SalaryStructureAssignment is None:
-    # HRMS not available - create a dummy class to prevent import errors
-    class SalaryStructureAssignment:
-        pass
 
 
 class ZASalaryStructureAssignment(SalaryStructureAssignment):
@@ -33,12 +23,6 @@ class ZASalaryStructureAssignment(SalaryStructureAssignment):
     unset values (None) and explicitly set zero values.
     """
 
-    def __init__(self, *args, **kwargs):
-        """Ensure HRMS is available before initialization"""
-        if SalaryStructureAssignment is None:
-            require_hrms("Salary Structure Assignment")
-        super().__init__(*args, **kwargs)
-
     def warn_about_missing_opening_entries(self):
         """
         Override to fix validation: check for None instead of falsy values.
@@ -47,8 +31,6 @@ class ZASalaryStructureAssignment(SalaryStructureAssignment):
         even when values are explicitly set to zero. This fix checks if
         values are None (not set) rather than checking if they're falsy.
         """
-        require_hrms("Salary Structure Assignment")
-
         if (
             self.are_opening_entries_required()
             and self.taxable_earnings_till_date is None

@@ -21,7 +21,6 @@ import frappe
 from frappe import _
 from frappe.utils import flt, getdate
 
-from za_local.utils.hrms_detection import is_hrms_installed
 from za_local.utils.statutory_rates import get_tax_year_for_date
 
 
@@ -249,8 +248,6 @@ DEFAULT_SALARY_COMPONENT_ACCOUNT_NAMES = {
 
 def repair_salary_component_accounts(company: str | None = None):
 	"""Map HRMS/ZA salary components to ZA statutory accounts when accounts exist."""
-	if not is_hrms_installed():
-		return
 	if not frappe.db.table_exists("Salary Component") or not frappe.db.table_exists("Salary Component Account"):
 		return
 
@@ -306,8 +303,6 @@ PUBLIC_HOLIDAY_FILES = ("holiday_list_2025.json", "holiday_list_2026.json", "hol
 
 def ensure_all_company_tax_configuration():
 	"""Create missing statutory tax masters for every South African company."""
-	if not is_hrms_installed():
-		return {}
 	ensure_sa_public_holiday_lists()
 
 	companies = frappe.get_all(
@@ -373,7 +368,7 @@ def configure_new_south_african_company(doc, method=None):
 
 	Registered as the Company.after_insert doc_event in ir/ir/hooks.py.
 	"""
-	if doc.country != "South Africa" or not is_hrms_installed():
+	if doc.country != "South Africa":
 		return
 
 	ensure_company_tax_configuration(doc.name)
@@ -537,9 +532,6 @@ def seed_statutory_rate_packs():
 	with no company scoping.
 	"""
 	clear_rate_pack_cache()
-	if not is_hrms_installed():
-		return
-
 	companies = frappe.get_all("Company", filters={"country": "South Africa"}, pluck="name")
 	for pack in _load_rate_packs():
 		for company in companies:

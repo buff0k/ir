@@ -5,34 +5,14 @@ This module extends the standard HRMS Payroll Entry functionality to support
 South African payroll requirements including frequency-based processing and
 bank entry management.
 
-Note: This module only works when HRMS is installed.
+ir requires HRMS (required_apps in hooks.py), so it is always installed here.
 """
 
 import frappe
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_accounting_dimensions
 from frappe import _
 from frappe.utils import escape_html, flt, getdate
-
-from za_local.utils.hrms_detection import get_hrms_doctype_class, require_hrms
-
-# Conditionally import HRMS classes
-PayrollEntry = get_hrms_doctype_class(
-    "hrms.payroll.doctype.payroll_entry.payroll_entry",
-    "PayrollEntry"
-)
-
-if PayrollEntry is None:
-    # HRMS not available - create a dummy class to prevent import errors
-    class PayrollEntry:
-        pass
-
-# Try to import get_employee_list
-try:
-    from hrms.payroll.doctype.payroll_entry.payroll_entry import get_employee_list
-except ImportError:
-    def get_employee_list(*args, **kwargs):
-        require_hrms("Payroll Entry")
-        return []
+from hrms.payroll.doctype.payroll_entry.payroll_entry import PayrollEntry, get_employee_list
 
 # Import ZA Local utilities
 from za_local.utils.payroll_utils import (
@@ -56,7 +36,6 @@ class ZAPayrollEntry(PayrollEntry):
 
     def validate(self):
         """Run stock HRMS validation and mandatory SA employee checks on every save."""
-        require_hrms("Payroll Entry")
         super().validate()
         self.validate_employee_requirements()
 
@@ -401,11 +380,7 @@ class ZAPayrollEntry(PayrollEntry):
             employees = [emp.employee for emp in self.employees]
 
         if employees:
-            require_hrms("Payroll Entry - Create Salary Slips")
-            try:
-                from hrms.payroll.doctype.payroll_entry.payroll_entry import create_salary_slips_for_employees
-            except ImportError:
-                frappe.throw(_("HRMS is required to create salary slips. Please install HRMS app."))
+            from hrms.payroll.doctype.payroll_entry.payroll_entry import create_salary_slips_for_employees
 
             args = frappe._dict({
                 "salary_slip_based_on_timesheet": self.salary_slip_based_on_timesheet,
