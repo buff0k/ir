@@ -22,24 +22,17 @@ Settings"), but Accounts Settings is a Single doctype with no tab<DocType>
 table of its own (all Single values live in tabSingles) - that guard was
 always False, so the original function was a silent no-op. Fixed here to
 check the DocType's existence instead.
+
+The real logic lives in ir.ir_setup.install.ensure_accounts_settings_for_za_vat
+so the ZA Local Setup wizard (ir.ir_setup.install.run_za_local_setup) can
+also call it, rather than duplicating it.
 """
 
 import frappe
 
 
 def execute():
-	if not frappe.db.exists("DocType", "Accounts Settings"):
-		return
+	from ir.ir_setup.install import ensure_accounts_settings_for_za_vat
 
-	settings = frappe.get_single("Accounts Settings")
-	if (
-		settings.add_taxes_from_taxes_and_charges_template == 1
-		and settings.add_taxes_from_item_tax_template == 0
-	):
-		return
-
-	settings.add_taxes_from_taxes_and_charges_template = 1
-	settings.add_taxes_from_item_tax_template = 0
-	settings.flags.ignore_permissions = True
-	settings.save()
+	ensure_accounts_settings_for_za_vat()
 	frappe.db.commit()

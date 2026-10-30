@@ -580,3 +580,224 @@ def _seed_travel_rate_from_rate_pack(pack: dict, company: str):
 		doc.save(ignore_permissions=True)
 	if doc.docstatus == 0:
 		doc.submit()
+
+
+# ---------------------------------------------------------------------------
+# ZA Local Setup wizard (absorbed from za_local/sa_setup/install.py's
+# run_za_local_setup/run_za_local_setup_job and friends)
+# ---------------------------------------------------------------------------
+#
+# As with the rest of this absorption, every checkbox that used to
+# imperatively create Custom Fields, Property Setters, or generic
+# (non-company-scoped) reference/master data - VAT custom fields, VAT vendor
+# types, salary components, earnings components, SARS payroll codes, salary
+# component classifications, ETI slabs, business trip regions, SETA list,
+# bargaining councils - no longer runs any code here. That content is ir's
+# own fixtures (ir/ir/fixtures/*.json), applied automatically by bench
+# migrate regardless of this wizard. Only the genuinely company-scoped
+# pieces, which can't be a fixture since they vary per Company, still run
+# here. za_local's own warning-suppression wrapper (a global monkey-patch of
+# frappe.msgprint) was not ported, consistent with dropping the other
+# monkey patches during this absorption - at most a few more benign
+# messages may surface during setup, nothing functional.
+
+
+def ensure_accounts_settings_for_za_vat():
+	"""Configure Accounts Settings so SA VAT tax rows come from document
+	templates only (see ir.patches.set_accounts_settings_for_za_vat for why).
+	"""
+	if not frappe.db.exists("DocType", "Accounts Settings"):
+		return
+
+	settings = frappe.get_single("Accounts Settings")
+	if (
+		settings.add_taxes_from_taxes_and_charges_template == 1
+		and settings.add_taxes_from_item_tax_template == 0
+	):
+		return
+
+	settings.add_taxes_from_taxes_and_charges_template = 1
+	settings.add_taxes_from_item_tax_template = 0
+	settings.flags.ignore_permissions = True
+	settings.save()
+
+
+def setup_default_retirement_funds(company):
+	"""Create default retirement fund types for one South African company."""
+	retirement_funds = [
+		{"fund_name": "Company Pension Fund", "fund_type": "Pension Fund"},
+		{"fund_name": "Company Provident Fund", "fund_type": "Provident Fund"},
+		{"fund_name": "Retirement Annuity", "fund_type": "Retirement Annuity"},
+	]
+
+	for fund in retirement_funds:
+		if frappe.db.exists("Retirement Fund", {"fund_name": fund["fund_name"], "company": company}):
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "Retirement Fund",
+				**fund,
+				"employee_contribution_percentage": 7.5,
+				"employer_contribution_percentage": 10.0,
+				"tax_deductible_limit": 27.5,  # 27.5% of taxable income
+				"company": company,
+			}
+		)
+		doc.insert(ignore_permissions=True)
+
+
+def get_setup_field_label(setup_doc, fieldname: str) -> str:
+	meta = getattr(setup_doc, "meta", None)
+	if meta:
+		try:
+			field = meta.get_field(fieldname)
+			if field and field.label:
+				return field.label
+		except Exception:
+			pass
+	return fieldname.replace("_", " ").title()
+
+
+def build_za_local_setup_feedback(setup_doc, applied, warnings):
+	return {
+		"title": _("ZA Local Setup Complete"),
+		"indicator": "orange" if warnings else "green",
+		"message": _("South African localisation configuration was applied."),
+		"details": [
+			{"label": _("Company"), "value": setup_doc.company},
+			{"label": _("Applied Configuration"), "value": applied},
+			{"label": _("Setup Status"), "value": setup_doc.setup_status},
+			{"label": _("Completed On"), "value": setup_doc.setup_completed_on},
+		],
+		"warnings": warnings,
+		"next_steps": [
+			_("Open South Africa VAT Settings and confirm the company VAT details."),
+			_("Review VAT accounts, tax templates, and VAT201 mappings before filing."),
+			_("Use VAT201 Return to fetch and review transactions for the first period."),
+		],
+		"status": setup_doc.setup_status,
+		"setup_completed_on": setup_doc.setup_completed_on,
+		"applied": applied,
+	}
+
+
+def _publish_setup_progress(progress_user, percent, message):
+	"""Push a realtime progress update to the user who launched the setup."""
+	if not progress_user:
+		return
+	frappe.publish_realtime(
+		"za_local_setup_progress",
+		{"progress": percent, "message": message},
+		user=progress_user,
+	)
+
+
+def run_za_local_setup(setup_doc, progress_user=None):
+	"""
+	Execute the SA setup wizard based on user selections.
+	Called from ZA Local Setup DocType when user completes the setup wizard.
+
+	Args:
+		setup_doc: ZA Local Setup document instance
+		progress_user: if set, realtime progress is published to this user
+	"""
+	from ir.ir_vat.setup import migrate_legacy_vat_account_rows
+
+	applied = []
+	warnings = []
+
+	def _p(percent, message):
+		_publish_setup_progress(progress_user, percent, message)
+
+	setup_doc.setup_status = "In Progress"
+	setup_doc.save()
+
+	try:
+		_p(5, _("Applying VAT accounts and settings"))
+		migrated = migrate_legacy_vat_account_rows()
+		ensure_accounts_settings_for_za_vat()
+		applied.append(_("VAT accounts and settings"))
+		if migrated:
+			applied.append(_("{0} legacy VAT account rows migrated").format(migrated))
+
+		# These records form one interdependent statutory configuration. Create
+		# missing company-scoped records together and preserve existing masters.
+		if setup_doc.load_tax_slabs or setup_doc.load_tax_rebates or setup_doc.load_medical_credits:
+			_p(42, _("Ensuring company payroll tax configuration"))
+			ensure_company_tax_configuration(setup_doc.company)
+			if setup_doc.load_tax_slabs:
+				applied.append(get_setup_field_label(setup_doc, "load_tax_slabs"))
+			if setup_doc.load_tax_rebates:
+				applied.append(get_setup_field_label(setup_doc, "load_tax_rebates"))
+			if setup_doc.load_medical_credits:
+				applied.append(get_setup_field_label(setup_doc, "load_medical_credits"))
+
+		# Travel allowance rates (company-scoped; ETI slabs are ir's own fixture now)
+		if setup_doc.get("load_eti_slabs"):
+			_p(56, _("Seeding travel allowance rates"))
+			seed_statutory_rate_packs()
+			applied.append(get_setup_field_label(setup_doc, "load_eti_slabs"))
+
+		# Retirement fund defaults
+		if setup_doc.get("load_retirement_funds") and setup_doc.company:
+			_p(78, _("Loading retirement funds"))
+			setup_default_retirement_funds(setup_doc.company)
+			applied.append(get_setup_field_label(setup_doc, "load_retirement_funds"))
+
+		# Load Chart of Accounts
+		if setup_doc.load_chart_of_accounts and setup_doc.company:
+			_p(92, _("Loading South African chart of accounts"))
+			try:
+				load_sa_chart_of_accounts(setup_doc.company)
+				applied.append(get_setup_field_label(setup_doc, "load_chart_of_accounts"))
+			except Exception as e:
+				frappe.log_error(f"Chart of Accounts loading failed: {e!s}", "IR Setup")
+				warnings.append(_("Chart of Accounts could not be loaded automatically. Review Error Log."))
+
+		if setup_doc.company:
+			repair_salary_component_accounts(setup_doc.company)
+
+		# Mark as completed
+		_p(98, _("Finalising"))
+		setup_doc.setup_status = "Completed"
+		setup_doc.setup_completed_on = frappe.utils.now()
+		setup_doc.save()
+
+		return build_za_local_setup_feedback(setup_doc, applied, warnings)
+
+	except Exception as e:
+		setup_doc.setup_status = "Pending"
+		setup_doc.save()
+		frappe.log_error(f"Setup failed: {e!s}", "IR Setup")
+		frappe.throw(f"Setup failed: {e!s}")
+
+
+def run_za_local_setup_job(setup_name, user=None):
+	"""Background-job wrapper for run_za_local_setup.
+
+	Runs the setup on a worker (enqueued by ZA Local Setup.start_setup), publishing
+	realtime progress and a completion event to ``user``. On failure it rolls back,
+	resets the status to "Pending", and notifies the user instead of leaving the
+	request to time out. Never re-raises (so the status reset is committed by the
+	job wrapper).
+	"""
+	user = user or frappe.session.user
+	try:
+		setup_doc = frappe.get_doc("ZA Local Setup", setup_name)
+		result = run_za_local_setup(setup_doc, progress_user=user)
+		_publish_setup_progress(user, 100, _("Setup complete"))
+		frappe.publish_realtime("za_local_setup_done", result, user=user)
+	except Exception:
+		frappe.db.rollback()
+		frappe.log_error(frappe.get_traceback(), "IR Setup job")
+		frappe.db.set_value("ZA Local Setup", setup_name, "setup_status", "Pending", update_modified=False)
+		frappe.publish_realtime(
+			"za_local_setup_done",
+			{
+				"title": _("Setup Failed"),
+				"indicator": "red",
+				"message": _("ZA Local Setup did not complete. Review the Error Log, then try again."),
+				"failed": True,
+			},
+			user=user,
+		)

@@ -13,9 +13,6 @@ class ZALocalSetup(Document):
 		"""Validate the setup document"""
 		if not self.company:
 			frappe.throw(_("Company is required"))
-		from za_local.sa_setup.install import validate_za_local_setup_hrms_options
-
-		validate_za_local_setup_hrms_options(self)
 
 	@frappe.whitelist()
 	def start_setup(self):
@@ -30,27 +27,11 @@ class ZALocalSetup(Document):
 		if not self.company:
 			frappe.throw(_("Company is required"))
 
-		from za_local.utils.hrms_detection import is_hrms_installed
-
-		if not is_hrms_installed():
-			for fieldname in (
-				"load_salary_components",
-				"load_earnings_components",
-				"load_tax_slabs",
-				"load_tax_rebates",
-				"load_medical_credits",
-				"load_eti_slabs",
-				"load_sars_payroll_codes",
-				"load_salary_component_classifications",
-				"load_retirement_funds",
-			):
-				self.set(fieldname, 0)
-
 		self.setup_status = "In Progress"
 		self.save()
 
 		frappe.enqueue(
-			"za_local.sa_setup.install.run_za_local_setup_job",
+			"ir.ir_setup.install.run_za_local_setup_job",
 			queue="long",
 			timeout=1500,
 			setup_name=self.name,
