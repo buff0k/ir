@@ -26,7 +26,10 @@ app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
 # no separate dock/sidebar entry - their workspaces are linked into the
 # "Industrial Relations" sidebar instead, so nav stays unified as more
 # modules land here (same pattern frappe.Core uses for its own doctypes).
-code_only_modules = {"ir_coida": ["Industrial Relations"]}
+code_only_modules = {
+	"ir_coida": ["Industrial Relations"],
+	"ir_labour": ["Industrial Relations"],
+}
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
@@ -211,7 +214,10 @@ fixtures = [
 	]]]},
 	{"dt": "Print Format", "filters": [["name", "in", [
 		"SA COIDA Annual Return",
-		"SA OID Claim"
+		"SA OID Claim",
+		"SA Business Trip",
+		"SA Workplace Skills Plan",
+		"SA Annual Training Report"
 	]]]}
 ]
 doctype_js = {
