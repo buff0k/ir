@@ -596,6 +596,16 @@ doc_events = {
 	"Item": {
 		"validate": "ir.ir_vat.item_sync.sync_item_zero_rated_flag",
 	},
+	# SARS audit-trail deletion protection, absorbed from za_local/custom/
+	# {sales,purchase}.py - found disconnected from any hook there.
+	"Quotation": {"on_trash": "ir.overrides.sales.on_trash"},
+	"Sales Order": {"on_trash": "ir.overrides.sales.on_trash"},
+	"Sales Invoice": {"on_trash": "ir.overrides.sales.on_trash"},
+	"Request for Quotation": {"on_trash": "ir.overrides.purchase.on_trash"},
+	"Supplier Quotation": {"on_trash": "ir.overrides.purchase.on_trash"},
+	"Purchase Order": {"on_trash": "ir.overrides.purchase.on_trash"},
+	"Purchase Receipt": {"on_trash": "ir.overrides.purchase.on_trash"},
+	"Purchase Invoice": {"on_trash": "ir.overrides.purchase.on_trash"},
 	"Company": {
 		"after_insert": "ir.ir_setup.install.configure_new_south_african_company",
 	},
