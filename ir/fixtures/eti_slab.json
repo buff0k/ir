@@ -1,0 +1,378 @@
+[
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "75% of monthly remuneration",
+    "from_amount": 0.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 1999.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500",
+    "from_amount": 2000.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 4499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500 - (75% x remuneration above R4500)",
+    "from_amount": 4500.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 6499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "R0",
+    "from_amount": 6500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.114461",
+  "name": "ETI-2026-0005",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2024-03-01",
+  "title": "ETI 2024-2025 (2024-03-01 to 2025-02-28) First 12 Months"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 0.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "37.5% of monthly remuneration",
+    "to_amount": 1999.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 2000.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R750",
+    "to_amount": 4499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 4500.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "R750 - (37.5% x remuneration above R4500)",
+    "to_amount": 6499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 6500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R0",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.129942",
+  "name": "ETI-2026-0006",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2024-03-01",
+  "title": "ETI 2024-2025 (2024-03-01 to 2025-02-28) Second 12 Months"
+ },
+ {
+  "amended_from": "ETI-2026-0001",
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "75% of monthly remuneration",
+    "from_amount": 0.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 1999.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500",
+    "from_amount": 2000.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 4499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500 - (75% x remuneration above R4500)",
+    "from_amount": 4500.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 6499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "R0",
+    "from_amount": 6500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.406821",
+  "name": "ETI-2026-0001-1",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2025-03-01",
+  "title": "ETI 2025-2026 (2025-03-01 to 2025-03-31) First 12 Months"
+ },
+ {
+  "amended_from": "ETI-2026-0002",
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 0.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "37.5% of monthly remuneration",
+    "to_amount": 1999.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 2000.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R750",
+    "to_amount": 4499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 4500.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "R750 - (37.5% x remuneration above R4500)",
+    "to_amount": 6499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 6500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R0",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.430584",
+  "name": "ETI-2026-0002-1",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2025-03-01",
+  "title": "ETI 2025-2026 (2025-03-01 to 2025-03-31) Second 12 Months"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "60% of monthly remuneration",
+    "from_amount": 0.0,
+    "percentage": 60,
+    "second_qualifying_12_months": "",
+    "to_amount": 2499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500",
+    "from_amount": 2500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 5499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500 - (75% x remuneration above R5500)",
+    "from_amount": 5500.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 7499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "R0",
+    "from_amount": 7500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.444659",
+  "name": "ETI-2026-0007",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2025-04-01",
+  "title": "ETI 2025-2026 (2025-04-01 to 2026-02-28) First 12 Months"
+ },
+ {
+  "amended_from": null,
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 0.0,
+    "percentage": 30,
+    "second_qualifying_12_months": "30% of monthly remuneration",
+    "to_amount": 2499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 2500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R750",
+    "to_amount": 5499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 5500.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "R750 - (37.5% x remuneration above R5500)",
+    "to_amount": 7499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 7500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R0",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.459883",
+  "name": "ETI-2026-0008",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2025-04-01",
+  "title": "ETI 2025-2026 (2025-04-01 to 2026-02-28) Second 12 Months"
+ },
+ {
+  "amended_from": "ETI-2026-0003",
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "60% of monthly remuneration",
+    "from_amount": 0.0,
+    "percentage": 60,
+    "second_qualifying_12_months": "",
+    "to_amount": 2499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500",
+    "from_amount": 2500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 5499.99
+   },
+   {
+    "eti_amount": 1500.0,
+    "first_qualifying_12_months": "R1500 - (75% x remuneration above R5500)",
+    "from_amount": 5500.0,
+    "percentage": 75,
+    "second_qualifying_12_months": "",
+    "to_amount": 7499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "R0",
+    "from_amount": 7500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.639163",
+  "name": "ETI-2026-0003-1",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2026-03-01",
+  "title": "ETI 2026-2027 (2026-03-01 to 2027-02-28) First 12 Months"
+ },
+ {
+  "amended_from": "ETI-2026-0004",
+  "docstatus": 1,
+  "doctype": "ETI Slab",
+  "eti_slab_details": [
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 0.0,
+    "percentage": 30,
+    "second_qualifying_12_months": "30% of monthly remuneration",
+    "to_amount": 2499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 2500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R750",
+    "to_amount": 5499.99
+   },
+   {
+    "eti_amount": 750.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 5500.0,
+    "percentage": 37,
+    "second_qualifying_12_months": "R750 - (37.5% x remuneration above R5500)",
+    "to_amount": 7499.99
+   },
+   {
+    "eti_amount": 0.0,
+    "first_qualifying_12_months": "",
+    "from_amount": 7500.0,
+    "percentage": 0,
+    "second_qualifying_12_months": "R0",
+    "to_amount": 999999999.0
+   }
+  ],
+  "hours_in_a_month": 160.0,
+  "maximum_age": 29,
+  "minimum_age": 18,
+  "modified": "2026-08-05 11:23:42.651526",
+  "name": "ETI-2026-0004-1",
+  "naming_series": "ETI-.YYYY.-.####.",
+  "start_date": "2026-03-01",
+  "title": "ETI 2026-2027 (2026-03-01 to 2027-02-28) Second 12 Months"
+ }
+]

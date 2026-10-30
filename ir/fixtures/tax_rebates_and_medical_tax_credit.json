@@ -1,0 +1,660 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Tax Rebates and Medical Tax Credit",
+  "medical_tax_credit": [
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - CAP",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - CAP",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - CAP",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - EX",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - EX",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - EX",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - ISA",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - ISA",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - ISA",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - PN",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - PN",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - PN",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - BIA",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - BIA",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - BIA",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - HRC",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - HRC",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - HRC",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - UM",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - UM",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - UM",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - FL",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - FL",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - FL",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - Bar",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - Bar",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - Bar",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - PGL(L",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - PGL(L",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - PGL(L",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - PJ",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - PJ",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - PJ",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - EL",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - EL",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - EL",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - Tha",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - Tha",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - Tha",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - CI",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - CI",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - CI",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - AMS",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - AMS",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - AMS",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - CG(L",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - CG(L",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - CG(L",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - SMT",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - SMT",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - SMT",
+    "two_dependant": 376.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2024-2025 - CON",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 246.0,
+    "one_dependant": 364.0,
+    "payroll_period": "2025-2026 - CON",
+    "two_dependant": 364.0
+   },
+   {
+    "additional_dependant": 254.0,
+    "one_dependant": 376.0,
+    "payroll_period": "2026-2027 - CON",
+    "two_dependant": 376.0
+   }
+  ],
+  "modified": "2026-10-30 11:44:19.509747",
+  "name": "Tax Rebates and Medical Tax Credit",
+  "tax_rebates_rate": [
+   {
+    "payroll_period": "2024-2025 - CAP",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - CAP",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - CAP",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - EX",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - EX",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - EX",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - ISA",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - ISA",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - ISA",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - PN",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - PN",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - PN",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - BIA",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - BIA",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - BIA",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - HRC",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - HRC",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - HRC",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - UM",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - UM",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - UM",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - FL",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - FL",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - FL",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - Bar",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - Bar",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - Bar",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - PGL(L",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - PGL(L",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - PGL(L",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - PJ",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - PJ",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - PJ",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - EL",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - EL",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - EL",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - Tha",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - Tha",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - Tha",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - CI",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - CI",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - CI",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - AMS",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - AMS",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - AMS",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - CG(L",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - CG(L",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - CG(L",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - SMT",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - SMT",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - SMT",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   },
+   {
+    "payroll_period": "2024-2025 - CON",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2025-2026 - CON",
+    "primary": 17235.0,
+    "secondary": 9444.0,
+    "tertiary": 3145.0
+   },
+   {
+    "payroll_period": "2026-2027 - CON",
+    "primary": 17820.0,
+    "secondary": 9765.0,
+    "tertiary": 3249.0
+   }
+  ]
+ }
+]

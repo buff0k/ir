@@ -423,6 +423,119 @@ fixtures = [
 		"SA Salary Slip",
 		"SA EMP201 Submission",
 		"SA EMP501 Reconciliation"
+	]]]},
+	# South African reference/master data absorbed from za_local - generic
+	# lookup data with no company/account linkage, so it's a plain fixture
+	# rather than a seed function. (Salary Component is the one exception
+	# in this list - it DOES carry a company-scoped `accounts` child table,
+	# which fixture export would otherwise bake in as this site's specific
+	# mappings; that child table is stripped from the exported fixture file
+	# after each export, since per-company GL account mapping is handled
+	# separately, as a real "needs a wizard" step - see ir.ir_setup.install.)
+	# Only the 8 currently-active slabs - excludes 4 cancelled originals
+	# superseded by amended "-1" versions (ETI Slab is submittable; fixture
+	# import does doc.insert(), which can't create a doc already at
+	# docstatus 2 - a fresh site doesn't need the cancelled history anyway).
+	{"dt": "ETI Slab", "filters": [["name", "in", [
+		"ETI-2026-0004-1",
+		"ETI-2026-0003-1",
+		"ETI-2026-0008",
+		"ETI-2026-0007",
+		"ETI-2026-0002-1",
+		"ETI-2026-0001-1",
+		"ETI-2026-0006",
+		"ETI-2026-0005"
+	]]]},
+	{"dt": "SARS Payroll Code", "filters": [["name", "in", [
+		"3805", "4497", "4477", "4476", "4475", "4474", "4472", "4142",
+		"4141", "4120", "4115", "4118", "4116", "4102", "4010", "4008",
+		"4007", "4006", "4005", "4001", "3907", "3901", "3802", "3713",
+		"3704", "3702", "3701", "3607", "3605", "3601", "3801", "4473",
+		"4003"
+	]]]},
+	{"dt": "Salary Component", "filters": [["name", "in", [
+		"Other Fringe Benefit",
+		"Low Interest Loan Fringe Benefit",
+		"Housing Fringe Benefit",
+		"Company Car PAYE Adjustment",
+		"Company Car Benefit",
+		"Special Allowance",
+		"Shift Allowance",
+		"Safety Bonus",
+		"Overtime 2.0",
+		"Overtime 1.5",
+		"Opencast Allowance",
+		"Hourly Earnings",
+		"Health4Me Taxable Fringe Benefit",
+		"Employer Provident Fund",
+		"Employer Health4Me Contribution",
+		"Employee Provident Fund",
+		"Cellphone Allowance",
+		"Tax on Lump Sum",
+		"Notice Pay",
+		"Leave Payout",
+		"Severance Benefit",
+		"Commission",
+		"Overtime",
+		"Performance Bonus",
+		"13th Cheque",
+		"Transport Allowance",
+		"Housing Allowance",
+		"Basic Salary",
+		"SDL Contribution",
+		"UIF Employer Contribution",
+		"UIF Employee Contribution",
+		"PAYE",
+		"Leave Encashment",
+		"Arrear",
+		"Basic",
+		"Income Tax"
+	]]]},
+	{"dt": "Tax Rebates and Medical Tax Credit", "filters": [["name", "=", "Tax Rebates and Medical Tax Credit"]]},
+	{"dt": "Business Trip Region", "filters": [["name", "in", [
+		"International - Oceania",
+		"International - Middle East",
+		"International - Americas",
+		"International - Asia",
+		"International - Europe",
+		"International - Africa",
+		"Kimberley",
+		"Nelspruit",
+		"Polokwane",
+		"East London",
+		"Bloemfontein",
+		"Port Elizabeth",
+		"Pretoria",
+		"Durban",
+		"Cape Town",
+		"Johannesburg"
+	]]]},
+	{"dt": "SETA", "filters": [["name", "in", [
+		"W&R SETA", "THETA", "TETA", "Services SETA", "SASSETA", "PSETA",
+		"MIMSSETA", "MICTSETA", "MICT SETA", "MerSETA", "MAPPP-SETA",
+		"LGSETA", "INSETA", "HWSETA", "FP&M SETA", "FoodBev SETA", "FASSET",
+		"EWSETA", "ESETA", "CTFL SETA", "CETA", "CHIETA", "BANKSETA",
+		"AGRISETA"
+	]]]},
+	{"dt": "Bargaining Council", "filters": [["name", "in", [
+		"Bargaining Council for the Private Security Sector",
+		"Bargaining Council for the Contract Cleaning Industry",
+		"National Bargaining Council for the Electrical Industry",
+		"Furniture Bargaining Council",
+		"Civil Engineering and Allied Trades Bargaining Council",
+		"Building Industry Bargaining Council",
+		"Restaurant, Catering and Allied Trades Bargaining Council",
+		"Road Freight and Logistics Industry Bargaining Council",
+		"National Bargaining Council for the Chemical Industry",
+		"Motor Industry Bargaining Council",
+		"Metal and Engineering Industries Bargaining Council"
+	]]]},
+	{"dt": "VAT Vendor Type", "filters": [["name", "in", [
+		"Foreign Supplier",
+		"Voluntary",
+		"Small Business",
+		"Micro Business",
+		"Standard"
 	]]]}
 ]
 doctype_js = {
