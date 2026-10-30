@@ -42,6 +42,7 @@ code_only_modules = {
 	"ir_labour": ["Industrial Relations"],
 	"ir_vat": ["Industrial Relations"],
 	"ir_payroll": ["Industrial Relations"],
+	"ir_setup": ["Industrial Relations"],
 }
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [

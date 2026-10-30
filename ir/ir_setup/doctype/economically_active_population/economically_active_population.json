@@ -1,0 +1,189 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{region} {qlfs_date}",
+ "creation": "2025-07-14 12:14:07.154049",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_gsqi",
+  "amended_from",
+  "region",
+  "qlfs_date",
+  "attach",
+  "section_break_qtcv",
+  "male",
+  "african",
+  "couloured_male",
+  "indian_male",
+  "white_male",
+  "column_break_icmf",
+  "female",
+  "african_female",
+  "coloured_female",
+  "indian_female",
+  "white_female",
+  "section_break_sjmn",
+  "total"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_gsqi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Economically Active Population",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "region",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Region",
+   "reqd": 1
+  },
+  {
+   "fieldname": "qlfs_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "QLFS Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_qtcv",
+   "fieldtype": "Section Break",
+   "label": "Ecconomically Active Population, illustrated as a Percentage per Group:"
+  },
+  {
+   "fieldname": "male",
+   "fieldtype": "HTML",
+   "label": "Male",
+   "options": "<h4>Male</h4>"
+  },
+  {
+   "fieldname": "column_break_icmf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "female",
+   "fieldtype": "HTML",
+   "label": "Female",
+   "options": "<h4>Female</h4>"
+  },
+  {
+   "fieldname": "african",
+   "fieldtype": "Float",
+   "label": "African",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "african_female",
+   "fieldtype": "Float",
+   "label": "African",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "couloured_male",
+   "fieldtype": "Float",
+   "label": "Coloured",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coloured_female",
+   "fieldtype": "Float",
+   "label": "Coloured",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "indian_male",
+   "fieldtype": "Float",
+   "label": "Indian",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "white_male",
+   "fieldtype": "Float",
+   "label": "White",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "indian_female",
+   "fieldtype": "Float",
+   "label": "Indian",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "white_female",
+   "fieldtype": "Float",
+   "label": "White",
+   "non_negative": 1,
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_sjmn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Float",
+   "label": "Total",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach QLFS"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-30 10:55:52.362368",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Economically Active Population",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

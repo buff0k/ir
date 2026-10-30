@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{category_of_offence}{#}",
+ "creation": "2024-07-09 10:44:42.052052",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "disc_offence_cat_sect",
+  "category_of_offence",
+  "offence_description",
+  "notes",
+  "sanction_on_first_offence",
+  "sanction_on_second_offence",
+  "sanction_on_third_offence",
+  "sanction_on_fourth_offence"
+ ],
+ "fields": [
+  {
+   "fieldname": "disc_offence_cat_sect",
+   "fieldtype": "Section Break",
+   "label": "Disciplinary Offence"
+  },
+  {
+   "fieldname": "category_of_offence",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Category of Offence:",
+   "link_filters": "[]",
+   "options": "Offence Category",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "offence_description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Offence Description:",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes:"
+  },
+  {
+   "fieldname": "sanction_on_first_offence",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sanction on First Offence:",
+   "options": "Offence Outcome",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sanction_on_second_offence",
+   "fieldtype": "Link",
+   "label": "Sanction on Second Offence:",
+   "options": "Offence Outcome",
+   "search_index": 1
+  },
+  {
+   "fieldname": "sanction_on_third_offence",
+   "fieldtype": "Link",
+   "label": "Sanction on Third Offence:",
+   "options": "Offence Outcome",
+   "search_index": 1
+  },
+  {
+   "fieldname": "sanction_on_fourth_offence",
+   "fieldtype": "Link",
+   "label": "Sanction on Fourth Offence:",
+   "options": "Offence Outcome",
+   "search_index": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Offence Category",
+   "link_fieldname": "disc_cat_desc"
+  },
+  {
+   "link_doctype": "Offence Outcome",
+   "link_fieldname": "disc_offence_out"
+  }
+ ],
+ "modified": "2026-10-30 10:55:52.362368",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Disciplinary Offence",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "offence_description",
+ "track_changes": 1
+}

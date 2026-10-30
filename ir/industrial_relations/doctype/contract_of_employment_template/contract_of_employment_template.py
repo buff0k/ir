@@ -314,7 +314,7 @@ DEDUCTION_PREFIX = "deduction:"
 def salary_component_options() -> tuple[list[str], list[str]]:
 	"""Earning components (excluding Basic/Wages, which is the rate) and
 	deduction components a template can condition on."""
-	from ir.industrial_relations.doctype.ir_payroll_cost_settings.ir_payroll_cost_settings import (
+	from ir.ir_setup.doctype.ir_payroll_cost_settings.ir_payroll_cost_settings import (
 		get_basic_wage_components,
 	)
 

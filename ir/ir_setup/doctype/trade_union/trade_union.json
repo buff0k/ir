@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "prompt",
+ "creation": "2024-08-06 21:52:01.648138",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "trade_union_details_section",
+  "full_union_name_not_acronym",
+  "recog_agreement",
+  "of_list",
+  "region_list",
+  "ss_list",
+  "co_list"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_union_name_not_acronym",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Union Name (Not Acronym)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "recog_agreement",
+   "fieldtype": "Attach",
+   "label": "Attach Recognition Agreement"
+  },
+  {
+   "fieldname": "of_list",
+   "fieldtype": "Table",
+   "label": "Trade Union Officials",
+   "options": "Union Official"
+  },
+  {
+   "fieldname": "region_list",
+   "fieldtype": "Table",
+   "label": "Regional/Area Offices",
+   "options": "Union Region"
+  },
+  {
+   "fieldname": "ss_list",
+   "fieldtype": "Table",
+   "label": "Shop Stewards",
+   "options": "Union Shop Stewards"
+  },
+  {
+   "fieldname": "trade_union_details_section",
+   "fieldtype": "Section Break",
+   "label": "Trade Union Details"
+  },
+  {
+   "fieldname": "co_list",
+   "fieldtype": "Table",
+   "label": "Companies",
+   "options": "Union Companies",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Employee",
+   "link_fieldname": "employee_name"
+  },
+  {
+   "link_doctype": "Employee",
+   "link_fieldname": "designation"
+  },
+  {
+   "link_doctype": "Employee",
+   "link_fieldname": "branch"
+  },
+  {
+   "link_doctype": "Company",
+   "link_fieldname": "company_name"
+  }
+ ],
+ "modified": "2026-10-30 10:55:52.362368",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Trade Union",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

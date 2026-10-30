@@ -1,0 +1,451 @@
+{
+ "charts": [],
+ "content": "[{\"id\": \"PO8X5ucXs1\", \"type\": \"header\", \"data\": {\"text\": \"\\u003cspan class=\\\"h4\\\"\\u003eSetup\\u003c/span\\u003e\", \"col\": 12}}, {\"id\": \"r05iE0vQnT\", \"type\": \"card\", \"data\": {\"card_name\": \"Disciplinary Code\", \"col\": 4}}, {\"id\": \"Am4X2Lc3sa\", \"type\": \"card\", \"data\": {\"card_name\": \"External Dispute Resolution\", \"col\": 4}}, {\"id\": \"gHXTKTYoRu\", \"type\": \"card\", \"data\": {\"card_name\": \"General\", \"col\": 4}}, {\"id\": \"vcT_JKBPhf\", \"type\": \"card\", \"data\": {\"card_name\": \"Contract of Employment\", \"col\": 4}}, {\"id\": \"Z5DfkyDX8P\", \"type\": \"card\", \"data\": {\"card_name\": \"KPIs\", \"col\": 4}}, {\"id\": \"SfeHMIz1Ru\", \"type\": \"card\", \"data\": {\"card_name\": \"Termination\", \"col\": 4}}, {\"id\": \"bsfav3h06v\", \"type\": \"card\", \"data\": {\"card_name\": \"Training\", \"col\": 4}}, {\"id\": \"jrU051f2it\", \"type\": \"card\", \"data\": {\"card_name\": \"Payroll\", \"col\": 4}}]",
+ "creation": "2026-01-27 13:55:32.314678",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "setting-gear",
+ "idx": 1,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "IR Setup",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Code",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Offence Category",
+   "link_count": 0,
+   "link_to": "Offence Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Offence Outcome",
+   "link_count": 0,
+   "link_to": "Offence Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Disciplinary Offence",
+   "link_count": 0,
+   "link_to": "Disciplinary Offence",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dispute Resolution Forum",
+   "link_count": 0,
+   "link_to": "Dispute Resolution Forum",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Process",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Process",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "External Dispute Resolution Outcome",
+   "link_count": 0,
+   "link_to": "External Dispute Resolution Outcome",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract of Employment",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract Section",
+   "link_count": 0,
+   "link_to": "Contract Section",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract Type",
+   "link_count": 0,
+   "link_to": "Contract Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Contract of Employment Template",
+   "link_count": 0,
+   "link_to": "Contract of Employment Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPIs",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "KPI Template",
+   "link_count": 0,
+   "link_to": "KPI Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Key Performance Indicator",
+   "link_count": 0,
+   "link_to": "Key Performance Indicator",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Area Setup",
+   "link_count": 0,
+   "link_to": "Area Setup",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reason for Termination",
+   "link_count": 0,
+   "link_to": "Reason for Termination",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Termination Documentation",
+   "link_count": 0,
+   "link_to": "Termination Documentation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Induction",
+   "link_count": 0,
+   "link_to": "Employee Induction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Facilitator",
+   "link_count": 0,
+   "link_to": "Facilitator",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Training Evidence",
+   "link_count": 0,
+   "link_to": "Training Evidence",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "OFO Codes",
+   "link_count": 0,
+   "link_to": "Organising Framework for Occupation Code",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General",
+   "link_count": 11,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee Rights",
+   "link_count": 0,
+   "link_to": "Employee Rights",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reason for Termination",
+   "link_count": 0,
+   "link_to": "Reason for Termination",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Role Restrictions",
+   "link_count": 0,
+   "link_to": "IR Role Restrictions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee File Record",
+   "link_count": 0,
+   "link_to": "Employee File Record",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Branch",
+   "link_count": 0,
+   "link_to": "Branch",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Designation",
+   "link_count": 0,
+   "link_to": "Designation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Employee",
+   "link_count": 0,
+   "link_to": "Employee",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Budget Map",
+   "link_count": 0,
+   "link_to": "Site Budget Map",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Organogram",
+   "link_count": 0,
+   "link_to": "Site Organogram",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Site Plan",
+   "link_count": 0,
+   "link_to": "Site Plan",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shift Design",
+   "link_count": 0,
+   "link_to": "Shift Design",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payroll",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Payroll Cost Settings",
+   "link_count": 0,
+   "link_to": "IR Payroll Cost Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bargaining Unit",
+   "link_count": 0,
+   "link_to": "Bargaining Unit",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Payroll Period",
+   "link_count": 0,
+   "link_to": "IR Payroll Period",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "IR Salary Structure",
+   "link_count": 0,
+   "link_to": "IR Salary Structure",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-10-30 10:55:52.362368",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "IR Setup",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "IR General",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "IR Manager"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "Training Manager"
+  },
+  {
+   "role": "Payroll Manager"
+  }
+ ],
+ "sequence_id": 52.0,
+ "shortcuts": [],
+ "standard": 1,
+ "title": "IR Setup",
+ "type": "Workspace"
+}
