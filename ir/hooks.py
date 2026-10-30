@@ -29,6 +29,7 @@ app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
 code_only_modules = {
 	"ir_coida": ["Industrial Relations"],
 	"ir_labour": ["Industrial Relations"],
+	"ir_vat": ["Industrial Relations"],
 }
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 fixtures = [
@@ -217,13 +218,31 @@ fixtures = [
 		"SA OID Claim",
 		"SA Business Trip",
 		"SA Workplace Skills Plan",
-		"SA Annual Training Report"
+		"SA Annual Training Report",
+		"SA Sales Invoice",
+		"SA Full Tax Invoice",
+		"SA Abridged Tax Invoice",
+		"SA Quotation",
+		"SA Sales Order",
+		"SA Delivery Note",
+		"SA Purchase Invoice",
+		"SA Purchase Order",
+		"SA Payment Entry",
+		"SA Credit Note",
+		"SA Debit Note",
+		"SA VAT201 Return"
 	]]]}
 ]
 doctype_js = {
 	"COIDA Annual Return": "public/js/coida_annual_return.js",
 	"Workplace Injury": "public/js/workplace_injury.js",
 	"OID Claim": "public/js/oid_claim.js",
+	"Sales Invoice": "public/js/vat_tax_calculation.js",
+	"Purchase Invoice": "public/js/vat_tax_calculation.js",
+}
+extend_doctype_class = {
+	"Sales Invoice": "ir.overrides.vat_invoices.ZASalesInvoice",
+	"Purchase Invoice": "ir.overrides.vat_invoices.ZAPurchaseInvoice",
 }
 jinja = {
 	"methods": [
@@ -255,6 +274,9 @@ after_migrate = [
 	"ir.setup.add_employee_doclinks.ensure_employee_links"
 ]
 doc_events = {
+	"Item": {
+		"validate": "ir.ir_vat.item_sync.sync_item_zero_rated_flag",
+	},
 	"Termination Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
 		"validate": "ir.permissions.validate_termination_form",

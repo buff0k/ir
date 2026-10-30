@@ -1,0 +1,393 @@
+{
+ "actions": [],
+ "autoname": "field:company",
+ "creation": "2025-05-06 17:30:00",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company_registration_section",
+  "company",
+  "column_break_registration",
+  "vat_registration_number",
+  "vat_settings_section",
+  "standard_vat_rate",
+  "column_break_3",
+  "enable_zero_rated_items",
+  "enable_exempt_items",
+  "vat_thresholds_section",
+  "vat_registration_threshold",
+  "column_break_thresholds",
+  "vat_voluntary_threshold",
+  "vat_vendor_type",
+  "column_break_10",
+  "vat_filing_frequency",
+  "vat_filing_day",
+  "vat_accounts_section",
+  "output_vat_account",
+  "column_break_16",
+  "input_vat_account",
+  "item_tax_template_account",
+  "vat_accounts",
+  "classification_settings_section",
+  "output_tax_doctype",
+  "standard_rate_non_capital",
+  "standard_rate_non_capital_2",
+  "standard_rate_capital",
+  "zero_rate_non_exported",
+  "zero_rate_exported",
+  "exempt",
+  "column_break_output_map",
+  "input_tax_doctype",
+  "input_capital_local",
+  "input_capital_import",
+  "input_goods_local",
+  "input_goods_import",
+  "vat_rates_section",
+  "vat_rates",
+  "sars_efiling_section",
+  "sars_efiling_username",
+  "column_break_24",
+  "sars_efiling_password",
+  "vat_report_settings_section",
+  "default_vat_report_company",
+  "column_break_29",
+  "default_vat_report_period"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_registration_section",
+   "fieldtype": "Section Break",
+   "label": "Company & Registration"
+  },
+  {
+   "description": "Company for which these VAT settings apply.",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_registration",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "South African VAT Registration Number. Saving this form updates the selected Company record.",
+   "fieldname": "vat_registration_number",
+   "fieldtype": "Data",
+   "label": "VAT Registration Number",
+   "length": 10
+  },
+  {
+   "fieldname": "vat_settings_section",
+   "fieldtype": "Section Break",
+   "label": "VAT Settings"
+  },
+  {
+   "default": "15",
+   "description": "Standard VAT rate in South Africa (percentage).",
+   "fieldname": "standard_vat_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Standard VAT Rate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Enable zero-rated items (0% VAT).",
+   "fieldname": "enable_zero_rated_items",
+   "fieldtype": "Check",
+   "label": "Enable Zero-Rated Items"
+  },
+  {
+   "default": "1",
+   "description": "Enable VAT exempt items.",
+   "fieldname": "enable_exempt_items",
+   "fieldtype": "Check",
+   "label": "Enable Exempt Items"
+  },
+  {
+   "fieldname": "vat_thresholds_section",
+   "fieldtype": "Section Break",
+   "label": "Registration Thresholds"
+  },
+  {
+   "default": "2300000",
+   "description": "Compulsory VAT registration threshold effective 1 April 2026.",
+   "fieldname": "vat_registration_threshold",
+   "fieldtype": "Currency",
+   "label": "Compulsory Registration Threshold"
+  },
+  {
+   "fieldname": "column_break_thresholds",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "120000",
+   "description": "Voluntary VAT registration threshold effective 1 April 2026.",
+   "fieldname": "vat_voluntary_threshold",
+   "fieldtype": "Currency",
+   "label": "Voluntary Registration Threshold"
+  },
+  {
+   "description": "Type of VAT vendor.",
+   "fieldname": "vat_vendor_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "VAT Vendor Type",
+   "options": "VAT Vendor Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "How often VAT returns are filed.",
+   "fieldname": "vat_filing_frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "VAT Filing Frequency",
+   "options": "Monthly\nBi-Monthly\nQuarterly\nAnnually",
+   "reqd": 1
+  },
+  {
+   "description": "Day of the month when VAT returns are due.",
+   "fieldname": "vat_filing_day",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "VAT Filing Day",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vat_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "VAT Accounts"
+  },
+  {
+   "description": "Primary account used for Output VAT.",
+   "fieldname": "output_vat_account",
+   "fieldtype": "Link",
+   "label": "Output VAT Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Primary account used for Input VAT.",
+   "fieldname": "input_vat_account",
+   "fieldtype": "Link",
+   "label": "Input VAT Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "description": "Optional ERPNext tax account used when generating Item Tax Templates automatically. This is separate from the VAT control accounts used for VAT201 and reporting.",
+   "fieldname": "item_tax_template_account",
+   "fieldtype": "Link",
+   "label": "Item Tax Template Account",
+   "options": "Account"
+  },
+  {
+   "description": "Tracked VAT tax accounts shared with ERPNext's South Africa VAT settings and VAT Audit Report.",
+   "fieldname": "vat_accounts",
+   "fieldtype": "Table",
+   "label": "Tracked VAT Accounts",
+   "options": "South Africa VAT Account"
+  },
+  {
+   "fieldname": "classification_settings_section",
+   "fieldtype": "Section Break",
+   "label": "VAT201 Classification Mapping"
+  },
+  {
+   "default": "Sales Taxes and Charges Template",
+   "fieldname": "output_tax_doctype",
+   "fieldtype": "Data",
+   "label": "Output Tax Doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "standard_rate_non_capital",
+   "fieldtype": "Link",
+   "label": "Output A. Standard Rate (Non-Capital)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "standard_rate_non_capital_2",
+   "fieldtype": "Link",
+   "label": "Output A. Standard Rate (Additional Template)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "standard_rate_capital",
+   "fieldtype": "Link",
+   "label": "Output B. Standard Rate (Capital Goods)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "zero_rate_non_exported",
+   "fieldtype": "Link",
+   "label": "Output C. Zero Rated (Local)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "zero_rate_exported",
+   "fieldtype": "Link",
+   "label": "Output D. Zero Rated (Exports)",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "exempt",
+   "fieldtype": "Link",
+   "label": "Output E. Exempt",
+   "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "column_break_output_map",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Purchase Taxes and Charges Template",
+   "fieldname": "input_tax_doctype",
+   "fieldtype": "Data",
+   "label": "Input Tax Doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "input_capital_local",
+   "fieldtype": "Link",
+   "label": "Input A. Capital Goods (Local)",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "fieldname": "input_capital_import",
+   "fieldtype": "Link",
+   "label": "Input B. Capital Goods (Imported)",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "fieldname": "input_goods_local",
+   "fieldtype": "Link",
+   "label": "Input C. Other Goods (Local)",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "fieldname": "input_goods_import",
+   "fieldtype": "Link",
+   "label": "Input D. Other Goods (Imported)",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "fieldname": "vat_rates_section",
+   "fieldtype": "Section Break",
+   "label": "VAT Rates"
+  },
+  {
+   "description": "Configure different VAT rates.",
+   "fieldname": "vat_rates",
+   "fieldtype": "Table",
+   "label": "VAT Rates",
+   "options": "South Africa VAT Rate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sars_efiling_section",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "SARS e-Filing Integration"
+  },
+  {
+   "description": "Inactive placeholder for any future SARS integration.",
+   "fieldname": "sars_efiling_username",
+   "fieldtype": "Data",
+   "label": "SARS e-Filing Username"
+  },
+  {
+   "fieldname": "column_break_24",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Inactive placeholder for any future SARS integration.",
+   "fieldname": "sars_efiling_password",
+   "fieldtype": "Password",
+   "label": "SARS e-Filing Password"
+  },
+  {
+   "fieldname": "vat_report_settings_section",
+   "fieldtype": "Section Break",
+   "label": "VAT Report Settings"
+  },
+  {
+   "description": "Compatibility field kept in sync with Company for older report hooks.",
+   "fieldname": "default_vat_report_company",
+   "fieldtype": "Link",
+   "label": "Default VAT Report Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_29",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Default period for VAT reports.",
+   "fieldname": "default_vat_report_period",
+   "fieldtype": "Select",
+   "label": "Default VAT Report Period",
+   "options": "Monthly\nBi-Monthly\nQuarterly\nAnnually"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-30 09:54:15.429044",
+ "modified_by": "Administrator",
+ "module": "ir_vat",
+ "name": "South Africa VAT Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Accounts User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

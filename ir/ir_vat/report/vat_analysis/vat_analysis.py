@@ -1,0 +1,82 @@
+import frappe
+from frappe import _
+
+
+def execute(filters=None):
+	filters = frappe._dict(filters or {})
+	return get_columns(), get_data(filters)
+
+
+def get_columns():
+	return [
+		{"label": _("VAT201 Return"), "fieldname": "vat_return", "fieldtype": "Link", "options": "VAT201 Return", "width": 180},
+		{"label": _("Company"), "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 180},
+		{"label": _("Document Type"), "fieldname": "document_type", "fieldtype": "Data", "width": 120},
+		{"label": _("Document"), "fieldname": "document", "fieldtype": "Dynamic Link", "options": "document_type", "width": 180},
+		{"label": _("Date"), "fieldname": "date", "fieldtype": "Date", "width": 95},
+		{"label": _("Classification"), "fieldname": "classification", "fieldtype": "Data", "width": 240},
+		{"label": _("Net / Incl Amount"), "fieldname": "net_amount", "fieldtype": "Currency", "width": 140},
+		{"label": _("VAT Amount"), "fieldname": "vat_amount", "fieldtype": "Currency", "width": 120},
+		{"label": _("VAT Account Debit"), "fieldname": "vat_account_debit", "fieldtype": "Currency", "width": 130},
+		{"label": _("VAT Account Credit"), "fieldname": "vat_account_credit", "fieldtype": "Currency", "width": 130},
+		{"label": _("Status"), "fieldname": "classification_status", "fieldtype": "Data", "width": 120},
+		{"label": _("Issue"), "fieldname": "classification_issue", "fieldtype": "Data", "width": 280},
+		{"label": _("Cancelled"), "fieldname": "is_cancelled", "fieldtype": "Check", "width": 80},
+	]
+
+
+def get_data(filters):
+	frappe.has_permission("VAT201 Return", "read", throw=True)
+	parent_filters = {}
+	if filters.get("company"):
+		parent_filters["company"] = filters.company
+	if filters.get("vat_return"):
+		parent_filters["name"] = filters.vat_return
+	permitted_returns = frappe.get_list(
+		"VAT201 Return",
+		filters=parent_filters,
+		pluck="name",
+		limit_page_length=0,
+	)
+	if not permitted_returns:
+		return []
+
+	return_doc = frappe.qb.DocType("VAT201 Return")
+	row = frappe.qb.DocType("VAT201 Return Transaction")
+
+	query = (
+		frappe.qb.from_(row)
+		.join(return_doc)
+		.on(row.parent == return_doc.name)
+		.select(
+			row.parent.as_("vat_return"),
+			return_doc.company,
+			row.voucher_type.as_("document_type"),
+			row.voucher_no.as_("document"),
+			row.posting_date.as_("date"),
+			row.classification,
+			row.incl_tax_amount.as_("net_amount"),
+			row.tax_amount.as_("vat_amount"),
+			row.tax_account_debit,
+			row.tax_account_credit,
+			row.classification_status,
+			row.classification_issue,
+			row.is_cancelled,
+		)
+		.orderby(row.posting_date)
+		.orderby(row.voucher_no)
+		.where(row.parent.isin(permitted_returns))
+		.where(row.parenttype == "VAT201 Return")
+		.where(row.parentfield == "transactions")
+	)
+
+	if filters.get("from_date"):
+		query = query.where(row.posting_date >= filters.from_date)
+	if filters.get("to_date"):
+		query = query.where(row.posting_date <= filters.to_date)
+	if filters.get("classification"):
+		query = query.where(row.classification == filters.classification)
+	if not filters.get("include_cancelled"):
+		query = query.where(row.is_cancelled == 0)
+
+	return query.run(as_dict=True)
