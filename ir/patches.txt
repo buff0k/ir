@@ -40,3 +40,5 @@ ir.patches.backfill_site_transfer_form_company_letter_head
 ir.patches.backfill_employee_induction_record_company_letter_head
 ir.patches.backfill_leave_application_letter_head
 ir.patches.delete_orphaned_custom_docperms
+ir.patches.ensure_statutory_tax_configuration
+ir.patches.backfill_emp201_submission_keys

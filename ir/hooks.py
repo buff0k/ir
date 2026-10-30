@@ -615,11 +615,21 @@ scheduler_events = {
 	],
 }
 after_migrate = [
-	"ir.setup.add_employee_doclinks.ensure_employee_links"
+	"ir.setup.add_employee_doclinks.ensure_employee_links",
+	# Absorbed from za_local - company-scoped SA payroll/VAT setup that
+	# can't be a fixture (varies per Company). Each is independently
+	# idempotent and self-guards on is_hrms_installed()/table existence.
+	"ir.ir_setup.install.ensure_all_company_tax_configuration",
+	"ir.ir_setup.install.seed_statutory_rate_packs",
+	"ir.ir_setup.install.repair_salary_component_accounts",
+	"ir.ir_vat.setup.migrate_legacy_vat_account_rows",
 ]
 doc_events = {
 	"Item": {
 		"validate": "ir.ir_vat.item_sync.sync_item_zero_rated_flag",
+	},
+	"Company": {
+		"after_insert": "ir.ir_setup.install.configure_new_south_african_company",
 	},
 	"Termination Form": {
 		"after_insert": "ir.controllers.notifications.handle_doc_event_create",
