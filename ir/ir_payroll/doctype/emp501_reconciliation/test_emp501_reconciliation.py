@@ -3,6 +3,7 @@ from unittest.mock import patch
 import frappe
 
 from ir.ir_payroll.doctype.emp501_reconciliation.emp501_reconciliation import EMP501Reconciliation
+from ir.utils.emp501_utils import generate_emp501_csv
 from za_local.tests.compat import UnitTestCase
 
 
@@ -167,3 +168,11 @@ class TestEMP501Reconciliation(UnitTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			EMP501Reconciliation.validate_submission_readiness(doc)
+
+	def test_invalid_mixed_record_csv_is_retired(self):
+		with (
+			patch("frappe.get_doc"),
+			patch("frappe.has_permission", return_value=True),
+			self.assertRaisesRegex(frappe.ValidationError, "legacy mixed-record CSV was removed"),
+		):
+			generate_emp501_csv("_Test EMP501")
