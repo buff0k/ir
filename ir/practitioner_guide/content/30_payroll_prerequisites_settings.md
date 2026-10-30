@@ -1,0 +1,40 @@
+# Payroll Prerequisites & Settings
+
+This section covers payroll configuration. It assumes the [Foundation Setup](../foundation-setup/company-registration) is done.
+
+## Prerequisites checklist
+
+Before configuring payroll, confirm:
+
+- [ ] Company **PAYE, UIF and SDL reference numbers** are captured (needed for EMP201/EMP501).
+- [ ] **Chart of Accounts** includes Salaries and Wages, PAYE Payable – SARS, UIF Employee Contribution, UIF Employer Expense, SDL Expense and Payroll Payable.
+- [ ] A **Fiscal Year** and **Payroll Period** for the active tax year (1 March – end February) exist.
+- [ ] A **Holiday List** is assigned to the company.
+- [ ] The statutory rate pack for the active tax year resolves (see [Post-Install Verification](../getting-started/post-install-verification)).
+
+## Payroll Settings — SA statutory components
+
+ir adds a **South African Settings** section to **Payroll Settings**. Open **Payroll Settings** and complete it. This mapping tells the salary-slip engine which Salary Components represent each statutory item.
+
+| Field | Map to component | Notes |
+|---|---|---|
+| PAYE Salary Component | `PAYE` | The deduction component for employees' tax. |
+| UIF Employee Salary Component | `UIF Employee Contribution` | Employee's 1% UIF. |
+| UIF Employer Salary Component | `UIF Employer Contribution` | Employer's 1% UIF (company contribution). |
+| SDL Salary Component | `SDL Contribution` | Skills Development Levy (company contribution). |
+| COIDA Salary Component | (optional) | If you track COIDA via a component. |
+
+Also set:
+
+- **Calculate Annual Taxable Amount Based On** — *Payroll Period* (default, recommended) or *Joining/Relieving Date*. This controls how income is annualised for PAYE.
+- **Disable ETI Calculation** — leave unticked unless the employer does not claim ETI.
+
+> These statutory components are seeded as ir fixtures on every install/migrate. If a dropdown is empty, preserve logs and diagnose setup/migration on staging; do not repeatedly migrate production as a repair shortcut.
+
+## Mileage / reimbursement rate
+
+`ir` adds an **Amount per Kilometre** field to the HR/Payroll settings for mileage reimbursement (used by Business Trips). Set it to the current prescribed reimbursive rate, or rely on the [Travel Allowance Rate](statutory-rate-data) seeded from the statutory pack.
+
+## Next
+
+Load and verify the [Statutory Rate Data](statutory-rate-data) (tax slabs, rebates, medical credits, ETI).

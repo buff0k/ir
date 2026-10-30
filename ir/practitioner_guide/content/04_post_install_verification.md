@@ -1,0 +1,52 @@
+# Post-Install Verification
+
+Run these checks immediately after installing or migrating. If a check fails, preserve the logs and diagnose it on staging; do not repeatedly migrate production without a backup and identified cause.
+
+## 1. The app and workspaces are present
+
+- Open the Frappe desk. You should see an **Industrial Relations** app tile.
+- Confirm these workspaces are reachable from the unified Industrial Relations sidebar: **IR General**, **IR Setup**, **SA VAT**, **SA Labour**, **SA COIDA**, **SA Payroll**.
+
+## 2. Custom fields are applied
+
+Spot-check a few standard DocTypes:
+
+- **Company** → there should be a *South African Registration* section with VAT number, PAYE/UIF/SDL reference numbers, COIDA registration, SETA and bargaining council fields.
+- **Customer** → a VAT vendor checkbox and company registration field.
+- **Item Group** → an *Is Capital Goods* checkbox.
+- **Employee** → South African Details, Tax Certificate and Employment Equity sections; **Salary Component** → SARS payroll code, payroll treatment, PAYE inclusion %, and UIF/SDL/COIDA applicability checkboxes.
+
+If fields are missing, the custom-field sync did not complete. Inspect migration output/Error Log and resolve on staging before another production migration.
+
+## 3. Print formats are installed
+
+Go to **Print Format** list and filter by name "SA". You should see the SA invoice/order/note formats, the SA Salary Slip and the IRP5 formats.
+
+## 4. SARS payroll codes are seeded
+
+Open the **SARS Payroll Code** list. It should contain income, deduction and employer-contribution codes (e.g. 3601, 4102, 4141). These drive IRP5 line grouping.
+
+## 5. Statutory rate packs resolve
+
+The payroll engine reads date-effective rate packs from `ir/ir_setup/data/statutory_rates_*.json`. To confirm the current tax year resolves, run:
+
+```bash
+bench --site <site> console
+```
+
+```python
+from ir.utils.statutory_rates import get_rate_pack
+get_rate_pack(frappe.utils.today())["tax_year"]
+```
+
+It should print the active tax year (for example `2026-2027`). If it raises *"No South African statutory rate pack is configured"*, the pack for that date is missing — see [Annual Statutory Update](../reference-operations/annual-statutory-update).
+
+## 6. ETI slabs and travel rates are seeded
+
+Open the **ETI Slab** and **Travel Allowance Rate** lists. Each configured tax year should have records — ETI Slab from ir's own fixtures, Travel Allowance Rate seeded per-company from the statutory packs.
+
+## Ready
+
+With these checks passing, proceed to [Foundation Setup](../foundation-setup/company-registration).
+
+These are technical checks only. Before transactions/payroll, a practitioner must approve statutory rates, account/component mappings, role access and representative reconciliations.

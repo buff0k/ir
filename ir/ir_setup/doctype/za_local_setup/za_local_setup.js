@@ -38,7 +38,7 @@ frappe.ui.form.on("ZA Local Setup", {
 	add_publish_guide_button(frm) {
 		// Only offer the action when the Frappe Wiki app is installed on this site.
 		frappe.call({
-			method: "za_local.practitioner_guide.stage.is_wiki_available",
+			method: "ir.practitioner_guide.stage.is_wiki_available",
 			callback: (r) => {
 				if (!r || !r.message) {
 					return;
@@ -47,7 +47,7 @@ frappe.ui.form.on("ZA Local Setup", {
 					__("Publish Practitioner Guide"),
 					() => {
 						frappe.call({
-							method: "za_local.practitioner_guide.stage.publish_practitioner_guide",
+							method: "ir.practitioner_guide.stage.publish_practitioner_guide",
 							freeze: true,
 							freeze_message: __("Publishing the SA Practitioner Guide to Wiki..."),
 							callback: (res) => {
