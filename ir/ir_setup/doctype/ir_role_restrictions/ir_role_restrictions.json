@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-02-09 09:27:24.456950",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "desingation_limits_tab",
+  "ir_manager_restrictions",
+  "ir_officer_restrictions",
+  "ir_user_restrictions",
+  "branch_limits_tab",
+  "hr_per_branch",
+  "trainer_per_branch",
+  "notification_emails_tab",
+  "report_recipients",
+  "disciplinary_recipients",
+  "incapacity_recipients",
+  "performance_recipients",
+  "external_dispute_recipients",
+  "global_trainer",
+  "job_requisition_recipients",
+  "retrenchment_recipients"
+ ],
+ "fields": [
+  {
+   "description": "Set Designations which the HR Manager Role is not permitted to access.",
+   "fieldname": "ir_manager_restrictions",
+   "fieldtype": "Table",
+   "label": "HR Manager",
+   "options": "IR Role Restriction Table"
+  },
+  {
+   "description": "Set Designations which the IR Officer Role is not permitted to access.",
+   "fieldname": "ir_officer_restrictions",
+   "fieldtype": "Table",
+   "label": "IR Officer",
+   "options": "IR Role Restriction Table"
+  },
+  {
+   "description": "Set Designations which the IR User Role is not permitted to access.",
+   "fieldname": "ir_user_restrictions",
+   "fieldtype": "Table",
+   "label": "IR User",
+   "options": "IR Role Restriction Table"
+  },
+  {
+   "fieldname": "desingation_limits_tab",
+   "fieldtype": "Tab Break",
+   "label": "Desingation Limits"
+  },
+  {
+   "fieldname": "notification_emails_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notification Emails"
+  },
+  {
+   "description": "Users who should receive the weekly HR Reports",
+   "fieldname": "report_recipients",
+   "fieldtype": "Table",
+   "label": "Report Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "disciplinary_recipients",
+   "fieldtype": "Table",
+   "label": "Disciplinary Action Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "hr_per_branch",
+   "fieldtype": "Table",
+   "label": "Responsible HR per Branch",
+   "options": "IR Role Restrictions User Branch"
+  },
+  {
+   "fieldname": "trainer_per_branch",
+   "fieldtype": "Table",
+   "label": "Responsible Training Officer per Branch",
+   "options": "IR Role Restrictions User Branch"
+  },
+  {
+   "fieldname": "global_trainer",
+   "fieldtype": "Table",
+   "label": "Recipients for Training Notifications",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "branch_limits_tab",
+   "fieldtype": "Tab Break",
+   "label": "Branch Limits"
+  },
+  {
+   "fieldname": "incapacity_recipients",
+   "fieldtype": "Table",
+   "label": "Incapacity Proceedings Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "performance_recipients",
+   "fieldtype": "Table",
+   "label": "Poor Performance Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "external_dispute_recipients",
+   "fieldtype": "Table",
+   "label": "External Dispute Resolution Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "job_requisition_recipients",
+   "fieldtype": "Table",
+   "label": "Job Requisition Recipients",
+   "options": "IR User Restriction Table"
+  },
+  {
+   "fieldname": "retrenchment_recipients",
+   "fieldtype": "Table",
+   "label": "Retrenchment Process Recipients",
+   "options": "IR User Restriction Table"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-31 10:56:52.000000",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "IR Role Restrictions",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

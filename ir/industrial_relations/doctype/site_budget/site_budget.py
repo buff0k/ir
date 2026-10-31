@@ -22,7 +22,7 @@ from ir.industrial_relations.doctype.shift_design.shift_design import (
 	simulate_team_hours_by_month,
 	team_color,
 )
-from ir.industrial_relations.doctype.site_budget_map.site_budget_map import (
+from ir.ir_setup.doctype.site_budget_map.site_budget_map import (
 	compute_salary_structure_totals,
 	compute_site_budget_map_totals,
 	resolve_active_site_budget_map,

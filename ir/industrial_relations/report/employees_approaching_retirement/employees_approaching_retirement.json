@@ -50,7 +50,7 @@
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-17 12:57:04.705481",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Employees Approaching Retirement",
@@ -62,7 +62,7 @@
  "report_type": "Query Report",
  "roles": [
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "System Manager"

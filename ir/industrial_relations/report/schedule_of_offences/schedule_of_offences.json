@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-17 12:57:57.545279",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Schedule of Offences",
@@ -26,9 +26,6 @@
   },
   {
    "role": "IR User"
-  },
-  {
-   "role": "IR Manager"
   },
   {
    "role": "HR Manager"

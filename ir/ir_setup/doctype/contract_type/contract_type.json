@@ -1,0 +1,178 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{doc_number} Rev.{YY} - {contract_type}",
+ "creation": "2024-08-21 08:54:29.471430",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_3xdn",
+  "amended_from",
+  "contract_type_section",
+  "doc_number",
+  "rev_date",
+  "column_break_znxa",
+  "contract_type",
+  "has_expiry",
+  "has_project",
+  "has_retirement",
+  "retirement_age",
+  "contract_contents_section",
+  "contract_terms"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_3xdn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Contract Type",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "contract_type_section",
+   "fieldtype": "Section Break",
+   "label": "Contract Type"
+  },
+  {
+   "fieldname": "doc_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Number",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "rev_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Revision Date",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_znxa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contract_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contract Name",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Does this contract type expire on a fixed date?",
+   "fieldname": "has_expiry",
+   "fieldtype": "Check",
+   "label": "Is Period Based?"
+  },
+  {
+   "default": "0",
+   "description": "Is there a forced retirement age applicable to this contract type?",
+   "fieldname": "has_retirement",
+   "fieldtype": "Check",
+   "label": "Is there a Retirement Age?"
+  },
+  {
+   "fieldname": "retirement_age",
+   "fieldtype": "Int",
+   "label": "Retirement Age (In Years)"
+  },
+  {
+   "description": "Remuneration Placeholder and Working Hours Placeholder created by default as they are required for the Contract of Employment script to work. Do not remove them.",
+   "fieldname": "contract_contents_section",
+   "fieldtype": "Section Break",
+   "label": "Contract Contents"
+  },
+  {
+   "fieldname": "contract_terms",
+   "fieldtype": "Table",
+   "label": "Applicable Clauses",
+   "options": "Contract Terms",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Does this contract type expire on the completion of a specific task or project?",
+   "fieldname": "has_project",
+   "fieldtype": "Check",
+   "label": "Is Task Based?"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-31 10:56:51.458321",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Contract Type",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1,
+ "track_views": 1
+}

@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:{sec_head} ({notes}) - {DD}-{MM}-{YYYY}",
+ "creation": "2024-08-24 10:36:39.801190",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "contract_section_section",
+  "sec_head",
+  "notes",
+  "column_break_fjvn",
+  "is_remuneration",
+  "is_hours",
+  "has_hours",
+  "has_allowances",
+  "section_break_mhzj",
+  "sec_par",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "contract_section_section",
+   "fieldtype": "Section Break",
+   "label": "Contract Section"
+  },
+  {
+   "fieldname": "sec_head",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Section Heading",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_fjvn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_remuneration",
+   "fieldtype": "Check",
+   "label": "Is this a Remuneration Section?"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_hours",
+   "fieldtype": "Check",
+   "label": "Is this a Working Hours Section?"
+  },
+  {
+   "fieldname": "section_break_mhzj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "sec_par",
+   "fieldtype": "Table",
+   "label": "Paragraphs",
+   "options": "Contract Paragraph",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "has_hours",
+   "fieldtype": "Check",
+   "label": "Has defined Working Hours?"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_allowances",
+   "fieldtype": "Check",
+   "label": "Includes Allowances?"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Contract Section",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Data",
+   "label": "Notes",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-31 10:56:51.458321",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Contract Section",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

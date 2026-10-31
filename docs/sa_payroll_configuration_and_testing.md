@@ -1,0 +1,463 @@
+# SA Payroll Configuration and Testing Practitioner Guide
+
+This guide explains how to configure, test, and validate South African payroll functionality in `ir` (Industrial Relations).
+
+## Purpose And Scope
+
+SA Payroll extends HRMS payroll for South African statutory payroll processing. It supports PAYE, UIF, SDL, ETI, retirement fund treatment, medical tax credits, employer contributions, payroll reports, EMP201, EMP501, and IRP5 / IT3(a) certificate working papers.
+
+HRMS is a hard requirement of `ir` — there is no payroll-optional install. `ir` does not replace HRMS payroll; it extends HRMS Salary Slip, Salary Structure, Payroll Entry, and related payroll workflows.
+
+Direct SARS electronic submission is not supported. The app does not generate the SARS BRS payroll-import CSV or encrypted reconciliation file. Generic exports and PDFs are review aids only; capture approved figures through eFiling/e@syFile or use a separately validated BRS-compatible integration.
+
+Use the current [SARS Guide for Employers](https://www.sars.gov.za/guide-for-employers-in-respect-of-employees-tax-2027/) and the applicable PAYE BRS/validation rules as primary references. Archive the exact publications used for annual signoff.
+
+## Annual Statutory Update Checklist
+
+`ir` is designed so a new South African payroll year is primarily a statutory data update, not a rewrite of payroll logic.
+
+Each year, before the first March payroll:
+
+1. Add a new `statutory_rates_YYYY.json` rate pack under `ir/ir_setup/data` (the date-effective loader in `ir.utils.statutory_rates` globs this directory automatically — no registration step needed).
+2. Capture PAYE brackets, rebates, tax thresholds, medical tax credits, UIF cap and rates, ETI brackets, reimbursive travel rate, subsistence rates, retirement cap, COIDA earnings cap, source reference, and effective dates.
+3. On a staging site, run `bench migrate` so the new fixtures sync, then run `bench clear-cache`. In the ZA Local Setup record for each company, tick **Load Tax Slabs**, **Load Tax Rebates** and **Load Medical Tax Credits** to create that year's company-scoped Payroll Period, Income Tax Slab, and Tax Rebates and Medical Tax Credit rows.
+4. Commit the versioned rate pack, back up, migrate a restored staging site, and verify the Desk-reviewable records.
+5. Run the payroll compliance tests (`bench --site <site> run-tests --module ir.tests.test_statutory_compliance`) and compare golden fictional payroll cases for the new year.
+6. Practitioner signs off the new pack before processing March payroll.
+
+See the Annual Statutory Update runbook in the practitioner guide for the complete, authoritative procedure, including the full watch list of figures that change every year.
+
+Do not edit old statutory packs after payroll has been processed for that year. If SARS republishes a correction, add a new dated correction pack or document the adjustment in the source reference and rerun the affected regression tests.
+
+## Prerequisites
+
+Before configuring SA Payroll:
+
+- HRMS is installed (it is a hard requirement of `ir`).
+- A South African company exists.
+- Payroll Period and Fiscal Year exist.
+- Holiday List and Holiday List Assignment are configured.
+- Employee records exist.
+- Chart of accounts contains payroll expense, payroll payable, PAYE liability, UIF liability, SDL expense, and employer contribution accounts.
+- The practitioner has access to HRMS payroll, Salary Components, Salary Structures, Payroll Entry, Employee, EMP201, EMP501, IRP5 Certificate, and payroll reports.
+
+## Required Master Data And Settings
+
+Review or create:
+
+- Company PAYE reference number.
+- Company UIF reference number.
+- Company SDL reference number.
+- Payroll Settings statutory components.
+- Payroll Period.
+- Income Tax Slab.
+- Tax Rebates and Medical Tax Credit.
+- SARS Payroll Codes.
+- Salary Components with SARS code mappings.
+- Employee Type.
+- Employees with South African identity and tax fields.
+- Date-effective Employee Private Benefit records for private medical scheme contributions and dependants.
+- Submitted Fringe Benefit records and linked Company Car, Housing or Low Interest Loan detail records where non-cash benefits apply.
+- Salary Structure and Salary Structure Assignment.
+- Payroll Entry.
+
+## Configuration Tutorial
+
+### 1. Configure Company Statutory References
+
+1. Open `Company`.
+2. Capture PAYE reference number.
+3. Capture UIF reference number.
+4. Capture SDL reference number.
+5. Capture COIDA reference where applicable.
+6. Save.
+
+Validation:
+
+- EMP501 readiness checks can find employer references.
+- IRP5 / IT3(a) certificate fields can be populated from Company.
+
+### 2. Configure Payroll Settings
+
+1. Open `Payroll Settings`.
+2. Set the PAYE salary component.
+3. Set the UIF employee salary component.
+4. Set the UIF employer salary component.
+5. Set the SDL salary component.
+6. Review any payroll frequency, rounding, or working-day settings required by HRMS.
+7. Save.
+
+Validation:
+
+- Statutory components are selectable.
+- Components are mapped to the correct salary component type and account rows.
+
+### 3. Review Salary Components
+
+Open `Salary Component` and review:
+
+- Basic Salary.
+- Allowances.
+- Overtime.
+- Commission.
+- Bonuses.
+- PAYE.
+- UIF Employee Contribution.
+- UIF Employer Contribution.
+- SDL Contribution.
+- Pension, provident, retirement annuity, or retirement fund components.
+- Medical aid deduction and employer contribution components.
+- Non-statutory deductions such as staff loans, garnishee orders, and union subscriptions.
+
+For each component, confirm:
+
+- Type is earning, deduction, or company contribution as intended.
+- Account row exists for the company.
+- SARS payroll code is mapped where the component must appear on EMP201, IRP5, or deduction reports.
+- Components that must not appear on IRP5 are explicitly excluded where the app provides that option.
+- SA Payroll Treatment, PAYE Inclusion %, UIF Applicable, SDL Applicable, COIDA Applicable, Reimbursement, and Variable Pay Treatment are configured.
+- Fixed travel allowances use 80% PAYE inclusion by default unless the 20% statutory rule is explicitly supportable and documented.
+- Reimbursive travel components are separated from fixed travel allowances and reviewed against the prescribed rate for the tax year.
+
+### 4. Review Tax Tables And Credits
+
+1. Open `Income Tax Slab`.
+2. Confirm the relevant South African tax year exists.
+3. Confirm all PAYE brackets and rates.
+4. Open `Tax Rebates and Medical Tax Credit`.
+5. Confirm rebate rows and medical credit rows for the payroll year.
+6. Save.
+
+Validation:
+
+- The Salary Structure Assignment can reference the correct Income Tax Slab.
+- PAYE calculations use the expected tax year.
+
+### 5. Configure Employees
+
+For each employee:
+
+1. Open `Employee`.
+2. Set company, department, designation, date of joining, and employment status.
+3. Set Employee Type.
+4. Capture South African identity or passport details.
+5. Capture income tax reference where available.
+6. Capture bank details where salary payment and IRP5 output require them.
+7. Capture ETI-related fields where ETI is applicable.
+8. Capture Employment Equity fields if Labour reports are also used.
+9. Save.
+
+Validation:
+
+- Employee can be used on Salary Structure Assignment.
+- IRP5 readiness checks do not report avoidable missing fields.
+
+### 6. Configure Medical And Fringe Benefits
+
+Use `Employee Private Benefit` only for date-effective private medical scheme/medical-credit and retirement-annuity data. A medical credit requires an active record with a positive private-medical-aid contribution; capture the dependant count on that record and prevent overlapping active periods.
+
+Use the separate submittable `Fringe Benefit` workflow for non-cash benefits. Link and submit the applicable Company Car, Housing or Low Interest Loan detail record, then submit the Fringe Benefit. Active submitted benefits are added to Salary Slips as taxable non-cash earnings: they affect PAYE and certificate reporting but do not increase cash gross/net pay or accounting earnings.
+
+Validation:
+
+- Company car uses 3.5%, or 3.25% with a maintenance plan, and the documented 80%/20% PAYE inclusion basis.
+- Housing follows the paragraph 9 valuation and employee consideration rules using date-effective values.
+- Low-interest loan uses current outstanding balance and the date-effective official rate.
+- Draft, expired, disabled or unlinked benefit records do not affect payroll.
+
+### 7. Configure Salary Structure
+
+1. Create or open `Salary Structure`.
+2. Add earnings.
+3. Add deductions.
+4. Add company contributions.
+5. Ensure all components have account rows for the company.
+6. Save and submit if required by HRMS.
+
+Recommended test structures:
+
+- Low salary structure.
+- High salary structure.
+- ETI qualifying structure.
+- Medical aid structure.
+- Retirement fund structure.
+- Retirement cap stress structure.
+
+### 8. Create Salary Structure Assignment
+
+1. Open `Salary Structure Assignment`.
+2. Select employee.
+3. Select salary structure.
+4. Set base amount.
+5. Set from date.
+6. Select Income Tax Slab.
+7. Submit.
+
+Validation:
+
+- Salary Slip can be created from the assignment.
+- Income tax slab is populated.
+
+### 9. Process Payroll
+
+1. Open `Payroll Entry`.
+2. Select company, payroll period, payroll frequency, start date, and end date.
+3. Get employees.
+4. Create Salary Slips.
+5. Review each Salary Slip.
+6. Submit Salary Slips.
+7. Submit Payroll Entry where applicable.
+8. Post accounting entries.
+
+Validation:
+
+- Salary Slips calculate PAYE, UIF, SDL, ETI, retirement treatment, medical credits, and net pay correctly.
+- GL Entries are balanced.
+- Payroll payable and statutory liability accounts agree to payroll reports.
+
+## Desk Test Cases
+
+### Test 1: Payroll Settings Statutory Mapping
+
+Steps:
+
+1. Open Payroll Settings.
+2. Confirm PAYE, UIF employee, UIF employer, and SDL components.
+3. Save.
+
+Expected result:
+
+- Settings save.
+- Each statutory component points to the intended Salary Component.
+
+### Test 2: Low Salary PAYE/UIF Scenario
+
+Steps:
+
+1. Create an employee with a low monthly salary.
+2. Assign a salary structure.
+3. Create and submit a Salary Slip.
+
+Expected result:
+
+- UIF employee and employer calculate up to the monthly cap.
+- PAYE reflects tax table, rebates, and taxable income.
+- Net pay equals gross less deductions.
+
+### Test 3: High Salary PAYE Scenario
+
+Steps:
+
+1. Create an employee with a high monthly salary.
+2. Assign a structure with taxable earnings.
+3. Submit a Salary Slip.
+
+Expected result:
+
+- PAYE uses the correct marginal tax brackets.
+- UIF is capped.
+- SDL is calculated as an employer contribution where configured.
+
+### Test 4: ETI Qualifying Employee
+
+Steps:
+
+1. Create an employee who meets ETI criteria.
+2. Capture ETI hours and identity details.
+3. Submit a Salary Slip.
+
+Expected result:
+
+- Monthly ETI is calculated where eligible.
+- ETI is stored on the Salary Slip.
+- EMP201 can utilise ETI against PAYE.
+
+### Test 5: Medical Aid Main Member
+
+Steps:
+
+1. Create Employee Private Benefit for medical aid main member.
+2. Submit Salary Slip.
+
+Expected result:
+
+- Medical tax credit is applied for the main member.
+- PAYE is reduced only by the allowed credit.
+
+### Test 6: Medical Aid Dependants
+
+Steps:
+
+1. Add dependants to the medical aid benefit.
+2. Submit Salary Slip.
+
+Expected result:
+
+- Medical credit includes main member, first dependant, and additional dependant rates.
+- The credit does not exceed configured statutory treatment.
+
+### Test 7: Pension / Provident / Retirement Annuity
+
+Steps:
+
+1. Add a retirement fund deduction component.
+2. Map the SARS payroll code.
+3. Submit Salary Slip.
+
+Expected result:
+
+- Retirement deduction is treated as pre-tax where allowed.
+- Retirement Fund Deductions report shows the deduction.
+
+### Test 8: Retirement Contribution Cap
+
+Steps:
+
+1. Create a salary slip where annualised retirement contributions exceed the statutory cap.
+2. Submit Salary Slip.
+
+Expected result:
+
+- Excess retirement deduction is added back as taxable.
+- Read-only retirement taxable excess field shows the excess.
+- PAYE is calculated after the add-back.
+
+### Test 9: Company Contributions
+
+Steps:
+
+1. Add UIF employer and SDL as company contribution rows.
+2. Submit Salary Slip.
+3. Post Payroll Entry accounting.
+
+Expected result:
+
+- Employee deductions and employer contributions are separated.
+- Employer contributions post to expense and payroll payable according to configuration.
+
+### Test 10: Payroll Entry To GL
+
+Steps:
+
+1. Create Payroll Entry.
+2. Submit Salary Slips.
+3. Submit Payroll Entry and post accounting.
+4. Open General Ledger.
+
+Expected result:
+
+- Earnings debit salary expense accounts.
+- PAYE, UIF employee, and other deductions credit liability accounts.
+- Net pay credits payroll payable.
+- Employer contributions post as configured.
+
+### Test 11: EMP201 Creation And Review
+
+Steps:
+
+1. Create `EMP201 Submission`.
+2. Select company and month.
+3. Fetch EMP201 data.
+4. Review PAYE, UIF, SDL, ETI, and total payable.
+
+Expected result:
+
+- EMP201 values agree with submitted Salary Slips.
+- ETI reduces PAYE only as allowed.
+- Unmapped statutory components are flagged before finalisation.
+
+### Test 12: EMP501 Reconciliation
+
+Steps:
+
+1. Create monthly EMP201 submissions for the reconciliation period.
+2. Create `EMP501 Reconciliation`.
+3. Select tax year and reconciliation period.
+4. Fetch EMP201 references.
+5. Validate coverage.
+
+Expected result:
+
+- Missing months are reported (six for an interim reconciliation, twelve for the annual reconciliation).
+- EMP501 cannot proceed without required monthly declarations.
+- EMP201 totals reconcile to submitted certificate totals before the internal working paper is submitted.
+
+### Test 13: IRP5 / IT3(a) Certificate
+
+Steps:
+
+1. Generate or create IRP5 certificates for employees in the reconciliation period.
+2. Review employer details.
+3. Review employee identity, address, and bank details.
+4. Review income, deduction, and employer contribution lines.
+5. Print using `IRP5 Employee Certificate`.
+
+Expected result:
+
+- Certificate is linked to the correct EMP501 where applicable.
+- Submitted certificates render to PDF.
+- Long certificate numbers do not overlap critical text.
+- Missing statutory data is visible for practitioner review.
+
+### Test 14: SA Salary Slip Print Format
+
+Steps:
+
+1. Open a submitted Salary Slip.
+2. Print using `SA Salary Slip`.
+
+Expected result:
+
+- Earnings, deductions, company contributions, statutory amounts, gross pay, net pay, and company details are readable.
+- No old app references appear.
+
+### Test 15: Payroll Reports
+
+Steps:
+
+1. Run Payroll Register.
+2. Run EMP201 Report.
+3. Run Statutory Submissions Summary.
+4. Run Department Cost Analysis.
+5. Run Retirement Fund Deductions.
+
+Expected result:
+
+- Reports open without errors.
+- Filters work for company and period.
+- Report totals agree with submitted payroll records.
+
+## Reports And Print Formats To Review
+
+Reports:
+
+- Payroll Register
+- EMP201 Report
+- Department Cost Analysis
+- Statutory Submissions Summary
+- Retirement Fund Deductions
+- HRMS Salary Register
+- HRMS Income Tax Computation
+- General Ledger
+
+Print formats:
+
+- SA Salary Slip
+- IRP5 Employee Certificate
+- IRP5-it3 Certificate
+
+## Common Mistakes And Troubleshooting
+
+- If Salary Slip does not calculate, check Salary Structure Assignment and Income Tax Slab.
+- If PAYE is zero unexpectedly, check taxable earnings, rebates, and tax slab.
+- If UIF is missing, check Payroll Settings and salary component mapping.
+- If SDL is missing, check company contribution rows.
+- If EMP201 is incomplete, check submitted Salary Slips and SARS payroll code mappings.
+- If EMP501 blocks submission, complete missing EMP201 months or IRP5 certificate references.
+- Do not upload a generic EMP501/IRP5 CSV exported from the app to SARS; it is not a BRS payroll-import file.
+- If IRP5 PDF is incomplete, review Company, Employee, Address, Salary Component, and certificate line data.
+- If GL does not post correctly, review salary component account rows for the company.
+
+## Practitioner Responsibility
+
+Payroll practitioners must validate every statutory rate, employee classification, benefit valuation, PAYE/UIF/SDL/ETI value, EMP201/EMP501 working paper, certificate, bank control total and GL posting before filing or payment. Only FNB Online Banking Enterprise CSV is currently enabled, through a submitted Payroll Payment Batch, and it requires bank acceptance testing. `ir` supports calculation and review; it does not remove practitioner responsibility.

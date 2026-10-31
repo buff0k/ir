@@ -10,6 +10,7 @@ from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
 	get_reference_branch,
 	get_reference_designation,
+	get_reference_offence_outcome,
 )
 
 # On IntegrationTestCase, the doctype test records and all
@@ -139,7 +140,17 @@ class IntegrationTestVoluntarySeperationAgreement(IRSyntheticDataTestCase):
 
 	def test_submit_updates_already_submitted_linked_document_via_db_set_and_version(self):
 		employee = self._make_employee()
-		poor_performance = self._make_poor_performance(employee)
+		placeholder_outcome = get_reference_offence_outcome()
+		if not placeholder_outcome:
+			self.skipTest("No Offence Outcome exists on this site.")
+
+		# require_outcome_before_submit requires these two fields before
+		# Poor Performance's own submit - vsp.submit() below then
+		# overwrites this placeholder via db_set, which is the thing this
+		# test actually exercises.
+		poor_performance = self._make_poor_performance(
+			employee, outcome=placeholder_outcome, outcome_date=add_days(nowdate(), -30)
+		)
 		poor_performance.submit()
 		self.assertEqual(poor_performance.docstatus, 1)
 

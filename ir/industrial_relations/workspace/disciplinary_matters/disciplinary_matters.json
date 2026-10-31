@@ -218,7 +218,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-23 19:00:34.257397",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Matters",
@@ -232,7 +232,7 @@
    "role": "System Manager"
   },
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "IR Officer"

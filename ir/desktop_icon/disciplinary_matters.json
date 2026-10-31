@@ -11,7 +11,7 @@
  "link_to": "Disciplinary Matters",
  "link_type": "Workspace Sidebar",
  "logo_url": "/assets/ir/desktop_icons/ir-disciplinary.png",
- "modified": "2026-06-19 18:04:56.489314",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "name": "Disciplinary Matters",
  "owner": "Administrator",
@@ -22,7 +22,7 @@
    "role": "System Manager"
   },
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "IR Officer"

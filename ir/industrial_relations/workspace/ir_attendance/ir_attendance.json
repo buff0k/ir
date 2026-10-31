@@ -144,7 +144,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-15 18:22:44.393546",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Attendance",
@@ -168,9 +168,6 @@
   },
   {
    "role": "HR User"
-  },
-  {
-   "role": "IR Manager"
   },
   {
    "role": "IR Officer"

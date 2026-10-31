@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-21 07:55:18.597927",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ss_num",
+  "par_num",
+  "spar_num",
+  "column_break_tgic",
+  "item_num",
+  "sitem_num",
+  "reference",
+  "section_break_sngl",
+  "clause_text"
+ ],
+ "fields": [
+  {
+   "description": "Use 1 for subsection x.1.",
+   "fieldname": "ss_num",
+   "fieldtype": "Int",
+   "label": "Subsection Number",
+   "non_negative": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "columns": 9,
+   "description": "Text of paragraph, note that use of curly brackets for special clauses that the system logic will change based on the required fields, allowed fields are:\n{employee_name}, {date_of_joining}, {company}, {employee_number}, {designation}, {current_address}, {start_date}, {end_date}, {custom_id_number}, {project}, {branch}, {rate}, {allowance_1}, {allowance_2}, {allowance_3}, {allowance_4}, {allowance_5}, {contract_type}, {retirement_age}, {restraint_terrirtory}, {restraint_period}, {mon_start}, {mon_end}, {tue_start}, {tue_end}, {wed_start}, {wed_end}, {thu_start}, {thu_end}, {fri_start}, {fri_end}, {sat_start}, {sat_end}, {sun_start}, and {sun_end} will result in fields being populated from Form.\nAdditionally, there is provision for referencing other contract Clauses, with the format {par.\"Name of Clause\"}.subnumber (ex. {par.\"Clause Name of First Clause\"}.2 resulting in 1.2 being placed.\nFormatting of text is also possible, with text between two underscores __text here__ being underlined, between two forwards slashes //text here// being italicized and text between two asterisks **text here** being bolded.",
+   "fieldname": "clause_text",
+   "fieldtype": "Long Text",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Clause Text",
+   "reqd": 1
+  },
+  {
+   "description": "Use 1 for paragraph x.x.1.",
+   "fieldname": "par_num",
+   "fieldtype": "Int",
+   "label": "Paragraph Number",
+   "non_negative": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Use 1 for subparagraph x.x.x.1.",
+   "fieldname": "spar_num",
+   "fieldtype": "Int",
+   "label": "Subparapraph Number",
+   "non_negative": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Use 1 for item x.x.x.x.1.",
+   "fieldname": "item_num",
+   "fieldtype": "Int",
+   "label": "Item Number",
+   "non_negative": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Use 1 for item x.x.x.x.x.1.",
+   "fieldname": "sitem_num",
+   "fieldtype": "Int",
+   "label": "Subitem Number",
+   "non_negative": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_tgic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_sngl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reference",
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-30 10:55:52.362368",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Contract Paragraph",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

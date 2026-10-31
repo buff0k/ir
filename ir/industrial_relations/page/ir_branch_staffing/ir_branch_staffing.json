@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2026-09-21 09:00:00.000000",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "ir-branch-staffing",
@@ -15,7 +15,7 @@
    "role": "System Manager"
   },
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "IR Officer"

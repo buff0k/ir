@@ -1,0 +1,32 @@
+# Before You Begin: What Must Be Set Up
+
+Before you capture transactions or run payroll, a few things must already be configured. This page is a **checklist you can run through** — if something is missing, ask whoever set up the system (or follow the linked practitioner pages).
+
+## Always required
+
+- [ ] **Company created** with country South Africa and the SA registration fields completed (VAT number if registered). → [practitioner: Company & SA Registration](/sa-guide/foundation-setup/company-registration)
+- [ ] **Chart of Accounts** loaded, including VAT Output and VAT Input accounts. → [practitioner: Chart of Accounts](/sa-guide/foundation-setup/chart-of-accounts)
+- [ ] The company's normal **accounting Fiscal Year** exists. For payroll add a March–February Payroll Period; for the COIDA working paper add a Fiscal Year exactly 1 March to end February. → [practitioner: ZA Local Setup & Fiscal Year](/sa-guide/foundation-setup/za-local-setup)
+
+## Required for VAT
+
+- [ ] **South Africa VAT Settings** exist for your company, with output/input VAT accounts and the standard rate (15%). → [practitioner: South Africa VAT Settings](/sa-guide/vat-documents/vat-settings)
+- [ ] **Tax templates** for standard, zero-rated and exempt supplies are available to pick on invoices. → [practitioner: Tax Templates & Item VAT Categories](/sa-guide/vat-documents/tax-templates-item-categories)
+- [ ] **Items** carry the right VAT category (standard / zero-rated / exempt / capital).
+
+## Required for payroll
+
+- [ ] Company **PAYE, UIF and SDL reference numbers** captured.
+- [ ] **Payroll Settings** map the statutory components (PAYE, UIF, SDL). → [practitioner: Payroll Prerequisites & Settings](/sa-guide/payroll-foundations/payroll-prerequisites-settings)
+- [ ] **Statutory rates** loaded for the current tax year (tax slab, rebates, medical credits, ETI). → [practitioner: Statutory Rate Data](/sa-guide/payroll-foundations/statutory-rate-data)
+- [ ] **Salary Components** and at least one **Salary Structure** exist.
+- [ ] A **Payroll Period** and a **Holiday List** for the year exist.
+- [ ] Employees have a **submitted Salary Structure Assignment** with the correct Income Tax Slab.
+
+## If something is missing
+
+Most of this is one-time setup. The quickest path is to open **ZA Local Setup** (IR Setup workspace) — it can load the chart of accounts and statutory rates for your company in one step. → [practitioner: ZA Local Setup](/sa-guide/foundation-setup/za-local-setup)
+
+## Next
+
+Confirm the live settings on your company: [Confirm Company, VAT & Payroll Settings](confirm-company-settings).

@@ -8,7 +8,7 @@ frappe.ui.form.on("Disciplinary Action", {
     // docstring for why), so this is done via a real server-side query.
     frm.set_query("responsible_ir", () => ({
       query: "ir.industrial_relations.utils.filter_users_by_role",
-      filters: { roles: ["IR Manager", "IR Officer"] },
+      filters: { roles: ["HR Manager", "IR Officer"] },
     }));
   },
 
@@ -30,7 +30,7 @@ frappe.ui.form.on("Disciplinary Action", {
     );
 
     if (
-      (frappe.user.has_role("IR Manager") ||
+      (frappe.user.has_role("HR Manager") ||
         frappe.user.has_role("IR Officer")) &&
       frm.doc.docstatus !== 2
     ) {

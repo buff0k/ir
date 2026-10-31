@@ -4,24 +4,29 @@
 from __future__ import annotations
 
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, nowdate
 
-from ir.tests.test_helpers import IRSyntheticDataTestCase, get_reference_branch, get_reference_company
+from ir.tests.test_helpers import (
+	IRSyntheticDataTestCase,
+	get_reference_branch,
+	get_reference_company,
+	get_reference_offence_outcome,
+)
 
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
 # Use these module variables to add/remove to/from that list
 #
-# Poor Performance has no validate()/before_submit()/on_submit() overrides
-# of its own (its controller is just `class PoorPerformance(Document):
-# pass`) - so these tests only exercise required-field validation and the
-# standard insert/submit lifecycle. Every one of its own Link-field targets
-# (plus its Table children's own Link targets) is ignored here - this test
-# builds its own minimal, synthetic fixtures via make_employee()/
-# get_reference_*() instead of letting Frappe recursively auto-generate
-# them, since that walk pulls in erpnext/hrms's own legacy test-bootstrap
-# code which assumes a pristine site and collides with this site's real
-# Company/Fiscal Year/Employee data.
+# Poor Performance's only controller logic is before_submit's
+# require_outcome_before_submit guard - so these tests exercise
+# required-field validation and the insert/submit lifecycle (including that
+# guard). Every one of its own Link-field targets (plus its Table children's
+# own Link targets) is ignored here - this test builds its own minimal,
+# synthetic fixtures via make_employee()/get_reference_*() instead of
+# letting Frappe recursively auto-generate them, since that walk pulls in
+# erpnext/hrms's own legacy test-bootstrap code which assumes a pristine
+# site and collides with this site's real Company/Fiscal Year/Employee
+# data.
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Company",
@@ -70,6 +75,9 @@ class IntegrationTestPoorPerformance(IRSyntheticDataTestCase):
 	def test_basic_insert_and_submit_lifecycle(self):
 		employee = self.make_employee()
 		complainant = self.make_employee()
+		outcome = get_reference_offence_outcome()
+		if not outcome:
+			self.skipTest("No Offence Outcome exists on this site.")
 
 		doc = self._make_poor_performance(employee, complainant)
 		self.assertTrue(doc.name.startswith("PERF-"))
@@ -77,5 +85,17 @@ class IntegrationTestPoorPerformance(IRSyntheticDataTestCase):
 		self.assertEqual(doc.employee, employee.name)
 		self.assertEqual(doc.complainant, complainant.name)
 
+		# require_outcome_before_submit blocks submit without these.
+		doc.outcome = outcome
+		doc.outcome_date = nowdate()
 		doc.submit()
 		self.assertEqual(doc.docstatus, 1)
+
+	def test_submit_without_outcome_is_blocked(self):
+		employee = self.make_employee()
+		complainant = self.make_employee()
+
+		doc = self._make_poor_performance(employee, complainant)
+
+		with self.assertRaises(frappe.ValidationError):
+			doc.submit()

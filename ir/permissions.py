@@ -6,7 +6,7 @@ from __future__ import annotations
 import frappe
 from frappe import _
 
-IR_ROLE_ORDER = ("IR Manager", "IR Officer", "IR User")
+IR_ROLE_ORDER = ("HR Manager", "IR Officer", "IR User")
 PROTECTED_PERMISSION_TYPES = {
     None,
     "read",
@@ -149,8 +149,11 @@ def restricted_designations_for_user(user: str | None = None) -> list[str]:
     if not role:
         return []
 
+    # Field name kept as "ir_manager_restrictions" even though the role it
+    # now maps to is "HR Manager" - renaming the child-table field would
+    # need its own data-migration patch, not just this role swap.
     parentfield_by_role = {
-        "IR Manager": "ir_manager_restrictions",
+        "HR Manager": "ir_manager_restrictions",
         "IR Officer": "ir_officer_restrictions",
         "IR User": "ir_user_restrictions",
     }

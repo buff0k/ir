@@ -1,0 +1,213 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "prompt",
+ "creation": "2024-07-09 10:27:03.067034",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "disc_offence_outcome_sec",
+  "disc_offence_out",
+  "iswarning",
+  "issuspension",
+  "isdemotion",
+  "istermination",
+  "ispaydeduction",
+  "ispayreduction",
+  "isnotguilty",
+  "iscancellation",
+  "expires_or_lapses",
+  "is_a_performance_improvement",
+  "is_a_grievance_without_foundation",
+  "is_not_incapacitated",
+  "expiry_days",
+  "severity_rank"
+ ],
+ "fields": [
+  {
+   "fieldname": "disc_offence_outcome_sec",
+   "fieldtype": "Section Break",
+   "label": "Disciplinary Offence Outcome"
+  },
+  {
+   "fieldname": "disc_offence_out",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Outcome:",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "Is the outcome of the type warning, such as a written or verbal warning?",
+   "fieldname": "iswarning",
+   "fieldtype": "Check",
+   "label": "Is a warning"
+  },
+  {
+   "default": "0",
+   "description": "Is the outcome of such a nature that it results in the temporary suspension of employment?",
+   "fieldname": "issuspension",
+   "fieldtype": "Check",
+   "label": "Is a suspension"
+  },
+  {
+   "default": "0",
+   "description": "Is the outcome a demotion to a lesser or alternative position?",
+   "fieldname": "isdemotion",
+   "fieldtype": "Check",
+   "label": "Is a demotion"
+  },
+  {
+   "default": "0",
+   "description": "Does the outcome result in the termination of employment?",
+   "fieldname": "istermination",
+   "fieldtype": "Check",
+   "label": "Is a termination"
+  },
+  {
+   "default": "0",
+   "description": "Does the outcome result in any deduction from- or witholding of- payment?",
+   "fieldname": "ispaydeduction",
+   "fieldtype": "Check",
+   "label": "Is a pay deduction"
+  },
+  {
+   "default": "0",
+   "description": "Does the outcome mean that the person is not guilty of an offence?",
+   "fieldname": "isnotguilty",
+   "fieldtype": "Check",
+   "label": "Is a finding of not guilty"
+  },
+  {
+   "default": "0",
+   "description": "Does the outcome expire or lapse after a period?",
+   "fieldname": "expires_or_lapses",
+   "fieldtype": "Check",
+   "label": "Expires or Lapses"
+  },
+  {
+   "fieldname": "expiry_days",
+   "fieldtype": "Data",
+   "label": "Expiry Period (In Days)"
+  },
+  {
+   "default": "0",
+   "description": "Is this outcome intended to provide reasons for why action was cancelled?",
+   "fieldname": "iscancellation",
+   "fieldtype": "Check",
+   "label": "Is a cancellation"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_a_performance_improvement",
+   "fieldtype": "Check",
+   "label": "Is a Performance Improvement"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_a_grievance_without_foundation",
+   "fieldtype": "Check",
+   "label": "Is a Grievance without Foundation"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_not_incapacitated",
+   "fieldtype": "Check",
+   "label": "Is not Incapacitated"
+  },
+  {
+   "default": "0",
+   "fieldname": "severity_rank",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Severity Rank"
+  },
+  {
+   "default": "0",
+   "fieldname": "ispayreduction",
+   "fieldtype": "Check",
+   "label": "Is a pay reduction"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Disciplinary Offence",
+   "link_fieldname": "sanction_on_first_offence"
+  },
+  {
+   "link_doctype": "Disciplinary Offence",
+   "link_fieldname": "sanction_on_second_offence"
+  },
+  {
+   "link_doctype": "Disciplinary Offence",
+   "link_fieldname": "sanction_on_third_offence"
+  },
+  {
+   "link_doctype": "Disciplinary Offence",
+   "link_fieldname": "sanction_on_fourth_offence"
+  }
+ ],
+ "modified": "2026-10-31 10:56:51.458321",
+ "modified_by": "Administrator",
+ "module": "ir_setup",
+ "name": "Offence Outcome",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR User",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "IR Officer",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "disc_offence_out",
+ "track_changes": 1
+}

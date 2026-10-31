@@ -1,0 +1,533 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
+import frappe
+
+from ir.ir_vat.doctype.vat201_return.vat201_return import VAT201Return
+from ir.ir_vat.item_sync import sync_item_zero_rated_flag
+from ir.ir_vat.setup import (
+	CLASSIFICATION_OPTIONS,
+	DEFAULT_VAT_VENDOR_TYPES,
+	ITEM_VAT_CATEGORY_OPTIONS,
+	ensure_item_tax_templates,
+	ensure_vat_custom_fields,
+	get_default_vat_vendor_type,
+	get_vat_settings,
+	is_valid_item_tax_account,
+	migrate_legacy_vat_account_rows,
+	seed_vat_vendor_types,
+	sync_vat_accounts,
+)
+from ir.ir_vat.tax_invoice import (
+	FULL_TAX_INVOICE_THRESHOLD,
+	NO_TAX_INVOICE_THRESHOLD,
+	build_sales_invoice_print_profile,
+	get_invoice_type,
+)
+from ir.tests.compat import UnitTestCase
+
+
+class TestSouthAfricaVATSettings(UnitTestCase):
+	def test_vat_custom_field_options_exist(self):
+		self.assertIn("Output - A Standard rate (excl capital goods)", CLASSIFICATION_OPTIONS.split("\n"))
+		self.assertIn("Export Zero Rated", ITEM_VAT_CATEGORY_OPTIONS.split("\n"))
+
+	def test_seed_vat_vendor_types_returns_expected_defaults(self):
+		with (
+			patch("frappe.db.get_value", side_effect=[None, None, None, None, None]),
+			patch("frappe.get_doc") as get_doc,
+		):
+			inserted = []
+			for spec in DEFAULT_VAT_VENDOR_TYPES:
+				doc = frappe._dict(spec)
+				doc.flags = frappe._dict()
+				doc.insert = lambda spec=spec: inserted.append(spec["vendor_type"])
+				get_doc.side_effect = lambda payload, _doc=doc: _doc
+			result = seed_vat_vendor_types()
+		self.assertEqual(len(DEFAULT_VAT_VENDOR_TYPES), result["created"])
+
+	def test_default_vat_vendor_type_prefers_standard(self):
+		with patch("frappe.db.get_value", side_effect=["Standard"]):
+			self.assertEqual("Standard", get_default_vat_vendor_type())
+
+	def test_tax_invoice_threshold_profiles(self):
+		self.assertEqual("no_tax_invoice_required", get_invoice_type(NO_TAX_INVOICE_THRESHOLD))
+		self.assertEqual("abridged_tax_invoice", get_invoice_type(NO_TAX_INVOICE_THRESHOLD + 1))
+		self.assertEqual("full_tax_invoice", get_invoice_type(FULL_TAX_INVOICE_THRESHOLD + 1))
+
+	def test_sales_invoice_profile_only_overrides_for_sa_company(self):
+		with patch("ir.ir_vat.tax_invoice.is_company_in_south_africa", return_value=True):
+			profile = build_sales_invoice_print_profile(company="Test Company", grand_total=6000)
+		self.assertTrue(profile["override_default"])
+		self.assertEqual("SA Full Tax Invoice", profile["print_format"])
+
+		with patch("ir.ir_vat.tax_invoice.is_company_in_south_africa", return_value=True):
+			profile = build_sales_invoice_print_profile(company="Test Company", grand_total=500)
+		self.assertEqual("SA Abridged Tax Invoice", profile["print_format"])
+
+		with patch("ir.ir_vat.tax_invoice.is_company_in_south_africa", return_value=False):
+			profile = build_sales_invoice_print_profile(company="Test Company", grand_total=6000)
+		self.assertFalse(profile["override_default"])
+		self.assertIsNone(profile["print_format"])
+
+	def test_sync_vat_accounts_only_tracks_erpnext_vat_accounts(self):
+		settings = frappe._dict(
+			{
+				"company": "Test Company",
+				"output_vat_account": "VAT Output - TC",
+				"input_vat_account": "VAT Input - TC",
+				"vat_accounts": [],
+				"append": lambda fieldname, value: settings.vat_accounts.append(frappe._dict(value)),
+			}
+		)
+		tracked = sync_vat_accounts(settings)
+		self.assertEqual(
+			["VAT Output - TC", "VAT Input - TC"],
+			tracked,
+		)
+		self.assertEqual("South Africa VAT Account", settings.vat_accounts[0].doctype)
+
+	def test_editable_vat_registration_number_syncs_to_company_fields(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.vat_registration_number = "412 345-6789"
+
+		with (
+			patch("frappe.has_permission") as has_permission,
+			patch("frappe.db.get_value", return_value=None),
+			patch("frappe.db.set_value") as set_value,
+		):
+			doc.validate_company_vat_number()
+			doc.sync_vat_registration_number_to_company()
+
+		self.assertEqual("4123456789", doc.vat_registration_number)
+		has_permission.assert_called_once_with("Company", "write", "Test Company", throw=True)
+		set_value.assert_called_once_with(
+			"Company",
+			"Test Company",
+			{"za_vat_number": "4123456789", "tax_id": "4123456789"},
+		)
+
+	def test_vat_registration_default_does_not_overwrite_user_edit(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.vat_registration_number = "4987654321"
+
+		with patch(
+			"frappe.db.get_value",
+			return_value=frappe._dict(za_vat_number="4123456789", tax_id="4098765432"),
+		):
+			doc._default_vat_registration_number_from_company()
+
+		self.assertEqual("4987654321", doc.vat_registration_number)
+
+		doc.vat_registration_number = ""
+		with patch(
+			"frappe.db.get_value",
+			return_value=frappe._dict(za_vat_number="", tax_id="4098765432"),
+		):
+			doc._default_vat_registration_number_from_company()
+
+		self.assertEqual("4098765432", doc.vat_registration_number)
+
+	def test_vat_settings_feedback_includes_configuration_and_next_steps(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.vat_registration_number = "4123456789"
+		doc.vat_vendor_type = "Standard"
+		doc.vat_filing_frequency = "Bi-Monthly"
+		doc.output_vat_account = "VAT Output - TC"
+		doc.input_vat_account = "VAT Input - TC"
+
+		result = doc.get_configuration_feedback(
+			title="VAT Accounts Synced",
+			message="Tracked VAT tax accounts were synced.",
+			tracked=["VAT Output - TC", "VAT Input - TC"],
+			templates={"standard_rate_non_capital": "SA Standard Rated Sales 15% - Test Company"},
+		)
+
+		self.assertEqual("VAT Accounts Synced", result["title"])
+		self.assertEqual(["VAT Output - TC", "VAT Input - TC"], result["vat_accounts"])
+		self.assertIn("next_steps", result)
+		self.assertTrue(any(row["label"] == "Company" and row["value"] == "Test Company" for row in result["details"]))
+
+	def test_vat_settings_feedback_keeps_success_indicator_with_review_items(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.vat_registration_number = "1123456789"
+
+		result = doc.get_configuration_feedback(
+			title="Recommended VAT Setup Applied",
+			message="Recommended VAT templates and VAT account tracking were applied.",
+		)
+
+		self.assertEqual("green", result["indicator"])
+		self.assertTrue(result["warnings"])
+
+	def test_optional_vat_setup_gaps_do_not_msgprint_on_save_paths(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.vat_registration_number = ""
+		doc.item_tax_template_account = None
+
+		with patch("frappe.msgprint") as msgprint:
+			doc.validate_item_tax_template_account()
+			doc.validate_company_vat_number()
+			ensure_item_tax_templates(doc, "Test Company")
+
+		msgprint.assert_not_called()
+
+	def test_bootstrap_company_vat_setup_returns_structured_feedback(self):
+		from ir.ir_vat.setup import bootstrap_company_vat_setup
+
+		settings = frappe._dict(
+			company="Test Company",
+			name="Test Company",
+			output_vat_account="VAT Output - TC",
+			input_vat_account="VAT Input - TC",
+			vat_accounts=[],
+			flags=frappe._dict(),
+			is_new=lambda: False,
+			save=lambda: None,
+		)
+		settings.append = lambda fieldname, value: settings.vat_accounts.append(frappe._dict(value))
+		settings.get_configuration_feedback = lambda **kwargs: {
+			"title": kwargs["title"],
+			"vat_accounts": kwargs["tracked"],
+			"templates": kwargs["templates"],
+		}
+
+		with (
+			patch("ir.ir_vat.setup.frappe.only_for") as only_for,
+			patch("ir.ir_vat.setup.get_vat_settings", return_value=settings),
+			patch(
+				"ir.ir_vat.setup.ensure_default_tax_templates",
+				return_value={"standard_rate_non_capital": "SA Standard Rated Sales 15% - Test Company"},
+			),
+		):
+			result = bootstrap_company_vat_setup("Test Company")
+
+		only_for.assert_called_once_with("System Manager")
+		self.assertEqual("Recommended VAT Setup Applied", result["title"])
+		self.assertEqual(["VAT Output - TC", "VAT Input - TC"], result["vat_accounts"])
+		self.assertIn("standard_rate_non_capital", result["templates"])
+
+	def test_item_zero_rated_flag_syncs_from_sa_vat_category(self):
+		item = frappe._dict(custom_sa_vat_category="Zero Rated", is_zero_rated=0)
+		sync_item_zero_rated_flag(item)
+		self.assertEqual(1, item.is_zero_rated)
+
+		item.custom_sa_vat_category = "Exempt"
+		sync_item_zero_rated_flag(item)
+		self.assertEqual(0, item.is_zero_rated)
+
+	def test_ensure_vat_custom_fields_includes_erpnext_zero_rated_fields(self):
+		with patch("ir.ir_vat.setup.create_custom_fields") as create_custom_fields:
+			ensure_vat_custom_fields()
+
+		custom_fields = create_custom_fields.call_args.args[0]
+		self.assertEqual("is_zero_rated", custom_fields["Item"][0]["fieldname"])
+		self.assertEqual("is_zero_rated", custom_fields["Sales Invoice Item"][0]["fieldname"])
+		self.assertEqual("is_zero_rated", custom_fields["Purchase Invoice Item"][0]["fieldname"])
+
+	def test_legacy_vat_account_rows_migrate_to_erpnext_child_doctype(self):
+		row = frappe._dict(parent="Test VAT Settings", parenttype="South Africa VAT Settings", account="VAT Output - TC", idx=1)
+		inserted = []
+
+		with (
+			patch("frappe.db.table_exists", return_value=True),
+			patch("frappe.get_all", return_value=[row]),
+			patch("frappe.db.exists", return_value=False),
+			patch("frappe.get_doc") as get_doc,
+		):
+			doc = frappe._dict(insert=lambda ignore_permissions=False: inserted.append(ignore_permissions))
+			get_doc.return_value = doc
+			migrated = migrate_legacy_vat_account_rows()
+
+		self.assertEqual(1, migrated)
+		self.assertEqual([True], inserted)
+
+	def test_vat201_return_aggregates_from_transaction_rows(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.transactions = [
+			frappe._dict(
+				{
+					"classification": "Output - A Standard rate (excl capital goods)",
+					"classification_status": "Classified",
+					"incl_tax_amount": 100,
+					"tax_amount": 15,
+					"is_cancelled": 0,
+				}
+			),
+			frappe._dict(
+				{
+					"classification": "Output - C Zero Rated (excl goods exported)",
+					"classification_status": "Classified",
+					"incl_tax_amount": 40,
+					"tax_amount": 0,
+					"is_cancelled": 0,
+				}
+			),
+			frappe._dict(
+				{
+					"classification": "Input - C Other goods supplied to you (excl capital goods)",
+					"classification_status": "Classified",
+					"incl_tax_amount": 60,
+					"tax_amount": 9,
+					"is_cancelled": 0,
+				}
+			),
+		]
+		doc.change_in_use_output = 0
+		doc.bad_debts_output = 0
+		doc.other_output = 0
+		doc.change_in_use_input = 0
+		doc.bad_debts_input = 0
+		doc.diesel_refund = 0
+
+		VAT201Return.calculate_totals(doc)
+
+		self.assertEqual(100, doc.standard_rated_supplies)
+		self.assertEqual(40, doc.zero_rated_supplies)
+		self.assertEqual(15, doc.standard_rated_output)
+		self.assertEqual(9, doc.other_goods_services_input)
+		self.assertEqual(6, doc.vat_payable)
+
+	def test_blank_vat_rate_rows_are_replaced_with_defaults(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.standard_vat_rate = 15
+		doc.enable_zero_rated_items = 1
+		doc.enable_exempt_items = 1
+		doc.append("vat_rates", {"rate_name": "", "rate": 0})
+
+		doc.validate_vat_rates()
+
+		rate_names = [row.rate_name for row in doc.vat_rates]
+		self.assertIn("Standard Rate", rate_names)
+		self.assertIn("Zero Rate", rate_names)
+		self.assertIn("Exempt", rate_names)
+
+	def test_company_scope_defaults_follow_company(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.default_vat_report_company = "Another Company"
+
+		with patch("ir.ir_vat.doctype.south_africa_vat_settings.south_africa_vat_settings.get_default_vat_vendor_type", return_value="Standard"):
+			doc.ensure_company_default()
+
+		self.assertEqual("Test Company", doc.default_vat_report_company)
+
+	def test_vat_filing_day_must_be_between_1_and_31(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.vat_filing_day = 0
+
+		with self.assertRaises(frappe.ValidationError):
+			doc.validate_vat_filing_day()
+
+		doc.vat_filing_day = 32
+		with self.assertRaises(frappe.ValidationError):
+			doc.validate_vat_filing_day()
+
+	def test_item_tax_account_validation_helper_accepts_valid_types(self):
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch("frappe.get_cached_value", return_value=("Tax", "Test Company")),
+		):
+			self.assertTrue(is_valid_item_tax_account("VAT Tax - TC", "Test Company"))
+
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch("frappe.get_cached_value", return_value=("Bank", "Test Company")),
+		):
+			self.assertFalse(is_valid_item_tax_account("Bank - TC", "Test Company"))
+
+	def test_validate_item_tax_template_account_requires_same_company(self):
+		doc = frappe.new_doc("South Africa VAT Settings")
+		doc.company = "Test Company"
+		doc.item_tax_template_account = "Tax - OTH"
+
+		with (
+			patch("frappe.db.exists", return_value=True),
+			patch("frappe.db.get_value", return_value="Other Company"),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				doc.validate_item_tax_template_account()
+
+	def test_get_vat_settings_uses_company_scoped_lookup(self):
+		expected = frappe._dict(name="Test Settings")
+		with (
+			patch("ir.ir_vat.setup.get_default_company", return_value="Test Company"),
+			patch("frappe.db.get_value", return_value="Test Settings"),
+			patch("frappe.get_doc", return_value=expected),
+		):
+			result = get_vat_settings()
+
+		self.assertEqual(expected, result)
+
+	def test_sales_invoice_rows_use_posted_tax_evidence(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.company = "Test Company"
+		doc.from_date = "2026-04-01"
+		doc.to_date = "2026-04-30"
+		settings = frappe._dict(output_vat_account="VAT Output - TC")
+
+		with patch("frappe.get_all") as get_all:
+			get_all.side_effect = [
+				[
+					frappe._dict(
+						{
+							"name": "SINV-0001",
+							"posting_date": "2026-04-10",
+							"taxes_and_charges": "SA Standard Rated Sales 15% - Test Company",
+							"base_net_total": 100,
+							"is_return": 0,
+						}
+					)
+				],
+				[
+					frappe._dict({"base_net_amount": 100, "custom_sa_vat_category": "Standard Rated"}),
+				],
+				[
+					frappe._dict({"name": "TAX-1", "rate": 15, "tax_amount": 15, "total": 115}),
+				],
+			]
+			rows = VAT201Return.get_sales_invoice_rows(doc, settings)
+
+		self.assertEqual(1, len(rows))
+		self.assertEqual(15, rows[0]["tax_amount"])
+		self.assertEqual(115, rows[0]["incl_tax_amount"])
+		self.assertEqual("Classified", rows[0]["classification_status"])
+
+	def test_purchase_zero_rated_rows_do_not_create_input_vat(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.company = "Test Company"
+		doc.from_date = "2026-04-01"
+		doc.to_date = "2026-04-30"
+		settings = frappe._dict(input_vat_account="VAT Input - TC")
+
+		with patch("frappe.get_all") as get_all:
+			get_all.side_effect = [
+				[
+					frappe._dict(
+						{
+							"name": "PINV-0001",
+							"posting_date": "2026-04-10",
+							"taxes_and_charges": "",
+							"base_net_total": 200,
+							"is_return": 0,
+						}
+					)
+				],
+				[
+					frappe._dict({"base_net_amount": 200, "custom_sa_vat_category": "Zero Rated"}),
+				],
+				[],
+			]
+			rows = VAT201Return.get_purchase_invoice_rows(doc, settings)
+
+		self.assertEqual([], rows)
+
+	def test_taxable_template_without_posted_vat_is_reviewed(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.company = "Test Company"
+		doc.from_date = "2026-04-01"
+		doc.to_date = "2026-04-30"
+		settings = frappe._dict(input_vat_account="VAT Input - TC", input_goods_local="SA Standard Rated Purchases 15% - Test Company")
+
+		with patch("frappe.get_all") as get_all:
+			get_all.side_effect = [
+				[
+					frappe._dict(
+						{
+							"name": "PINV-0002",
+							"posting_date": "2026-04-11",
+							"taxes_and_charges": "SA Standard Rated Purchases 15% - Test Company",
+							"base_net_total": 200,
+							"is_return": 0,
+						}
+					)
+				],
+				[],
+				[],
+			]
+			rows = VAT201Return.get_purchase_invoice_rows(doc, settings)
+
+		self.assertEqual(1, len(rows))
+		self.assertEqual("Needs Review", rows[0]["classification_status"])
+
+	def test_review_rows_do_not_count_in_totals(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.transactions = [
+			frappe._dict(
+				{
+					"classification": "Output - A Standard rate (excl capital goods)",
+					"classification_status": "Needs Review",
+					"incl_tax_amount": 100,
+					"tax_amount": 15,
+					"is_cancelled": 0,
+				}
+			)
+		]
+		doc.change_in_use_output = 0
+		doc.bad_debts_output = 0
+		doc.other_output = 0
+		doc.change_in_use_input = 0
+		doc.bad_debts_input = 0
+		doc.diesel_refund = 0
+
+		VAT201Return.calculate_totals(doc)
+
+		self.assertEqual(0, doc.total_output_tax)
+		self.assertEqual(0, doc.vat_payable)
+
+	def test_vat201_transaction_feedback_lists_counts_and_next_steps(self):
+		doc = frappe.new_doc("VAT201 Return")
+		doc.company = "Test Company"
+		doc.submission_period = "01/04/2026 to 30/04/2026"
+		doc.vat_payable = 15
+		doc.vat_refundable = 0
+
+		result = doc.get_vat_transactions_feedback(transaction_count=2, unclassified_count=1)
+
+		self.assertEqual("VAT Transactions Fetched", result["title"])
+		self.assertEqual("orange", result["indicator"])
+		self.assertEqual(2, result["transaction_count"])
+		self.assertEqual(1, result["unclassified_count"])
+		self.assertTrue(result["warnings"])
+
+	def test_tax_invoice_readiness_uses_company_za_vat_number_fallback(self):
+		from ir.ir_vat.tax_invoice import check_tax_invoice_readiness
+
+		invoice = SimpleNamespace(
+			name="SINV-TEST",
+			company="Test Company",
+			base_grand_total=6000,
+			grand_total=6000,
+			is_pos=0,
+			is_return=0,
+			company_address_display="1 Test Street",
+			company_tax_id="",
+			customer_name="Test Customer",
+			address_display="2 Customer Street",
+			posting_date="2026-04-10",
+			items=[SimpleNamespace(description="Consulting", qty=1)],
+			total_taxes_and_charges=900,
+		)
+
+		def get_value(doctype, name, fieldname=None, **kwargs):
+			if doctype == "Company" and fieldname == "country":
+				return "South Africa"
+			if doctype == "Company" and fieldname == ["za_vat_number", "tax_id"]:
+				return frappe._dict(za_vat_number="4123456789", tax_id="")
+			return None
+
+		with (
+			patch("frappe.get_doc", return_value=invoice) as get_doc,
+			patch("frappe.db.get_value", side_effect=get_value),
+		):
+			result = check_tax_invoice_readiness("SINV-TEST")
+
+		get_doc.assert_called_once_with("Sales Invoice", "SINV-TEST", check_permission=True)
+		supplier_vat_check = next(row for row in result["checks"] if row["key"] == "supplier_vat_number")
+		self.assertTrue(supplier_vat_check["ok"])
+		self.assertEqual("4123456789", supplier_vat_check["detail"])

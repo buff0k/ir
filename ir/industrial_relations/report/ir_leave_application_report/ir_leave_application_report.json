@@ -58,7 +58,7 @@
  "idx": 1,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-05-26 06:06:27.711599",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Leave Application Report",
@@ -71,9 +71,6 @@
  "roles": [
   {
    "role": "System Manager"
-  },
-  {
-   "role": "IR Manager"
   },
   {
    "role": "IR Officer"

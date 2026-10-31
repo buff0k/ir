@@ -3020,3 +3020,70 @@ button.her-mini-list {
   cursor: pointer;
 }
 
+/*
+ * Ported from za_local's public/css/za_local.css as part of absorbing
+ * za_local into ir.
+ */
+
+/*
+ * Desk workspace sidebar: collapsible section children live under .section-item > .nested-container.
+ * Hide their left icons so nested workspace links read as a plain indented list.
+ * Cosmetic only — this applies desk-wide, not just to ir's own workspaces.
+ */
+.body-sidebar .section-item .nested-container .sidebar-item-icon,
+.body-sidebar .nested-container .sidebar-item-icon {
+	display: none !important;
+	width: 0 !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+}
+
+/*
+ * Hide the unused "Flexible Benefits" fields (cafeteria-style benefits are not
+ * used in SA payroll). Authoritative hiding is done server-side by property
+ * setters (ir's fixtures/property_setter.json); this CSS is only a visual fallback.
+ *
+ * Two constraints make the selectors below deliberately narrow:
+ *
+ * 1. Hide the FIELDS only — never their containing .form-section. On Salary
+ *    Structure, max_benefits shares a section with Payroll Frequency, Salary
+ *    Component, Hour Rate and "Salary Slip Based on Timesheet", so a
+ *    section-level rule would hide the only UI for timesheet-based structures.
+ * 2. Scope to the two payroll DocTypes. This stylesheet is loaded on every desk
+ *    page (app_include_css), and max_benefits / employee_benefits also exist on
+ *    Employee Benefit Application — where employee_benefits is mandatory and is
+ *    the entire point of the form. An unscoped rule makes that DocType
+ *    unusable and unsubmittable with no visible cause.
+ *
+ * .page-container carries data-page-route = the DocType name for form views
+ * (frappe/public/js/frappe/views/container.js -> add_page, called from
+ * views/formview.js with the doctype).
+ */
+.page-container[data-page-route="Salary Structure"] [data-fieldname="employee_benefits"],
+.page-container[data-page-route="Salary Structure"] [data-fieldname="max_benefits"],
+.page-container[data-page-route="Salary Structure Assignment"] [data-fieldname="employee_benefits"],
+.page-container[data-page-route="Salary Structure Assignment"] [data-fieldname="max_benefits"] {
+	display: none !important;
+}
+
+/*
+ * employee_benefits_section is a Section Break that exists only on Salary
+ * Structure Assignment, where it contains nothing but the two fields above,
+ * so hiding the whole section is safe and needs no scoping.
+ */
+[data-fieldname="employee_benefits_section"] {
+	display: none !important;
+}
+
+/*
+ * Frappe's onboarding panel is hardcoded to the lower-left in core.
+ * We anchor it to the lower-right so it doesn't compete with the workspace sidebar.
+ */
+.onb-panel,
+.expanded .onb-panel {
+	left: auto !important;
+	right: 24px !important;
+}
+

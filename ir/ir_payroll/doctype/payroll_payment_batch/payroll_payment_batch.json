@@ -1,0 +1,218 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2025-01-28 16:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "amended_from",
+  "payroll_entry",
+  "company",
+  "column_break_2",
+  "payment_date",
+  "bank_account",
+  "section_break_4",
+  "bank_format",
+  "total_employees",
+  "total_amount",
+  "column_break_8",
+  "eft_file_generated",
+  "eft_file_path",
+  "eft_generated_on",
+  "fnb_hash_total",
+  "eft_source_hash",
+  "section_break_10",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "PAY-BATCH-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Payroll Payment Batch",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "payroll_entry",
+   "fieldtype": "Link",
+   "label": "Payroll Entry",
+   "options": "Payroll Entry",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "payroll_entry.company",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_date",
+   "fieldtype": "Date",
+   "label": "Payment Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bank_account",
+   "fieldtype": "Link",
+   "label": "Bank Account",
+   "options": "Bank Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "EFT Details"
+  },
+  {
+   "default": "FNB OBE CSV",
+   "description": "Only the verified FNB Online Banking Enterprise Payments CSV layout is automated. Other banks require controlled manual onboarding against their current official specification.",
+   "fieldname": "bank_format",
+   "fieldtype": "Select",
+   "label": "Bank Format",
+   "options": "FNB OBE CSV\nABSA\nNedbank\nStandard Bank",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_employees",
+   "fieldtype": "Int",
+   "label": "Total Employees",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "eft_file_generated",
+   "fieldtype": "Check",
+   "label": "EFT File Generated",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "eft_file_path",
+   "fieldtype": "Attach",
+   "label": "Private EFT File",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "eft_generated_on",
+   "fieldtype": "Datetime",
+   "label": "EFT Generated On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "fnb_hash_total",
+   "fieldtype": "Data",
+   "label": "FNB Hash Total",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "eft_source_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "EFT Source Hash",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "modified": "2026-10-30 10:12:13.963668",
+ "modified_by": "Administrator",
+ "module": "ir_payroll",
+ "name": "Payroll Payment Batch",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

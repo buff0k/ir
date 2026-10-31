@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "Isambane Mining",
  "letterhead": null,
- "modified": "2025-07-28 09:24:38.862407",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Trade Union Membership",
@@ -32,9 +32,6 @@
   },
   {
    "role": "IR User"
-  },
-  {
-   "role": "IR Manager"
   },
   {
    "role": "Production User"

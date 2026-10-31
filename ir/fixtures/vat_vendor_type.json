@@ -1,0 +1,57 @@
+[
+ {
+  "description": "Standard South African VAT vendor filing through the normal VAT system.",
+  "docstatus": 0,
+  "doctype": "VAT Vendor Type",
+  "filing_frequency": "Bi-Monthly",
+  "modified": "2026-04-30 14:33:04.216636",
+  "name": "Standard",
+  "notes": "Default standard VAT registration profile.",
+  "turnover_threshold": 2300000.0,
+  "vendor_type": "Standard"
+ },
+ {
+  "description": "Smaller VAT vendor profile that may prefer lighter filing cadence where applicable.",
+  "docstatus": 0,
+  "doctype": "VAT Vendor Type",
+  "filing_frequency": "Quarterly",
+  "modified": "2026-04-30 14:33:04.246865",
+  "name": "Micro Business",
+  "notes": "Use only if the practitioner confirms this filing treatment applies.",
+  "turnover_threshold": 2300000.0,
+  "vendor_type": "Micro Business"
+ },
+ {
+  "description": "Small business VAT vendor profile using the standard registration threshold.",
+  "docstatus": 0,
+  "doctype": "VAT Vendor Type",
+  "filing_frequency": "Bi-Monthly",
+  "modified": "2026-04-30 14:33:04.250697",
+  "name": "Small Business",
+  "notes": "General-purpose small business VAT profile.",
+  "turnover_threshold": 2300000.0,
+  "vendor_type": "Small Business"
+ },
+ {
+  "description": "Voluntary VAT registration profile below the compulsory threshold.",
+  "docstatus": 0,
+  "doctype": "VAT Vendor Type",
+  "filing_frequency": "Bi-Monthly",
+  "modified": "2026-04-30 14:33:04.253915",
+  "name": "Voluntary",
+  "notes": "Use when the company has voluntarily registered for VAT.",
+  "turnover_threshold": 120000.0,
+  "vendor_type": "Voluntary"
+ },
+ {
+  "description": "Foreign electronic services or offshore supplier VAT profile.",
+  "docstatus": 0,
+  "doctype": "VAT Vendor Type",
+  "filing_frequency": "Bi-Monthly",
+  "modified": "2026-04-30 14:33:04.256821",
+  "name": "Foreign Supplier",
+  "notes": "Use only where the practitioner confirms the supplier falls into the foreign supplier VAT regime.",
+  "turnover_threshold": 2300000.0,
+  "vendor_type": "Foreign Supplier"
+ }
+]

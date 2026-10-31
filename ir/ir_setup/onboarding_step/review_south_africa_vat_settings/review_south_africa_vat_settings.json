@@ -1,0 +1,22 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create or open company VAT settings",
+ "creation": "2026-04-22 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "form_tour": "South Africa VAT Settings Form Tour",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-30 10:50:56.268551",
+ "modified_by": "Administrator",
+ "name": "Review South Africa VAT Settings",
+ "owner": "Administrator",
+ "reference_document": "South Africa VAT Settings",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Create or Open Company VAT Settings",
+ "validate_action": 0,
+ "module": "ir_setup"
+}
