@@ -2,7 +2,7 @@ frappe.ui.form.on('Workplace Injury', {
 	refresh: function(frm) {
 		// Check if HRMS is installed
 		frappe.call({
-			method: 'za_local.utils.hrms_detection.is_hrms_installed',
+			method: 'ir.industrial_relations.utils.is_hrms_installed',
 			callback: function(r) {
 				if (!r.message) {
 					// Hide leave-related fields if HRMS is not installed
