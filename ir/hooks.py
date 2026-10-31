@@ -45,6 +45,15 @@ fixtures = [
 		"Anonymous Report Investigator"
 	]]]},
     {"dt": "Client Script", "filters": [["dt", "in", ["Employee", "Job Requisition"]]]},
+	{"dt": "Custom HTML Block", "filters": [["name", "in", ["EEA2 Employment Equity Widget"]]]},
+	{"dt": "Custom DocPerm", "prefix": "hr_manager", "filters": [
+		["role", "=", "HR Manager"],
+		["parent", "in", [
+			"Employee", "Employee Type", "Account", "Data Export", "Branch",
+			"Company", "Job Requisition", "Department", "User", "Asset Category",
+			"Designation",
+		]],
+	]},
 	{"dt": "Custom DocPerm", "filters": [["role", "in", [
         "IR Officer",
 		"IR User",
