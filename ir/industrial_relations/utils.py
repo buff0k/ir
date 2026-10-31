@@ -13,6 +13,17 @@ from frappe.utils import escape_html, formatdate, get_url_to_form
 from ir import permissions
 
 
+@frappe.whitelist()
+def is_hrms_installed() -> bool:
+    """Whether the hrms app is installed on this site.
+
+    ir previously called za_local.utils.hrms_detection.is_hrms_installed for
+    this - za_local is uninstalled on every bench now, so this is ir's own
+    copy of the same check.
+    """
+    return "hrms" in (frappe.get_installed_apps() or [])
+
+
 def check_app_permission():
     """Control whether the IR app is shown on the Apps screen."""
     if frappe.session.user == "Administrator":
