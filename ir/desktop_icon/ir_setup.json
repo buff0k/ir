@@ -11,7 +11,7 @@
  "link_to": "IR Setup",
  "link_type": "Workspace Sidebar",
  "logo_url": "/assets/ir/desktop_icons/ir-setup.png",
- "modified": "2026-06-19 17:15:24.064840",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "name": "IR Setup",
  "owner": "Administrator",
@@ -20,9 +20,6 @@
  "roles": [
   {
    "role": "System Manager"
-  },
-  {
-   "role": "IR Manager"
   },
   {
    "role": "HR Manager"

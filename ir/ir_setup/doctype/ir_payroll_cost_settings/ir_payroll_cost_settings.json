@@ -25,7 +25,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 10:55:52.362368",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "ir_setup",
  "name": "IR Payroll Cost Settings",
@@ -46,7 +46,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "share": 1,
    "write": 1
   },

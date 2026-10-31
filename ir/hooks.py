@@ -37,7 +37,6 @@ app_include_css = ["/assets/ir/css/ir_ui.css"]
 app_include_js = ["/assets/ir/js/ir_feedback.js"]
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
-		"IR Manager",
         "IR Officer",
 		"IR User",
 		"Training Manager",
@@ -47,7 +46,6 @@ fixtures = [
 	]]]},
     {"dt": "Client Script", "filters": [["dt", "in", ["Employee", "Job Requisition"]]]},
 	{"dt": "Custom DocPerm", "filters": [["role", "in", [
-		"IR Manager",
         "IR Officer",
 		"IR User",
 		"Training Administrator",

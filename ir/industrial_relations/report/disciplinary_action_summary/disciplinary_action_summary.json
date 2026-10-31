@@ -49,7 +49,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letter_head": null,
- "modified": "2026-04-14 15:29:52.934829",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Disciplinary Action Summary",
@@ -60,7 +60,7 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "IR Officer"

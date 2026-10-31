@@ -8,7 +8,7 @@ frappe.ui.form.on("Poor Performance", {
     // docstring for why), so this is done via a real server-side query.
     frm.set_query("ir", () => ({
       query: "ir.industrial_relations.utils.filter_users_by_role",
-      filters: { roles: ["IR Manager", "IR Officer"] },
+      filters: { roles: ["HR Manager", "IR Officer"] },
     }));
   },
 
@@ -21,7 +21,7 @@ frappe.ui.form.on("Poor Performance", {
     toggle_outcome_period_fields(frm);
 
     if (
-      (frappe.user.has_role("IR Manager") ||
+      (frappe.user.has_role("HR Manager") ||
         frappe.user.has_role("IR Officer")) &&
       frm.doc.docstatus !== 2
     ) {

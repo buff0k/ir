@@ -1302,7 +1302,7 @@ def _new_employee_export_rows(company, from_date, to_date, branches=None):
 
 @frappe.whitelist()
 def download_new_employee_details(company, from_date, to_date, branches=None):
-    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.only_for(["System Manager", "HR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
     if isinstance(branches, str):
         branches = frappe.parse_json(branches) if branches else []
@@ -1337,7 +1337,7 @@ def download_report_pdf(html, company=None, from_date=None, to_date=None):
     page, plus frappe.utils.pdf.get_pdf's own hardening (JS execution and local
     file access are always disabled by that helper, regardless of options).
     """
-    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.only_for(["System Manager", "HR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
 
     import base64
@@ -1458,7 +1458,7 @@ def _snapshot_employee_row(row):
 def get_ee_level_employees(company, snapshot_date, level, employment_type="combined", branches=None):
     """The employees behind one Employment Equity table row - lets a reader
     verify a headcount directly rather than taking the row's number on trust."""
-    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.only_for(["System Manager", "HR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
     if isinstance(branches, str):
         branches = frappe.parse_json(branches) if branches else []
@@ -1484,7 +1484,7 @@ def get_esg_metric_employees(company, snapshot_date, metric_key, branches=None):
     """The employees currently matching one ESG measure, as at snapshot_date -
     the same per-employee check _explain_reduction uses to explain a drop, but
     for the full current headcount rather than just who left it."""
-    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.only_for(["System Manager", "HR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
     if isinstance(branches, str):
         branches = frappe.parse_json(branches) if branches else []
@@ -1653,7 +1653,7 @@ def _poor_performance_outcomes(company, employees, from_date, to_date):
 
 @frappe.whitelist()
 def get_report_data(company, from_date, to_date, branches=None):
-    frappe.only_for(["System Manager", "IR Manager", "IR Officer", "IR User"])
+    frappe.only_for(["System Manager", "HR Manager", "IR Officer", "IR User"])
     frappe.has_permission("Employee", "read", throw=True)
     if isinstance(branches, str):
         branches = frappe.parse_json(branches) if branches else []

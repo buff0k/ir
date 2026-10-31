@@ -20,7 +20,6 @@ def check_app_permission():
 
     required_roles = {
         "System Manager",
-        "IR Manager",
         "IR Officer",
         "IR User",
         "Payroll Manager",

@@ -16,7 +16,7 @@ frappe.ui.form.on("Appeal Against Outcome", {
     },
 
     refresh: function(frm) {
-        if (frappe.user.has_role("IR Manager")) {
+        if (frappe.user.has_role("HR Manager")) {
             frm.add_custom_button(__('Actions'), function() {}, 'Actions')
                 .addClass('btn-primary')
                 .attr('id', 'actions_dropdown');

@@ -45,7 +45,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-30 10:55:52.362368",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "ir_setup",
  "name": "Grounds for Appeal",
@@ -93,7 +93,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "share": 1,
    "submit": 1,
    "write": 1

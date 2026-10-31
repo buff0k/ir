@@ -25,10 +25,10 @@
  ],
  "fields": [
   {
-   "description": "Set Designations which the IR Manager Role is not permitted to access.",
+   "description": "Set Designations which the HR Manager Role is not permitted to access.",
    "fieldname": "ir_manager_restrictions",
    "fieldtype": "Table",
-   "label": "IR Manager",
+   "label": "HR Manager",
    "options": "IR Role Restriction Table"
   },
   {
@@ -126,7 +126,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 10:55:52.362368",
+ "modified": "2026-10-31 10:56:52.000000",
  "modified_by": "Administrator",
  "module": "ir_setup",
  "name": "IR Role Restrictions",
@@ -147,7 +147,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "select": 1,
    "share": 1,
    "write": 1

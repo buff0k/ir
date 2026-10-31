@@ -65,7 +65,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-27 12:14:08.479413",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR Training",
@@ -79,7 +79,7 @@
    "role": "System Manager"
   },
   {
-   "role": "IR Manager"
+   "role": "HR Manager"
   },
   {
    "role": "IR Officer"

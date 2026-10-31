@@ -119,7 +119,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-08 13:45:41.098749",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Shift Roster Calculator",
@@ -156,7 +156,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "select": 1,
    "share": 1,
    "write": 1

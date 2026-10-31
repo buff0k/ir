@@ -21,7 +21,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-08 13:45:41.111027",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Termination Documentation",
@@ -47,7 +47,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "select": 1,
    "share": 1,
    "write": 1

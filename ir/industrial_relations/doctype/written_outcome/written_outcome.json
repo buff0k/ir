@@ -392,7 +392,7 @@
    "link_fieldname": "outcome"
   }
  ],
- "modified": "2026-10-08 13:45:41.118021",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Written Outcome",
@@ -418,7 +418,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "select": 1,
    "share": 1,
    "submit": 1,

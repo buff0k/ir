@@ -39,7 +39,7 @@
    "link_fieldname": "category_of_offence"
   }
  ],
- "modified": "2026-10-30 10:55:52.362368",
+ "modified": "2026-10-31 10:56:51.458321",
  "modified_by": "Administrator",
  "module": "ir_setup",
  "name": "Offence Category",
@@ -65,7 +65,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "IR Manager",
+   "role": "HR Manager",
    "select": 1,
    "share": 1,
    "write": 1
