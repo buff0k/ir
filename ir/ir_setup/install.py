@@ -9,8 +9,10 @@ rather than becoming a fixture: chart-of-accounts augmentation and
 statutory-master seeding are per-Company, so a static fixture can't express
 them correctly (a fresh install has a different set of companies/accounts).
 Everything that WAS genuinely global reference data (Custom Fields, Property
-Setters, ETI Slab, SARS Payroll Code, Salary Component definitions, etc.)
-already moved to ir's own fixtures instead - see ir/ir/fixtures/.
+Setters, SARS Payroll Code, Salary Component definitions, etc.) already
+moved to ir's own fixtures instead - see ir/ir/fixtures/. ETI Slab looks
+like it belongs in that list too (no company scoping) but isn't a fixture:
+see ensure_eti_slabs's own docstring below for why.
 """
 
 from copy import deepcopy
@@ -525,17 +527,186 @@ def clear_rate_pack_cache():
 
 
 def seed_statutory_rate_packs():
-	"""Seed per-company travel allowance rates from the statutory rate packs.
-
-	ETI Slab seeding is not ported here - those are now ir's own fixtures
-	(ir/ir/fixtures/eti_slab.json), since ETI Slab is generic reference data
-	with no company scoping.
-	"""
+	"""Seed per-company travel allowance rates from the statutory rate packs."""
 	clear_rate_pack_cache()
 	companies = frappe.get_all("Company", filters={"country": "South Africa"}, pluck="name")
 	for pack in _load_rate_packs():
 		for company in companies:
 			_seed_travel_rate_from_rate_pack(pack, company)
+
+
+# ---------------------------------------------------------------------------
+# ETI Slab (absorbed from za_local.sa_setup.custom_fields's historical data)
+# ---------------------------------------------------------------------------
+#
+# This was briefly a plain ir fixture (ir/fixtures/eti_slab.json), frozen to
+# specific names (ETI-2026-0001 etc.). That broke on any site with its own
+# pre-existing ETI Slab history: Frappe's fixture import creates/matches by
+# `name`, but ETI Slab's real identity constraint is a unique `title` - a
+# site whose own historical records happen to carry the same titles under
+# different (their own naming-series-assigned) names hits a title collision
+# the moment the fixture tries to insert a same-titled, differently-named
+# row. Confirmed on a lab bench with real prior ETI Slab usage. Matching by
+# title and only creating what's missing is the correct, portable fix.
+
+_ETI_SLABS = (
+	{
+		"title": "ETI 2024-2025 (2024-03-01 to 2025-02-28) First 12 Months",
+		"start_date": "2024-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 1999.99, "percentage": 75, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "75% of monthly remuneration", "second_qualifying_12_months": ""},
+			{"from_amount": 2000.0, "to_amount": 4499.99, "percentage": 0, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500", "second_qualifying_12_months": ""},
+			{"from_amount": 4500.0, "to_amount": 6499.99, "percentage": 75, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500 - (75% x remuneration above R4500)", "second_qualifying_12_months": ""},
+			{"from_amount": 6500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "R0", "second_qualifying_12_months": ""},
+		],
+	},
+	{
+		"title": "ETI 2024-2025 (2024-03-01 to 2025-02-28) Second 12 Months",
+		"start_date": "2024-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 1999.99, "percentage": 37, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "37.5% of monthly remuneration"},
+			{"from_amount": 2000.0, "to_amount": 4499.99, "percentage": 0, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750"},
+			{"from_amount": 4500.0, "to_amount": 6499.99, "percentage": 37, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750 - (37.5% x remuneration above R4500)"},
+			{"from_amount": 6500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R0"},
+		],
+	},
+	{
+		"title": "ETI 2025-2026 (2025-03-01 to 2025-03-31) First 12 Months",
+		"start_date": "2025-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 1999.99, "percentage": 75, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "75% of monthly remuneration", "second_qualifying_12_months": ""},
+			{"from_amount": 2000.0, "to_amount": 4499.99, "percentage": 0, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500", "second_qualifying_12_months": ""},
+			{"from_amount": 4500.0, "to_amount": 6499.99, "percentage": 75, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500 - (75% x remuneration above R4500)", "second_qualifying_12_months": ""},
+			{"from_amount": 6500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "R0", "second_qualifying_12_months": ""},
+		],
+	},
+	{
+		"title": "ETI 2025-2026 (2025-03-01 to 2025-03-31) Second 12 Months",
+		"start_date": "2025-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 1999.99, "percentage": 37, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "37.5% of monthly remuneration"},
+			{"from_amount": 2000.0, "to_amount": 4499.99, "percentage": 0, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750"},
+			{"from_amount": 4500.0, "to_amount": 6499.99, "percentage": 37, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750 - (37.5% x remuneration above R4500)"},
+			{"from_amount": 6500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R0"},
+		],
+	},
+	{
+		"title": "ETI 2025-2026 (2025-04-01 to 2026-02-28) First 12 Months",
+		"start_date": "2025-04-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 2499.99, "percentage": 60, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "60% of monthly remuneration", "second_qualifying_12_months": ""},
+			{"from_amount": 2500.0, "to_amount": 5499.99, "percentage": 0, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500", "second_qualifying_12_months": ""},
+			{"from_amount": 5500.0, "to_amount": 7499.99, "percentage": 75, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500 - (75% x remuneration above R5500)", "second_qualifying_12_months": ""},
+			{"from_amount": 7500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "R0", "second_qualifying_12_months": ""},
+		],
+	},
+	{
+		"title": "ETI 2025-2026 (2025-04-01 to 2026-02-28) Second 12 Months",
+		"start_date": "2025-04-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 2499.99, "percentage": 30, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "30% of monthly remuneration"},
+			{"from_amount": 2500.0, "to_amount": 5499.99, "percentage": 0, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750"},
+			{"from_amount": 5500.0, "to_amount": 7499.99, "percentage": 37, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750 - (37.5% x remuneration above R5500)"},
+			{"from_amount": 7500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R0"},
+		],
+	},
+	{
+		"title": "ETI 2026-2027 (2026-03-01 to 2027-02-28) First 12 Months",
+		"start_date": "2026-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 2499.99, "percentage": 60, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "60% of monthly remuneration", "second_qualifying_12_months": ""},
+			{"from_amount": 2500.0, "to_amount": 5499.99, "percentage": 0, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500", "second_qualifying_12_months": ""},
+			{"from_amount": 5500.0, "to_amount": 7499.99, "percentage": 75, "eti_amount": 1500.0,
+			 "first_qualifying_12_months": "R1500 - (75% x remuneration above R5500)", "second_qualifying_12_months": ""},
+			{"from_amount": 7500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "R0", "second_qualifying_12_months": ""},
+		],
+	},
+	{
+		"title": "ETI 2026-2027 (2026-03-01 to 2027-02-28) Second 12 Months",
+		"start_date": "2026-03-01",
+		"hours_in_a_month": 160.0,
+		"minimum_age": 18,
+		"maximum_age": 29,
+		"eti_slab_details": [
+			{"from_amount": 0.0, "to_amount": 2499.99, "percentage": 30, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "30% of monthly remuneration"},
+			{"from_amount": 2500.0, "to_amount": 5499.99, "percentage": 0, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750"},
+			{"from_amount": 5500.0, "to_amount": 7499.99, "percentage": 37, "eti_amount": 750.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R750 - (37.5% x remuneration above R5500)"},
+			{"from_amount": 7500.0, "to_amount": 999999999.0, "percentage": 0, "eti_amount": 0.0,
+			 "first_qualifying_12_months": "", "second_qualifying_12_months": "R0"},
+		],
+	},
+)
+
+
+def ensure_eti_slabs():
+	"""Create the 8 standard ETI Slab records, skipping any whose title
+	already exists (a site's own historical ETI Slab usage, or an earlier
+	run of this same function) - see the module comment above."""
+	if not frappe.db.exists("DocType", "ETI Slab"):
+		return
+	for slab in _ETI_SLABS:
+		if frappe.db.exists("ETI Slab", {"title": slab["title"]}):
+			continue
+		doc = frappe.get_doc(
+			{
+				"doctype": "ETI Slab",
+				"naming_series": "ETI-.YYYY.-.####.",
+				"docstatus": 1,
+				**slab,
+			}
+		)
+		doc.insert(ignore_permissions=True)
 
 
 def _seed_travel_rate_from_rate_pack(pack: dict, company: str):

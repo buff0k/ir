@@ -414,21 +414,14 @@ fixtures = [
 	# which fixture export would otherwise bake in as this site's specific
 	# mappings; that child table is stripped from the exported fixture file
 	# after each export, since per-company GL account mapping is handled
-	# separately, as a real "needs a wizard" step - see ir.ir_setup.install.)
-	# Only the 8 currently-active slabs - excludes 4 cancelled originals
-	# superseded by amended "-1" versions (ETI Slab is submittable; fixture
-	# import does doc.insert(), which can't create a doc already at
-	# docstatus 2 - a fresh site doesn't need the cancelled history anyway).
-	{"dt": "ETI Slab", "filters": [["name", "in", [
-		"ETI-2026-0004-1",
-		"ETI-2026-0003-1",
-		"ETI-2026-0008",
-		"ETI-2026-0007",
-		"ETI-2026-0002-1",
-		"ETI-2026-0001-1",
-		"ETI-2026-0006",
-		"ETI-2026-0005"
-	]]]},
+	# separately, as a real "needs a wizard" step - see ir.ir_setup.install.
+	# ETI Slab is the other exception - it's a plain reconciling function,
+	# ir.ir_setup.install.ensure_eti_slabs, not a fixture: a fixture creates/
+	# matches by `name`, but ETI Slab's real identity constraint is a unique
+	# `title`, so any site with its own pre-existing ETI Slab history (under
+	# its own naming-series-assigned names) would hit a title collision the
+	# moment a frozen-name fixture tried to insert a same-titled row -
+	# confirmed on a lab bench with real prior ETI Slab usage.)
 	{"dt": "SARS Payroll Code", "filters": [["name", "in", [
 		"3805", "4497", "4477", "4476", "4475", "4474", "4472", "4142",
 		"4141", "4120", "4115", "4118", "4116", "4102", "4010", "4008",
@@ -602,6 +595,7 @@ after_migrate = [
 	# idempotent and self-guards on table existence.
 	"ir.ir_setup.install.ensure_all_company_tax_configuration",
 	"ir.ir_setup.install.seed_statutory_rate_packs",
+	"ir.ir_setup.install.ensure_eti_slabs",
 	"ir.ir_setup.install.repair_salary_component_accounts",
 	"ir.ir_vat.setup.migrate_legacy_vat_account_rows",
 ]
