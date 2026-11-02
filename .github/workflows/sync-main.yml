@@ -1,0 +1,45 @@
+
+name: Sync version-16 back to main
+
+on:
+  push:
+    branches:
+      - version-16
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-version-16-to-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout version-16
+        uses: actions/checkout@v4
+        with:
+          ref: version-16
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Fast-forward main
+        run: |
+          git fetch origin main version-16
+
+          # Ensure main is an ancestor of version-16.
+          # Never force-push or overwrite development.
+          if ! git merge-base --is-ancestor \
+            origin/main origin/version-16; then
+            echo "::error::Branches have diverged."
+            echo "Manual reconciliation required."
+            exit 1
+          fi
+
+          # Advance main to the exact release commit.
+          git push origin \
+            refs/remotes/origin/version-16:refs/heads/main
