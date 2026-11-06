@@ -48,7 +48,7 @@ The suite covers statutory calculations, document-controller behavior, permissio
 
 1. Restore a recent production backup to staging.
 2. Record app versions and current customizations.
-3. Run `bench --site <staging> migrate`, build assets, clear cache, and **restart the app's workers** in a maintenance window (the statutory rate-pack loader is an in-process cache that `bench clear-cache` alone does not clear - see `docs/annual_statutory_rate_update.md`).
+3. Run `bench --site <staging> migrate`, build assets, clear cache, and **restart the app's workers** in a maintenance window (`ir.utils.statutory_rates`'s rate-pack loader is an in-process `functools.lru_cache`, not a Frappe/Redis cache, so `bench clear-cache` alone does not clear it for any already-running worker).
 4. Review migration output and Error Log; verify custom fields, workspaces, statutory rate coverage and company-specific settings.
 5. Run `ZA Local Setup` as System Manager only for deliberately selected data sets. Review warnings and the records created or updated.
 6. Repeat the migration on the same staging snapshot to check idempotency before approving production deployment.

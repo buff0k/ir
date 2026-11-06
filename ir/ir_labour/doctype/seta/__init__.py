@@ -1,3 +1,3 @@
-# This package file ensures Python can import the SETA DocType module
-
+# Copyright (c) 2025, Cohenix and contributors
+# For license information, please see license.txt
 

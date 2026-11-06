@@ -91,14 +91,13 @@ def calculate_eti_utilisation(gross_paye, eti_generated, previous_carry_forward,
 
 
 class EMP201Submission(Document):
-	# Main class for EMP201 Submission
 	def validate(self):
 		self.set_submission_key()
-		# Ensure company, fiscal_year, and month are set before checking for duplicates
 		if self.company and self.fiscal_year and self.month:
-			# For new documents, self.name will be temporary (e.g., "New EMP201 Submission-X")
-			# and won't match existing records. For existing records, self.name is its unique ID.
-			# This check prevents a document from conflicting with itself during an update.
+			# A new document's self.name is still temporary ("New EMP201
+			# Submission-X") and won't match any existing record, so this
+			# can't conflict with itself on insert; for an existing one,
+			# self.name is its real, unique ID.
 			existing_submission = frappe.db.exists(
 				"EMP201 Submission",
 				{
@@ -187,7 +186,6 @@ class EMP201Submission(Document):
 		if not self.company or not self.submission_period_start_date or not self.submission_period_end_date:
 			frappe.throw(_("Company and submission period dates are required to fetch data."))
 
-		# Initialize local variables for calculation
 		gross_paye = 0
 		eti_generated = 0
 		uif = 0

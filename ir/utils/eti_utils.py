@@ -24,16 +24,6 @@ WAGE_BASIS_UNREGULATED = "No Regulating Measure or NMW Exempt"
 
 
 def check_eti_eligibility(employee, salary_slip, monthly_remuneration=None):
-    """
-    Check if an employee qualifies for ETI.
-
-    Args:
-        employee (str): Employee ID
-        salary_slip: Salary Slip document
-
-    Returns:
-        dict: {eligible: bool, reason: str, months_employed: int}
-    """
     emp_doc = frappe.get_cached_doc("Employee", employee)
     payroll_settings = frappe.get_cached_doc("Payroll Settings")
     hours_per_month = get_eti_hours(emp_doc, salary_slip)
@@ -51,11 +41,9 @@ def check_eti_eligibility(employee, salary_slip, monthly_remuneration=None):
             hours=hours_per_month,
         )
 
-    # Check date of birth
     if not emp_doc.date_of_birth:
         return eligibility_result(False, "Employee date of birth not set", hours=hours_per_month)
 
-    # Check age (18-29 years on last day of month)
     last_day_of_month = getdate(salary_slip.end_date)
     dob = getdate(emp_doc.date_of_birth)
 
@@ -70,13 +58,11 @@ def check_eti_eligibility(employee, salary_slip, monthly_remuneration=None):
             hours=hours_per_month,
         )
 
-    # Check employment start date
     if not emp_doc.date_of_joining:
         return eligibility_result(False, "Employee joining date not set", hours=hours_per_month)
 
     joining_date = getdate(emp_doc.date_of_joining)
 
-    # Must be employed on or after October 1, 2013
     eti_start_date = date(2013, 10, 1)
     if joining_date < eti_start_date:
         return eligibility_result(
@@ -87,7 +73,6 @@ def check_eti_eligibility(employee, salary_slip, monthly_remuneration=None):
 
     months_employed = get_eti_qualifying_month_number(employee, salary_slip, joining_date)
 
-    # ETI only applies for first 24 months
     if months_employed > 24:
         return eligibility_result(
             False,
@@ -96,9 +81,8 @@ def check_eti_eligibility(employee, salary_slip, monthly_remuneration=None):
             hours=hours_per_month,
         )
 
-    # Check if employee has valid SA ID or permit
     if not emp_doc.get("za_id_number"):
-        # Could also check for asylum seeker permit field if implemented
+        # TODO: also accept an asylum seeker permit field once one exists.
         return eligibility_result(
             False,
             "Employee SA ID number not set",
@@ -253,17 +237,7 @@ def get_eti_qualifying_month_number(employee, salary_slip, joining_date):
 
 
 def calculate_eti_amount(employee, salary_slip, monthly_remuneration, eligibility=None):
-    """Calculate date-effective ETI, using legacy Slabs only if no rate pack exists.
-
-    Args:
-        employee (str): Employee ID
-        salary_slip: Salary Slip document
-        monthly_remuneration (float): Monthly remuneration amount
-
-    Returns:
-        float: ETI amount for the month
-    """
-    # Check eligibility first
+    """Date-effective ETI, using legacy Slabs only if no rate pack exists."""
     eligibility = eligibility or check_eti_eligibility(employee, salary_slip, monthly_remuneration)
 
     if not eligibility["eligible"]:
@@ -287,7 +261,6 @@ def calculate_eti_amount(employee, salary_slip, monthly_remuneration, eligibilit
             2,
         )
 
-    # Get ETI slab for calculation (based on employment period)
     eti_slab = get_eti_slab(months_employed, calculation_date)
 
     if not eti_slab:
@@ -308,43 +281,30 @@ def calculate_eti_amount(employee, salary_slip, monthly_remuneration, eligibilit
             hours_ratio = hours / standard_hours
             remuneration /= hours_ratio
 
-    # Determine which period (first 12 or second 12 months)
     is_first_period = months_employed <= 12
-
     eti_amount = 0
 
-    # Apply ETI formulas based on remuneration brackets
-    # Note: eti_slab_details is the child table name in ETI Slab DocType
+    # eti_slab_details is the child table name on the ETI Slab doctype.
     for detail in eti_slab.eti_slab_details:
         from_amt = flt(detail.from_amount)
         to_amt = flt(detail.to_amount)
 
-        # Check if remuneration falls within this bracket
         if from_amt <= remuneration <= to_amt:
-            # First 12 months or Second 12 months
-            # For first 12 months, use first_qualifying_12_months field
-            # For second 12 months, use second_qualifying_12_months field
             if is_first_period and not detail.first_qualifying_12_months:
                 continue
             if not is_first_period and not detail.second_qualifying_12_months:
                 continue
 
-            # Calculate ETI amount based on bracket
             if detail.percentage and detail.percentage > 0:
-                # Percentage-based calculation
                 if detail.eti_amount and detail.eti_amount > 0:
                     # Declining formula: base amount - (percentage * (remuneration - from_amount))
                     decline_amount = (flt(detail.percentage) / 100) * (remuneration - from_amt)
-                    eti_amount = flt(detail.eti_amount) - decline_amount
-                    eti_amount = max(0, eti_amount)  # Cannot be negative
+                    eti_amount = max(0, flt(detail.eti_amount) - decline_amount)
                 else:
-                    # Simple percentage: percentage * remuneration
                     eti_amount = (flt(detail.percentage) / 100) * remuneration
             elif detail.eti_amount:
-                # Fixed amount
                 eti_amount = flt(detail.eti_amount)
             else:
-                # No ETI for this bracket
                 eti_amount = 0
 
             break
@@ -387,16 +347,6 @@ def calculate_months_employed(joining_date, current_date):
 
 
 def get_eti_slab(months_employed=1, date_value=None):
-    """
-    Get the current ETI Slab configuration based on employment period.
-
-    Args:
-        months_employed (int): Number of months employed (determines first/second 12 months)
-
-    Returns:
-        Document: ETI Slab document for the appropriate period
-    """
-    # Determine if first 12 or second 12 months
     period_keyword = "First" if months_employed <= 12 else "Second"
     calculation_date = getdate(date_value or frappe.utils.today())
 
@@ -420,15 +370,6 @@ def get_eti_slab(months_employed=1, date_value=None):
 
 
 def log_eti_calculation(employee, salary_slip, eti_amount, eligibility_details):
-    """
-    Log ETI calculation details for audit trail.
-
-    Args:
-        employee (str): Employee ID
-        salary_slip: Salary Slip document
-        eti_amount (float): Calculated ETI amount
-        eligibility_details (dict): Eligibility check results
-    """
     existing_log = frappe.db.exists(
         "Employee ETI Log", {"employee": employee, "against_salary_slip": salary_slip.name}
     )
@@ -483,17 +424,6 @@ def cancel_eti_log(employee, salary_slip):
 
 
 def get_employee_eti_history(employee, from_date=None, to_date=None):
-    """
-    Get ETI history for an employee.
-
-    Args:
-        employee (str): Employee ID
-        from_date (date): Optional start date filter
-        to_date (date): Optional end date filter
-
-    Returns:
-        list: List of ETI Log documents
-    """
     filters = {"employee": employee, "docstatus": 1}
 
     if from_date:
@@ -521,18 +451,7 @@ def get_employee_eti_history(employee, from_date=None, to_date=None):
 
 
 def calculate_total_eti_for_period(company, from_date, to_date):
-    """
-    Calculate total ETI for a company in a period (for EMP201/EMP501).
-
-    Args:
-        company (str): Company name
-        from_date (date): Period start date
-        to_date (date): Period end date
-
-    Returns:
-        float: Total ETI amount
-    """
-    # Get all eligible salary slips in the period
+    """For EMP201/EMP501."""
     salary_slips = frappe.get_all(
         "Salary Slip",
         filters={

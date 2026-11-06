@@ -854,10 +854,8 @@ class EMP501Reconciliation(Document):
 				# Don't add to child table if certificate creation failed
 				continue
 
-		# Save EMP501 with updated IRP5 references
 		self.save(ignore_permissions=True)
 
-		# Prepare summary message
 		total_processed = created_count + updated_count + reused_count
 		message = _(
 			"{0} IRP5 certificates processed. {1} newly created, {2} updated, {3} already submitted and reused."

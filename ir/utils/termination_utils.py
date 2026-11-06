@@ -10,48 +10,27 @@ from ir.utils.statutory_rates import calculate_lump_sum_benefit_tax
 
 
 def calculate_bcea_notice_period(employee, termination_date):
-	"""
-	Calculate BCEA minimum notice period.
-
-	Args:
-		employee: Employee ID or doc
-		termination_date: Date of termination
-
-	Returns:
-		int: Notice period in days
-	"""
+	"""BCEA minimum: 1 week under 6 months' tenure, 2 weeks from 6 months to
+	a year, 4 weeks beyond that."""
 	if isinstance(employee, str):
 		employee = frappe.get_doc("Employee", employee)
 
 	if not employee.date_of_joining:
-		return 28  # Default to 4 weeks
+		return 28
 
 	tenure_days = date_diff(termination_date, employee.date_of_joining)
 	tenure_years = tenure_days / 365.25
 
 	if tenure_years < 0.5:
-		return 7  # 1 week
+		return 7
 	elif tenure_years < 1:
-		return 14  # 2 weeks
+		return 14
 	else:
-		return 28  # 4 weeks
+		return 28
 
 
 def calculate_severance_pay(employee, termination_date, termination_type):
-	"""
-	Calculate severance pay per BCEA.
-
-	BCEA: 1 week's remuneration per completed year.
-	Only for operational dismissals.
-
-	Args:
-		employee: Employee ID or doc
-		termination_date: Date of termination
-		termination_type: Type of termination
-
-	Returns:
-		float: Severance pay amount
-	"""
+	"""BCEA: 1 week's remuneration per completed year, operational dismissals only."""
 	if termination_type != "Dismissal - Operational":
 		return 0.0
 
@@ -61,14 +40,12 @@ def calculate_severance_pay(employee, termination_date, termination_type):
 	if not employee.date_of_joining:
 		return 0.0
 
-	# Completed years only
 	tenure_days = date_diff(termination_date, employee.date_of_joining)
 	completed_years = int(tenure_days / 365.25)
 
 	if completed_years < 1:
 		return 0.0
 
-	# Get last salary
 	salary = frappe.get_all(
 		"Salary Structure Assignment",
 		filters={"employee": employee.name, "docstatus": 1},
@@ -81,22 +58,13 @@ def calculate_severance_pay(employee, termination_date, termination_type):
 		return 0.0
 
 	monthly_salary = flt(salary[0].base)
-	weekly_salary = monthly_salary / 4.33
+	weekly_salary = monthly_salary / 4.33  # average weeks per month
 
 	return weekly_salary * completed_years
 
 
 def calculate_leave_payout_on_termination(employee):
-	"""
-	Calculate leave payout for untaken annual leave.
-
-	Args:
-		employee: Employee ID
-
-	Returns:
-		dict: {"days": float, "amount": float}
-	"""
-	# Get leave balance
+	"""For untaken annual leave."""
 	leave_balance = frappe.db.sql("""
 		SELECT SUM(total_leave_days) as balance
 		FROM `tabLeave Allocation`
@@ -110,7 +78,6 @@ def calculate_leave_payout_on_termination(employee):
 
 	total_days = flt(leave_balance[0].balance)
 
-	# Get daily rate
 	salary = frappe.get_all(
 		"Salary Structure Assignment",
 		filters={"employee": employee, "docstatus": 1},
@@ -132,18 +99,8 @@ def calculate_leave_payout_on_termination(employee):
 
 
 def calculate_severance_tax(severance_amount, date_value=None, previous_lump_sums=0):
-	"""
-	Calculate tax on severance pay.
-
-	SARS: severance benefits are taxed using the retirement fund lump sum
-	benefits table on a cumulative basis.
-
-	Args:
-		severance_amount: Severance amount
-
-	Returns:
-		float: Tax amount
-	"""
+	"""SARS taxes severance using the retirement fund lump sum benefits
+	table, on a cumulative basis."""
 	return calculate_lump_sum_benefit_tax(
 		severance_amount,
 		date_value=date_value,

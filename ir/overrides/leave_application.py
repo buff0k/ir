@@ -62,29 +62,23 @@ class ZALeaveApplication(LeaveApplication):
 	"""
 
 	def validate(self):
-		"""Validate leave application with SA-specific checks"""
 		super().validate()
 		self.validate_medical_certificate()
 		self.validate_bcea_requirements()
 		self.validate_gender_specific_leave()
 
 	def validate_medical_certificate(self):
-		"""
-		Validate medical certificate requirement for sick leave.
-		BCEA requires medical certificate for sick leave > 2 consecutive days.
-		"""
+		"""BCEA requires a medical certificate for sick leave exceeding
+		za_medical_certificate_required_after consecutive days (default 2)."""
 		if not self.leave_type:
 			return
 
-		# Get leave type details
 		leave_type = frappe.get_doc("Leave Type", self.leave_type)
 
-		# Check if this is sick leave requiring medical certificate
 		if "sick" in self.leave_type.lower():
 			days_required = getattr(leave_type, "za_medical_certificate_required_after", 2)
 
 			if self.total_leave_days > days_required:
-				# Check if medical certificate is attached
 				attachments = frappe.get_all(
 					"File",
 					filters={
@@ -101,22 +95,14 @@ class ZALeaveApplication(LeaveApplication):
 					)
 
 	def validate_bcea_requirements(self):
-		"""
-		Validate BCEA compliance requirements.
-		- Annual leave: Minimum 21 consecutive days per year
-		- Sick leave: 36 days per 3-year cycle
-		- Family responsibility: 3 days per year
-		"""
 		if not self.leave_type:
 			return
 
 		leave_type = frappe.get_doc("Leave Type", self.leave_type)
 
-		# Check if leave type is BCEA compliant
 		if not getattr(leave_type, "za_bcea_compliant", False):
 			return
 
-		# Validate based on leave type
 		if "annual" in self.leave_type.lower():
 			self.validate_annual_leave_bcea()
 		elif "sick" in self.leave_type.lower():
@@ -125,11 +111,7 @@ class ZALeaveApplication(LeaveApplication):
 			self.validate_family_leave_bcea()
 
 	def validate_annual_leave_bcea(self):
-		"""
-		Validate annual leave BCEA compliance.
-		BCEA allows at least one period of 21 consecutive days per year.
-		"""
-		# This is informational - employees are entitled to take 21 consecutive days
+		# Informational only - BCEA entitles employees to this, nothing to enforce.
 		if self.total_leave_days >= 21:
 			frappe.msgprint(
 				_("This leave application uses the BCEA minimum of 21 consecutive days annual leave"),
@@ -138,20 +120,12 @@ class ZALeaveApplication(LeaveApplication):
 			)
 
 	def validate_sick_leave_bcea(self):
-		"""
-		Validate sick leave BCEA compliance.
-		36 days per 3-year cycle for employees working at least 4 days per week.
-		"""
-		# BCEA sick leave entitlement
-		# This is tracked by the leave allocation - just validate consistency
+		# BCEA's 36-days-per-3-year-cycle entitlement is enforced via the
+		# employee's Leave Allocation, not here - nothing to do on this doc.
 		pass
 
 	def validate_family_leave_bcea(self):
-		"""
-		Validate family responsibility leave BCEA compliance.
-		3 days per annual leave cycle.
-		"""
-		# Check total family leave taken in current cycle
+		"""BCEA caps family responsibility leave at 3 days per annual cycle."""
 		from_date = getdate(self.from_date)
 		year_start = from_date.replace(month=1, day=1)
 		year_end = from_date.replace(month=12, day=31)
@@ -182,9 +156,6 @@ class ZALeaveApplication(LeaveApplication):
 			)
 
 	def validate_gender_specific_leave(self):
-		"""
-		Validate gender-specific leave types (e.g., maternity leave).
-		"""
 		if not self.leave_type:
 			return
 

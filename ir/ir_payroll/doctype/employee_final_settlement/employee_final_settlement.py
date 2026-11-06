@@ -116,16 +116,9 @@ class EmployeeFinalSettlement(Document):
 
 	@frappe.whitelist()
 	def generate_final_payslip(self):
-		"""
-		Generate final salary slip for the settlement.
-
-		Returns:
-			str: Name of created salary slip
-		"""
 		if self.docstatus != 1:
 			frappe.throw(_("Settlement must be submitted first"))
 
-		# Check if payslip already exists
 		existing = frappe.db.exists("Salary Slip", {"employee": self.employee, "remarks": f"Final Settlement: {self.name}"})
 		if existing:
 			frappe.throw(_("Salary Slip already generated: {0}").format(existing))

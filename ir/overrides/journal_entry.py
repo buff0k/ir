@@ -35,18 +35,10 @@ def _require_cleanup_access():
 
 @frappe.whitelist(methods=["POST"])
 def force_delete_all_cancelled_payroll_journal_entries():
-    """
-    Force delete ALL cancelled payroll-related Journal Entries.
-
-    WARNING: This bypasses standard ERPNext audit trail protection.
-    Only use for test data cleanup during development.
-
-    Returns:
-        dict: List of deleted Journal Entries
-    """
+    """WARNING: bypasses standard ERPNext audit trail protection - test data
+    cleanup during development only, gated by _require_cleanup_access()."""
     _require_cleanup_access()
 
-    # Find all cancelled payroll Journal Entries
     jes = frappe.db.sql("""
         SELECT DISTINCT je.name, je.docstatus, je.posting_date
         FROM `tabJournal Entry` je
@@ -92,18 +84,8 @@ def force_delete_all_cancelled_payroll_journal_entries():
 
 @frappe.whitelist(methods=["POST"])
 def force_delete_cancelled_payroll_journal_entry(journal_entry_name):
-    """
-    Force delete a cancelled payroll-related Journal Entry.
-
-    WARNING: This bypasses standard ERPNext audit trail protection.
-    Only use for test data cleanup during development.
-
-    Args:
-        journal_entry_name: Name of the Journal Entry to delete
-
-    Returns:
-        dict: Success message
-    """
+    """Same guardrails as force_delete_all_cancelled_payroll_journal_entries,
+    for a single Journal Entry."""
     _require_cleanup_access()
 
     if not journal_entry_name:
@@ -150,52 +132,24 @@ def _delete_cancelled_payroll_journal_entry(je):
 
 
 def on_trash(doc, event):
-    """
-    Handle journal entry trash event.
-
-    Updates payroll entry detail flags when journal entries are deleted.
-    Allows deletion of cancelled payroll-related entries for testing/cleanup.
-
-    Args:
-        doc: Journal Entry document
-        event: Event name
-    """
-    # Update flags for both draft and cancelled payroll entries
     if doc.docstatus in [0, 2]:
         update_employee_journal_entry_flags(doc)
 
 
 def on_cancel(doc, event):
-    """
-    Handle journal entry cancel event.
-
-    Updates payroll entry detail flags when journal entries are cancelled.
-
-    Args:
-        doc: Journal Entry document
-        event: Event name
-    """
     update_employee_journal_entry_flags(doc)
 
 
 def update_employee_journal_entry_flags(doc):
-    """
-    Update Payroll Employee Detail flags when journal entries are removed.
-
-    This ensures that bank entries and company contribution entries can be
-    regenerated if the original journal entry is deleted or cancelled.
-
-    Args:
-        doc: Journal Entry document
-    """
+    """Clears the Payroll Employee Detail created-flags this JE's accounts
+    set, so the bank/company-contribution entry can be regenerated once this
+    JE is gone."""
     for row in doc.accounts:
-        # Check if this is a payroll-related entry
         if (row.reference_type == "Payroll Entry" and
             row.reference_name and
             row.party_type == "Employee" and
             row.party):
 
-            # Update bank entry flag
             if row.get("za_is_payroll_entry"):
                 frappe.db.set_value(
                     "Payroll Employee Detail",
@@ -207,7 +161,6 @@ def update_employee_journal_entry_flags(doc):
                     0
                 )
 
-            # Update company contribution flag
             elif row.get("za_is_company_contribution"):
                 frappe.db.set_value(
                     "Payroll Employee Detail",

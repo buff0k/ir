@@ -8,7 +8,6 @@ from datetime import timedelta
 def execute(filters=None):
     threshold_date = getdate(today()) + timedelta(weeks=4)
 
-    # Fetch contracts expiring soon
     expiring_contracts = frappe.db.sql("""
         SELECT
             co.name AS contract_name,

@@ -152,9 +152,6 @@ class ZAPayrollEntry(PayrollEntry):
 
     @frappe.whitelist()
     def fill_employee_details(self):
-        """
-        Fill employee details with frequency-based filtering.
-        """
         filters = self.make_filters()
         employees = get_employee_list(
             filters=filters,
@@ -184,14 +181,10 @@ class ZAPayrollEntry(PayrollEntry):
                 error_msg += "<br>" + _("End date: {0}").format(frappe.bold(self.end_date))
             frappe.throw(error_msg, title=_("No employees found"))
 
-        # Get frequency blocks and employee frequency mapping
         frequency = get_current_block_period(self)
         employee_frequency = get_employee_frequency_map()
-
-        # Get payment timing setting
         pay_at = frappe.db.get_single_value("Employee Payroll Frequency", "pay_at")
 
-        # Filter employees based on frequency
         for emp in employees:
             if emp.employee in employee_frequency:
                 emp_freq = employee_frequency[emp.employee]
@@ -210,12 +203,9 @@ class ZAPayrollEntry(PayrollEntry):
 
     @frappe.whitelist()
     def make_company_contribution_entry(self):
-        """
-        Create a consolidated Journal Entry for Company Contributions (UIF ER, SDL, etc.).
-        - Debits: Salary Component Account totals by component
-        - Credit: Payroll Payable Account
-        Also marks `Payroll Employee Detail.za_is_company_contribution_created` for all rows.
-        """
+        """Consolidated JE for Company Contributions (UIF ER, SDL, etc.): debits each
+        Salary Component Account's total, credits Payroll Payable Account, and marks
+        Payroll Employee Detail.za_is_company_contribution_created for all rows."""
         self.check_permission("write")
 
         SalarySlip = frappe.qb.DocType("Salary Slip")
@@ -235,7 +225,6 @@ class ZAPayrollEntry(PayrollEntry):
         if not slips:
             frappe.throw("No submitted Salary Slips found for this Payroll Entry.")
 
-        # Aggregate by component account
         totals_by_account = {}
         rows = (
             frappe.qb.from_(Comp)
@@ -266,7 +255,6 @@ class ZAPayrollEntry(PayrollEntry):
         currencies = []
         company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
 
-        # Debits per component account
         for account, amount in totals_by_account.items():
             exchange_rate, amt = self.get_amount_and_exchange_rate_for_journal_entry(
                 account, amount, company_currency, currencies
@@ -284,7 +272,6 @@ class ZAPayrollEntry(PayrollEntry):
                     )
                 )
 
-        # Single credit to payroll payable
         total_credit = sum(a["debit_in_account_currency"] for a in accounts)
         exchange_rate, amt = self.get_amount_and_exchange_rate_for_journal_entry(
             self.payroll_payable_account, total_credit, company_currency, currencies
@@ -303,7 +290,6 @@ class ZAPayrollEntry(PayrollEntry):
             )
         )
 
-        # Create and submit JE
         je = self.make_journal_entry(
             accounts,
             currencies,
@@ -313,7 +299,6 @@ class ZAPayrollEntry(PayrollEntry):
             submit_journal_entry=True,
         )
 
-        # Mark flags for employees in this payroll entry
         for ped in self.employees:
             frappe.db.set_value(
                 "Payroll Employee Detail",
@@ -327,22 +312,13 @@ class ZAPayrollEntry(PayrollEntry):
 
     @frappe.whitelist()
     def create_salary_slips(self):
-        """
-        Create salary slips with frequency-based filtering.
-        """
         self.check_permission("write")
-
-        # Validate mandatory fields before proceeding
         self.validate_mandatory_fields()
 
-        # Ensure document is saved before creating salary slips
-        # If document doesn't have a name, it hasn't been saved yet
         if not self.name:
-            # Document hasn't been saved yet - save it first
             try:
                 self.save()
             except Exception as e:
-                # If save fails, show the error
                 frappe.throw(
                     _("Cannot create salary slips. Please fix the errors and save the document first: {0}").format(str(e)),
                     title=_("Validation Error")
@@ -350,13 +326,12 @@ class ZAPayrollEntry(PayrollEntry):
 
         employees = []
 
-        # Try to filter by frequency, but don't block if frequency check fails
+        # Frequency filtering is best-effort: a failure here must not block
+        # salary slip creation, so fall back to every employee on this entry.
         try:
             frequency = get_current_block_period(self)
             employee_frequency = get_employee_frequency_map()
 
-            # Filter out employees who already have salary slips for this frequency period
-            # Only filter if we have frequency data and employee frequency mapping
             if frequency and employee_frequency:
                 for emp in self.employees:
                     emp_freq = employee_frequency.get(emp.employee)
@@ -366,16 +341,12 @@ class ZAPayrollEntry(PayrollEntry):
                             continue
                     employees.append(emp.employee)
             else:
-                # No frequency data - include all employees
                 employees = [emp.employee for emp in self.employees]
         except Exception:
-            # If frequency check fails, include all employees
-            # Log error but don't block creation
             frappe.log_error(
                 title=f"Payroll Entry frequency check failed: {self.name}",
                 message=frappe.get_traceback(),
             )
-            # Include all employees if frequency check fails
             employees = [emp.employee for emp in self.employees]
 
         if employees:
@@ -396,7 +367,6 @@ class ZAPayrollEntry(PayrollEntry):
 
             try:
                 if len(employees) > 30 or frappe.flags.enqueue_payroll_entry:
-                    # Enqueue for background processing
                     frappe.enqueue(
                         create_salary_slips_for_employees,
                         timeout=600,
@@ -440,12 +410,10 @@ class ZAPayrollEntry(PayrollEntry):
 
                 return True
             except Exception as e:
-                # Log the full error
                 frappe.log_error(
                     title=f"Payroll Entry salary slip creation failed: {self.name}",
                     message=frappe.get_traceback(),
                 )
-                # Re-raise with a user-friendly message
                 frappe.throw(
                     _("Error creating salary slips: {0}. Please check the Error Log for details.").format(str(e)),
                     title=_("Salary Slip Creation Failed")
@@ -455,27 +423,10 @@ class ZAPayrollEntry(PayrollEntry):
 
     @frappe.whitelist(methods=["POST"])
     def make_payment_entry(self, selected_payment_account=None):
-        """
-        Create bank entry journal entries for employees grouped by bank account.
-
-        Note: Standard HRMS uses make_bank_entry() which creates a single journal entry
-        for all employees using one payment account. SA payroll requires multiple bank
-        accounts (one per employee), so we override to create separate journal entries
-        per bank account group.
-
-        This is called from the JavaScript UI when "Create Bank Entry" is clicked.
-        It processes the selected_payment_account dictionary that contains:
-        - Bank account as key
-        - Dictionary with: employees, currency, posting_date, exchange_rate
-
-        Creates separate Bank Entry journal entries for each bank account group.
-        Uses standard HRMS methods (make_journal_entry, get_amount_and_exchange_rate_for_journal_entry)
-        but processes employees grouped by bank account rather than all at once.
-
-        Args:
-            selected_payment_account: Dictionary of bank accounts and employees (passed from JavaScript)
-        """
-        # Log for debugging permission issues
+        """Standard HRMS's make_bank_entry() creates one JE for every employee against
+        a single payment account; SA payroll needs multiple bank accounts (one per
+        employee), so this overrides it to create a separate JE per bank account
+        group instead, using the same underlying HRMS JE-building methods."""
         LOGGER.debug(
             "make_payment_entry called by %s for %s, docstatus=%s",
             frappe.session.user,
@@ -488,22 +439,17 @@ class ZAPayrollEntry(PayrollEntry):
         # -> check_permission("read")), so gating must happen here or any user who can
         # merely view a Payroll Entry can pay it. HRMS's own make_bank_entry does the same.
         self.check_permission("write")
-
-        # Reload document to ensure we have latest state
         self.reload()
 
-        # Get selected_payment_account from method argument or document attribute
         selected_accounts = selected_payment_account or getattr(self, 'selected_payment_account', None)
 
         if not selected_accounts:
             frappe.throw(_("No payment accounts selected. Please select bank accounts and employees."))
 
-        # Parse if string (JSON)
         if isinstance(selected_accounts, str):
             import json
             selected_accounts = json.loads(selected_accounts)
 
-        # Validate that employees have bank accounts configured
         selected_employees = list(
             dict.fromkeys(
                 employee
@@ -542,7 +488,6 @@ class ZAPayrollEntry(PayrollEntry):
             "Payroll Settings", "process_payroll_accounting_entry_based_on_employee"
         )
 
-        # Get salary slip details for all employees
         salary_slips = frappe.get_all(
             "Salary Slip",
             filters={
@@ -553,7 +498,6 @@ class ZAPayrollEntry(PayrollEntry):
             fields=["name", "employee", "net_pay", "base_net_pay"]
         )
 
-        # Create a mapping of employee to salary slip
         employee_salary_map = {ss.employee: ss for ss in salary_slips}
 
         precision = frappe.get_precision("Journal Entry Account", "debit_in_account_currency")
@@ -564,12 +508,12 @@ class ZAPayrollEntry(PayrollEntry):
 
         created_journal_entries = []
 
-        # Process each bank account
         for bank_account_name, account_data in selected_accounts.items():
             employees = account_data.get("employees", [])
             posting_date = account_data.get("posting_date")
             exchange_rate = flt(account_data.get("exchange_rate", 1))
-            # From dialog (company default in UI). Used only to choose base_net_pay vs net_pay; ledger currency is from Account (CoA).
+            # From dialog (company default in UI) - only chooses base_net_pay vs
+            # net_pay; the ledger currency itself comes from the Account (CoA).
             account_currency = account_data.get("currency", company_currency)
 
             if not employees:
@@ -578,11 +522,9 @@ class ZAPayrollEntry(PayrollEntry):
             if not posting_date:
                 frappe.throw(_("Posting date is required for bank account {0}").format(bank_account_name))
 
-            # Get bank account details
             bank_account_doc = frappe.get_doc("Bank Account", bank_account_name)
             payment_account = bank_account_doc.account
 
-            # Calculate total amount for this bank account
             total_amount = 0
             employee_amounts = {}
 
@@ -596,11 +538,9 @@ class ZAPayrollEntry(PayrollEntry):
             if total_amount <= 0:
                 continue
 
-            # Build journal entry accounts
             accounts = []
             currencies = []
 
-            # Credit: Bank/Payment Account
             exchange_rate, amount = self.get_amount_and_exchange_rate_for_journal_entry(
                 payment_account, total_amount, company_currency, currencies
             )
@@ -617,14 +557,11 @@ class ZAPayrollEntry(PayrollEntry):
                 )
             )
 
-            # Debit: Payroll Payable Account
             if employee_wise_accounting_enabled:
-                # Create separate entries per employee
                 for employee, amount in employee_amounts.items():
                     if amount <= 0:
                         continue
 
-                    # Get cost centers for employee
                     cost_centers = self.get_payroll_cost_centers_for_employee(
                         employee, None  # We'd need salary structure, but for now use None
                     )
@@ -651,7 +588,6 @@ class ZAPayrollEntry(PayrollEntry):
                                 )
                             )
                     else:
-                        # No cost center split - single entry per employee
                         exchange_rate, amt = self.get_amount_and_exchange_rate_for_journal_entry(
                             self.payroll_payable_account, amount, company_currency, currencies
                         )
@@ -671,7 +607,6 @@ class ZAPayrollEntry(PayrollEntry):
                             )
                         )
             else:
-                # Single entry for all employees
                 exchange_rate, amount = self.get_amount_and_exchange_rate_for_journal_entry(
                     self.payroll_payable_account, total_amount, company_currency, currencies
                 )
@@ -689,7 +624,6 @@ class ZAPayrollEntry(PayrollEntry):
                     )
                 )
 
-            # Create journal entry
             bank_entry = self.make_journal_entry(
                 accounts,
                 currencies,
@@ -701,11 +635,9 @@ class ZAPayrollEntry(PayrollEntry):
                 employee_wise_accounting_enabled=employee_wise_accounting_enabled,
             )
 
-            # Set posting date
             bank_entry.posting_date = posting_date
             bank_entry.save()
 
-            # Update flags for employees
             for employee in employees:
                 frappe.db.set_value(
                     "Payroll Employee Detail",
@@ -716,7 +648,6 @@ class ZAPayrollEntry(PayrollEntry):
 
             created_journal_entries.append(bank_entry.name)
 
-        # Clear selected_payment_account after processing
         self.selected_payment_account = {}
 
         if created_journal_entries:
@@ -734,21 +665,13 @@ class ZAPayrollEntry(PayrollEntry):
 
 @frappe.whitelist(methods=["POST"])
 def make_payment_entry_for_payroll(dt, dn, selected_payment_account=None):
-    """
-    Standalone wrapper function to call make_payment_entry on a Payroll Entry document.
-    This bypasses run_doc_method's permission checks which may be too strict for submitted documents.
-
-    Args:
-        dt: DocType name (should be "Payroll Entry")
-        dn: Document name
-        selected_payment_account: Dictionary of bank accounts and employees
-    """
+    """Standalone wrapper so this can be called even where run_doc_method's own
+    permission checks would be too strict for an already-submitted document."""
     # dt is caller-supplied; pin it so this cannot be pointed at another DocType
     # that happens to expose a make_payment_entry method.
     if dt != "Payroll Entry":
         frappe.throw(_("This action is only available for Payroll Entry."))
 
-    # Verify document exists
     if not frappe.db.exists(dt, dn):
         frappe.throw(_("{0} {1} does not exist").format(dt, dn))
 
@@ -769,32 +692,16 @@ def make_payment_entry_for_payroll(dt, dn, selected_payment_account=None):
 
 
 def get_payroll_entry_bank_entries(payroll_entry):
-    """
-    Get bank entries for payroll entry with SA-specific handling.
-
-    This function is monkey-patched into HRMS to support:
-    - Multiple bank accounts per payroll entry
-    - Separate journal entries for employee payments and company contributions
-
-    Args:
-        payroll_entry: Payroll Entry document name
-
-    Returns:
-        list: List of journal entry dictionaries
-
-    Raises:
-        ValidationError: If any employee is missing bank account configuration
-    """
+    """Monkey-patched into HRMS to support multiple bank accounts per payroll
+    entry, with a separate journal entry per bank account group."""
     payroll_entry_doc = frappe.get_doc("Payroll Entry", payroll_entry)
 
     journal_entries = []
-
-    # Group employees by bank account
     bank_account_groups = {}
     employees_without_bank_account = []
 
     for emp in payroll_entry_doc.employees:
-        # Fetch bank account from Employee doctype (not stored on child table)
+        # Not stored on the child table itself.
         bank_account = frappe.db.get_value(
             "Employee",
             emp.employee,
@@ -807,7 +714,6 @@ def get_payroll_entry_bank_entries(payroll_entry):
         else:
             employees_without_bank_account.append(emp)
 
-    # Validate: Bank account is required when creating bank entries
     if employees_without_bank_account:
         error_msg = "Payroll Payable Bank Account is required for creating bank entries. "
         error_msg += "Please configure bank accounts for the following employees:<br><ul>"
@@ -816,9 +722,7 @@ def get_payroll_entry_bank_entries(payroll_entry):
         error_msg += "</ul>"
         frappe.throw(error_msg, title=_("Bank Account Required"))
 
-    # Create journal entry for each bank account group
     for bank_account, employees in bank_account_groups.items():
-        # Calculate total for this bank account
         total_amount = sum(
             flt(frappe.db.get_value("Salary Slip", {"employee": emp.employee, "payroll_entry": payroll_entry}, "net_pay"))
             for emp in employees

@@ -117,25 +117,12 @@ def _get_statutory_rate_row(rows, payroll_period, rate_label):
 
 
 def get_tax_rebate(salary_slip, date_of_birth):
-	"""
-	Calculate tax rebates based on employee age.
-
-	South African tax rebates (2024/2025):
-	- Primary rebate: R17,235 (all taxpayers)
-	- Secondary rebate: R9,444 (age 65+)
-	- Tertiary rebate: R3,145 (age 75+)
-
-	Args:
-		salary_slip: Salary Slip document
-		date_of_birth (date): Employee date of birth
-
-	Returns:
-		float: Total annual tax rebate
-	"""
+	"""Primary rebate applies to everyone; secondary adds on at 65, tertiary
+	at 75 - rates themselves come from Tax Rebates and Medical Tax Credit,
+	not hardcoded here."""
 	if not date_of_birth:
 		return 0
 
-	# Get tax rebate settings
 	rebate_settings = frappe.get_single("Tax Rebates and Medical Tax Credit")
 	if not rebate_settings.tax_rebates_rate:
 		frappe.throw(
@@ -143,12 +130,10 @@ def get_tax_rebate(salary_slip, date_of_birth):
 			title=frappe._("Missing Tax Rebate Rates"),
 		)
 
-	# Calculate age as of the end of the tax year
 	dob = getdate(date_of_birth)
 	_start_date, tax_year_end = get_tax_year_dates(getdate(salary_slip.end_date))
 	year_end = getdate(tax_year_end)
 
-	# Calculate age at end of tax year (Feb 28/29)
 	age = year_end.year - dob.year
 	if (year_end.month, year_end.day) < (dob.month, dob.day):
 		age -= 1
@@ -172,28 +157,12 @@ def get_medical_aid_credit(
 	membership_start_date=None,
 	membership_end_date=None,
 ):
-	"""
-	Calculate medical aid tax credits.
-
-	South African medical aid tax credits are stored as monthly per-person
-	rates for the main member, first dependant, and additional dependants.
-
-	Medical Tax Credit Rate fields:
-	- one_dependant: main member rate
-	- two_dependant: first dependant rate
-	- additional_dependant: each additional dependant rate
-
-	Args:
-		salary_slip: Salary Slip document
-		number_of_dependants (int): Number of dependants on medical aid (excluding main member)
-
-	Returns:
-		float: Annual medical aid tax credit
-	"""
+	"""Medical Tax Credit Rate's fields are named one off from what they mean:
+	one_dependant is the main member's own rate, two_dependant is the first
+	actual dependant, and additional_dependant covers every one after that."""
 	if number_of_dependants < 0:
 		return 0
 
-	# Get medical aid credit settings
 	credit_settings = frappe.get_single("Tax Rebates and Medical Tax Credit")
 	if not credit_settings.medical_tax_credit:
 		frappe.throw(
@@ -225,20 +194,9 @@ def get_medical_aid_credit(
 
 
 def calculate_retirement_annuity_deduction(salary_slip, retirement_contribution):
-	"""
-	Calculate allowable retirement annuity deduction for tax purposes.
-
-	South African rules:
-	- Maximum deduction: 27.5% of taxable income
-	- Subject to annual limit (currently R350,000)
-
-	Args:
-		salary_slip: Salary Slip document
-		retirement_contribution (float): Annual retirement contribution
-
-	Returns:
-		float: Allowable deduction amount
-	"""
+	"""Capped to the lowest of: actual contribution, the statutory percentage
+	of taxable income, and the statutory annual limit (both date-effective,
+	see get_retirement_deduction_percentage/get_retirement_annual_cap)."""
 	if not retirement_contribution or retirement_contribution <= 0:
 		return 0
 
@@ -246,40 +204,20 @@ def calculate_retirement_annuity_deduction(salary_slip, retirement_contribution)
 	max_percentage = get_retirement_deduction_percentage(date_value)
 	max_annual_limit = get_retirement_annual_cap(date_value)
 
-	# Calculate maximum allowable deduction
 	taxable_income = flt(salary_slip.total_taxable_earnings)
 	max_by_percentage = taxable_income * max_percentage
 
-	# Take the minimum of:
-	# 1. Actual contribution
-	# 2. 27.5% of taxable income
-	# 3. Annual limit
 	return min(retirement_contribution, max_by_percentage, max_annual_limit)
 
 
 def calculate_uif_contribution(gross_pay, date_value=None):
-	"""
-	Calculate UIF (Unemployment Insurance Fund) contribution.
-
-	UIF rates:
-	- Employee: 1% of remuneration
-	- Employer: 1% of remuneration
-	- Maximum monthly remuneration: R17,712 (2024/2025)
-
-	Args:
-		gross_pay (float): Monthly gross pay
-
-	Returns:
-		tuple: (employee_uif, employer_uif)
-	"""
+	"""Returns (employee_uif, employer_uif); rates and the monthly cap are
+	date-effective, not hardcoded here."""
 	UIF_MAX_MONTHLY = get_uif_monthly_cap(date_value)
 	employee_rate = get_uif_employee_rate(date_value)
 	employer_rate = get_uif_employer_rate(date_value)
 
-	# Cap gross pay at maximum
 	capped_gross = min(flt(gross_pay), UIF_MAX_MONTHLY)
-
-	# Calculate contributions
 	employee_uif = capped_gross * employee_rate
 	employer_uif = capped_gross * employer_rate
 
@@ -287,45 +225,17 @@ def calculate_uif_contribution(gross_pay, date_value=None):
 
 
 def calculate_sdl_contribution(gross_pay, date_value=None):
-	"""
-	Calculate SDL (Skills Development Levy) contribution.
-
-	SDL rate: 1% of total payroll (employer pays)
-
-	Args:
-		gross_pay (float): Monthly gross pay
-
-	Returns:
-		float: SDL amount
-	"""
-	SDL_RATE = get_sdl_rate(date_value)
-
-	sdl_amount = flt(gross_pay) * SDL_RATE
-
-	return sdl_amount
+	"""Employer-paid Skills Development Levy; rate is date-effective."""
+	return flt(gross_pay) * get_sdl_rate(date_value)
 
 
 def validate_south_african_id_number(id_number):
-	"""
-	Validate South African ID number using Luhn algorithm.
-
-	Format: YYMMDD SSSS CAZ
-	- YYMMDD: Date of birth
-	- SSSS: Gender (0000-4999 Female, 5000-9999 Male)
-	- C: Citizenship (0 SA citizen, 1 Permanent resident)
-	- A: Usually 8 or 9
-	- Z: Checksum digit
-
-	Args:
-		id_number (str): 13-digit ID number
-
-	Returns:
-		dict: {valid: bool, gender: str, dob: date, citizenship: str} or None
-	"""
+	"""Format is YYMMDD SSSS CAZ: date of birth, gender (0000-4999 Female,
+	5000-9999 Male), citizenship (0 SA citizen, 1 Permanent resident), an
+	A digit that's usually 8 or 9, and a Luhn checksum digit."""
 	if not id_number or len(id_number) != 13 or not id_number.isdigit():
 		return None
 
-	# Extract components
 	yy = int(id_number[0:2])
 	mm = int(id_number[2:4])
 	dd = int(id_number[4:6])
@@ -333,11 +243,9 @@ def validate_south_african_id_number(id_number):
 	citizenship_code = int(id_number[10])
 	checksum = int(id_number[12])
 
-	# Validate date
 	if mm < 1 or mm > 12 or dd < 1 or dd > 31:
 		return None
 
-	# Determine century
 	current_year = date.today().year % 100
 	century = 1900 if yy > current_year else 2000
 	year = century + yy
@@ -347,7 +255,6 @@ def validate_south_african_id_number(id_number):
 	except ValueError:
 		return None
 
-	# Validate checksum using Luhn algorithm
 	total = 0
 	for i, digit in enumerate(id_number[:-1]):
 		num = int(digit)
@@ -362,7 +269,6 @@ def validate_south_african_id_number(id_number):
 	if calculated_checksum != checksum:
 		return None
 
-	# Determine gender and citizenship
 	gender = "Female" if gender_code < 5000 else "Male"
 	citizenship = "SA Citizen" if citizenship_code == 0 else "Permanent Resident"
 
@@ -375,37 +281,17 @@ def validate_south_african_id_number(id_number):
 
 
 def validate_south_african_id(id_number):
-	"""
-	Validate South African ID number format and checksum.
-
-	This is a simpler boolean validation function that uses basic checks.
-	For detailed validation with gender, DOB, and citizenship info, use
-	validate_south_african_id_number() instead.
-
-	Format: YYMMDD SSSS CAZ
-	- YYMMDD: Date of birth
-	- SSSS: Gender (Females: 0000-4999, Males: 5000-9999)
-	- C: Citizenship (0: SA, 1: Permanent resident)
-	- A: Usually 8 or 9 (historical)
-	- Z: Checksum digit (Luhn algorithm)
-
-	Args:
-		id_number (str): South African ID number to validate
-
-	Returns:
-		bool: True if valid, False otherwise
-	"""
+	"""Boolean-only version of validate_south_african_id_number() - use that
+	one instead if you need the gender/DOB/citizenship it also extracts."""
 	if not id_number or not id_number.isdigit() or len(id_number) != 13:
 		return False
 
-	# Birth date validation
 	month = int(id_number[2:4])
 	day = int(id_number[4:6])
 
 	if month < 1 or month > 12 or day < 1 or day > 31:
 		return False
 
-	# Calculate checksum using Luhn algorithm
 	checksum = 0
 	for i, digit in enumerate(id_number[:-1]):
 		num = int(digit)
@@ -419,15 +305,7 @@ def validate_south_african_id(id_number):
 
 
 def get_tax_year_dates(date_in_year=None):
-	"""
-	Get the South African tax year dates (March 1 to Feb 28/29).
-
-	Args:
-		date_in_year (date): Date within the tax year
-
-	Returns:
-		tuple: (start_date, end_date) of tax year
-	"""
+	"""SA tax year runs 1 March to 28/29 February."""
 	if not date_in_year:
 		date_in_year = date.today()
 	else:
@@ -435,13 +313,10 @@ def get_tax_year_dates(date_in_year=None):
 
 	year = date_in_year.year
 
-	# Tax year runs from March 1 to Feb 28/29
 	if date_in_year.month < 3:
-		# Before March, so previous tax year
 		start_date = date(year - 1, 3, 1)
 		end_date = date(year, 2, 29 if calendar.isleap(year) else 28)
 	else:
-		# March or later, current tax year
 		start_date = date(year, 3, 1)
 		next_year = year + 1
 		end_date = date(next_year, 2, 29 if calendar.isleap(next_year) else 28)

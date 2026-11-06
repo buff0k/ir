@@ -228,7 +228,6 @@ frappe.ui.form.on('EMP501 Reconciliation', {
     },
     
     company: function(frm) {
-        // Fetch reference numbers from company via a whitelisted server method
         if (frm.doc.company) {
             // Add a flag to prevent multiple triggers
             if (frm.company_set === frm.doc.company) {

@@ -24,21 +24,14 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 	"""
 
 	def validate(self):
-		"""Validate with SA-specific checks"""
 		super().validate()
 		self.calculate_notice_period()
 		self.calculate_severance_pay()
 		self.calculate_leave_payout()
 
 	def calculate_notice_period(self):
-		"""
-		Calculate BCEA minimum notice periods based on tenure.
-
-		BCEA minimums:
-		- < 6 months: 1 week
-		- 6 months to 1 year: 2 weeks
-		- > 1 year: 4 weeks
-		"""
+		"""BCEA minimum notice: 1 week under 6 months' tenure, 2 weeks from
+		6 months to a year, 4 weeks beyond that."""
 		if not self.resignation_letter_date:
 			return
 
@@ -48,19 +41,16 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 		if not employee.date_of_joining:
 			return
 
-		# Calculate tenure
 		tenure_days = date_diff(termination_date, employee.date_of_joining)
 		tenure_years = tenure_days / 365.25
 
-		# BCEA notice periods
 		if tenure_years < 0.5:
-			notice_days = 7  # 1 week
+			notice_days = 7
 		elif tenure_years < 1:
-			notice_days = 14  # 2 weeks
+			notice_days = 14
 		else:
-			notice_days = 28  # 4 weeks
+			notice_days = 28
 
-		# Store for reference
 		self.za_notice_period_days = notice_days
 
 		frappe.msgprint(
@@ -69,12 +59,8 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 		)
 
 	def calculate_severance_pay(self):
-		"""
-		Calculate severance pay for operational dismissals.
-
-		BCEA: 1 week's remuneration per completed year of service.
-		Only applicable for dismissals due to operational requirements.
-		"""
+		"""BCEA: 1 week's remuneration per completed year of service, and
+		only for dismissals due to operational requirements."""
 		if not hasattr(self, "za_termination_type"):
 			return
 
@@ -87,7 +73,6 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 		if not employee.date_of_joining:
 			return
 
-		# Calculate completed years
 		termination_date = getdate(self.resignation_letter_date or frappe.utils.today())
 		tenure_days = date_diff(termination_date, employee.date_of_joining)
 		completed_years = int(tenure_days / 365.25)
@@ -96,7 +81,6 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 			self.za_severance_pay = 0
 			return
 
-		# Get weekly remuneration
 		last_salary = frappe.get_all(
 			"Salary Structure Assignment",
 			filters={"employee": self.employee, "docstatus": 1},
@@ -109,7 +93,7 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 			return
 
 		monthly_salary = flt(last_salary[0].base)
-		weekly_salary = monthly_salary / 4.33  # Average weeks per month
+		weekly_salary = monthly_salary / 4.33  # average weeks per month
 
 		self.za_severance_pay = weekly_salary * completed_years
 
@@ -123,10 +107,7 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 		)
 
 	def calculate_leave_payout(self):
-		"""
-		Calculate leave payout for untaken annual leave.
-		"""
-		# Get outstanding leave balance
+		"""For untaken annual leave."""
 		leave_balance = frappe.db.sql("""
 			SELECT leave_type, SUM(total_leave_days) as balance
 			FROM `tabLeave Allocation`
@@ -140,7 +121,6 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 			self.za_leave_payout = 0
 			return
 
-		# Get daily rate
 		last_salary = frappe.get_all(
 			"Salary Structure Assignment",
 			filters={"employee": self.employee, "docstatus": 1},
@@ -169,7 +149,6 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 
 	@frappe.whitelist()
 	def create_final_settlement(self):
-		"""Create Employee Final Settlement document"""
 		# Document methods invoked through ``run_doc_method`` are gated by read
 		# permission only. Creating a financial settlement requires write access to
 		# the submitted separation as well as create access to the target DocType.
@@ -178,12 +157,10 @@ class ZAEmployeeSeparation(EmployeeSeparation):
 		if not self.docstatus == 1:
 			frappe.throw(_("Employee Separation must be submitted first"))
 
-		# Check if settlement already exists
 		existing = frappe.db.exists("Employee Final Settlement", {"employee": self.employee})
 		if existing:
 			frappe.throw(_("Final Settlement already created: {0}").format(existing))
 
-		# Create settlement
 		settlement = frappe.get_doc({
 			"doctype": "Employee Final Settlement",
 			"employee": self.employee,
