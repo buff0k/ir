@@ -4,8 +4,8 @@
 """Repo-hygiene checks ported from za_local/tests/test_repo_hygiene.py and
 test_statutory_setup.py as part of absorbing za_local into ir - these read
 files/fixtures that moved to ir during that absorption (public/js/
-payroll_entry.js, public/js/salary_structure.js, public/css/ir_ui.css, the
-whole practitioner_guide package, and fixtures/custom_field.json).
+payroll_entry.js, public/js/salary_structure.js, public/css/ir_ui.css, and
+fixtures/custom_field.json).
 """
 
 import json
@@ -35,24 +35,6 @@ class TestRepositoryHygiene(unittest.TestCase):
 		self.assertNotIn("za-hidden-flexible-benefits", css + javascript)
 		self.assertNotIn("closest('.form-section')", javascript)
 		self.assertIn("frm.toggle_display(fieldname, false)", javascript)
-
-	def test_practitioner_guide_manifest_matches_content(self):
-		from ir.practitioner_guide.manifest import GUIDES
-
-		content_dir = APP_ROOT / "practitioner_guide" / "content"
-		pages = [
-			(guide["space"]["route"], group["key"], page)
-			for guide in GUIDES
-			for group in guide["groups"]
-			for page in group["pages"]
-		]
-		files = [page["file"] for _, _, page in pages]
-		routes = [f"{space}/{group}/{page['slug']}" for space, group, page in pages]
-		content_files = sorted(path.name for path in content_dir.glob("*.md"))
-
-		self.assertEqual(len(files), len(set(files)), "Guide content files must be referenced once")
-		self.assertEqual(len(routes), len(set(routes)), "Guide routes must be unique")
-		self.assertEqual(sorted(files), content_files, "Manifest and guide content files must match")
 
 	def test_sa_print_formats_are_file_scoped(self):
 		expected = {

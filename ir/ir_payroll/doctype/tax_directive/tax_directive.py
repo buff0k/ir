@@ -9,22 +9,18 @@ from frappe.utils import flt, getdate, today
 
 class TaxDirective(Document):
 	def validate(self):
-		"""Validate Tax Directive"""
 		self.validate_dates()
 		self.validate_directive_details()
 		self.check_for_overlapping_directives()
 		self.update_status()
 
 	def before_submit(self):
-		"""Actions before submission"""
 		self.status = "Active"
 
 	def on_cancel(self):
-		"""Actions on cancellation"""
 		self.db_set("status", "Cancelled", update_modified=False)
 
 	def validate_dates(self):
-		"""Validate effective dates"""
 		if not self.effective_from:
 			frappe.throw(_("Effective From date is required"))
 
@@ -32,7 +28,6 @@ class TaxDirective(Document):
 			frappe.throw(_("Effective To date cannot be before Effective From date"))
 
 	def validate_directive_details(self):
-		"""Validate directive-specific details"""
 		if self.directive_type == "Reduced Tax Rate":
 			if not self.tax_rate_override and self.tax_rate_override != 0:
 				frappe.throw(_("Tax Rate Override is required for Reduced Tax Rate directive"))
@@ -48,7 +43,6 @@ class TaxDirective(Document):
 				frappe.throw(_("Either Garnishee Amount or Percentage must be specified"))
 
 	def check_for_overlapping_directives(self):
-		"""Check for overlapping active directives for the same employee"""
 		overlapping = frappe.db.sql("""
 			SELECT name, directive_number
 			FROM `tabTax Directive`
@@ -73,7 +67,6 @@ class TaxDirective(Document):
 			)
 
 	def update_status(self):
-		"""Update status based on effective dates"""
 		if not self.effective_from:
 			return
 
@@ -88,19 +81,9 @@ class TaxDirective(Document):
 			self.status = "Active"
 
 	def apply_to_salary_slip(self, salary_slip):
-		"""
-		Apply tax directive to salary slip calculation
-
-		Args:
-			salary_slip: SalarySlip document
-
-		Returns:
-			dict: Modified tax calculation details
-		"""
 		if self.status != "Active":
 			return None
 
-		# Check if salary slip is within directive period
 		slip_date = getdate(salary_slip.posting_date)
 		if slip_date < getdate(self.effective_from):
 			return None
@@ -129,16 +112,6 @@ class TaxDirective(Document):
 
 @frappe.whitelist()
 def get_active_directive(employee, date=None):
-	"""
-	Get active tax directive for an employee on a specific date
-
-	Args:
-		employee: Employee ID
-		date: Date to check (defaults to today)
-
-	Returns:
-		Tax Directive document or None
-	"""
 	if not date:
 		date = today()
 

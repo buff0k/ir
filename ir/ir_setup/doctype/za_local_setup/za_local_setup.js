@@ -31,46 +31,6 @@ frappe.ui.form.on("ZA Local Setup", {
 			}
 			frm.trigger("confirm_and_run_setup");
 		}).addClass("btn-primary");
-
-		frm.trigger("add_publish_guide_button");
-	},
-
-	add_publish_guide_button(frm) {
-		// Only offer the action when the Frappe Wiki app is installed on this site.
-		frappe.call({
-			method: "ir.practitioner_guide.stage.is_wiki_available",
-			callback: (r) => {
-				if (!r || !r.message) {
-					return;
-				}
-				frm.add_custom_button(
-					__("Publish Practitioner Guide"),
-					() => {
-						frappe.call({
-							method: "ir.practitioner_guide.stage.publish_practitioner_guide",
-							freeze: true,
-							freeze_message: __("Publishing the SA Practitioner Guide to Wiki..."),
-							callback: (res) => {
-								const result = res && res.message;
-								if (window.ir && window.ir.show_action_feedback) {
-									window.ir.show_action_feedback(
-										result,
-										__("Practitioner Guide Published")
-									);
-								} else if (result) {
-									frappe.msgprint({
-										title: result.title || __("Practitioner Guide Published"),
-										message: result.message,
-										indicator: result.indicator || "green",
-									});
-								}
-							},
-						});
-					},
-					__("Documentation")
-				);
-			},
-		});
 	},
 
 	confirm_and_run_setup(frm) {

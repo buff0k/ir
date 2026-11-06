@@ -19,17 +19,14 @@ class KPIReview(Document):
         kpi_lookup = {}
 
         for row in self.review_data:
-            # Fetch KPI doc
             kpi_doc = frappe.get_cached_doc("Key Performance Indicator", row.kpi)
             kpi_lookup[row.kpi] = kpi_doc
 
             if kpi_doc.is_group:
                 parents[row.kpi] = row
             else:
-                # Compute individual weighted score
                 row.weighted_score = round((row.score or 0) / row.max_score * row.weight, 2)
 
-                # Resolve parent from KPI master
                 parent = getattr(kpi_doc, "parent_kpi", None)
                 if parent:
                     scores.setdefault(parent, []).append(row)

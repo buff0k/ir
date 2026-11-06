@@ -34,7 +34,6 @@ frappe.ui.form.on("Business Trip Allowance", {
 	region: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		if (row.region) {
-			// Fetch rates from region
 			frappe.db.get_value("Business Trip Region", row.region, ["daily_allowance_rate", "incidental_allowance_rate"])
 				.then(r => {
 					if (r.message) {
@@ -63,7 +62,6 @@ frappe.ui.form.on("Business Trip Journey", {
 	transport_mode: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
 		
-		// Fetch mileage rate if private car
 		if (row.transport_mode === "Car (Private)") {
 			frappe.call({
 				method: "ir.ir_labour.doctype.business_trip_settings.business_trip_settings.get_mileage_rate",

@@ -78,16 +78,13 @@ frappe.ui.form.on("EMP201 Submission", {
 
 function call_set_submission_period_dates(frm) {
     if (frm.doc.fiscal_year && frm.doc.month && frm.doc.company) {
-        // Directly call the server method to calculate and get dates.
-        // The server method now returns the dates.
         frm.call({
             doc: frm.doc, // Pass current client-side doc data. Server method will use these.
             method: "set_submission_period_dates",
             callback: function(r) {
                 if (r.message && r.message.submission_period_start_date && r.message.submission_period_end_date) {
-                    // Update client-side fields with the dates returned from the server.
-                    // This will mark the form as dirty, which is fine.
-                    // These values will be part of the document when it's next saved.
+                    // Marks the form dirty, which is fine - these values are
+                    // part of the document the next time it's saved anyway.
                     frm.set_value("submission_period_start_date", r.message.submission_period_start_date);
                     frm.set_value("submission_period_end_date", r.message.submission_period_end_date);
                 } else {

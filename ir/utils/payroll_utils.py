@@ -19,17 +19,9 @@ FREQUENCY_MONTHS = {"Quarterly": 3, "Half-Yearly": 6, "Yearly": 12}
 
 
 def get_current_block(frequency, date, payroll_period):
-    """
-    Get the current payroll block for a given frequency and date.
-
-    Args:
-        frequency (str): Payroll frequency (Quarterly, Half-Yearly, Yearly)
-        date (date): Date to check
-        payroll_period (Document): Payroll Period document
-
-    Returns:
-        frappe._dict: Dict with start_date and end_date of the block, or None if invalid
-    """
+    """Walks consecutive blocks of `frequency` months from the payroll
+    period's start until one contains `date`; returns {start_date, end_date}
+    or None if `date` falls outside the payroll period entirely."""
     if frequency not in FREQUENCY_MONTHS:
         return None
 
@@ -41,7 +33,6 @@ def get_current_block(frequency, date, payroll_period):
         end_date = payroll_period.end_date
         months = FREQUENCY_MONTHS[frequency]
 
-        # Convert to date objects if strings
         if isinstance(start_date, str):
             start_date = datetime.strptime(str(start_date), "%Y-%m-%d").date()
         if isinstance(date, str):
@@ -52,8 +43,6 @@ def get_current_block(frequency, date, payroll_period):
             date = date.date()
 
         current_start = start_date
-
-        # Limit iterations to prevent infinite loop
         max_iterations = 20
         iteration = 0
 
@@ -65,7 +54,6 @@ def get_current_block(frequency, date, payroll_period):
                 return frappe._dict({"start_date": current_start, "end_date": block_end_date})
             else:
                 current_start = block_end_date + timedelta(days=1)
-                # Check if we've gone past the payroll period end
                 if current_start > end_date:
                     break
 
@@ -78,16 +66,7 @@ def get_current_block(frequency, date, payroll_period):
 
 
 def get_current_block_period(doc):
-    """
-    Get current block period for all configured frequencies.
-
-    Args:
-        doc: Document with start_date, end_date, and company (Salary Slip or Payroll Entry)
-
-    Returns:
-        dict: Map of frequency to block period
-    """
-    # Handle both Salary Slip and Payroll Entry
+    """doc is a Salary Slip or Payroll Entry. Returns {frequency: block}."""
     start_date = getattr(doc, "start_date", None)
     end_date = getattr(doc, "end_date", None)
     company = getattr(doc, "company", None)
@@ -106,7 +85,7 @@ def get_current_block_period(doc):
 
         for freq in FREQUENCY_MONTHS:
             block = get_current_block(freq, start_date, payroll_period_doc)
-            if block:  # Only include if valid block was calculated
+            if block:
                 frequency_map[freq] = block
 
         return frequency_map
@@ -116,12 +95,6 @@ def get_current_block_period(doc):
 
 
 def get_employee_frequency_map():
-    """
-    Get mapping of employees to their payroll frequencies.
-
-    Returns:
-        dict: Employee ID to frequency mapping
-    """
     emp_map = {}
 
     frequency_details = frappe.get_all("Employee Frequency Detail", fields=["employee", "frequency"])
@@ -133,16 +106,6 @@ def get_employee_frequency_map():
 
 
 def is_payroll_processed(employee, frequency_period):
-    """
-    Check if payroll has already been processed for an employee in a period.
-
-    Args:
-        employee (str): Employee ID
-        frequency_period (frappe._dict): Period with start_date and end_date
-
-    Returns:
-        bool: True if already processed
-    """
     if not frequency_period:
         return False
 
@@ -203,21 +166,6 @@ def get_additional_salaries(employee, from_date, to_date, component_type="earnin
 
 
 def validate_payroll_frequency(employee, start_date, end_date, frequency):
-    """
-    Validate that payroll frequency is correctly configured for employee.
-
-    Args:
-        employee (str): Employee ID
-        start_date (date): Payroll start date
-        end_date (date): Payroll end date
-        frequency (str): Expected frequency
-
-    Returns:
-        bool: True if valid
-
-    Raises:
-        frappe.ValidationError: If frequency is invalid
-    """
     employee_frequency = frappe.db.get_value("Employee Frequency Detail", {"employee": employee}, "frequency")
 
     if employee_frequency and employee_frequency != frequency:
@@ -230,14 +178,5 @@ def validate_payroll_frequency(employee, start_date, end_date, frequency):
 
 
 def get_payroll_period_dates(payroll_period_name):
-    """
-    Get start and end dates for a payroll period.
-
-    Args:
-        payroll_period_name (str): Payroll Period name
-
-    Returns:
-        tuple: (start_date, end_date)
-    """
     period = frappe.get_doc("Payroll Period", payroll_period_name)
     return period.start_date, period.end_date
