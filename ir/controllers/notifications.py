@@ -64,15 +64,6 @@ def handle_doc_event(doc, method, action, changed_fields=None):
             recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
             severity="info",
         )
-    elif doc.doctype == "Site Transfer Form":
-        return handle_notification(
-            doc, action,
-            subject_template="A Site Transfer for {employee_name} ({employee}) {action}",
-            body_template="A Site Transfer for {employee_name} ({employee}) has been {action} by {actor}.",
-            changed_fields=changed_fields,
-            recipient_filter=lambda email: permissions.recipient_passes_restrictions(doc, email),
-            severity="info",
-        )
 
 
 def handle_doc_event_create(doc, method):
@@ -208,6 +199,16 @@ def _collect_anonymous_report_recipients():
 def handle_notification(
     doc, action, subject_template, body_template, changed_fields=None, recipient_filter=None, severity="info"
 ):
+    # A patch/install/migrate-time insert (e.g. a one-time data backfill) is
+    # never a real "just happened" business event - without this guard, every
+    # record a migration patch creates fires a live notification email about
+    # years-old historical data. Confirmed the hard way: the Site Transfer
+    # Form -> Status Change Form migration patch sent real "created" emails
+    # for all 271 backfilled records, since after_insert fires unconditionally
+    # regardless of doc.flags.ignore_validate/ignore_mandatory.
+    if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_migrate:
+        return
+
     recipient_emails, name_by_email = _collect_recipients(doc)
     if recipient_filter:
         recipient_emails = [email for email in recipient_emails if recipient_filter(email)]
@@ -1199,8 +1200,7 @@ def send_weekly_outstanding_leave_application_notifications():
 
 def send_weekly_outstanding_employee_change_form_notifications():
     """
-    Weekly combined report of draft Status Change Forms and Site Transfer
-    Forms for active employees.
+    Weekly report of draft Status Change Forms for active employees.
 
     Each draft document is reported independently. No supersession or
     latest-record logic is applied because these documents may legitimately
@@ -1209,7 +1209,6 @@ def send_weekly_outstanding_employee_change_form_notifications():
     rows = []
 
     rows.extend(_get_outstanding_status_change_forms())
-    rows.extend(_get_outstanding_site_transfer_forms())
 
     rows.sort(
         key=lambda row: (
@@ -1224,8 +1223,8 @@ def send_weekly_outstanding_employee_change_form_notifications():
         rows=rows,
         subject="Weekly HR Report: Outstanding Employee Change Forms",
         intro=(
-            "The following Status Change Forms and Site Transfer Forms "
-            "belong to active employees and have not yet been submitted."
+            "The following Status Change Forms belong to active employees "
+            "and have not yet been submitted."
         ),
         table_headers=[
             "Document Type",
@@ -1328,51 +1327,6 @@ def _get_outstanding_status_change_forms():
     return rows
 
 
-def _get_outstanding_site_transfer_forms():
-    """
-    Return draft Site Transfer Forms linked to active employees.
-    """
-    rows = frappe.db.sql(
-        """
-        SELECT
-            'Site Transfer Form' AS doctype,
-            site_transfer.name,
-            site_transfer.employee,
-            employee.designation,
-            COALESCE(
-                site_transfer.employee_name,
-                employee.employee_name,
-                site_transfer.employee
-            ) AS employee_name,
-            COALESCE(
-                site_transfer.current_branch,
-                employee.branch
-            ) AS branch,
-            site_transfer.transfer_date AS effective_date,
-            NULL AS current_designation,
-            NULL AS new_designation,
-            site_transfer.current_branch,
-            site_transfer.new_branch,
-            site_transfer.creation
-        FROM `tabSite Transfer Form` site_transfer
-        INNER JOIN `tabEmployee` employee
-            ON employee.name = site_transfer.employee
-        WHERE
-            site_transfer.docstatus = 0
-            AND site_transfer.employee IS NOT NULL
-            AND employee.status = 'Active'
-        ORDER BY
-            branch ASC,
-            employee.employee_name ASC,
-            site_transfer.transfer_date ASC,
-            site_transfer.creation ASC
-        """,
-        as_dict=True,
-    )
-
-    return rows
-
-
 def _send_outstanding_workflow_email(
     rows,
     subject,
@@ -1393,10 +1347,9 @@ def _send_outstanding_workflow_email(
     existing weekly IR and HR reports. Each recipient's row set is narrowed to
     their own Designation Limits/Branch Limits via filter_rows_for_recipient -
     rows carry their own "doctype"/"designation"/"employee" fields (each
-    _get_outstanding_*() query selects them), so a mixed-doctype report (e.g.
-    Status Change Form + Site Transfer Form) filters each row against the
-    right doctype. Recipients left with nothing to see after filtering don't
-    receive that report at all.
+    _get_outstanding_*() query selects them), so a mixed-doctype report
+    filters each row against the right doctype. Recipients left with
+    nothing to see after filtering don't receive that report at all.
     """
     if not rows:
         frappe.logger().info(empty_log_message)
@@ -1513,13 +1466,6 @@ def _build_employee_change_form_row(row):
             )
 
         change_description = "; ".join(changes) or "No change recorded"
-    elif doctype == "Site Transfer Form":
-        current_branch = row.get("current_branch") or "Not specified"
-        new_branch = row.get("new_branch") or "Not specified"
-
-        change_description = (
-            f"Branch: {current_branch} → {new_branch}"
-        )
     else:
         change_description = ""
 

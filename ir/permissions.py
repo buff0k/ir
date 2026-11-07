@@ -38,7 +38,6 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
     "Contract of Employment": "designation",
     "Termination Form": "requested_for_designation",
     "Status Change Form": "current_designation",
-    "Site Transfer Form": "designation",
     "Disciplinary Action": "accused_pos",
     "Incapacity Proceedings": "accused_pos",
     "Poor Performance": "employee_designation",
@@ -70,7 +69,6 @@ BRANCH_LIMITED_DOCTYPES = {
     "Contract of Employment": "employee",
     "Termination Form": "requested_for",
     "Status Change Form": "employee",
-    "Site Transfer Form": "employee",
     "Disciplinary Action": "accused",
     "Incapacity Proceedings": "accused",
     "Poor Performance": "employee",
@@ -128,10 +126,10 @@ ROOT_CASE_DOCTYPES = (
 # - Contract of Employment (read-only for IR User in the doctype JSON) plus
 # every case/outcome doctype (all gated by a Responsible IR override that lets
 # the person actually assigned to a case see their own Draft regardless).
-# Deliberately excludes Termination Form/Status Change Form/Site Transfer Form
-# below - IR User genuinely has create/write on those three with no
-# Responsible IR concept at all, so this rule would otherwise lock a creator
-# out of their own just-drafted record with no escape hatch.
+# Deliberately excludes Termination Form/Status Change Form below - IR User
+# genuinely has create/write on those two with no Responsible IR concept at
+# all, so this rule would otherwise lock a creator out of their own
+# just-drafted record with no escape hatch.
 IR_USER_SUBMITTED_ONLY_DOCTYPES = {"Contract of Employment", *ROOT_CASE_DOCTYPES, *INTERVENTION_LINK_DOCTYPES}
 
 
@@ -676,10 +674,6 @@ def status_change_form_permission_query_conditions(user: str | None = None) -> s
     return _permission_query("Status Change Form", user)
 
 
-def site_transfer_form_permission_query_conditions(user: str | None = None) -> str:
-    return _permission_query("Site Transfer Form", user)
-
-
 def disciplinary_action_permission_query_conditions(user: str | None = None) -> str:
     return _permission_query("Disciplinary Action", user)
 
@@ -746,10 +740,6 @@ def status_change_form_has_permission(doc, user=None, ptype=None) -> bool:
     return _has_permission(doc, user, ptype)
 
 
-def site_transfer_form_has_permission(doc, user=None, ptype=None) -> bool:
-    return _has_permission(doc, user, ptype)
-
-
 def disciplinary_action_has_permission(doc, user=None, ptype=None) -> bool:
     return _has_permission(doc, user, ptype)
 
@@ -813,10 +803,6 @@ def validate_termination_form(doc, method=None):
 
 
 def validate_status_change_form(doc, method=None):
-    _validate_designation(doc)
-
-
-def validate_site_transfer_form(doc, method=None):
     _validate_designation(doc)
 
 

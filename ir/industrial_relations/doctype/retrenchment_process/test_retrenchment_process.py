@@ -35,7 +35,7 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Offence Outcome",
 	"Dismissal Form",
 	"Termination Form",
-	"Site Transfer Form",
+	"Status Change Form",
 	"Salary Component",
 ]
 

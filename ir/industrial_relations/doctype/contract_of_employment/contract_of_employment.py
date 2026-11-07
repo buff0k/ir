@@ -330,3 +330,21 @@ class ContractofEmployment(Document):
 
         # Save the Employee document to trigger Track Changes
         employee.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def get_pending_status_change(employee):
+    """The employee's most relevant Draft Status Change Form (latest
+    effective_date, ties broken by creation), if any - used by the client
+    employee: handler to warn when a new Contract is being drafted while a
+    Branch/Designation change for this employee is still pending submission."""
+    if not employee:
+        return None
+
+    return frappe.db.get_value(
+        "Status Change Form",
+        {"employee": employee, "docstatus": 0},
+        ["name", "new_branch", "new_designation", "effective_date"],
+        as_dict=True,
+        order_by="effective_date desc, creation desc",
+    )

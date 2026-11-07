@@ -35,7 +35,6 @@ BRAND_MARKED_PRINT_FORMATS = [
 	"NTA Enquiry",
 	"Suspension Form",
 	"Termination Form",
-	"Site Transfer Form",
 	"No Further Action Form",
 	"KPI Review",
 	"Warning Form",
