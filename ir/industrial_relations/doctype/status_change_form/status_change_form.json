@@ -24,6 +24,7 @@
   "details_of_status_change_section",
   "description",
   "current_designation",
+  "current_branch",
   "current_conditions",
   "current_rate",
   "current_travel",
@@ -35,6 +36,7 @@
   "column_break_lpby",
   "current",
   "new_designation",
+  "new_branch",
   "new_conditions",
   "new_rate",
   "new_travel",
@@ -93,7 +95,7 @@
   {
    "fieldname": "employee_for_status_change_section",
    "fieldtype": "Section Break",
-   "label": "Employee for Status Change"
+   "label": "Employee whose Status is Changing"
   },
   {
    "fieldname": "employee",
@@ -298,7 +300,7 @@
   {
    "fieldname": "reason",
    "fieldtype": "Small Text",
-   "label": "Reason for Transfer",
+   "label": "Reason for Status Change",
    "reqd": 1
   },
   {
@@ -314,13 +316,27 @@
    "label": "Opencast Allowance",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "current_branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-31 10:56:51.458321",
+ "modified": "2026-11-07 10:40:59.877022",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",

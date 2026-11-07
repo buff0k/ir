@@ -28,6 +28,9 @@ class SiteTransferForm(Document):
 
     def validate(self):
         """Server-side safety: always keep the derived fields in sync even if record is created via API/import."""
+        if self.is_new():
+            frappe.throw("Site Transfer Form is deprecated - use Status Change Form instead.")
+
         if self.requested_by:
             vals = frappe.db.get_value(
                 "Employee",

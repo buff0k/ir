@@ -232,21 +232,6 @@
    "idx": 15,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Site Transfer",
-   "link_to": "Site Transfer Form",
-   "link_type": "DocType",
-   "parentfield": "items",
-   "parenttype": "Sidebar",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
-   "doctype": "Sidebar Item",
-   "idx": 16,
-   "indent": 0,
-   "keep_closed": 0,
    "label": "Termination Form",
    "link_to": "Termination Form",
    "link_type": "DocType",
@@ -258,7 +243,7 @@
   {
    "collapsible": 1,
    "doctype": "Sidebar Item",
-   "idx": 17,
+   "idx": 16,
    "keep_closed": 1,
    "label": "Disciplinary Matters",
    "parentfield": "items",
@@ -268,7 +253,7 @@
   {
    "collapsible": 1,
    "doctype": "Sidebar Item",
-   "idx": 18,
+   "idx": 17,
    "keep_closed": 1,
    "label": "IR Attendance",
    "parentfield": "items",
@@ -278,7 +263,7 @@
   {
    "collapsible": 1,
    "doctype": "Sidebar Item",
-   "idx": 19,
+   "idx": 18,
    "keep_closed": 1,
    "label": "IR Setup",
    "parentfield": "items",
@@ -289,7 +274,7 @@
    "child": 1,
    "collapsible": 1,
    "doctype": "Sidebar Item",
-   "idx": 20,
+   "idx": 19,
    "indent": 0,
    "keep_closed": 0,
    "label": "Role Restrictions",
@@ -303,7 +288,7 @@
   {
    "collapsible": 1,
    "doctype": "Sidebar Item",
-   "idx": 21,
+   "idx": 20,
    "keep_closed": 1,
    "label": "IR Training",
    "parentfield": "items",
@@ -314,5 +299,6 @@
  "module": "Industrial Relations",
  "name": "Industrial Relations",
  "standard": 1,
- "title": "Industrial Relations"
+ "title": "Industrial Relations",
+ "modified": "2026-11-07 11:19:15.178405"
 }

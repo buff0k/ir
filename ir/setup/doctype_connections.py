@@ -107,11 +107,6 @@ REQUIRED_LINKS = [
         "group": LINK_GROUP,
     },
     {
-        "link_doctype": "Site Transfer Form",
-        "link_fieldname": "employee",
-        "group": LINK_GROUP,
-    },
-    {
         "link_doctype": "Retrenchment Affected Employee",
         "link_fieldname": "employee",
         "parent_doctype": "Retrenchment Process",
@@ -238,6 +233,10 @@ OBSOLETE_LINK_DOCTYPES = {
     # Replaced by a plain (non-is_child_table) link straight to "External
     # Dispute Resolution" - see the comment on that entry in REQUIRED_LINKS.
     "External Dispute Resolution Applicants",
+    # Deprecated in favour of Status Change Form's own current_branch/
+    # new_branch fields - the doctype itself still exists for now (new
+    # creation is blocked), but its Connections-tab link is retired.
+    "Site Transfer Form",
 }
 
 

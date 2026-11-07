@@ -46,3 +46,4 @@ ir.patches.cleanup_invalid_doctype_links
 ir.patches.migrate_irp5_legacy_source_fields
 ir.patches.ensure_eti_payroll_settings_defaults
 ir.patches.set_accounts_settings_for_za_vat
+ir.patches.migrate_site_transfer_form_to_status_change_form
