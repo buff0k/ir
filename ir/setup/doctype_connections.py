@@ -233,9 +233,11 @@ OBSOLETE_LINK_DOCTYPES = {
     # Replaced by a plain (non-is_child_table) link straight to "External
     # Dispute Resolution" - see the comment on that entry in REQUIRED_LINKS.
     "External Dispute Resolution Applicants",
-    # Deprecated in favour of Status Change Form's own current_branch/
-    # new_branch fields - the doctype itself still exists for now (new
-    # creation is blocked), but its Connections-tab link is retired.
+    # Deprecated in favour of Status Change Form's Status Change Detail
+    # child table (Branch change_type rows) - Site Transfer Form itself has
+    # since been fully removed (doctype, print format, and this Connections-
+    # tab link alike), kept here only as a historical-cleanup entry for
+    # sites that migrated through that stage.
     "Site Transfer Form",
 }
 

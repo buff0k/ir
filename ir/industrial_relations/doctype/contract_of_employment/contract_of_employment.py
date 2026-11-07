@@ -334,17 +334,42 @@ class ContractofEmployment(Document):
 
 @frappe.whitelist()
 def get_pending_status_change(employee):
-    """The employee's most relevant Draft Status Change Form (latest
-    effective_date, ties broken by creation), if any - used by the client
-    employee: handler to warn when a new Contract is being drafted while a
-    Branch/Designation change for this employee is still pending submission."""
+    """The employee's most relevant Draft Status Change Form that carries a
+    Designation or Branch change (latest effective_date, ties broken by
+    creation), if any - used by the client employee: handler to warn when a
+    new Contract is being drafted while a Branch/Designation change for this
+    employee is still pending submission.
+
+    new_designation/new_branch no longer exist as Status Change Form's own
+    fields - Status Change Detail is the only input now, so both are read
+    from whichever Designation/Branch row that form carries (a Status
+    Change Form with neither - e.g. an allowance-only change - isn't
+    relevant here and is skipped)."""
     if not employee:
         return None
 
-    return frappe.db.get_value(
-        "Status Change Form",
-        {"employee": employee, "docstatus": 0},
-        ["name", "new_branch", "new_designation", "effective_date"],
+    rows = frappe.db.sql(
+        """
+        SELECT scf.name, scf.effective_date, scd.change_type, scd.new_value
+        FROM `tabStatus Change Form` scf
+        INNER JOIN `tabStatus Change Detail` scd ON scd.parent = scf.name
+        WHERE scf.employee = %s
+            AND scf.docstatus = 0
+            AND scd.change_type IN ('Designation', 'Branch')
+        ORDER BY scf.effective_date DESC, scf.creation DESC
+        """,
+        (employee,),
         as_dict=True,
-        order_by="effective_date desc, creation desc",
     )
+    if not rows:
+        return None
+
+    top_name = rows[0].name
+    top_rows = [r for r in rows if r.name == top_name]
+
+    return frappe._dict({
+        "name": top_name,
+        "effective_date": top_rows[0].effective_date,
+        "new_designation": next((r.new_value for r in top_rows if r.change_type == "Designation"), None),
+        "new_branch": next((r.new_value for r in top_rows if r.change_type == "Branch"), None),
+    })

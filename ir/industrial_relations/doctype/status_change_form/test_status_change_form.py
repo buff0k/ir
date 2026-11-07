@@ -44,28 +44,6 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 
 DUMMY_ATTACH = "/files/ZZTEST-signed-status-change-form.pdf"
 
-# Every "current_*"/"new_*" Currency/Select field is reqd=1 on this doctype -
-# zero-value defaults for all of them, so tests only override what they
-# actually care about.
-_ZERO_MONEY_FIELDS = {
-	"current_conditions": "Indefinite",
-	"new_conditions": "Indefinite",
-	"current_rate": 0,
-	"new_rate": 0,
-	"current_travel": 0,
-	"new_travel": 0,
-	"current_housing": 0,
-	"new_housing": 0,
-	"current_safety": 0,
-	"new_safety": 0,
-	"current_shift": 0,
-	"new_shift": 0,
-	"current_phone": 0,
-	"new_phone": 0,
-	"current_opencast": 0,
-	"new_opencast": 0,
-}
-
 
 def _second_designation(exclude: str | None) -> str:
 	"""A second, distinct, real Designation - so a status change's
@@ -241,19 +219,27 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		])
 
 	def _make_status_change_form(self, employee, new_designation, effective_date, **overrides):
+		"""Defaults to a single Designation-change row (old_value gets
+		auto-corrected to the employee's live designation by validate()
+		regardless of what's passed here) - pass status_change_details
+		explicitly to test Branch/Conditions of Employment/Salary Component
+		rows instead, or a no-op employee: new_designation is then unused."""
+		details = overrides.pop("status_change_details", None)
+		if details is None:
+			details = [{
+				"change_type": "Designation",
+				"old_value": employee.designation,
+				"new_value": new_designation,
+			}]
+
 		values = {
 			"doctype": "Status Change Form",
 			"requested_by": employee.name,
 			"employee": employee.name,
-			"new_designation": new_designation,
-			# Defaults to the employee's own current branch (i.e. no branch
-			# change) - falls back to any real Branch for tests whose
-			# employee fixture doesn't set one, since new_branch is reqd=1.
-			"new_branch": employee.branch or get_reference_branch(),
 			"effective_date": effective_date,
 			"reason": "ZZTEST status change reason",
+			"status_change_details": details,
 		}
-		values.update(_ZERO_MONEY_FIELDS)
 		values.update(overrides)
 
 		doc = frappe.get_doc(values)
@@ -277,15 +263,14 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		self.assertEqual(doc.company, company)
 
 		# current_designation/current_branch are no longer stored fields -
-		# validate() now rebuilds status_change_details from the employee's
-		# live designation/branch instead (see _rebuild_status_change_details).
+		# validate() auto-corrects the Designation row's old_value live from
+		# the Employee record instead.
 		details = doc.get("status_change_details") or []
 		designation_rows = [d for d in details if d.change_type == "Designation"]
 		self.assertEqual(len(designation_rows), 1)
 		self.assertEqual(designation_rows[0].old_value, current_designation)
 		self.assertEqual(designation_rows[0].new_value, new_designation)
-		# _make_status_change_form defaults new_branch to the employee's own
-		# branch - no actual branch change here, so no Branch row.
+		# _make_status_change_form's default row is Designation-only - no Branch row.
 		self.assertFalse([d for d in details if d.change_type == "Branch"])
 
 	def test_before_submit_requires_attach(self):
@@ -333,11 +318,16 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		employee = self.make_employee(designation=current_designation, branch=current_branch)
 		effective_date = add_days(getdate(nowdate()), 5)
 
-		# new_designation intentionally the same as the Employee's own current
-		# designation - only the branch is changing here.
+		# Only a Branch row - no Designation row - so only the branch is
+		# changing here.
 		doc = self._make_status_change_form(
 			employee, current_designation, effective_date,
-			new_branch=new_branch, attach=DUMMY_ATTACH,
+			status_change_details=[{
+				"change_type": "Branch",
+				"old_value": current_branch,
+				"new_value": new_branch,
+			}],
+			attach=DUMMY_ATTACH,
 		)
 		doc.submit()
 
@@ -363,10 +353,18 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		employee = self.make_employee(designation=current_designation, branch=current_branch)
 		effective_date = add_days(getdate(nowdate()), 5)
 
-		# new_designation/new_branch intentionally the same as the Employee's
-		# own current values - on_submit should be a true no-op.
+		# No Designation/Branch row at all - only an unrelated Salary
+		# Component change - on_submit should be a true no-op for
+		# Employee/internal_work_history.
 		doc = self._make_status_change_form(
-			employee, current_designation, effective_date, attach=DUMMY_ATTACH
+			employee, current_designation, effective_date,
+			status_change_details=[{
+				"change_type": "Salary Component",
+				"salary_component": "Housing Allowance",
+				"old_amount": 0,
+				"new_amount": 500,
+			}],
+			attach=DUMMY_ATTACH,
 		)
 		doc.submit()
 
@@ -388,12 +386,14 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 				"doctype": "Status Change Form",
 				"requested_by": employee.name,
 				"employee": employee.name,
-				"new_designation": new_designation,
-				"new_branch": employee.branch or get_reference_branch(),
 				"effective_date": effective_date,
 				"reason": "ZZTEST duplicate attempt",
+				"status_change_details": [{
+					"change_type": "Designation",
+					"old_value": current_designation,
+					"new_value": new_designation,
+				}],
 			}
-			values.update(_ZERO_MONEY_FIELDS)
 			frappe.get_doc(values).insert(ignore_permissions=True)
 
 	def test_second_form_with_different_date_is_allowed(self):

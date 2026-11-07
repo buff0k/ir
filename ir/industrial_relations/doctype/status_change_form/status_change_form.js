@@ -35,8 +35,9 @@ frappe.ui.form.on("Status Change Form", {
 
   async pull_employee_details(frm) {
     // current_designation/current_branch are no longer stored fields -
-    // validate() derives them live from the Employee record on save
-    // instead (see status_change_form.py's _rebuild_status_change_details).
+    // validate() reads the Employee record live on save instead, to
+    // auto-correct the "old" side of any Designation/Branch row in
+    // status_change_details.
     if (!frm.doc.employee) {
       frm.set_value("employee_name", "");
       return;
@@ -50,7 +51,7 @@ frappe.ui.form.on("Status Change Form", {
 });
 
 frappe.ui.form.on("Status Change Detail", {
-  // Status Change Detail rows carry fields for all three change_type shapes
+  // Status Change Detail rows carry fields for all four change_type shapes
   // at once - mirrors the server-side clearing in status_change_form.py so
   // switching a row's type doesn't leave stale values sitting in the fields
   // that just became hidden, visible as soon as the user picks a new type
