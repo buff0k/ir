@@ -1306,8 +1306,8 @@ def _get_outstanding_status_change_forms():
             status_change.effective_date,
             status_change.current_designation,
             status_change.new_designation,
-            NULL AS current_branch,
-            NULL AS new_branch,
+            status_change.current_branch,
+            status_change.new_branch,
             status_change.creation
         FROM `tabStatus Change Form` status_change
         INNER JOIN `tabEmployee` employee
@@ -1496,12 +1496,23 @@ def _build_employee_change_form_row(row):
     document_url = frappe.utils.get_url(f"/app/{route}/{document_name}")
 
     if doctype == "Status Change Form":
-        current_designation = row.get("current_designation") or "Not specified"
-        new_designation = row.get("new_designation") or "Not specified"
+        changes = []
 
-        change_description = (
-            f"Designation: {current_designation} → {new_designation}"
-        )
+        current_designation = row.get("current_designation")
+        new_designation = row.get("new_designation")
+        if (current_designation or "") != (new_designation or ""):
+            changes.append(
+                f"Designation: {current_designation or 'Not specified'} → {new_designation or 'Not specified'}"
+            )
+
+        current_branch = row.get("current_branch")
+        new_branch = row.get("new_branch")
+        if new_branch and (current_branch or "") != (new_branch or ""):
+            changes.append(
+                f"Branch: {current_branch or 'Not specified'} → {new_branch}"
+            )
+
+        change_description = "; ".join(changes) or "No change recorded"
     elif doctype == "Site Transfer Form":
         current_branch = row.get("current_branch") or "Not specified"
         new_branch = row.get("new_branch") or "Not specified"

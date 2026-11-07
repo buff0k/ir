@@ -44,11 +44,12 @@ class StatusChangeForm(Document):
             vals = frappe.db.get_value(
                 "Employee",
                 self.employee,
-                ["employee_name", "designation", "company"],
+                ["employee_name", "designation", "branch", "company"],
                 as_dict=True
             ) or {}
             self.employee_name = vals.get("employee_name")
             self.current_designation = vals.get("designation")
+            self.current_branch = vals.get("branch")
             self.company = vals.get("company")
             self.letter_head = fetch_company_letter_head(self.company).get("letter_head") if self.company else None
 
@@ -57,7 +58,9 @@ class StatusChangeForm(Document):
             frappe.throw("You must attach the signed status change form before submitting.")
 
     def on_submit(self):
-        """Only touches Employee internal_work_history if designation actually changes; branch is left as-is."""
+        """Touches Employee internal_work_history/designation/branch only for whichever of
+        designation or branch actually changed - a Status Change Form can carry either, both,
+        or (rarely) neither, now that it also absorbs Site Transfer Form's former role."""
         if not self.employee:
             frappe.throw("Employee is required.")
         if not self.effective_date:
@@ -69,8 +72,13 @@ class StatusChangeForm(Document):
 
         current_desig = getattr(emp, "designation", None)
         new_desig = self.new_designation
+        current_branch = getattr(emp, "branch", None)
+        new_branch = self.new_branch
 
-        if (current_desig or "") == (new_desig or ""):
+        designation_changed = (current_desig or "") != (new_desig or "")
+        branch_changed = bool(new_branch) and (new_branch or "") != (current_branch or "")
+
+        if not designation_changed and not branch_changed:
             return
 
         history = emp.get("internal_work_history") or []
@@ -85,13 +93,13 @@ class StatusChangeForm(Document):
 
         if not history:
             emp.append("internal_work_history", {
-                "branch": getattr(emp, "branch", None),
+                "branch": current_branch,
                 "department": getattr(emp, "department", None),
                 "designation": current_desig,
                 "from_date": getattr(emp, "date_of_joining", None),
                 "to_date": self.effective_date,
             })
-            prev_branch = getattr(emp, "branch", None)
+            prev_branch = current_branch
             prev_department = getattr(emp, "department", None)
         else:
             latest = get_latest_row(history)
@@ -100,19 +108,22 @@ class StatusChangeForm(Document):
 
             latest.to_date = self.effective_date
 
-            prev_branch = getattr(latest, "branch", None) or getattr(emp, "branch", None)
+            prev_branch = getattr(latest, "branch", None) or current_branch
             prev_department = getattr(latest, "department", None) or getattr(emp, "department", None)
 
         emp.append("internal_work_history", {
-            "branch": prev_branch,
+            "branch": new_branch if branch_changed else prev_branch,
             "department": prev_department,
-            "designation": new_desig,
+            "designation": new_desig if designation_changed else current_desig,
             "from_date": self.effective_date,
             "to_date": None,
         })
 
         emp.save(ignore_permissions=True)
 
-        # Employee.designation is updated only after the child table save above, in a second save.
-        emp.designation = new_desig
+        # Employee.designation/branch are updated only after the child table save above, in a second save.
+        if designation_changed:
+            emp.designation = new_desig
+        if branch_changed:
+            emp.branch = new_branch
         emp.save(ignore_permissions=True)

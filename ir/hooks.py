@@ -22,10 +22,7 @@ add_to_apps_screen = [
 	}
 ]
 app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
-# Modules absorbed from za_local ship their own doctypes/workspaces but carry
-# no separate dock/sidebar entry - their workspaces are linked into the
-# "Industrial Relations" sidebar instead, so nav stays unified as more
-# modules land here (same pattern frappe.Core uses for its own doctypes).
+
 code_only_modules = {
 	"ir_coida": ["Industrial Relations"],
 	"ir_labour": ["Industrial Relations"],
@@ -33,8 +30,11 @@ code_only_modules = {
 	"ir_payroll": ["Industrial Relations"],
 	"ir_setup": ["Industrial Relations"],
 }
+
 app_include_css = ["/assets/ir/css/ir_ui.css"]
+
 app_include_js = ["/assets/ir/js/ir_feedback.js"]
+
 fixtures = [
 	{"dt": "Role", "filters": [["name", "in", [
         "IR Officer",
@@ -159,13 +159,6 @@ fixtures = [
         "Job Requisition-ir_main_duties_and_responsibilities",
         "Job Requisition-ir_acceptable_disabilities",
         "Job Requisition-ir_remarks",
-		# South African fields absorbed from za_local - names kept exactly
-		# as-is (za_... prefix) per the migration's "retain legacy names"
-		# decision. Source of truth is now this fixture, not an imperative
-		# creation script. Kept in the SAME filter entry as the block above:
-		# a second separate {"dt": "Custom Field", ...} entry would overwrite
-		# this one's exported file on the next export-fixtures run instead of
-		# merging with it.
 		"Additional Salary-za_is_company_contribution",
 		"Address-za_address_column_break",
 		"Address-za_address_line_3",
@@ -284,9 +277,6 @@ fixtures = [
 		"Salary Structure Assignment-za_annual_bonus",
 		"Salary Structure-company_contribution",
 		"Salary Structure-company_contribution_section",
-		# VAT custom fields absorbed from ir.ir_vat.setup.ensure_vat_custom_fields
-		# (a second, separate custom-field source from za_local's main
-		# custom_fields.py, found while retiring that function's own call).
 		"Account-custom_sa_vat_compliance_section",
 		"Account-custom_vat_return_debit_classification",
 		"Account-custom_vat_return_credit_classification",
@@ -322,10 +312,6 @@ fixtures = [
         "Job Requisition-ir_main_duties_and_responsibilities",
         "Job Requisition-ir_acceptable_disabilities",
         "Job Requisition-ir_remarks",
-		# South African property setters absorbed from za_local - kept in
-		# this same filter entry for the same reason as Custom Field above
-		# (a second {"dt": "Property Setter", ...} entry would overwrite
-		# this one's exported file instead of merging with it).
 		"Additional Salary-main-protect_attached_files",
 		"Asset Depreciation Schedule-main-protect_attached_files",
 		"Asset-main-protect_attached_files",
@@ -409,26 +395,6 @@ fixtures = [
         "PRED",
         "RETR"
 	]]]},
-	# Print Format is NOT a fixture here - the absorbed SA print formats ship
-	# as standard=Yes module-doc files under each module's print_format/
-	# folder (same mechanism ir's own print formats already use), synced
-	# automatically by bench migrate. A fixture entry would duplicate that
-	# and risk silently overwriting a module-file edit on the next migrate.
-	# South African reference/master data absorbed from za_local - generic
-	# lookup data with no company/account linkage, so it's a plain fixture
-	# rather than a seed function. (Salary Component is the one exception
-	# in this list - it DOES carry a company-scoped `accounts` child table,
-	# which fixture export would otherwise bake in as this site's specific
-	# mappings; that child table is stripped from the exported fixture file
-	# after each export, since per-company GL account mapping is handled
-	# separately, as a real "needs a wizard" step - see ir.ir_setup.install.
-	# ETI Slab is the other exception - it's a plain reconciling function,
-	# ir.ir_setup.install.ensure_eti_slabs, not a fixture: a fixture creates/
-	# matches by `name`, but ETI Slab's real identity constraint is a unique
-	# `title`, so any site with its own pre-existing ETI Slab history (under
-	# its own naming-series-assigned names) would hit a title collision the
-	# moment a frozen-name fixture tried to insert a same-titled row -
-	# confirmed on a lab bench with real prior ETI Slab usage.)
 	{"dt": "SARS Payroll Code", "filters": [["name", "in", [
 		"3805", "4497", "4477", "4476", "4475", "4474", "4472", "4142",
 		"4141", "4120", "4115", "4118", "4116", "4102", "4010", "4008",
@@ -520,8 +486,7 @@ fixtures = [
 		"Standard"
 	]]]}
 ]
-# ir requires HRMS (required_apps below), so HRMS-dependent registrations are
-# unconditional - it is always installed wherever ir is.
+
 doctype_js = {
 	"COIDA Annual Return": "public/js/coida_annual_return.js",
 	"Workplace Injury": "public/js/workplace_injury.js",
@@ -534,6 +499,7 @@ doctype_js = {
 	"Salary Structure": "public/js/salary_structure.js",
 	"Salary Structure Assignment": "public/js/salary_structure_assignment.js",
 }
+
 extend_doctype_class = {
 	"Sales Invoice": "ir.overrides.vat_invoices.ZASalesInvoice",
 	"Purchase Invoice": "ir.overrides.vat_invoices.ZAPurchaseInvoice",
@@ -541,6 +507,7 @@ extend_doctype_class = {
 		"ir.ir_payroll.fringe_benefits.salary_slip.FringeBenefitSalarySlipMixin",
 	],
 }
+
 override_doctype_class = {
 	"Salary Slip": "ir.overrides.salary_slip.ZASalarySlip",
 	"Payroll Entry": "ir.overrides.payroll_entry.ZAPayrollEntry",
@@ -549,12 +516,15 @@ override_doctype_class = {
 	"Employee Separation": "ir.overrides.employee_separation.ZAEmployeeSeparation",
 	"Salary Structure Assignment": "ir.overrides.salary_structure_assignment.ZASalaryStructureAssignment",
 }
+
 jinja = {
 	"methods": [
 		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_outcome_body",
 		"ir.industrial_relations.doctype.written_outcome.written_outcome.get_case_details_html",
+		"ir.utils.print_theme.get_brand_primary_color",
 	],
 }
+
 scheduler_events = {
 	"weekly": [
     	"ir.controllers.fixed_term_expiry.fixed_term_expiry",
@@ -576,7 +546,6 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"ir.ir_payroll.fringe_benefits.tasks.refresh_fringe_benefit_statuses",
-		# Absorbed from za_local.tasks as part of absorbing za_local into ir.
 		"ir.tasks.daily",
 	],
 	"weekly_long": [
@@ -587,25 +556,20 @@ scheduler_events = {
 		"ir.tasks.quarterly",
 	],
 }
-# Absorbed from za_local - the post-ERPNext-setup-wizard SA stage (chart of
-# accounts augmentation + salary component account repair + default print
-# formats for a freshly created South African company).
+
 setup_wizard_stages = "ir.ir_setup.setup_wizard.get_sa_localization_stages"
+
 after_migrate = [
 	"ir.setup.doctype_connections.ensure_employee_links",
-	# Absorbed from za_local.sa_setup.custom_fields._get_doctype_link_records
-	# - a "custom_records" hook that was never a real Frappe/ERPNext/HRMS
-	# hook, so it was never actually consumed.
 	"ir.setup.doctype_connections.ensure_doctype_connection_links",
-	# Absorbed from za_local - company-scoped SA payroll/VAT setup that
-	# can't be a fixture (varies per Company). Each is independently
-	# idempotent and self-guards on table existence.
 	"ir.ir_setup.install.ensure_all_company_tax_configuration",
 	"ir.ir_setup.install.seed_statutory_rate_packs",
 	"ir.ir_setup.install.ensure_eti_slabs",
 	"ir.ir_setup.install.repair_salary_component_accounts",
 	"ir.ir_vat.setup.migrate_legacy_vat_account_rows",
+	"ir.utils.print_theme.sync_print_format_brand_colors",
 ]
+
 doc_events = {
 	"Item": {
 		"validate": "ir.ir_vat.item_sync.sync_item_zero_rated_flag",
@@ -613,8 +577,6 @@ doc_events = {
 	"Customer": {
 		"validate": "ir.overrides.customer.validate",
 	},
-	# SARS audit-trail deletion protection, absorbed from za_local/custom/
-	# {sales,purchase}.py - found disconnected from any hook there.
 	"Quotation": {"on_trash": "ir.overrides.sales.on_trash"},
 	"Sales Order": {"on_trash": "ir.overrides.sales.on_trash"},
 	"Sales Invoice": {"on_trash": "ir.overrides.sales.on_trash"},
@@ -626,8 +588,6 @@ doc_events = {
 	"Company": {
 		"after_insert": "ir.ir_setup.install.configure_new_south_african_company",
 	},
-	# Absorbed from za_local/overrides/journal_entry.py as part of
-	# absorbing za_local into ir.
 	"Journal Entry": {
 		"on_trash": "ir.overrides.journal_entry.on_trash",
 		"on_cancel": "ir.overrides.journal_entry.on_cancel",
@@ -711,6 +671,7 @@ doc_events = {
         "validate": "ir.permissions.validate_appeal_against_outcome",
     },
 }
+
 permission_query_conditions = {
     "Contract of Employment": "ir.permissions.contract_of_employment_permission_query_conditions",
     "Termination Form": "ir.permissions.termination_form_permission_query_conditions",
@@ -733,6 +694,7 @@ permission_query_conditions = {
     "Section 189 Notice": "ir.permissions.section_189_notice_permission_query_conditions",
     "S189 Consultation": "ir.permissions.s189_consultation_permission_query_conditions",
 }
+
 has_permission = {
     "Contract of Employment": "ir.permissions.contract_of_employment_has_permission",
     "Termination Form": "ir.permissions.termination_form_has_permission",

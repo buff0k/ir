@@ -320,16 +320,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Site Transfer Form",
-   "link_count": 0,
-   "link_to": "Site Transfer Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Status Change Form",
    "link_count": 0,
    "link_to": "Status Change Form",
@@ -554,7 +544,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-31 10:56:51.458321",
+ "modified": "2026-11-07 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "IR General",

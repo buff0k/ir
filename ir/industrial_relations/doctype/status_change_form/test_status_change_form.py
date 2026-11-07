@@ -8,6 +8,7 @@ from frappe.utils import add_days, getdate, nowdate
 
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
+	get_reference_branch,
 	get_reference_company,
 	get_reference_designation,
 )
@@ -70,12 +71,23 @@ def _second_designation(exclude: str | None) -> str:
 	return designation
 
 
+def _second_branch(exclude: str | None) -> str:
+	"""A second, distinct, real Branch - so a status change's `new_branch`
+	differs from the Employee's own current branch."""
+	branch = frappe.db.get_value(
+		"Branch", {"name": ["!=", exclude]} if exclude else {}, "name", order_by="creation asc"
+	)
+	if not branch:
+		frappe.throw("Need at least two Branches on this site to test Status Change Form.")
+	return branch
+
+
 class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 	"""Functional tests for Status Change Form's validate()-time field sync
-	(requested_by/current_designation auto-population), the autoname-based
-	duplicate guard, and the on_submit Employee.designation/
-	internal_work_history sync - which only fires when the designation
-	actually changes."""
+	(requested_by/current_designation/current_branch auto-population), the
+	autoname-based duplicate guard, and the on_submit Employee.designation/
+	Employee.branch/internal_work_history sync - which fires independently
+	for whichever of designation or branch actually changed."""
 
 	def _make_status_change_form(self, employee, new_designation, effective_date, **overrides):
 		values = {
@@ -83,6 +95,10 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 			"requested_by": employee.name,
 			"employee": employee.name,
 			"new_designation": new_designation,
+			# Defaults to the employee's own current branch (i.e. no branch
+			# change) - falls back to any real Branch for tests whose
+			# employee fixture doesn't set one, since new_branch is reqd=1.
+			"new_branch": employee.branch or get_reference_branch(),
 			"effective_date": effective_date,
 			"reason": "ZZTEST status change reason",
 		}
@@ -98,7 +114,8 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		company = get_reference_company()
 		current_designation = get_reference_designation()
 		new_designation = _second_designation(current_designation)
-		employee = self.make_employee(company=company, designation=current_designation)
+		branch = get_reference_branch()
+		employee = self.make_employee(company=company, designation=current_designation, branch=branch)
 
 		doc = self._make_status_change_form(
 			employee, new_designation, add_days(getdate(nowdate()), 5)
@@ -107,6 +124,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		self.assertEqual(doc.employee_name, employee.employee_name)
 		self.assertEqual(doc.requested_by_name, employee.employee_name)
 		self.assertEqual(doc.current_designation, current_designation)
+		self.assertEqual(doc.current_branch, branch)
 		self.assertEqual(doc.company, company)
 
 	def test_before_submit_requires_attach(self):
@@ -147,14 +165,45 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		self.assertEqual(getdate(new_row.from_date), effective_date)
 		self.assertFalse(new_row.to_date)
 
-	def test_on_submit_is_a_no_op_when_designation_unchanged(self):
+	def test_on_submit_updates_employee_branch_and_history_when_changed(self):
 		current_designation = get_reference_designation()
-		employee = self.make_employee(designation=current_designation)
+		current_branch = get_reference_branch()
+		new_branch = _second_branch(current_branch)
+		employee = self.make_employee(designation=current_designation, branch=current_branch)
 		effective_date = add_days(getdate(nowdate()), 5)
 
-		# new_designation intentionally the same as the Employee's own
-		# current designation - on_submit's own comment says branch/history
-		# are only touched when the designation actually changes.
+		# new_designation intentionally the same as the Employee's own current
+		# designation - only the branch is changing here.
+		doc = self._make_status_change_form(
+			employee, current_designation, effective_date,
+			new_branch=new_branch, attach=DUMMY_ATTACH,
+		)
+		doc.submit()
+
+		employee.reload()
+		self.assertEqual(employee.designation, current_designation)
+		self.assertEqual(employee.branch, new_branch)
+
+		history = employee.get("internal_work_history") or []
+		self.assertEqual(len(history), 2)
+
+		closed_row, new_row = history[0], history[1]
+		self.assertEqual(closed_row.branch, current_branch)
+		self.assertEqual(closed_row.designation, current_designation)
+		self.assertEqual(getdate(closed_row.to_date), effective_date)
+		self.assertEqual(new_row.branch, new_branch)
+		self.assertEqual(new_row.designation, current_designation)
+		self.assertEqual(getdate(new_row.from_date), effective_date)
+		self.assertFalse(new_row.to_date)
+
+	def test_on_submit_is_a_no_op_when_designation_and_branch_unchanged(self):
+		current_designation = get_reference_designation()
+		current_branch = get_reference_branch()
+		employee = self.make_employee(designation=current_designation, branch=current_branch)
+		effective_date = add_days(getdate(nowdate()), 5)
+
+		# new_designation/new_branch intentionally the same as the Employee's
+		# own current values - on_submit should be a true no-op.
 		doc = self._make_status_change_form(
 			employee, current_designation, effective_date, attach=DUMMY_ATTACH
 		)
@@ -162,6 +211,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 
 		employee.reload()
 		self.assertEqual(employee.designation, current_designation)
+		self.assertEqual(employee.branch, current_branch)
 		self.assertEqual(employee.get("internal_work_history") or [], [])
 
 	def test_duplicate_employee_designation_and_date_is_blocked(self):
@@ -178,6 +228,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 				"requested_by": employee.name,
 				"employee": employee.name,
 				"new_designation": new_designation,
+				"new_branch": employee.branch or get_reference_branch(),
 				"effective_date": effective_date,
 				"reason": "ZZTEST duplicate attempt",
 			}
