@@ -1303,9 +1303,7 @@ def _get_outstanding_status_change_forms():
             ) AS employee_name,
             employee.branch,
             status_change.effective_date,
-            status_change.current_designation,
             status_change.new_designation,
-            status_change.current_branch,
             status_change.new_branch,
             status_change.creation
         FROM `tabStatus Change Form` status_change
@@ -1451,14 +1449,19 @@ def _build_employee_change_form_row(row):
     if doctype == "Status Change Form":
         changes = []
 
-        current_designation = row.get("current_designation")
+        # Status Change Form no longer stores its own current_designation/
+        # current_branch snapshot - "designation"/"branch" here are the
+        # linked Employee's own live values, already joined in by
+        # _get_outstanding_status_change_forms (and always were the same
+        # value current_designation/current_branch used to mirror anyway).
+        current_designation = row.get("designation")
         new_designation = row.get("new_designation")
         if (current_designation or "") != (new_designation or ""):
             changes.append(
                 f"Designation: {current_designation or 'Not specified'} → {new_designation or 'Not specified'}"
             )
 
-        current_branch = row.get("current_branch")
+        current_branch = row.get("branch")
         new_branch = row.get("new_branch")
         if new_branch and (current_branch or "") != (new_branch or ""):
             changes.append(

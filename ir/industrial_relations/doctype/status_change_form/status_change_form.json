@@ -23,8 +23,6 @@
   "effective_date",
   "details_of_status_change_section",
   "description",
-  "current_designation",
-  "current_branch",
   "current_conditions",
   "current_rate",
   "current_travel",
@@ -45,6 +43,8 @@
   "new_shift",
   "new_phone",
   "new_opencast",
+  "status_change_details_section",
+  "status_change_details",
   "section_break_igdf",
   "reason"
  ],
@@ -146,13 +146,6 @@
    "fieldname": "current",
    "fieldtype": "Heading",
    "label": "New"
-  },
-  {
-   "fieldname": "current_designation",
-   "fieldtype": "Link",
-   "label": "Designation",
-   "options": "Designation",
-   "read_only": 1
   },
   {
    "fieldname": "column_break_lpby",
@@ -318,25 +311,29 @@
    "reqd": 1
   },
   {
-   "fieldname": "current_branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch",
-   "read_only": 1
-  },
-  {
    "fieldname": "new_branch",
    "fieldtype": "Link",
    "label": "Branch",
    "options": "Branch",
    "reqd": 1
+  },
+  {
+   "fieldname": "status_change_details_section",
+   "fieldtype": "Section Break",
+   "label": "Status Change Details"
+  },
+  {
+   "fieldname": "status_change_details",
+   "fieldtype": "Table",
+   "label": "Status Change Details",
+   "options": "Status Change Detail"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-07 10:40:59.877022",
+ "modified": "2026-11-07 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",

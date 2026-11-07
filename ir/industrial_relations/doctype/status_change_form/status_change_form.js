@@ -34,19 +34,45 @@ frappe.ui.form.on("Status Change Form", {
   },
 
   async pull_employee_details(frm) {
+    // current_designation/current_branch are no longer stored fields -
+    // validate() derives them live from the Employee record on save
+    // instead (see status_change_form.py's _rebuild_status_change_details).
     if (!frm.doc.employee) {
       frm.set_value("employee_name", "");
-      frm.set_value("current_designation", "");
       return;
     }
 
-    const r = await frappe.db.get_value("Employee", frm.doc.employee, [
-      "employee_name",
-      "designation",
-    ]);
+    const r = await frappe.db.get_value("Employee", frm.doc.employee, ["employee_name"]);
 
     const v = (r && r.message) || {};
     await frm.set_value("employee_name", v.employee_name || "");
-    await frm.set_value("current_designation", v.designation || "");
+  },
+});
+
+frappe.ui.form.on("Status Change Detail", {
+  // Status Change Detail rows carry fields for all three change_type shapes
+  // at once - mirrors the server-side clearing in status_change_form.py so
+  // switching a row's type doesn't leave stale values sitting in the fields
+  // that just became hidden, visible as soon as the user picks a new type
+  // rather than only after save.
+  change_type(frm, cdt, cdn) {
+    const row = frappe.get_doc(cdt, cdn);
+    const is_link_row = row.change_type === "Branch" || row.change_type === "Designation";
+    const is_condition_row = row.change_type === "Conditions of Employment";
+    const is_salary_row = row.change_type === "Salary Component";
+
+    if (!is_link_row) {
+      frappe.model.set_value(cdt, cdn, "old_value", "");
+      frappe.model.set_value(cdt, cdn, "new_value", "");
+    }
+    if (!is_condition_row) {
+      frappe.model.set_value(cdt, cdn, "old_condition", "");
+      frappe.model.set_value(cdt, cdn, "new_condition", "");
+    }
+    if (!is_salary_row) {
+      frappe.model.set_value(cdt, cdn, "salary_component", "");
+      frappe.model.set_value(cdt, cdn, "old_amount", 0);
+      frappe.model.set_value(cdt, cdn, "new_amount", 0);
+    }
   },
 });

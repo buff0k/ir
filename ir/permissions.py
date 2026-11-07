@@ -53,6 +53,22 @@ DESIGNATION_FIELD_BY_DOCTYPE = {
     "Appeal Against Outcome": "position",
 }
 
+# Status Change Form stopped storing its own designation snapshot once the
+# Status Change Detail child table took over recording Designation/Branch/
+# Conditions/Salary Component changes (current_designation was always just a
+# read-only mirror of the linked Employee's own designation anyway, never
+# independently editable) - current_designation would otherwise go stale
+# (NULL) on every record created after that field was removed, silently
+# bypassing Designation Limits for all of them. For doctypes in this set,
+# _root_case_fields/_permission_query resolve "relevant designation" live via
+# the same Employee join Branch Limits already uses for them
+# (BRANCH_LIMITED_DOCTYPES's employee field) instead of trusting
+# DESIGNATION_FIELD_BY_DOCTYPE's stored column. Deliberately scoped to just
+# this doctype - the other entries above (e.g. Disciplinary Action's
+# accused_pos) may intentionally freeze the designation as it was at the time
+# of the case, which a live Employee join would wrongly override.
+DESIGNATION_VIA_EMPLOYEE_DOCTYPES = {"Status Change Form"}
+
 # Doctype -> fieldname holding the Employee link whose Employee.branch is checked
 # against a user's "Responsible HR per Branch" (hr_per_branch) rows on IR Role
 # Restrictions. Deliberately does not include External Dispute Resolution (no
@@ -302,9 +318,14 @@ def _root_case_fields(doc) -> tuple[str | None, str | None]:
         return row.get(employee_field), row.get(designation_field)
 
     employee_field = BRANCH_LIMITED_DOCTYPES.get(doc.doctype)
-    designation_field = DESIGNATION_FIELD_BY_DOCTYPE.get(doc.doctype)
     employee = doc.get(employee_field) if employee_field else None
-    designation = doc.get(designation_field) if designation_field else None
+
+    if doc.doctype in DESIGNATION_VIA_EMPLOYEE_DOCTYPES:
+        designation = frappe.db.get_value("Employee", employee, "designation") if employee else None
+    else:
+        designation_field = DESIGNATION_FIELD_BY_DOCTYPE.get(doc.doctype)
+        designation = doc.get(designation_field) if designation_field else None
+
     return employee, designation
 
 
@@ -409,8 +430,16 @@ def _permission_query(doctype: str, user: str | None) -> str:
     else:
         restricted = restricted_designations_for_user(user)
         if restricted:
-            fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
-            conditions.append(_sql_not_in_designations(f"`tab{doctype}`.`{fieldname}`", restricted))
+            if doctype in DESIGNATION_VIA_EMPLOYEE_DOCTYPES:
+                employee_field = BRANCH_LIMITED_DOCTYPES[doctype]
+                designation_sql = (
+                    f"(SELECT designation FROM `tabEmployee` "
+                    f"WHERE name = `tab{doctype}`.`{employee_field}`)"
+                )
+            else:
+                fieldname = DESIGNATION_FIELD_BY_DOCTYPE[doctype]
+                designation_sql = f"`tab{doctype}`.`{fieldname}`"
+            conditions.append(_sql_not_in_designations(designation_sql, restricted))
 
         employee_field = BRANCH_LIMITED_DOCTYPES.get(doctype)
         if employee_field:
