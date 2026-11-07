@@ -21,28 +21,6 @@
   "company",
   "letter_head",
   "effective_date",
-  "details_of_status_change_section",
-  "description",
-  "current_conditions",
-  "current_rate",
-  "current_travel",
-  "current_housing",
-  "current_safety",
-  "current_shift",
-  "current_phone",
-  "current_opencast",
-  "column_break_lpby",
-  "current",
-  "new_designation",
-  "new_branch",
-  "new_conditions",
-  "new_rate",
-  "new_travel",
-  "new_housing",
-  "new_safety",
-  "new_shift",
-  "new_phone",
-  "new_opencast",
   "status_change_details_section",
   "status_change_details",
   "section_break_igdf",
@@ -138,128 +116,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "details_of_status_change_section",
-   "fieldtype": "Section Break",
-   "label": "Details of Status Change"
-  },
-  {
-   "fieldname": "current",
-   "fieldtype": "Heading",
-   "label": "New"
-  },
-  {
-   "fieldname": "column_break_lpby",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "new_designation",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Designation",
-   "options": "Designation",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_conditions",
-   "fieldtype": "Select",
-   "label": "Conditions of Employment",
-   "options": "\nFixed Term\nProject\nIndefinite",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_conditions",
-   "fieldtype": "Select",
-   "label": "Conditions of Employment",
-   "options": "\nFixed Term\nProject\nIndefinite",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_rate",
-   "fieldtype": "Currency",
-   "label": "Hourly / Basic Rate",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_rate",
-   "fieldtype": "Currency",
-   "label": "Hourly / Basic Rate",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_travel",
-   "fieldtype": "Currency",
-   "label": "Travelling Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_housing",
-   "fieldtype": "Currency",
-   "label": "Housing Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_travel",
-   "fieldtype": "Currency",
-   "label": "Travelling Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_housing",
-   "fieldtype": "Currency",
-   "label": "Housing Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "description",
-   "fieldtype": "Heading",
-   "label": "Current (Old)"
-  },
-  {
-   "fieldname": "current_safety",
-   "fieldtype": "Currency",
-   "label": "Safety Bonus",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_safety",
-   "fieldtype": "Currency",
-   "label": "Safety Bonus",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_shift",
-   "fieldtype": "Currency",
-   "label": "Shift Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_shift",
-   "fieldtype": "Currency",
-   "label": "Shift Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
    "fieldname": "effective_date",
    "fieldtype": "Date",
    "label": "Effective Date",
@@ -271,22 +127,6 @@
    "label": "Attach Signed Status Change"
   },
   {
-   "fieldname": "current_phone",
-   "fieldtype": "Currency",
-   "label": "Cellphone Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_phone",
-   "fieldtype": "Currency",
-   "label": "Cellphone Allowance",
-   "non_negative": 1,
-   "precision": "4",
-   "reqd": 1
-  },
-  {
    "fieldname": "section_break_igdf",
    "fieldtype": "Section Break"
   },
@@ -294,27 +134,6 @@
    "fieldname": "reason",
    "fieldtype": "Small Text",
    "label": "Reason for Status Change",
-   "reqd": 1
-  },
-  {
-   "fieldname": "current_opencast",
-   "fieldtype": "Currency",
-   "label": "Opencast Allowance",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_opencast",
-   "fieldtype": "Currency",
-   "label": "Opencast Allowance",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "new_branch",
-   "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch",
    "reqd": 1
   },
   {
@@ -333,7 +152,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-07 13:00:00.000000",
+ "modified": "2026-11-07 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Status Change Form",

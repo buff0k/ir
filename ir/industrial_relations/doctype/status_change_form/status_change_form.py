@@ -6,9 +6,6 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import formatdate
 
-from ir.industrial_relations.doctype.status_change_form.status_change_detail_backfill import (
-    build_status_change_detail_rows,
-)
 from ir.industrial_relations.utils import fetch_company_letter_head
 
 def _clean(s: str) -> str:
@@ -38,22 +35,46 @@ def _clear_inapplicable_status_change_detail_fields(row):
         row.old_amount = 0
         row.new_amount = 0
 
+
+def _is_no_op_status_change_detail_row(row) -> bool:
+    """True if a row's old/new sides are equal after validate()'s auto-
+    correction - either a genuine no-op the user typed in (e.g. a
+    Designation row for a Salary Component change they then reconsidered),
+    or a Designation/Branch row whose intended change turned out to already
+    match the Employee's live value. Dropped rather than kept, matching
+    this table's overall shape: only actual changes get a row."""
+    if row.change_type in ("Designation", "Branch"):
+        return (row.old_value or None) == (row.new_value or None)
+    if row.change_type == "Conditions of Employment":
+        return (row.old_condition or None) == (row.new_condition or None)
+    if row.change_type == "Salary Component":
+        return (row.old_amount or 0) == (row.new_amount or 0)
+    return False
+
+
 class StatusChangeForm(Document):
     def autoname(self):
-        # current_designation is no longer a stored field (see validate()) -
-        # autoname() runs before validate() populates anything anyway, so
-        # this was always really just an Employee lookup under the hood.
+        # Designation is no longer a stored field - this table is the only
+        # input now, so the name's "new designation" side comes from
+        # whichever Designation row the user added (falling back to the
+        # Employee's own current designation when there isn't one, i.e. the
+        # designation isn't changing on this form).
         effective_date = formatdate(self.effective_date, "dd-MM-yyyy") if self.effective_date else ""
         current_designation = (
             frappe.db.get_value("Employee", self.employee, "designation") if self.employee else None
         )
-        name = f"{self.employee} - {current_designation} to {self.new_designation} - {effective_date}"
+        designation_row = next(
+            (r for r in self.get("status_change_details") or [] if r.change_type == "Designation"), None
+        )
+        new_designation = designation_row.new_value if designation_row else current_designation
+
+        name = f"{self.employee} - {current_designation} to {new_designation} - {effective_date}"
         self.name = _clean(name)
 
         if frappe.db.exists(self.doctype, self.name):
             frappe.throw(
                 f"Duplicate record: a Status Change Form already exists for "
-                f"{self.employee} from {current_designation} to {self.new_designation} on {effective_date}."
+                f"{self.employee} from {current_designation} to {new_designation} on {effective_date}."
             )
 
     def validate(self):
@@ -89,49 +110,32 @@ class StatusChangeForm(Document):
             self.company = vals.get("company")
             self.letter_head = fetch_company_letter_head(self.company).get("letter_head") if self.company else None
 
-        self._rebuild_status_change_details(current_designation, current_branch)
+        # Status Change Detail is the input now - current_*/new_* fields are
+        # all gone. Designation/Branch's "old" side is always knowable live
+        # from the Employee record (it was never really user-editable even
+        # when current_designation/current_branch existed as their own
+        # read-only fields), so it's auto-corrected here regardless of
+        # whatever the user actually typed into old_value. Conditions of
+        # Employment/Salary Component rows have no such live source - their
+        # old side stays exactly as entered, same manual-entry burden as
+        # when current_conditions/current_rate/etc. were their own fields.
+        details = []
+        for row in self.get("status_change_details") or []:
+            _clear_inapplicable_status_change_detail_fields(row)
+            if row.change_type == "Designation":
+                row.old_value = current_designation
+            elif row.change_type == "Branch":
+                row.old_value = current_branch
 
-    def _rebuild_status_change_details(self, current_designation, current_branch):
-        """current_designation/current_branch used to be their own stored,
-        read-only fields - now that Status Change Detail exists, they (and
-        every other current_*/new_* pair) are represented as rows there
-        instead, built the exact same way - and from the exact same source
-        data - as the one-off historic backfill
-        (ir.patches.backfill_status_change_detail_from_legacy_fields), just
-        run live on every save rather than once. Fully rebuilt from scratch
-        each time rather than merged, matching how current_designation/
-        current_branch were themselves unconditionally recomputed on every
-        validate() before this - so any manual edit made directly to this
-        table will not survive the next save."""
-        source = {
-            "current_designation": current_designation,
-            "new_designation": self.new_designation,
-            "current_branch": current_branch,
-            "new_branch": self.new_branch,
-            "current_conditions": self.current_conditions,
-            "new_conditions": self.new_conditions,
-            "current_rate": self.current_rate,
-            "new_rate": self.new_rate,
-            "current_travel": self.current_travel,
-            "new_travel": self.new_travel,
-            "current_housing": self.current_housing,
-            "new_housing": self.new_housing,
-            "current_safety": self.current_safety,
-            "new_safety": self.new_safety,
-            "current_shift": self.current_shift,
-            "new_shift": self.new_shift,
-            "current_phone": self.current_phone,
-            "new_phone": self.new_phone,
-            "current_opencast": self.current_opencast,
-            "new_opencast": self.new_opencast,
-        }
-        self.set("status_change_details", [])
-        for row in build_status_change_detail_rows(source):
-            self.append("status_change_details", row)
+            if not _is_no_op_status_change_detail_row(row):
+                details.append(row)
+        self.set("status_change_details", details)
 
     def before_submit(self):
         if not self.attach:
             frappe.throw("You must attach the signed status change form before submitting.")
+        if not self.get("status_change_details"):
+            frappe.throw("At least one change must be recorded in Status Change Details before submitting.")
 
     def on_submit(self):
         """Touches Employee internal_work_history/designation/branch only for whichever of
@@ -143,8 +147,6 @@ class StatusChangeForm(Document):
             frappe.throw("Employee is required.")
         if not self.effective_date:
             frappe.throw("Effective Date is required.")
-        if not self.new_designation:
-            frappe.throw("New Designation is required.")
 
         details = self.get("status_change_details") or []
         designation_row = next((r for r in details if r.change_type == "Designation"), None)

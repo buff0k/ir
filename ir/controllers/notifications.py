@@ -1289,6 +1289,11 @@ def _get_outstanding_status_change_forms():
     """
     Return draft Status Change Forms linked to active employees.
     """
+    # new_designation/new_branch no longer exist as Status Change Form's own
+    # columns - Status Change Detail is the only input now, so the "new"
+    # side (if this form carries a Designation/Branch change at all) comes
+    # from a left join against it instead, aliased back to the same names
+    # so _build_employee_change_form_row needs no changes.
     rows = frappe.db.sql(
         """
         SELECT
@@ -1303,12 +1308,18 @@ def _get_outstanding_status_change_forms():
             ) AS employee_name,
             employee.branch,
             status_change.effective_date,
-            status_change.new_designation,
-            status_change.new_branch,
+            designation_detail.new_value AS new_designation,
+            branch_detail.new_value AS new_branch,
             status_change.creation
         FROM `tabStatus Change Form` status_change
         INNER JOIN `tabEmployee` employee
             ON employee.name = status_change.employee
+        LEFT JOIN `tabStatus Change Detail` designation_detail
+            ON designation_detail.parent = status_change.name
+            AND designation_detail.change_type = 'Designation'
+        LEFT JOIN `tabStatus Change Detail` branch_detail
+            ON branch_detail.parent = status_change.name
+            AND branch_detail.change_type = 'Branch'
         WHERE
             status_change.docstatus = 0
             AND status_change.employee IS NOT NULL
