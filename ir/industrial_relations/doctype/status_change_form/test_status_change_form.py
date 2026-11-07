@@ -6,6 +6,10 @@ from __future__ import annotations
 import frappe
 from frappe.utils import add_days, getdate, nowdate
 
+from ir.industrial_relations.doctype.status_change_form.status_change_detail_backfill import (
+	build_status_change_detail_rows,
+	classify_rate_component,
+)
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
 	get_reference_branch,
@@ -24,12 +28,18 @@ from ir.tests.test_helpers import (
 # hrms's own legacy test-bootstrap code (BootStrapTestData et al) which
 # assumes a pristine site and collides with this site's real Company/Fiscal
 # Year/Employee data. See test_termination_form.py for the same pattern.
+#
+# "Salary Component" is here because of the new Status Change Detail child
+# table's salary_component Link field - Salary Component's own "accounts"
+# child table links to Company/Account, which walks into the same
+# Company/Fiscal Year bootstrap collision.
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Employee",
 	"Designation",
 	"Company",
 	"Letter Head",
+	"Salary Component",
 ]
 
 DUMMY_ATTACH = "/files/ZZTEST-signed-status-change-form.pdf"
@@ -89,6 +99,147 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 	Employee.branch/internal_work_history sync - which fires independently
 	for whichever of designation or branch actually changed."""
 
+	# ---- pure-function tests: no DB needed, for the Status Change Detail
+	# backfill patch's row-building logic -------------------------------
+
+	def test_classify_rate_component_cutoff(self):
+		self.assertEqual(classify_rate_component(1000), "Hourly Earnings")
+		self.assertEqual(classify_rate_component(1000.0), "Hourly Earnings")
+		self.assertEqual(classify_rate_component(1000.01), "Basic Salary")
+		self.assertEqual(classify_rate_component(0), "Hourly Earnings")
+
+	def test_build_detail_rows_is_empty_when_nothing_changed(self):
+		source = {
+			"current_designation": "Boilermaker", "new_designation": "Boilermaker",
+			"current_branch": None, "new_branch": None,
+			"current_conditions": "", "new_conditions": "",
+			"current_rate": 500, "new_rate": 500,
+			"current_travel": 0, "new_travel": 0,
+			"current_housing": 0, "new_housing": 0,
+			"current_safety": 0, "new_safety": 0,
+			"current_shift": 0, "new_shift": 0,
+			"current_phone": 0, "new_phone": 0,
+			"current_opencast": 0, "new_opencast": 0,
+		}
+		self.assertEqual(build_status_change_detail_rows(source), [])
+
+	def test_build_detail_rows_designation_change(self):
+		source = {"current_designation": "Boilermaker", "new_designation": "Fitter"}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [{
+			"change_type": "Designation", "old_value": "Boilermaker", "new_value": "Fitter",
+		}])
+
+	def test_build_detail_rows_branch_null_to_null_is_skipped(self):
+		"""A record predating the Branch field ever existing on this form -
+		both sides None, not a real change."""
+		source = {"current_branch": None, "new_branch": None}
+		self.assertEqual(build_status_change_detail_rows(source), [])
+
+	def test_build_detail_rows_branch_change(self):
+		source = {"current_branch": "Bankfontein", "new_branch": "Isambane"}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [{
+			"change_type": "Branch", "old_value": "Bankfontein", "new_value": "Isambane",
+		}])
+
+	def test_build_detail_rows_conditions_blank_to_blank_is_skipped(self):
+		"""A migrated-from-Site-Transfer-Form record, where Conditions was
+		left at its default blank on both sides - not a real change."""
+		source = {"current_conditions": "", "new_conditions": ""}
+		self.assertEqual(build_status_change_detail_rows(source), [])
+
+	def test_build_detail_rows_conditions_change(self):
+		source = {"current_conditions": "Fixed Term", "new_conditions": "Indefinite"}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [{
+			"change_type": "Conditions of Employment",
+			"old_condition": "Fixed Term", "new_condition": "Indefinite",
+		}])
+
+	def test_build_detail_rows_simple_allowance_change(self):
+		source = {"current_travel": 100, "new_travel": 250}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [{
+			"change_type": "Salary Component", "salary_component": "Transport Allowance",
+			"old_amount": 100.0, "new_amount": 250.0,
+		}])
+
+	def test_build_detail_rows_simple_allowance_unchanged_is_skipped(self):
+		source = {"current_shift": 50, "new_shift": 50}
+		self.assertEqual(build_status_change_detail_rows(source), [])
+
+	def test_build_detail_rows_rate_change_same_side_of_cutoff(self):
+		source = {"current_rate": 500, "new_rate": 700}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [{
+			"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			"old_amount": 500.0, "new_amount": 700.0,
+		}])
+
+	def test_build_detail_rows_rate_change_crosses_cutoff_hourly_to_basic(self):
+		source = {"current_rate": 500, "new_rate": 5000}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [
+			{"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			 "old_amount": 500.0, "new_amount": 0},
+			{"change_type": "Salary Component", "salary_component": "Basic Salary",
+			 "old_amount": 0, "new_amount": 5000.0},
+		])
+
+	def test_build_detail_rows_rate_change_crosses_cutoff_basic_to_hourly(self):
+		source = {"current_rate": 5000, "new_rate": 500}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [
+			{"change_type": "Salary Component", "salary_component": "Basic Salary",
+			 "old_amount": 5000.0, "new_amount": 0},
+			{"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			 "old_amount": 0, "new_amount": 500.0},
+		])
+
+	def test_build_detail_rows_rate_unchanged_is_skipped(self):
+		source = {"current_rate": 5000, "new_rate": 5000}
+		self.assertEqual(build_status_change_detail_rows(source), [])
+
+	def test_build_detail_rows_rate_crossover_from_zero_omits_vacuous_old_row(self):
+		"""current_rate=0 classifies as Hourly Earnings by the cutoff rule,
+		but a literal 0 never actually held an hourly rate - only the real
+		Basic Salary row should come out, not a spurious 0->0 Hourly row."""
+		source = {"current_rate": 0, "new_rate": 5000}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [
+			{"change_type": "Salary Component", "salary_component": "Basic Salary",
+			 "old_amount": 0, "new_amount": 5000.0},
+		])
+
+	def test_build_detail_rows_rate_crossover_to_zero_omits_vacuous_new_row(self):
+		source = {"current_rate": 5000, "new_rate": 0}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [
+			{"change_type": "Salary Component", "salary_component": "Basic Salary",
+			 "old_amount": 5000.0, "new_amount": 0},
+		])
+
+	def test_build_detail_rows_combined_scenario(self):
+		source = {
+			"current_designation": "Boilermaker", "new_designation": "Fitter",
+			"current_branch": "Bankfontein", "new_branch": "Bankfontein",
+			"current_conditions": "Fixed Term", "new_conditions": "Fixed Term",
+			"current_rate": 500, "new_rate": 500,
+			"current_travel": 100, "new_travel": 100,
+			"current_housing": 200, "new_housing": 350,
+			"current_safety": 0, "new_safety": 0,
+			"current_shift": 0, "new_shift": 0,
+			"current_phone": 0, "new_phone": 0,
+			"current_opencast": 0, "new_opencast": 0,
+		}
+		rows = build_status_change_detail_rows(source)
+		self.assertEqual(rows, [
+			{"change_type": "Designation", "old_value": "Boilermaker", "new_value": "Fitter"},
+			{"change_type": "Salary Component", "salary_component": "Housing Allowance",
+			 "old_amount": 200.0, "new_amount": 350.0},
+		])
+
 	def _make_status_change_form(self, employee, new_designation, effective_date, **overrides):
 		values = {
 			"doctype": "Status Change Form",
@@ -123,9 +274,19 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 
 		self.assertEqual(doc.employee_name, employee.employee_name)
 		self.assertEqual(doc.requested_by_name, employee.employee_name)
-		self.assertEqual(doc.current_designation, current_designation)
-		self.assertEqual(doc.current_branch, branch)
 		self.assertEqual(doc.company, company)
+
+		# current_designation/current_branch are no longer stored fields -
+		# validate() now rebuilds status_change_details from the employee's
+		# live designation/branch instead (see _rebuild_status_change_details).
+		details = doc.get("status_change_details") or []
+		designation_rows = [d for d in details if d.change_type == "Designation"]
+		self.assertEqual(len(designation_rows), 1)
+		self.assertEqual(designation_rows[0].old_value, current_designation)
+		self.assertEqual(designation_rows[0].new_value, new_designation)
+		# _make_status_change_form defaults new_branch to the employee's own
+		# branch - no actual branch change here, so no Branch row.
+		self.assertFalse([d for d in details if d.change_type == "Branch"])
 
 	def test_before_submit_requires_attach(self):
 		current_designation = get_reference_designation()

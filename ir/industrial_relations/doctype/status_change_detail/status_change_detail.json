@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-07 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "change_type",
+  "old_value",
+  "new_value",
+  "old_condition",
+  "new_condition",
+  "salary_component",
+  "old_amount",
+  "new_amount"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "change_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Change Type",
+   "options": "Branch\nDesignation\nConditions of Employment\nSalary Component",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Branch\" || doc.change_type == \"Designation\"",
+   "fieldname": "old_value",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Old Value",
+   "mandatory_depends_on": "eval:doc.change_type == \"Branch\" || doc.change_type == \"Designation\"",
+   "options": "change_type"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Branch\" || doc.change_type == \"Designation\"",
+   "fieldname": "new_value",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "New Value",
+   "mandatory_depends_on": "eval:doc.change_type == \"Branch\" || doc.change_type == \"Designation\"",
+   "options": "change_type"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Conditions of Employment\"",
+   "fieldname": "old_condition",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Old Condition",
+   "mandatory_depends_on": "eval:doc.change_type == \"Conditions of Employment\"",
+   "options": "\nFixed Term\nProject\nIndefinite"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Conditions of Employment\"",
+   "fieldname": "new_condition",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "New Condition",
+   "mandatory_depends_on": "eval:doc.change_type == \"Conditions of Employment\"",
+   "options": "\nFixed Term\nProject\nIndefinite"
+  },
+  {
+   "columns": 3,
+   "depends_on": "eval:doc.change_type == \"Salary Component\"",
+   "fieldname": "salary_component",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Salary Component",
+   "mandatory_depends_on": "eval:doc.change_type == \"Salary Component\"",
+   "options": "Salary Component"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Salary Component\"",
+   "fieldname": "old_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Old Amount",
+   "non_negative": 1
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.change_type == \"Salary Component\"",
+   "fieldname": "new_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "New Amount",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-07 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Industrial Relations",
+ "name": "Status Change Detail",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

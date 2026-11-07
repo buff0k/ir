@@ -73,6 +73,51 @@ class TestWhitelistedEndpointPermissions(UnitTestCase):
 		has_permission.assert_not_called()
 
 
+class TestStatusChangeFormDesignationRestriction(UnitTestCase):
+	"""Status Change Form stopped storing its own current_designation
+	snapshot once the Status Change Detail child table took over - without
+	this, Designation Limits would silently stop applying to every record
+	created after that field went away (current_designation would just be
+	NULL, and `bool(None) and ...` reads as "not restricted"). permissions.py
+	must resolve its "relevant designation" live via the linked Employee
+	instead - see DESIGNATION_VIA_EMPLOYEE_DOCTYPES."""
+
+	def test_root_case_fields_resolves_designation_via_employee(self):
+		from ir.permissions import _root_case_fields
+
+		with patch("ir.permissions.frappe.db.get_value", return_value="ZZTEST Designation") as get_value:
+			doc = frappe._dict({"doctype": "Status Change Form", "employee": "ZZTEST-0001"})
+			employee, designation = _root_case_fields(doc)
+
+		self.assertEqual(employee, "ZZTEST-0001")
+		self.assertEqual(designation, "ZZTEST Designation")
+		get_value.assert_called_once_with("Employee", "ZZTEST-0001", "designation")
+
+	def test_root_case_fields_no_employee_resolves_no_designation(self):
+		from ir.permissions import _root_case_fields
+
+		doc = frappe._dict({"doctype": "Status Change Form", "employee": None})
+		employee, designation = _root_case_fields(doc)
+
+		self.assertIsNone(employee)
+		self.assertIsNone(designation)
+
+	def test_permission_query_designation_condition_is_a_live_employee_subquery(self):
+		from ir.permissions import _permission_query
+
+		with (
+			patch("ir.permissions.restricted_designations_for_user", return_value=["ZZTEST Designation"]),
+			patch("ir.permissions.responsible_branches_for_user", return_value=[]),
+			patch("ir.permissions.effective_ir_role", return_value="IR Officer"),
+			patch("ir.permissions._sql_responsible_ir_override", return_value=None),
+		):
+			condition = _permission_query("Status Change Form", "test@example.com")
+
+		self.assertIn("SELECT designation FROM `tabEmployee`", condition)
+		self.assertIn("`tabStatus Change Form`.`employee`", condition)
+		self.assertNotIn("current_designation", condition)
+
+
 class TestPrintFormatRegistration(UnitTestCase):
 	def test_sa_print_format_json_has_inline_html_and_no_legacy_app_references(self):
 		app_root = Path(frappe.get_app_path("ir"))

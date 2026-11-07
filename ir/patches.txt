@@ -48,3 +48,4 @@ ir.patches.ensure_eti_payroll_settings_defaults
 ir.patches.set_accounts_settings_for_za_vat
 ir.patches.migrate_site_transfer_form_to_status_change_form
 ir.patches.fix_status_change_form_migrated_creation_dates
+ir.patches.backfill_status_change_detail_from_legacy_fields
