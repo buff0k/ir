@@ -37,8 +37,49 @@ frappe.ui.form.on('Contract of Employment', {
                         frm.set_value('letter_head', r.default_letter_head || '');
                     });
                 }
+            }).then(() => {
+                frm.events.check_pending_status_change(frm);
             });
         }
+    },
+
+    check_pending_status_change: function(frm) {
+        frappe.call({
+            method: 'ir.industrial_relations.doctype.contract_of_employment.contract_of_employment.get_pending_status_change',
+            args: { employee: frm.doc.employee },
+            callback: function(r) {
+                const pending = r.message;
+                if (!pending) return;
+
+                const branch_differs = pending.new_branch && pending.new_branch !== frm.doc.branch;
+                const designation_differs = pending.new_designation && pending.new_designation !== frm.doc.designation;
+                if (!branch_differs && !designation_differs) return;
+
+                let diff_html = `<p>${__("A Draft Status Change Form ({0}, effective {1}) is pending for this employee:", [pending.name, frappe.datetime.str_to_user(pending.effective_date)])}</p>`;
+                diff_html += `<table class="table table-bordered"><thead><tr><th></th><th>${__("Employee Record")}</th><th>${__("Pending Status Change")}</th></tr></thead><tbody>`;
+                if (branch_differs) {
+                    diff_html += `<tr><td>${__("Branch")}</td><td>${frm.doc.branch || ""}</td><td>${pending.new_branch}</td></tr>`;
+                }
+                if (designation_differs) {
+                    diff_html += `<tr><td>${__("Designation")}</td><td>${frm.doc.designation || ""}</td><td>${pending.new_designation}</td></tr>`;
+                }
+                diff_html += `</tbody></table>`;
+
+                const dialog = new frappe.ui.Dialog({
+                    title: __("Pending Status Change Found"),
+                    fields: [{ fieldtype: "HTML", options: diff_html }],
+                    primary_action_label: __("Use Pending Status Change"),
+                    primary_action: () => {
+                        if (branch_differs) frm.set_value('branch', pending.new_branch);
+                        if (designation_differs) frm.set_value('designation', pending.new_designation);
+                        dialog.hide();
+                    },
+                    secondary_action_label: __("Use Employee Record"),
+                    secondary_action: () => dialog.hide(),
+                });
+                dialog.show();
+            }
+        });
     },
 
     contract_type: function(frm) {
