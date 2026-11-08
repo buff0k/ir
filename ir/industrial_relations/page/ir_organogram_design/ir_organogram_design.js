@@ -1029,7 +1029,7 @@ class SiteOrganogramDesigner {
     const $s = this.$main.find(".so-doc-status");
     const name = this.state.name || "New Site Organogram";
     const status = this.state.docstatus === 1 ? "Submitted" : this.state.docstatus === 2 ? "Cancelled" : "Draft";
-    $s.html(`<span>${this.esc(name)} · ${status}</span>${this.dirty ? ' <span class="so-dirty">· Unsaved</span>' : ""}`);
+    $s.html(`<span>${this.esc(name)} · ${status}</span>${this.dirty ? ' <span class="sdm-dirty">· Unsaved</span>' : ""}`);
   }
 
   ensure_state_keys() {

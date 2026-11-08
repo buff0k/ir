@@ -13,13 +13,6 @@ def _clean(s: str) -> str:
 
 
 def _clear_inapplicable_status_change_detail_fields(row):
-    """Status Change Detail rows carry fields for all four change_type
-    shapes (Branch/Designation's old_value+new_value Dynamic Links,
-    Conditions of Employment's old_condition+new_condition Selects, and
-    Salary Component's salary_component+old_amount+new_amount) at once -
-    this blanks out whichever sets don't match the row's current
-    change_type, so switching a row's type doesn't leave stale data from
-    the type it used to be sitting in the fields that are now hidden."""
     is_link_row = row.change_type in ("Branch", "Designation")
     is_condition_row = row.change_type == "Conditions of Employment"
     is_salary_row = row.change_type == "Salary Component"
@@ -37,12 +30,6 @@ def _clear_inapplicable_status_change_detail_fields(row):
 
 
 def _is_no_op_status_change_detail_row(row) -> bool:
-    """True if a row's old/new sides are equal after validate()'s auto-
-    correction - either a genuine no-op the user typed in (e.g. a
-    Designation row for a Salary Component change they then reconsidered),
-    or a Designation/Branch row whose intended change turned out to already
-    match the Employee's live value. Dropped rather than kept, matching
-    this table's overall shape: only actual changes get a row."""
     if row.change_type in ("Designation", "Branch"):
         return (row.old_value or None) == (row.new_value or None)
     if row.change_type == "Conditions of Employment":
@@ -54,11 +41,6 @@ def _is_no_op_status_change_detail_row(row) -> bool:
 
 class StatusChangeForm(Document):
     def autoname(self):
-        # Designation is no longer a stored field - this table is the only
-        # input now, so the name's "new designation" side comes from
-        # whichever Designation row the user added (falling back to the
-        # Employee's own current designation when there isn't one, i.e. the
-        # designation isn't changing on this form).
         effective_date = formatdate(self.effective_date, "dd-MM-yyyy") if self.effective_date else ""
         current_designation = (
             frappe.db.get_value("Employee", self.employee, "designation") if self.employee else None
@@ -92,11 +74,6 @@ class StatusChangeForm(Document):
         current_designation = None
         current_branch = None
 
-        # Company/Letterhead were missing entirely until now, so a Status
-        # Change Form always printed with the site's default Letter Head
-        # instead of the Employee's own Company's - see
-        # ir.patches.backfill_status_change_form_company_letter_head for the
-        # retroactive fix on already-submitted records.
         if self.employee:
             vals = frappe.db.get_value(
                 "Employee",
@@ -110,15 +87,6 @@ class StatusChangeForm(Document):
             self.company = vals.get("company")
             self.letter_head = fetch_company_letter_head(self.company).get("letter_head") if self.company else None
 
-        # Status Change Detail is the input now - current_*/new_* fields are
-        # all gone. Designation/Branch's "old" side is always knowable live
-        # from the Employee record (it was never really user-editable even
-        # when current_designation/current_branch existed as their own
-        # read-only fields), so it's auto-corrected here regardless of
-        # whatever the user actually typed into old_value. Conditions of
-        # Employment/Salary Component rows have no such live source - their
-        # old side stays exactly as entered, same manual-entry burden as
-        # when current_conditions/current_rate/etc. were their own fields.
         details = []
         for row in self.get("status_change_details") or []:
             _clear_inapplicable_status_change_detail_fields(row)
@@ -131,6 +99,28 @@ class StatusChangeForm(Document):
                 details.append(row)
         self.set("status_change_details", details)
 
+        self._validate_salary_component_types()
+
+    def _validate_salary_component_types(self):
+        component_names = {
+            row.salary_component
+            for row in self.get("status_change_details") or []
+            if row.change_type == "Salary Component" and row.salary_component
+        }
+        if not component_names:
+            return
+
+        non_earning = frappe.get_all(
+            "Salary Component",
+            filters={"name": ["in", list(component_names)], "type": ["!=", "Earning"]},
+            pluck="name",
+        )
+        if non_earning:
+            frappe.throw(
+                "Status Change Details can only reference Earning-type Salary Components, "
+                f"not: {', '.join(non_earning)}."
+            )
+
     def before_submit(self):
         if not self.attach:
             frappe.throw("You must attach the signed status change form before submitting.")
@@ -138,11 +128,6 @@ class StatusChangeForm(Document):
             frappe.throw("At least one change must be recorded in Status Change Details before submitting.")
 
     def on_submit(self):
-        """Touches Employee internal_work_history/designation/branch only for whichever of
-        designation or branch actually changed - driven by the Designation/Branch rows in
-        status_change_details (built in validate(), the single authoritative record of what
-        this form actually changes) rather than re-deriving the same comparison independently
-        here a second time."""
         if not self.employee:
             frappe.throw("Employee is required.")
         if not self.effective_date:
@@ -205,7 +190,6 @@ class StatusChangeForm(Document):
 
         emp.save(ignore_permissions=True)
 
-        # Employee.designation/branch are updated only after the child table save above, in a second save.
         if designation_changed:
             emp.designation = new_desig
         if branch_changed:

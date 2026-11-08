@@ -38,7 +38,7 @@ class BranchStaffingDashboard {
 
 	build_shell() {
 		this.$main.html(`
-			<div class="bsd-page">
+			<div class="so-page">
 				<div class="bsd-filters">
 					<div class="bsd-filters__control" data-control="company"></div>
 					<div class="bsd-filters__control" data-control="branches"></div>
@@ -71,11 +71,11 @@ class BranchStaffingDashboard {
 					</div>
 				</div>
 				<div class="bsd-charts">
-					<div class="bsd-chart-card">
+					<div class="so-panel">
 						<div class="bsd-chart-card__title">Current Staffing</div>
 						<div class="bsd-chart-card__body" data-chart="pie"></div>
 					</div>
-					<div class="bsd-chart-card">
+					<div class="so-panel">
 						<div class="bsd-chart-card__title">Structure Trend</div>
 						<div class="bsd-chart-card__body" data-chart="trend"></div>
 					</div>
