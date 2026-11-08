@@ -408,3 +408,39 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 			employee, new_designation, add_days(getdate(nowdate()), 6)
 		)
 		self.assertTrue(second.name)
+
+	def test_salary_component_row_rejects_non_earning_component(self):
+		current_designation = get_reference_designation()
+		employee = self.make_employee(designation=current_designation)
+		non_earning_component = frappe.db.get_value("Salary Component", {"type": ["!=", "Earning"]}, "name")
+		if not non_earning_component:
+			self.skipTest("No non-Earning Salary Component available on this site.")
+
+		with self.assertRaises(frappe.ValidationError):
+			self._make_status_change_form(
+				employee, current_designation, add_days(getdate(nowdate()), 5),
+				status_change_details=[{
+					"change_type": "Salary Component",
+					"salary_component": non_earning_component,
+					"old_amount": 0,
+					"new_amount": 100,
+				}],
+			)
+
+	def test_salary_component_row_accepts_earning_component(self):
+		current_designation = get_reference_designation()
+		employee = self.make_employee(designation=current_designation)
+		earning_component = frappe.db.get_value("Salary Component", {"type": "Earning"}, "name")
+		if not earning_component:
+			self.skipTest("No Earning Salary Component available on this site.")
+
+		doc = self._make_status_change_form(
+			employee, current_designation, add_days(getdate(nowdate()), 5),
+			status_change_details=[{
+				"change_type": "Salary Component",
+				"salary_component": earning_component,
+				"old_amount": 0,
+				"new_amount": 100,
+			}],
+		)
+		self.assertEqual(doc.status_change_details[0].salary_component, earning_component)
