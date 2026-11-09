@@ -87,9 +87,9 @@
    "link_fieldname": "disc_offence_out"
   }
  ],
- "modified": "2026-10-31 10:56:51.458321",
+ "modified": "2026-11-08 18:16:04.589442",
  "modified_by": "Administrator",
- "module": "ir_setup",
+ "module": "IR Setup",
  "name": "Disciplinary Offence",
  "naming_rule": "Expression",
  "owner": "Administrator",

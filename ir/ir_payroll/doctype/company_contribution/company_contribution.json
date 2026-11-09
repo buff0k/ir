@@ -74,7 +74,7 @@
   }
  ],
  "istable": 1,
- "module": "ir_payroll",
+ "module": "IR Payroll",
  "name": "Company Contribution",
  "track_changes": 1
 }

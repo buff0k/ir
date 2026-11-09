@@ -42,6 +42,14 @@ def get_reference_company() -> str:
 	return company
 
 
+def get_secondary_company() -> str | None:
+	"""A second, real Company distinct from get_reference_company(), for tests that need to prove
+	cross-Company behavior. None when the site only has one Company - callers should skip rather
+	than fall back to a fake Company name (see get_reference_company's docstring)."""
+	reference = get_reference_company()
+	return frappe.db.get_value("Company", {"name": ["!=", reference]}, "name", order_by="creation asc")
+
+
 def get_reference_branch() -> str | None:
 	return frappe.db.get_value("Branch", {}, "name", order_by="creation asc")
 

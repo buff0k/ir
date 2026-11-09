@@ -92,9 +92,9 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 09:45:31.019633",
+ "modified": "2026-11-08 18:19:45.439996",
  "modified_by": "Administrator",
- "module": "ir_labour",
+ "module": "IR Labour",
  "name": "Business Trip Settings",
  "owner": "Administrator",
  "permissions": [

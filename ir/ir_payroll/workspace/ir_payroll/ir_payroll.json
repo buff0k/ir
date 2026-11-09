@@ -17,7 +17,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "SA Payroll",
+ "label": "IR Payroll",
  "link_type": "DocType",
  "links": [
   {
@@ -513,10 +513,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-30 10:12:13.963668",
+ "modified": "2026-11-08 18:35:38.867229",
  "modified_by": "Administrator",
- "module": "ir_payroll",
- "name": "SA Payroll",
+ "module": "IR Payroll",
+ "name": "IR Payroll",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "IR General",
@@ -525,6 +525,7 @@
  "roles": [],
  "sequence_id": 25.0,
  "shortcuts": [],
- "title": "SA Payroll",
+ "standard": 1,
+ "title": "IR Payroll",
  "type": "Workspace"
 }

@@ -8,7 +8,7 @@
  "is_complete": 0,
  "is_single": 0,
  "is_skipped": 0,
- "modified": "2026-10-30 10:50:56.268551",
+ "modified": "2026-11-08 18:16:04.589442",
  "modified_by": "Administrator",
  "name": "Review Item Tax Templates",
  "owner": "Administrator",
@@ -18,5 +18,5 @@
  "show_full_form": 0,
  "title": "Review Item Tax Templates",
  "validate_action": 1,
- "module": "ir_setup"
+ "module": "IR Setup"
 }

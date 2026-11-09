@@ -26,9 +26,9 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-30 10:12:13.963668",
+ "modified": "2026-11-08 18:19:45.439996",
  "modified_by": "Administrator",
- "module": "ir_payroll",
+ "module": "IR Payroll",
  "name": "Tax Rebates and Medical Tax Credit",
  "owner": "Administrator",
  "permissions": [

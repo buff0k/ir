@@ -1,6 +1,9 @@
 Industrial Relations
-ir_coida
-ir_labour
-ir_vat
-ir_payroll
-ir_setup
+IR COIDA
+IR Labour
+IR VAT
+IR Payroll
+IR Setup
+Disciplinary Matters
+IR Attendance
+IR Training

@@ -8,7 +8,13 @@ from frappe.utils import add_days, add_months, getdate, nowdate
 
 from ir.industrial_relations.doctype.retrenchment_process.retrenchment_costing import compute_row_costs
 from ir.industrial_relations.doctype.retrenchment_process.retrenchment_process import get_189a_threshold
-from ir.tests.test_helpers import IRSyntheticDataTestCase, get_reference_branch, get_reference_company, get_reference_designation
+from ir.tests.test_helpers import (
+	IRSyntheticDataTestCase,
+	get_reference_branch,
+	get_reference_company,
+	get_reference_designation,
+	get_secondary_company,
+)
 
 # On IntegrationTestCase, the doctype test records and all link-field test
 # record dependencies are recursively loaded. Use these module variables to
@@ -187,9 +193,10 @@ class IntegrationTestRetrenchmentProcess(IRSyntheticDataTestCase):
 
 	def test_affected_employee_from_different_company_is_blocked(self):
 		process = self.make_retrenchment_process(num_employees=1)
-		other_company_employee = self.make_employee(company="Test PCV Company")
-		if other_company_employee.company == process.company:
+		other_company = get_secondary_company()
+		if not other_company or other_company == process.company:
 			self.skipTest("No second distinct Company available on this site to test cross-Company mismatch.")
+		other_company_employee = self.make_employee(company=other_company)
 
 		process.append(
 			"affected_employees",
