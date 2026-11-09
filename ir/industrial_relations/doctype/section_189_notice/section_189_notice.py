@@ -96,6 +96,45 @@ def fetch_from_process(retrenchment_process):
 
 
 @frappe.whitelist()
+def populate_recipients(retrenchment_process):
+	"""Row-per-Employee Recipients for every outstanding (not yet served, not
+	Excluded/Transferred) affected employee on `retrenchment_process` - what
+	the "Populate Recipients" button replaces the Employee-type rows with."""
+	from ir.industrial_relations.doctype.retrenchment_process.retrenchment_process import (
+		get_outstanding_recipients,
+	)
+
+	return [
+		{"recipient_type": "Employee", "employee": employee}
+		for employee in get_outstanding_recipients(retrenchment_process)
+	]
+
+
+@frappe.whitelist()
+def populate_union_recipients(retrenchment_process):
+	"""One Union Official Recipient per Trade Union with members among the
+	affected employees - the same coverage `_validate_union_recipients`
+	requires before submit, offered up front via "Populate Union Recipients"
+	instead of discovered only at submit time."""
+	from ir.industrial_relations.doctype.retrenchment_process.retrenchment_process import (
+		get_union_membership_summary,
+	)
+
+	rows = []
+	for bucket in get_union_membership_summary(retrenchment_process):
+		official = (bucket.get("officials") or [{}])[0]
+		rows.append(
+			{
+				"recipient_type": "Union Official",
+				"trade_union": bucket["trade_union"],
+				"contact_name": official.get("of_name") or "",
+				"contact_email": official.get("of_mail") or "",
+			}
+		)
+	return rows
+
+
+@frappe.whitelist()
 def get_union_officials(trade_union):
 	"""Officials of `trade_union`, for the "Select Official / Region" picker -
 	the Notice's Recipients table is hand-curated (no bulk auto-fill), so this

@@ -114,7 +114,7 @@ class IntegrationTestSection189Notice(IRSyntheticDataTestCase):
 			process,
 			recipients=[
 				{"recipient_type": "Employee", "employee": employee.name},
-				{"recipient_type": "Trade Union", "trade_union": union.name, "contact_name": "ZZTEST Official"},
+				{"recipient_type": "Union Official", "trade_union": union.name, "contact_name": "ZZTEST Official"},
 			],
 		)
 
@@ -150,7 +150,7 @@ class IntegrationTestSection189Notice(IRSyntheticDataTestCase):
 		rows = populate_union_recipients(process.name)
 
 		self.assertEqual(len(rows), 1)
-		self.assertEqual(rows[0]["recipient_type"], "Trade Union")
+		self.assertEqual(rows[0]["recipient_type"], "Union Official")
 		self.assertEqual(rows[0]["trade_union"], union.name)
 		self.assertEqual(rows[0]["contact_name"], "ZZTEST Official")
 

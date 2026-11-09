@@ -12,7 +12,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "SA VAT",
+ "label": "IR VAT",
  "link_type": "DocType",
  "links": [
   {
@@ -142,10 +142,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-30 09:54:15.429044",
+ "modified": "2026-11-08 18:35:38.867229",
  "modified_by": "Administrator",
- "module": "ir_vat",
- "name": "SA VAT",
+ "module": "IR VAT",
+ "name": "IR VAT",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "IR General",
@@ -154,6 +154,7 @@
  "roles": [],
  "sequence_id": 24.0,
  "shortcuts": [],
- "title": "SA VAT",
+ "standard": 1,
+ "title": "IR VAT",
  "type": "Workspace"
 }

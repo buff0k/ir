@@ -8,7 +8,7 @@
  "is_complete": 0,
  "is_single": 1,
  "is_skipped": 0,
- "modified": "2026-10-30 10:50:56.268551",
+ "modified": "2026-11-08 18:16:04.589442",
  "modified_by": "Administrator",
  "name": "Review Payroll Settings",
  "owner": "Administrator",
@@ -17,5 +17,5 @@
  "show_full_form": 0,
  "title": "Review Payroll Settings",
  "validate_action": 0,
- "module": "ir_setup"
+ "module": "IR Setup"
 }

@@ -1,7 +1,7 @@
 {
  "doctype": "Print Format",
  "name": "IRP5-it3 Certificate",
- "module": "ir_payroll",
+ "module": "IR Payroll",
  "doc_type": "IRP5 Certificate",
  "custom_format": 1,
  "standard": "Yes",

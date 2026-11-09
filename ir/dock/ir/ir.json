@@ -1,0 +1,88 @@
+{
+ "app": "ir",
+ "creation": "2026-11-09 13:28:00.961177",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "person-standing",
+   "link_to": "Industrial Relations",
+   "link_type": "Sidebar",
+   "title": "Industrial Relations"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "ir-disciplinary",
+   "link_to": "Disciplinary Matters",
+   "link_type": "Sidebar",
+   "title": "Disciplinary Matters"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "ir-attendance",
+   "link_to": "IR Attendance",
+   "link_type": "Sidebar",
+   "title": "Attendance"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "ir-training",
+   "link_to": "IR Training",
+   "link_type": "Sidebar",
+   "title": "Training"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "ir-setup",
+   "link_to": "IR Setup",
+   "link_type": "Sidebar",
+   "title": "Setup"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "badge-check",
+   "link_to": "IR COIDA",
+   "link_type": "Sidebar",
+   "title": "COIDA"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "user-check",
+   "link_to": "IR Labour",
+   "link_type": "Sidebar",
+   "title": "Labour"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "hand-coins",
+   "link_to": "IR VAT",
+   "link_type": "Sidebar",
+   "title": "VAT"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "file-chart-pie",
+   "link_to": "IR Payroll",
+   "link_type": "Sidebar",
+   "title": "Payroll"
+  }
+ ],
+ "modified": "2026-11-09 13:52:33.055002",
+ "modified_by": "Administrator",
+ "mount_on": "ir",
+ "name": "ir",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

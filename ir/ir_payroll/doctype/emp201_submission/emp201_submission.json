@@ -2,7 +2,7 @@
  "name": "EMP201 Submission",
  "engine": "InnoDB",
  "doctype": "DocType",
- "module": "ir_payroll",
+ "module": "IR Payroll",
  "owner": "Administrator",
  "permissions": [
   {
@@ -23,7 +23,7 @@
  "autoname": "EMP201-.#####",
  "naming_rule": "Expression (autoname)",
  "creation": "2024-05-06 16:00:00.000000",
- "modified": "2026-10-30 10:12:13.963668",
+ "modified": "2026-11-08 18:19:45.439996",
  "modified_by": "Administrator",
  "title_field": "company",
  "track_changes": 1,

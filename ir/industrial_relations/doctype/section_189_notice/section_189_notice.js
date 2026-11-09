@@ -11,6 +11,8 @@ frappe.ui.form.on("Section 189 Notice", {
 
 		if (frm.doc.docstatus === 0 && !frm.doc.__islocal && frm.doc.linked_intervention) {
 			frm.add_custom_button(__("Pull from Process"), () => pull_from_process(frm));
+			frm.add_custom_button(__("Populate Recipients"), () => populate_recipients(frm));
+			frm.add_custom_button(__("Populate Union Recipients"), () => populate_union_recipients(frm));
 		}
 	},
 
@@ -192,7 +194,7 @@ function populate_union_recipients(frm, { silent = false } = {}) {
 
 			const existing = new Set(
 				(frm.doc.recipients || [])
-					.filter((row) => row.recipient_type === "Trade Union")
+					.filter((row) => row.recipient_type === "Union Official" || row.recipient_type === "Union Region")
 					.map((row) => row.trade_union)
 			);
 			rows.forEach((row) => {

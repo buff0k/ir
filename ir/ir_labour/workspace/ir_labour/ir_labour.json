@@ -12,7 +12,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "SA Labour",
+ "label": "IR Labour",
  "link_type": "DocType",
  "links": [
   {
@@ -182,10 +182,10 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-30 09:45:31.019633",
+ "modified": "2026-11-08 18:35:38.867229",
  "modified_by": "Administrator",
- "module": "ir_labour",
- "name": "SA Labour",
+ "module": "IR Labour",
+ "name": "IR Labour",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "IR General",
@@ -194,6 +194,7 @@
  "roles": [],
  "sequence_id": 26.0,
  "shortcuts": [],
- "title": "SA Labour",
+ "standard": 1,
+ "title": "IR Labour",
  "type": "Workspace"
 }

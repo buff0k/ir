@@ -23,14 +23,6 @@ add_to_apps_screen = [
 ]
 app_include_icons = ["/assets/ir/icons/ir-icons.svg"]
 
-code_only_modules = {
-	"ir_coida": ["Industrial Relations"],
-	"ir_labour": ["Industrial Relations"],
-	"ir_vat": ["Industrial Relations"],
-	"ir_payroll": ["Industrial Relations"],
-	"ir_setup": ["Industrial Relations"],
-}
-
 app_include_css = ["/assets/ir/css/ir_ui.css"]
 
 app_include_js = ["/assets/ir/js/ir_feedback.js"]
