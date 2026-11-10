@@ -1010,7 +1010,21 @@ def import_legacy_contract_types(contract_types: list[str] | None = None) -> lis
 _LEGACY_TOKEN_TO_VAR = {v.legacy_token: v.key for v in VARIABLES if v.legacy_token}
 
 
+PARAGRAPH_FIELDS = ["idx", "ss_num", "par_num", "spar_num", "item_num", "sitem_num", "clause_text"]
+
+
 def _legacy_contract_markdown(contract_type: str) -> tuple[str, list[str]]:
+	# Reads Contract Type/Section/Paragraph/Terms via frappe.db.get_value()/
+	# get_all() only - never frappe.get_doc() - deliberately: those 4
+	# doctypes are deprecated and may already be deleted from the app (see
+	# their own, now-removed doctype folders) while this function still
+	# needs to run against a site whose data hasn't been migrated to
+	# Templates yet. Deleting a DocType never drops its table (frappe.model.
+	# sync.remove_orphan_doctypes()'s own docstring: "non-destructive
+	# operation"), but frappe.get_doc() does need that doctype's .py
+	# controller to still exist on disk to import - get_value()/get_all()
+	# are plain queries and need neither the controller nor even the
+	# DocType's own meta record, only the table itself.
 	terms = frappe.get_all(
 		"Contract Terms", filters={"parent": contract_type}, fields=["sec_no", "section"], order_by="sec_no"
 	)
@@ -1022,15 +1036,17 @@ def _legacy_contract_markdown(contract_type: str) -> tuple[str, list[str]]:
 		elif term.section == "Working Hours Placeholder":
 			sections.append(("Working Hours", _legacy_working_hours(), "working-hours"))
 		else:
-			section = frappe.get_doc("Contract Section", term.section)
-			if section.sec_head in ("Deductions", "MMS Deductions"):
-				paragraphs = _legacy_deductions(section)
+			sec_head = frappe.db.get_value("Contract Section", term.section, "sec_head")
+			section_paragraphs = frappe.get_all(
+				"Contract Paragraph", filters={"parent": term.section}, fields=PARAGRAPH_FIELDS, order_by="idx"
+			)
+			if sec_head in ("Deductions", "MMS Deductions"):
+				paragraphs = _legacy_deductions(section_paragraphs)
 			else:
 				paragraphs = [
-					(_legacy_depth(p), cint(p.ss_num), p.clause_text or "", None, None)
-					for p in sorted(section.sec_par, key=lambda p: p.idx)
+					(_legacy_depth(p), cint(p.ss_num), p.clause_text or "", None, None) for p in section_paragraphs
 				]
-			sections.append((section.sec_head, paragraphs, _slug(section.sec_head)))
+			sections.append((sec_head, paragraphs, _slug(sec_head)))
 
 	# anchors: every heading, and every top-level clause (references point at
 	# "{section}.{ss}" e.g. Deductions .2)
@@ -1155,7 +1171,7 @@ DEDUCTION_LINE_MARKERS = (
 )
 
 
-def _legacy_deductions(section):
+def _legacy_deductions(paragraphs):
 	"""Every real Deductions section opens with this same generic, fixed
 	bullet list - it never actually reflected what's really deducted on a
 	given contract (Contract of Employment had no itemised deductions at
@@ -1170,8 +1186,13 @@ def _legacy_deductions(section):
 	used to). Every other provision in the section (advances, the
 	cross-reference to .2, other agreed deductions, and the later
 	sub-sections about recovering losses/PPE/notice pay) is legal
-	boilerplate unrelated to Salary Components and is kept verbatim."""
-	paragraphs = sorted(section.sec_par, key=lambda p: p.idx)
+	boilerplate unrelated to Salary Components and is kept verbatim.
+
+	paragraphs is the section's own Contract Paragraph rows, already
+	ordered by idx (see _legacy_contract_markdown, which reads them via
+	frappe.get_all() rather than loading the parent Contract Section as a
+	full Document - the whole point being that this never needs that
+	doctype's controller to still exist, only its table)."""
 	out = []
 	table_inserted = False
 	for p in paragraphs:
