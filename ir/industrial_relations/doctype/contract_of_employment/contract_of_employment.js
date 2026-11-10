@@ -10,6 +10,12 @@ frappe.ui.form.on('Contract of Employment', {
         frm.events.toggle_working_hours_section(frm);
         render_earnings_editor(frm);
         render_deductions_editor(frm);
+
+        if (frm.doc.docstatus === 0) {
+            frm.add_custom_button(__('Pull Contract Defaults'), () => {
+                frm.events.prefill_contract_defaults(frm, true);
+            });
+        }
     },
 
     working_hours_type: function(frm) {
@@ -57,29 +63,60 @@ frappe.ui.form.on('Contract of Employment', {
                 }
             }).then(() => {
                 frm.events.check_pending_status_change(frm);
-                frm.events.prefill_contract_defaults(frm);
+                // Convenience default for a brand-new contract only - an
+                // existing Draft never gets its Deductions/Provident Fund
+                // silently touched just because Employee changed. Use the
+                // "Pull Contract Defaults" button (see refresh) to run the
+                // same thing explicitly, any time, on any Draft.
+                if (frm.is_new()) {
+                    frm.events.prefill_contract_defaults(frm);
+                }
             });
         }
     },
 
-    prefill_contract_defaults: function(frm) {
+    prefill_contract_defaults: function(frm, explicit) {
         // Mirrors the server's own _prefill_contract_defaults() (contract_
-        // of_employment.py), just run the moment an Employee is picked on a
-        // new contract instead of only after the first save round-trip -
-        // only ever for a still-new document, and only for whichever of
-        // the two is still empty (so it never clobbers a value already
-        // typed in, e.g. after switching Employee).
-        if (!frm.is_new()) return;
+        // of_employment.py) - adds whichever of the site's default
+        // Deductions aren't already on this contract (never duplicates one
+        // already present, so it's safe to run on a contract that already
+        // has some), and fills Provident Fund only while it's still blank
+        // (never overwrites a value someone - or a prior save - already
+        // set). Usable on any Draft, not just a brand-new one - see the
+        // "Pull Contract Defaults" button in refresh, which is how an
+        // existing Draft missing rows (e.g. one saved before this prefill
+        // existed) gets them without retyping each one by hand.
+        if (frm.doc.docstatus !== 0) return;
         frappe.db.get_doc('Contract Defaults').then((defaults) => {
-            if (!(frm.doc.deductions || []).length) {
-                (defaults.default_deductions || []).forEach((row) => {
-                    frm.add_child('deductions', { salary_component: row.salary_component });
-                });
+            const existing = new Set((frm.doc.deductions || []).map((row) => row.salary_component));
+            let added = 0;
+            (defaults.default_deductions || []).forEach((row) => {
+                if (existing.has(row.salary_component)) return;
+                frm.add_child('deductions', { salary_component: row.salary_component });
+                existing.add(row.salary_component);
+                added += 1;
+            });
+            if (added) {
                 frm.refresh_field('deductions');
                 render_deductions_editor(frm);
+                frm.dirty();
             }
-            if (!frm.doc.provident_fund_contribution) {
+
+            let pf_set = false;
+            if (!frm.doc.provident_fund_contribution && defaults.provident_fund_contribution) {
                 frm.set_value('provident_fund_contribution', defaults.provident_fund_contribution);
+                pf_set = true;
+            }
+
+            if (explicit) {
+                if (added || pf_set) {
+                    const parts = [];
+                    if (added) parts.push(__('{0} deduction(s) added', [added]));
+                    if (pf_set) parts.push(__('Provident Fund rate set'));
+                    frappe.show_alert({ message: parts.join(' - '), indicator: 'green' });
+                } else {
+                    frappe.show_alert({ message: __('Already up to date with Contract Defaults.'), indicator: 'blue' });
+                }
             }
         });
     },
