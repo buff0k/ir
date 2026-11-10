@@ -9,7 +9,11 @@
   "section_break_y4fx",
   "amended_from",
   "contract_name",
-  "source_contract_type",
+  "has_expiry",
+  "has_project",
+  "column_break_coe_tmpl_class",
+  "has_retirement",
+  "retirement_age",
   "text_editor",
   "contract_wording",
   "tab_markdown",
@@ -55,12 +59,35 @@
    "label": "Template"
   },
   {
-   "fieldname": "source_contract_type",
-   "fieldtype": "Link",
-   "label": "Imported From Contract Type",
-   "options": "Contract Type",
-   "read_only": 1,
-   "description": "Set when this template was converted from a legacy Contract Type."
+   "default": "0",
+   "description": "Does a contract from this Template expire on a fixed date?",
+   "fieldname": "has_expiry",
+   "fieldtype": "Check",
+   "label": "Is Period Based?"
+  },
+  {
+   "default": "0",
+   "description": "Does a contract from this Template expire on the completion of a specific task or project?",
+   "fieldname": "has_project",
+   "fieldtype": "Check",
+   "label": "Is Project Based?"
+  },
+  {
+   "fieldname": "column_break_coe_tmpl_class",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Is there a forced retirement age for contracts from this Template?",
+   "fieldname": "has_retirement",
+   "fieldtype": "Check",
+   "label": "Is there a Retirement Age?"
+  },
+  {
+   "depends_on": "has_retirement",
+   "fieldname": "retirement_age",
+   "fieldtype": "Int",
+   "label": "Retirement Age (In Years)"
   },
   {
    "fieldname": "tab_markdown",
@@ -68,18 +95,18 @@
    "label": "Markdown (Power Users)"
   },
   {
+   "description": "The same wording as the editor, kept in step both ways. <b>#</b> Heading \u00b7 <b>1.</b> Clause (indent 4 spaces per level) \u00b7 plain line = unnumbered text \u00b7 <b>**bold**</b> <b>*italic*</b> <b>&lt;u&gt;underline&lt;/u&gt;</b> \u00b7 <b>{{variable}}</b> \u00b7 <b>[label](#anchor)</b> reference \u00b7 line options at the end: <b>{#anchor when=pay:hourly repeat=earnings}</b> (quote values with spaces: when=\"deduction:Employee Provident Fund\") \u00b7 escape * { [ &lt; with \\.",
    "fieldname": "contract_markdown",
    "fieldtype": "Code",
    "label": "Contract Markdown",
-   "options": "Markdown",
-   "description": "The same wording as the editor, kept in step both ways. <b>#</b> Heading &middot; <b>1.</b> Clause (indent 4 spaces per level) &middot; plain line = unnumbered text &middot; <b>**bold**</b> <b>*italic*</b> <b>&lt;u&gt;underline&lt;/u&gt;</b> &middot; <b>{{variable}}</b> &middot; <b>[label](#anchor)</b> reference &middot; line options at the end: <b>{#anchor when=pay:hourly repeat=earnings}</b> (quote values with spaces: when=\"deduction:Employee Provident Fund\") &middot; escape * { [ &lt; with \\."
+   "options": "Markdown"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-31 10:56:51.458321",
+ "modified": "2026-11-09 22:36:01.981879",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment Template",

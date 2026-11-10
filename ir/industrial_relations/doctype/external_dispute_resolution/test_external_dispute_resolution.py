@@ -9,6 +9,9 @@ from frappe.utils import add_days, now_datetime, nowdate
 from ir.industrial_relations.doctype.external_dispute_resolution.external_dispute_resolution import (
 	get_latest_linked_records,
 )
+from ir.industrial_relations.doctype.contract_of_employment_template.contract_of_employment_template import (
+	import_legacy_contract_types,
+)
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
 	get_reference_branch,
@@ -51,8 +54,25 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 # test module for the same reasoning).
 REFERENCE_CONTRACT_TYPE = "2.3.MMS Rev.25 - Indefinite"
 REFERENCE_CONTRACT_TYPE_2 = "2.2.MMS Rev.25 - Project Based Fixed Term"
-REFERENCE_REMUNERATION_SECTION = "Remuneration (Basic Salary No Allowances)"
-REFERENCE_WORKING_HOURS_SECTION = "Working Hours (Monday to Friday)"
+
+
+def get_reference_contract_template(contract_type: str) -> str:
+	"""The submitted Contract of Employment Template imported from this
+	Contract Type - self-healing (imports + submits it on the fly), same as
+	contract_of_employment's own test module."""
+	template = frappe.db.get_value(
+		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 1}, "name"
+	)
+	if template:
+		return template
+
+	import_legacy_contract_types([contract_type])
+	draft = frappe.db.get_value(
+		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 0}, "name"
+	)
+	doc = frappe.get_doc("Contract of Employment Template", draft)
+	doc.submit()
+	return doc.name
 
 
 class IntegrationTestExternalDisputeResolution(IRSyntheticDataTestCase):
@@ -72,11 +92,9 @@ class IntegrationTestExternalDisputeResolution(IRSyntheticDataTestCase):
 			{
 				"doctype": "Contract of Employment",
 				"employee": employee.name,
-				"contract_type": contract_type,
-				"remuneration": REFERENCE_REMUNERATION_SECTION,
-				"working_hours": REFERENCE_WORKING_HOURS_SECTION,
+				"contract_template": get_reference_contract_template(contract_type),
 				"start_date": nowdate(),
-				"rate": 25000,
+				"earnings": [{"salary_component": "Basic Salary", "amount": 25000}],
 				"current_address": "123 Test Street, Test Town",
 				"letter_head": letter_head,
 			}

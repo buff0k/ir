@@ -14,6 +14,7 @@ from ir.industrial_relations.doctype.contract_of_employment_template.contract_of
 	ContractContext,
 	_legacy_inline,
 	format_value,
+	import_legacy_contract_types,
 	long_date,
 	number_lines,
 	number_to_words,
@@ -173,16 +174,21 @@ class UnitTestTemplateEngine(UnitTestCase):
 		self.assertIn("See 1.2", out)
 
 	def test_repeat_with_no_rows_disappears(self):
-		lines = parse_wording(delta(heading("H"), clause(var("deduction_label"), repeat="deductions"), clause("after")))
+		lines = parse_wording(delta(heading("H"), clause(var("day_name"), repeat="working_days"), clause("after")))
 		out = render_contract(lines, context())
 		self.assertIn("<td><b>1.1</b></td><td>after</td>", out)
+
+	def test_table_variable_with_no_value_shows_its_blank(self):
+		lines = parse_wording(delta(heading("H"), clause(var("deductions_table"))))
+		out = render_contract(lines, context())
+		self.assertIn("<i>No deductions on this contract.</i>", out)
 
 	def test_validation_catches_bad_variables_conditions_repeats_and_references(self):
 		lines = parse_wording(
 			delta(
 				heading("H"),
 				clause(var("not_a_variable")),
-				clause(var("earning_amount")),  # row variable without its repeat
+				clause(var("day_start")),  # row variable without its repeat
 				clause("x", when="nope"),
 				clause("x", when="earning:No Such Component"),
 				clause("x", repeat="nope"),
@@ -190,7 +196,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 			)
 		)
 		errors = " ".join(validate_lines(lines))
-		for expected in ("not_a_variable", "Earning Amount", "nope", "No Such Component", "Gone"):
+		for expected in ("not_a_variable", "Day Start Time", "nope", "No Such Component", "Gone"):
 			self.assertIn(expected, errors)
 
 	def test_submit_only_checks(self):
@@ -214,7 +220,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 		}
 		mapped = {v.legacy_token for v in VARIABLES_BY_KEY.values() if v.legacy_token}
 		self.assertEqual(legacy - mapped - set(LEGACY_TOKENS_SUPERSEDED), set())
-		self.assertTrue(set(LEGACY_TOKENS_SUPERSEDED.values()) <= set(REPEATS_BY_KEY))
+		self.assertTrue(set(LEGACY_TOKENS_SUPERSEDED.values()) <= set(REPEATS_BY_KEY) | set(VARIABLES_BY_KEY))
 
 	# ---- Contract Markdown ----
 
@@ -281,6 +287,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 		self.assertEqual(format_value(VARIABLES_BY_KEY["rate"], 1500), "1 500.00 (One Thousand Five Hundred)")
 		self.assertEqual(format_value(VARIABLES_BY_KEY["retirement_age"], 62), "62 (Sixty-Two)")
 		self.assertEqual(format_value(VARIABLES_BY_KEY["employee_name"], "<b>"), "&lt;b&gt;")
+		self.assertEqual(format_value(VARIABLES_BY_KEY["provident_fund_rate"], 7.5), "7.50%")
 
 
 class IntegrationTestContractofEmploymentTemplate(IntegrationTestCase):
@@ -338,6 +345,43 @@ class IntegrationTestContractofEmploymentTemplate(IntegrationTestCase):
 	def test_unknown_variable_blocks_save(self):
 		with self.assertRaises(frappe.ValidationError):
 			self.make("Test Bad Variable", delta(heading("H"), clause(var("nope"))))
+
+	def test_import_legacy_contract_types_backfills_classification(self):
+		# A synthetic Contract Type (not one of the 9 real ones already
+		# imported+submitted today - re-importing those would collide on
+		# today's date in the Template's own autoname) with a known
+		# Project/Retirement classification, to verify
+		# import_legacy_contract_types() itself carries it onto the new
+		# Template - Contract of Employment now reads it from there, not
+		# the deprecated Contract Type.
+		contract_type = frappe.get_doc(
+			{
+				"doctype": "Contract Type",
+				"doc_number": "ZZTEST",
+				"rev_date": frappe.utils.nowdate(),
+				"contract_type": "ZZTEST Classification Check",
+				"has_expiry": 0,
+				"has_project": 1,
+				"has_retirement": 1,
+				"retirement_age": 60,
+				"contract_terms": [
+					{"sec_no": 1, "section": "Remuneration Placeholder"},
+					{"sec_no": 2, "section": "Working Hours Placeholder"},
+				],
+			}
+		).insert(ignore_permissions=True)
+		contract_type.submit()
+
+		import_legacy_contract_types([contract_type.name])
+
+		template_name = frappe.db.get_value(
+			"Contract of Employment Template", {"contract_name": contract_type.name}, "name"
+		)
+		template = frappe.get_doc("Contract of Employment Template", template_name)
+		self.assertEqual(template.has_expiry, 0)
+		self.assertEqual(template.has_project, 1)
+		self.assertEqual(template.has_retirement, 1)
+		self.assertEqual(template.retirement_age, 60)
 
 	def test_component_conditions_use_real_salary_components(self):
 		component = frappe.db.get_value("Salary Component", {"type": "Deduction", "disabled": 0}, "name")

@@ -72,7 +72,7 @@ function register_formats(max_indent) {
 	const When = new Parchment.Attributor(WHEN_ATTR, "data-when", { scope: Parchment.Scope.BLOCK });
 	Quill.register(When, true);
 
-	// Repeat kind (earnings, deductions, working_days, shifts): one line per row.
+	// Repeat kind (working_days, shifts): one line per row.
 	const Repeat = new Parchment.Attributor(REPEAT_ATTR, "data-repeat", { scope: Parchment.Scope.BLOCK });
 	Quill.register(Repeat, true);
 
