@@ -3,12 +3,11 @@
 
 from __future__ import annotations
 
+import re
+
 import frappe
 from frappe.utils import add_days, add_years, getdate, nowdate
 
-from ir.industrial_relations.doctype.contract_of_employment_template.contract_of_employment_template import (
-	import_legacy_contract_types,
-)
 from ir.ir_setup.doctype.ir_payroll_cost_settings.ir_payroll_cost_settings import get_basic_wage_components
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
@@ -32,7 +31,6 @@ EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Employee",
 	"Company",
-	"Contract Type",
 	"Letter Head",
 	"Salary Component",
 	"Contract of Employment Earning",
@@ -40,9 +38,14 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Contract of Employment Template",
 ]
 
-# Real, already-submitted master data that this bench's IR module uses for
-# actual contracts - deliberately not fabricated, per the same reasoning
-# get_reference_company()/get_reference_branch() use for Company/Branch.
+# Names of 2 of the 9 real, permanent, already-submitted Contract of
+# Employment Templates this bench's IR module uses for actual contracts -
+# deliberately not fabricated, per the same reasoning get_reference_company()/
+# get_reference_branch() use for Company/Branch. These were originally
+# imported from the now-deleted Contract Type doctype (see contract_name in
+# import_legacy_contract_types(), contract_of_employment_template.py) - that
+# doctype is gone, but the Templates it produced are permanent, real
+# documents in their own right, not derived at test time any more.
 REFERENCE_CONTRACT_TYPE = "2.3.MMS Rev.25 - Indefinite"
 REFERENCE_CONTRACT_TYPE_2 = "2.2.MMS Rev.25 - Project Based Fixed Term"
 
@@ -55,23 +58,17 @@ def get_reference_letter_head() -> str:
 
 
 def get_reference_contract_template(contract_type: str) -> str:
-	"""The submitted Contract of Employment Template imported from this
-	Contract Type - self-healing (imports + submits it on the fly) so this
-	test suite doesn't depend on run order relative to the real migration
-	patch, which does the same import+submit as one of its own steps."""
+	"""The submitted Contract of Employment Template matching this name."""
 	template = frappe.db.get_value(
 		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 1}, "name"
 	)
-	if template:
-		return template
-
-	import_legacy_contract_types([contract_type])
-	draft = frappe.db.get_value(
-		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 0}, "name"
-	)
-	doc = frappe.get_doc("Contract of Employment Template", draft)
-	doc.submit()
-	return doc.name
+	if not template:
+		frappe.throw(
+			f"No submitted Contract of Employment Template named {contract_type!r} exists - "
+			"the Contract Type doctype it was once imported from no longer exists either, so "
+			"there's nothing left to self-heal from."
+		)
+	return template
 
 
 class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
@@ -178,24 +175,46 @@ class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
 		self.assertEqual(len(contract.deductions), 1)
 		self.assertFalse(frappe.get_meta("Contract of Employment Deduction").has_field("amount"))
 
-		deductions_table = contract._build_render_context().values["deductions_table"]
-		self.assertEqual(deductions_table.count("<td>"), 1)
-		self.assertIn(f"<td><b>{component}</b>", deductions_table)
+		rows = contract._build_render_context().rows["deductions"]
+		self.assertEqual(len(rows), 1)
+		self.assertIn(f"<b>{component}</b>", rows[0]["deduction_label"])
 
 	def test_deduction_row_renders_into_the_real_contract_wording(self):
-		# Every real imported Template's Deductions section now carries
-		# {{deductions_table}} in place of its old fixed "UIF/PAYE/Provident
-		# Fund/.../Retirement Fund" bullet list (_legacy_deductions() in
-		# contract_of_employment_template.py) - so, unlike the direct
-		# _build_render_context() check above, this confirms the actual
-		# generated_contract itself reflects whatever is really on this
-		# contract's own Deductions table.
+		# Every real imported Template's Deductions section now carries the
+		# deductions repeat (deduction_label) in place of its old fixed
+		# "UIF/PAYE/Provident Fund/.../Retirement Fund" bullet list
+		# (_legacy_deductions() in contract_of_employment_template.py) - so,
+		# unlike the direct _build_render_context() check above, this
+		# confirms the actual generated_contract itself reflects whatever is
+		# really on this contract's own Deductions table.
 		component = frappe.db.get_value("Salary Component", {"type": "Deduction", "disabled": 0}, "name")
 		employee = self._make_employee()
 		contract = self._make_contract(employee, deductions=[{"salary_component": component}])
 
 		self.assertIn(f"<b>{component}</b>", contract.generated_contract)
 		self.assertNotIn("UIF (Unemployment", contract.generated_contract)
+
+	def test_multiple_deductions_each_get_their_own_sub_paragraph_number(self):
+		# The regression this fix addresses: deductions_table used to cram
+		# every Deduction into one unnumbered nested <table>, inside a
+		# single numbered sub-paragraph slot - so 2+ deductions were never
+		# individually numbered at all. The deductions repeat gives each
+		# its own sub-paragraph, same as earnings already does for
+		# Allowances (e.g. 4.2.1, 4.2.2).
+		components = frappe.get_all(
+			"Salary Component", filters={"type": "Deduction", "disabled": 0}, pluck="name", limit=2
+		)
+		employee = self._make_employee()
+		contract = self._make_contract(
+			employee, deductions=[{"salary_component": c} for c in components]
+		)
+
+		numbers = []
+		for component in components:
+			match = re.search(rf"<b>([\d.]+)</b></td><td>(?:<b>)?{re.escape(component)}", contract.generated_contract)
+			self.assertIsNotNone(match, f"{component} not found as its own numbered row")
+			numbers.append(match.group(1))
+		self.assertEqual(len(numbers), len(set(numbers)), f"deductions share a sub-paragraph number: {numbers}")
 
 	def test_provident_fund_contribution_defaults_from_contract_defaults(self):
 		employee = self._make_employee()
