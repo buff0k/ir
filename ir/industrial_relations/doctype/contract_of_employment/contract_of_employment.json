@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:{contract_type} - {employee_name} - {employee} - {DD}-{MM}-{YYYY}",
  "creation": "2024-08-21 15:34:32.897637",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -14,8 +13,6 @@
   "has_expiry",
   "has_project",
   "has_retirement",
-  "has_hours",
-  "has_allowances",
   "employee_details_section",
   "employee",
   "date_of_birth",
@@ -27,33 +24,10 @@
   "custom_id_number",
   "branch",
   "signed_contract",
-  "remuneration_details",
-  "remuneration",
-  "column_break_uiey",
-  "rate",
-  "allowance1",
-  "allowance_1_desc",
-  "column_break_llka",
-  "allowance_1_rate",
-  "allowance2",
-  "allowance_2_desc",
-  "column_break_rjtl",
-  "allowance_2_rate",
-  "allowance3",
-  "allowance_3_desc",
-  "column_break_txwg",
-  "allowance_3_rate",
-  "allowance4",
-  "allowance_4_desc",
-  "column_break_fuhi",
-  "allowance_4_rate",
-  "allowance5",
-  "allowance_5_desc",
-  "column_break_jfqp",
-  "allowance_5_rate",
   "contract_details_section",
-  "contract_type",
-  "working_hours",
+  "contract_template",
+  "pay_basis",
+  "working_hours_type",
   "start_date",
   "restraint_period",
   "column_break_jkyr",
@@ -61,6 +35,13 @@
   "project",
   "end_date",
   "restraint_territory",
+  "earnings_deductions_section",
+  "earnings",
+  "earnings_html",
+  "column_break_coe_ed",
+  "deductions",
+  "deductions_html",
+  "provident_fund_contribution",
   "monday_section",
   "monday",
   "mon_start",
@@ -92,9 +73,7 @@
   "901",
   "sun_end",
   "tab_text",
-  "generated_contract",
-  "tab_table",
-  "contract_clauses"
+  "generated_contract"
  ],
  "fields": [
   {
@@ -122,6 +101,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Employee",
+   "link_filters": "[[\"Employee\",\"status\",\"=\",\"Active\"]]",
    "options": "Employee",
    "reqd": 1,
    "search_index": 1
@@ -214,17 +194,6 @@
    "label": "Contract Details"
   },
   {
-   "fieldname": "contract_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Contract Type",
-   "link_filters": "[[\"Contract Type\",\"docstatus\",\"=\",\"1\"]]",
-   "options": "Contract Type",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "column_break_jkyr",
    "fieldtype": "Column Break"
   },
@@ -266,18 +235,18 @@
    "search_index": 1
   },
   {
-   "columns": 2,
-   "fieldname": "contract_clauses",
-   "fieldtype": "Table",
-   "label": "Applicable Clauses",
-   "options": "Contract Clauses",
-   "read_only": 1
-  },
-  {
    "fieldname": "generated_contract",
    "fieldtype": "Text Editor",
    "label": "Contract Wording",
    "read_only": 1
+  },
+  {
+   "default": "Fixed Hours",
+   "fieldname": "working_hours_type",
+   "fieldtype": "Select",
+   "label": "Working Hours Type",
+   "options": "Fixed Hours\nShift Worker",
+   "reqd": 1
   },
   {
    "fieldname": "monday_section",
@@ -450,27 +419,20 @@
    "label": "Project / Task"
   },
   {
-   "fieldname": "remuneration",
+   "fieldname": "contract_template",
    "fieldtype": "Link",
-   "label": "Remuneration Type",
-   "link_filters": "[[\"Contract Section\",\"is_remuneration\",\"=\",1]]",
-   "options": "Contract Section",
+   "in_list_view": 1,
+   "label": "Contract of Employment Template",
+   "link_filters": "[[\"Contract of Employment Template\",\"docstatus\",\"=\",1]]",
+   "options": "Contract of Employment Template",
    "reqd": 1
   },
   {
-   "fieldname": "working_hours",
-   "fieldtype": "Link",
-   "label": "Hours of Work Type",
-   "link_filters": "[[\"Contract Section\",\"is_hours\",\"=\",1]]",
-   "options": "Contract Section",
-   "reqd": 1
-  },
-  {
-   "fieldname": "rate",
-   "fieldtype": "Currency",
-   "label": "Rate of Pay (Salary or Hourly)",
-   "non_negative": 1,
-   "precision": "2",
+   "default": "Monthly",
+   "fieldname": "pay_basis",
+   "fieldtype": "Select",
+   "label": "Pay Basis",
+   "options": "Hourly\nMonthly",
    "reqd": 1
   },
   {
@@ -486,135 +448,43 @@
    "label": "Restraint Period"
   },
   {
-   "default": "0",
-   "fieldname": "has_hours",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Working Hours Defined",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "has_allowances",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Allowances Defined",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "allowance_1_desc",
-   "fieldtype": "Small Text",
-   "label": "Allowance 1 Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "allowance_1_rate",
-   "fieldtype": "Currency",
-   "label": "Allowance 1 Rate",
-   "non_negative": 1,
-   "precision": "2"
-  },
-  {
-   "fieldname": "allowance_2_desc",
-   "fieldtype": "Small Text",
-   "label": "Allowance 2 Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "allowance_2_rate",
-   "fieldtype": "Currency",
-   "label": "Allowance 2 Rate",
-   "non_negative": 1,
-   "precision": "2"
-  },
-  {
-   "fieldname": "remuneration_details",
+   "fieldname": "earnings_deductions_section",
    "fieldtype": "Section Break",
-   "label": "Remuneration"
+   "label": "Earnings & Deductions"
   },
   {
-   "fieldname": "column_break_uiey",
+   "fieldname": "earnings",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Earnings",
+   "options": "Contract of Employment Earning"
+  },
+  {
+   "fieldname": "earnings_html",
+   "fieldtype": "HTML",
+   "label": "Earnings"
+  },
+  {
+   "fieldname": "column_break_coe_ed",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "allowance1",
-   "fieldtype": "Section Break"
+   "fieldname": "deductions",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Deductions",
+   "options": "Contract of Employment Deduction"
   },
   {
-   "fieldname": "column_break_llka",
-   "fieldtype": "Column Break"
+   "fieldname": "deductions_html",
+   "fieldtype": "HTML",
+   "label": "Deductions"
   },
   {
-   "fieldname": "allowance2",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_rjtl",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "allowance3",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "allowance_3_desc",
-   "fieldtype": "Small Text",
-   "label": "Allowance 3 Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_txwg",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "allowance_3_rate",
-   "fieldtype": "Currency",
-   "label": "Allowance 3 Rate",
-   "non_negative": 1,
-   "precision": "2"
-  },
-  {
-   "fieldname": "allowance4",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "allowance_4_desc",
-   "fieldtype": "Small Text",
-   "label": "Allowance 4 Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_fuhi",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "allowance_4_rate",
-   "fieldtype": "Currency",
-   "label": "Allowance 4 Rate",
-   "non_negative": 1,
-   "precision": "2"
-  },
-  {
-   "fieldname": "allowance5",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "allowance_5_desc",
-   "fieldtype": "Small Text",
-   "label": "Allowance 5 Details",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_jfqp",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "allowance_5_rate",
-   "fieldtype": "Currency",
-   "label": "Allowance 5 Rate",
-   "non_negative": 1,
+   "description": "Defaults from Contract Defaults when this contract is first created - editable per contract from then on.",
+   "fieldname": "provident_fund_contribution",
+   "fieldtype": "Float",
+   "label": "Provident Fund Contribution (%)",
    "precision": "2"
   },
   {
@@ -626,11 +496,6 @@
    "fieldname": "tab_text",
    "fieldtype": "Tab Break",
    "label": "Contract Text"
-  },
-  {
-   "fieldname": "tab_table",
-   "fieldtype": "Tab Break",
-   "label": "Contract Table"
   },
   {
    "fieldname": "signed_contract",
@@ -650,11 +515,11 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-31 10:56:51.458321",
+ "modified": "2026-11-10 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

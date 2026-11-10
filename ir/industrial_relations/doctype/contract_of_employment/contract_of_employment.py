@@ -1,375 +1,323 @@
 # Copyright (c) 2025, BuFf0k and contributors
 # For license information, please see license.txt
 
-import frappe, re
-from frappe.model.document import Document
-from frappe.utils import add_months, add_years, add_days, getdate, format_time
-from datetime import datetime
+from __future__ import annotations
+
+import html
+
+import frappe
 from frappe import _
+from frappe.model.document import Document
+from frappe.utils import add_days, add_years, format_time, getdate, now_datetime
 
-def format_with_space_separator(number):
-    """Formats the number with space as the thousands separator."""
-    if number is None:
-        return '__________'
-    try:
-        formatted_number = f"{number:,.2f}"
-        formatted_number = formatted_number.replace(',', ' ')
-        return formatted_number
-    except (ValueError, TypeError):
-        return '__________'
+from ir.industrial_relations.doctype.contract_of_employment_template.contract_of_employment_template import (
+	ContractContext,
+	VARIABLES_BY_KEY,
+	format_value,
+	parse_wording,
+	render_contract,
+)
+from ir.ir_setup.doctype.ir_payroll_cost_settings.ir_payroll_cost_settings import get_basic_wage_components
 
-def number_to_words(number):
-    """Convert a number into words (up to 10,000,000, including decimals)."""
-    units = [
-        'Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'
-    ]
-    teens = [
-        'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
-    ]
-    tens = [
-        'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
-    ]
-    thousands = 'Thousand'
-    millions = 'Million'
+# (fieldname prefix unused, day label, start field, end field) - Contract of
+# Employment's own fixed Monday-Sunday Time fields, fed into the template
+# engine's working_days repeat. No rotating-shift support here; every
+# contract is shift:fixed (see _build_render_context).
+WORKING_DAYS = (
+	("Monday", "mon_start", "mon_end"),
+	("Tuesday", "tue_start", "tue_end"),
+	("Wednesday", "wed_start", "wed_end"),
+	("Thursday", "thu_start", "thu_end"),
+	("Friday", "fri_start", "fri_end"),
+	("Saturday", "sat_start", "sat_end"),
+	("Sunday", "sun_start", "sun_end"),
+)
 
-    def get_words_below_1000(n):
-        """Convert numbers less than 1000 to words."""
-        if n < 10:
-            return units[n]
-        elif n < 20:
-            return teens[n - 10]
-        elif n < 100:
-            return tens[n // 10 - 2] + ('' if n % 10 == 0 else '-' + units[n % 10])
-        else:
-            return units[n // 100] + ' Hundred' + ('' if n % 100 == 0 else ' and ' + get_words_below_1000(n % 100))
+# pay_basis -> the real Salary Component that represents Basic/Wages for it
+# (both already curated as "Basic/Wages" in IR Payroll Cost Settings).
+BASIC_COMPONENT_BY_PAY_BASIS = {"Hourly": "Hourly Earnings", "Monthly": "Basic Salary"}
 
-    def get_decimal_words(decimal_part):
-        """Convert the decimal part to words."""
-        decimal_words = []
-        for digit in decimal_part:
-            decimal_words.append(units[int(digit)])
-        return ' '.join(decimal_words)
-
-    if '.' in str(number):
-        integer_part, decimal_part = str(number).split('.')
-        integer_part = int(integer_part)
-        decimal_part = decimal_part[:2]  # Handle up to 2 decimal places
-        words = number_to_words(integer_part) + ' Point ' + get_decimal_words(decimal_part)
-        return words
-
-    number = int(number)
-    if number < 1000:
-        return get_words_below_1000(number)
-    elif number < 1000000:
-        return get_words_below_1000(number // 1000) + ' ' + thousands + ('' if number % 1000 == 0 else ' ' + get_words_below_1000(number % 1000))
-    elif number < 10000000:
-        return get_words_below_1000(number // 1000000) + ' ' + millions + ('' if number % 1000000 == 0 else ' ' + number_to_words(number % 1000000))
-    else:
-        return 'Number out of range'
 
 class ContractofEmployment(Document):
-    def validate(self):
-        self.update_contract_clauses()
-        self.generate_contract()
+	def autoname(self):
+		# Was "format:{contract_type} - {employee_name} - {employee} -
+		# {DD}-{MM}-{YYYY}" - contract_type is gone (Contract Type is fully
+		# deprecated; contract_template is the only source of wording/
+		# classification now), so contract_template takes its place in the
+		# name. {DD}/{MM}/{YYYY} resolve to today's date (not self.creation),
+		# and a blank field contributes nothing (not the literal text
+		# "None") - both exactly as Frappe's own format: autoname did
+		# (frappe.model.naming._format_autoname -> parse_naming_series).
+		today = now_datetime().strftime("%d-%m-%Y")
+		self.name = (
+			f"{self.contract_template or ''} - {self.employee_name or ''} - {self.employee or ''} - {today}"
+		)
 
-        # Ensure required fields are populated based on selections, used for Data Import Function
-        if not self.employee_name:
-            self.employee_name = frappe.db.get_value('Employee', self.employee, 'employee_name')
-        if not self.company:
-            self.company = frappe.db.get_value('Employee', self.employee, 'company')
-        if not self.designation:
-            self.designation = frappe.db.get_value('Employee', self.employee, 'designation')
-        if not self.current_address:
-            self.current_address = frappe.db.get_value('Employee', self.employee, 'current_address')
-        if not self.date_of_birth:
-            self.date_of_birth = frappe.db.get_value('Employee', self.employee, 'date_of_birth')
-        if not self.date_of_joining:
-            self.date_of_joining = frappe.db.get_value('Employee', self.employee, 'date_of_joining')
-        if not self.custom_id_number:
-            self.custom_id_number = frappe.db.get_value('Employee', self.employee, 'za_id_number')
-        if not self.branch:
-            self.branch = frappe.db.get_value('Employee', self.employee, 'branch')
-        if not self.retirement_age:
-            self.retirement_age = frappe.db.get_value('Contract Type', self.contract_type, 'retirement_age')
+	def validate(self):
+		# Backfill from the Employee/Contract Type before ensure_required_fields()
+		# checks them - used for Data Import Function too.
+		if not self.employee_name:
+			self.employee_name = frappe.db.get_value('Employee', self.employee, 'employee_name')
+		if not self.company:
+			self.company = frappe.db.get_value('Employee', self.employee, 'company')
+		if not self.designation:
+			self.designation = frappe.db.get_value('Employee', self.employee, 'designation')
+		if not self.current_address:
+			self.current_address = frappe.db.get_value('Employee', self.employee, 'current_address')
+		if not self.date_of_birth:
+			self.date_of_birth = frappe.db.get_value('Employee', self.employee, 'date_of_birth')
+		if not self.date_of_joining:
+			self.date_of_joining = frappe.db.get_value('Employee', self.employee, 'date_of_joining')
+		if not self.custom_id_number:
+			self.custom_id_number = frappe.db.get_value('Employee', self.employee, 'za_id_number')
+		if not self.branch:
+			self.branch = frappe.db.get_value('Employee', self.employee, 'branch')
 
-        self.ensure_required_fields()
-        self.set_allowance_descriptions()
+		# Period/Project/Retirement classification comes from the Template,
+		# not the deprecated Contract Type - see contract_template: in
+		# contract_of_employment.js, which does the same client-side for an
+		# interactive save. Only ever synced while still a Draft (same
+		# freeze-on-submit rule as generate_contract()/the Earnings table) -
+		# these 4 fields aren't allow_on_submit, so re-deriving them
+		# unconditionally would make an unrelated resave of an old submitted
+		# contract fail outright the day anyone edits that Template's own
+		# classification.
+		if self.docstatus == 0 and self.contract_template:
+			classification = frappe.db.get_value(
+				"Contract of Employment Template",
+				self.contract_template,
+				["has_expiry", "has_project", "has_retirement", "retirement_age"],
+				as_dict=True,
+			)
+			self.has_expiry = classification.has_expiry
+			self.has_project = classification.has_project
+			self.has_retirement = classification.has_retirement
+			self.retirement_age = classification.retirement_age
 
-    def set_allowance_descriptions(self):
-        """Fetches allowance descriptions from the Contract Section linked in the remuneration field."""
-        if self.remuneration:
-            allowance_fields = ['allowance_1_rate', 'allowance_2_rate', 'allowance_3_rate', 'allowance_4_rate', 'allowance_5_rate']
-            allowance_desc_fields = ['allowance_1_desc', 'allowance_2_desc', 'allowance_3_desc', 'allowance_4_desc', 'allowance_5_desc']
+		self.ensure_required_fields()
 
-            allowance_rates = {field: getattr(self, field) for field in allowance_fields if getattr(self, field)}
+		if self.is_new():
+			self._prefill_contract_defaults()
 
-            if allowance_rates:
-                section_doc = frappe.get_doc('Contract Section', self.remuneration)
+		# Only ever re-render while still a Draft: a submitted or cancelled
+		# contract's generated_contract is what was actually signed, and must
+		# never be silently rewritten by an incidental resave.
+		if self.docstatus == 0:
+			self.generate_contract()
 
-                allowance_descriptions = {
-                    'allowance_1_desc': "",
-                    'allowance_2_desc': "",
-                    'allowance_3_desc': "",
-                    'allowance_4_desc': "",
-                    'allowance_5_desc': ""
-                }
+	def _prefill_contract_defaults(self):
+		"""New contracts start with the site's standard Deductions and
+		Provident Fund rate (both from Contract Defaults), so HR doesn't
+		have to fill either in by hand every time - only ever runs once, on
+		insert, and only for whichever of the two wasn't already supplied
+		(e.g. via Data Import). The rate becomes this contract's own value
+		from here on - a later change to Contract Defaults never silently
+		alters an already-created contract, submitted or not."""
+		defaults = frappe.get_cached_doc("Contract Defaults")
+		if not self.deductions:
+			for row in defaults.default_deductions:
+				self.append("deductions", {"salary_component": row.salary_component})
+		if not self.provident_fund_contribution:
+			self.provident_fund_contribution = defaults.provident_fund_contribution
 
-                for row in section_doc.sec_par:
-                    if row.clause_text:
-                        if "{allowance_1}" in row.clause_text:
-                            allowance_descriptions['allowance_1_desc'] = row.clause_text
-                        elif "{allowance_2}" in row.clause_text:
-                            allowance_descriptions['allowance_2_desc'] = row.clause_text
-                        elif "{allowance_3}" in row.clause_text:
-                            allowance_descriptions['allowance_3_desc'] = row.clause_text
-                        elif "{allowance_4}" in row.clause_text:
-                            allowance_descriptions['allowance_4_desc'] = row.clause_text
-                        elif "{allowance_5}" in row.clause_text:
-                            allowance_descriptions['allowance_5_desc'] = row.clause_text
+	def _basic_earning_row(self):
+		"""The one Earnings row for Basic/Wages matching pay_basis - the rate
+		of pay itself. There's no separate rate field any more: HR enters it
+		directly as an Earnings row (linked to Basic Salary/Hourly Earnings,
+		same as any allowance), via the same Earnings table/editor."""
+		target = BASIC_COMPONENT_BY_PAY_BASIS.get(self.pay_basis)
+		return next((row for row in self.earnings if row.salary_component == target and row.amount), None)
 
-                for i, field in enumerate(allowance_desc_fields):
-                    self.set(field, allowance_descriptions[field])
+	def ensure_required_fields(self):
+		""" Ensure that all fields marked as required have valid values. """
+		required_fields = {
+			'employee_name': 'Employee Name',
+			'company': 'Company',
+			'designation': 'Designation',
+			'current_address': 'Current Address',
+			'date_of_birth': 'Date of Birth',
+			'date_of_joining': 'Date of Joining',
+			'custom_id_number': 'RSA ID / Passport No.',
+			'branch': 'Site',
+		}
 
-    def ensure_required_fields(self):
-        """ Ensure that all fields marked as required have valid values. """
-        required_fields = {
-            'employee_name': 'Employee Name',
-            'company': 'Company',
-            'designation': 'Designation',
-            'current_address': 'Current Address',
-            'date_of_birth': 'Date of Birth',
-            'date_of_joining': 'Date of Joining',
-            'custom_id_number': 'RSA ID / Passport No.',
-            'branch': 'Site',
-        }
-        
-        missing_fields = [label for field, label in required_fields.items() if not getattr(self, field)]
-        
-        if missing_fields:
-            frappe.throw(_("The following fields are required and missing: {0}").format(", ".join(missing_fields)))
+		missing_fields = [label for field, label in required_fields.items() if not getattr(self, field)]
 
-    def update_contract_clauses(self):
-        """Fetches and updates the contract clauses from the linked Contract Type."""
-        if not self.contract_type:
-            return
+		if missing_fields:
+			frappe.throw(_("The following fields are required and missing: {0}").format(", ".join(missing_fields)))
 
-        self.contract_clauses = []
+		if not self._basic_earning_row():
+			target = BASIC_COMPONENT_BY_PAY_BASIS.get(self.pay_basis, "Basic Salary")
+			frappe.throw(_("Add a {0} row to the Earnings table with the rate of pay.").format(target))
 
-        contract_type_doc = frappe.get_doc('Contract Type', self.contract_type)
+	def generate_contract(self):
+		"""Render this contract's wording through the Contract of Employment
+		Template engine (see contract_of_employment_template.py)."""
+		if not self.contract_template:
+			return
 
-        sec_head_to_number = {}
+		wording = frappe.db.get_value("Contract of Employment Template", self.contract_template, "contract_wording")
+		self.generated_contract = render_contract(parse_wording(wording), self._build_render_context())
 
-        for term in contract_type_doc.contract_terms:
-            if term.section == "Remuneration Placeholder":
-                section = frappe.get_doc('Contract Section', self.remuneration)
-            elif term.section == "Working Hours Placeholder":
-                section = frappe.get_doc('Contract Section', self.working_hours)
-            else:
-                section = frappe.get_doc('Contract Section', term.section)
+	def _compute_retirement_date(self):
+		if self.has_retirement and self.retirement_age and self.date_of_birth:
+			return add_days(add_years(getdate(self.date_of_birth), int(self.retirement_age)), -1)
+		return None
 
-            sec_head_to_number[section.sec_head] = term.sec_no
+	def _build_render_context(self) -> ContractContext:
+		context = ContractContext()
+		basic_row = self._basic_earning_row()
 
-            section_number = term.sec_no
-            section_header = f"<b>{section.sec_head}</b><br>"
+		raw_values = {
+			"employee_name": self.employee_name,
+			"employee_number": self.employee,
+			"id_number": self.custom_id_number,
+			"current_address": self.current_address,
+			"designation": self.designation,
+			"branch": self.branch,
+			"company": self.company,
+			"date_of_joining": self.date_of_joining,
+			# contract_type (the field) is gone - the wording engine's own
+			# "contract_type" variable key stays (real Templates already
+			# have {{contract_type}} baked into their stored wording), just
+			# fed from the Template's own name now instead.
+			"contract_type": frappe.db.get_value(
+				"Contract of Employment Template", self.contract_template, "contract_name"
+			)
+			if self.contract_template
+			else None,
+			"start_date": self.start_date,
+			"end_date": self.end_date,
+			"project": self.project,
+			"retirement_age": self.retirement_age,
+			"retirement_date": self._compute_retirement_date(),
+			"restraint_period": self.restraint_period,
+			"restraint_territory": self.restraint_territory,
+			"rate": basic_row.amount if basic_row else None,
+			"provident_fund_rate": self.provident_fund_contribution,
+		}
+		for key, raw in raw_values.items():
+			context.values[key] = format_value(VARIABLES_BY_KEY[key], raw)
 
-            numbered_content, clause_numbers = self.handle_section_numbering(section, section_number)
+		# The Basic/Wages row is real data (entered directly as an Earnings
+		# row, same as any allowance) but never shown as an allowance - the
+		# "Paid R {rate} ..." sentence above already covers it on the
+		# printed contract. Each remaining row becomes its own numbered
+		# sub-clause via the earnings repeat.
+		basic_components = get_basic_wage_components()
+		extra_earnings = [row for row in self.earnings if row.salary_component not in basic_components]
+		context.rows["earnings"] = [
+			{
+				"earning_label": format_value(VARIABLES_BY_KEY["earning_label"], row.salary_component),
+				"earning_amount": format_value(VARIABLES_BY_KEY["earning_amount"], row.amount),
+			}
+			for row in extra_earnings
+		]
+		context.values["deductions_table"] = self._component_table(self.deductions)
 
-            self.append('contract_clauses', {
-                'section_number': section_number,
-                'clause_number': section_number,
-                'clause_content': section_header
-            })
+		is_shift_worker = self.working_hours_type == "Shift Worker"
+		context.rows["working_days"] = (
+			[]
+			if is_shift_worker
+			else [
+				{
+					"day_name": day_label,
+					# format_time first - a Time field's raw value isn't
+					# guaranteed to already be a clean "HH:MM" string.
+					"day_start": format_value(
+						VARIABLES_BY_KEY["day_start"], format_time(self.get(start_field), "HH:mm")
+					),
+					"day_end": format_value(VARIABLES_BY_KEY["day_end"], format_time(self.get(end_field), "HH:mm")),
+				}
+				for day_label, start_field, end_field in WORKING_DAYS
+				if self.get(start_field) and self.get(end_field)
+			]
+		)
+		context.rows["shifts"] = []
 
-            clause_content = section_header + numbered_content + "<br><br>"
+		conditions = context.conditions
+		conditions.add("shift:rotating" if is_shift_worker else "shift:fixed")
+		conditions.add("pay:hourly" if self.pay_basis == "Hourly" else "pay:monthly")
+		conditions.add("allowances:any" if extra_earnings else "allowances:none")
+		conditions.add("retirement:yes" if self.has_retirement else "retirement:no")
+		conditions.update(f"earning:{row.salary_component}" for row in self.earnings)
+		conditions.update(f"deduction:{row.salary_component}" for row in self.deductions)
 
-            for par_num, clause_text in clause_numbers:
-                self.append('contract_clauses', {
-                    'section_number': section_number,
-                    'clause_number': par_num,
-                    'clause_content': clause_text,
-                })
+		return context
 
-        self.sec_head_to_number = sec_head_to_number
+	@staticmethod
+	def _component_table(rows) -> str:
+		"""One <tr> per Deduction row - component name and its live Salary
+		Component description. No amount: Deductions only records which
+		components apply."""
+		if not rows:
+			return ""
+		table_rows = []
+		for row in rows:
+			description = frappe.db.get_value("Salary Component", row.salary_component, "description")
+			detail = f"<br><small>{html.escape(description)}</small>" if description else ""
+			table_rows.append(f"<tr><td><b>{html.escape(row.salary_component)}</b>{detail}</td></tr>")
+		return '<table border="0" cellpadding="5" cellspacing="0">' + "".join(table_rows) + "</table>"
 
-    def handle_section_numbering(self, section, section_number):
-        """Handles the numbering and formatting of sections and paragraphs."""
-        content = ""
-        clause_numbers = []  # To store (par_num, clause_text) tuples
+	def before_submit(self):
+		if not self.signed_contract:
+			frappe.throw(_("You cannot submit the document without attaching the signed contract."))
 
-        def build_par_num(par):
-            """Constructs the paragraph number based on the hierarchy."""
-            parts = []
-            if section_number:
-                parts.append(section_number)
-            if par.ss_num > 0:
-                parts.append(par.ss_num)
-            if par.par_num > 0:
-                parts.append(par.par_num)
-            if par.spar_num > 0:
-                parts.append(par.spar_num)
-            if par.item_num > 0:
-               parts.append(par.item_num)
-            if par.sitem_num > 0:
-                parts.append(par.sitem_num)
+		if not self.employee:
+			frappe.throw(_("Please link an Employee before submitting."))
 
-            return '.'.join(map(str, parts))
+		employee = frappe.get_doc("Employee", self.employee)
 
-        for par in section.sec_par:
-            par_num = build_par_num(par)
-            clause_text = f"{par.clause_text}<br>"
+		if self.has_expiry and self.end_date:
+			employee.employment_type = "Contract"
+			employee.contract_end_date = self.end_date
 
-            content += clause_text
+		retirement_date = self._compute_retirement_date()
+		if retirement_date:
+			employee.date_of_retirement = retirement_date
 
-            clause_numbers.append((par_num, clause_text))
-
-        return content, clause_numbers
-
-    def format_date(self, date):
-        """Formats the date as 'day of the week, the day of month year'."""
-        if not date:
-            return "_____________________"
-        if isinstance(date, str):
-            date = datetime.strptime(date, '%Y-%m-%d')
-        day_suffix = "th"
-        if 4 <= date.day <= 20 or 24 <= date.day <= 30:
-            day_suffix = "th"
-        else:
-            day_suffix = ["st", "nd", "rd"][date.day % 10 - 1]
-        formatted_date = date.strftime(f"%A, the {date.day}{day_suffix} of %B %Y")
-        return formatted_date
-
-    def generate_contract(self):
-        """Generates the final contract document by replacing placeholders with actual data."""
-        contract_content = "<table border='0' cellpadding='5' cellspacing='0'>"
-
-        if not hasattr(self, 'sec_head_to_number'):
-            self.update_contract_clauses()
-
-        for clause in self.contract_clauses:
-            clause_number = clause.clause_number
-            clause_content = clause.clause_content
-
-            bold_clause_number = f"<b>{clause_number}</b>"
-
-            contract_content += f"<tr><td>{bold_clause_number}</td><td>{clause_content}</td></tr>"
-
-        contract_content += "</table>"
-
-        replacements = {
-            "{employee_name}": f"<b>{self.employee_name or '_____________________'}</b>",
-            "{date_of_joining}": f"<b>{self.format_date(self.date_of_joining)}</b>",
-            "{company}": f"<b>{self.company or '_____________________'}</b>",
-            "{employee_number}": f"<b>{self.employee or '_____________________'}</b>",
-            "{designation}": f"<b>{self.designation or '_____________________'}</b>",
-            "{current_address}": f"<b>{self.current_address or '_____________________'}</b>",
-            "{start_date}": f"<b>{self.format_date(self.start_date)}</b>",
-            "{end_date}": f"<b>{self.format_date(self.end_date)}</b>",
-            "{project}": f"<b>{self.project or '_____________________'}</b>",
-            "{custom_id_number}": f"<b>{self.custom_id_number or '_____________________'}</b>",
-            "{branch}": f"<b>{self.branch or '_____________________'}</b>",
-            "{contract_type}": f"<b>{self.contract_type or '_____________________'}</b>",
-            "{restraint_period}": f"<b>{self.restraint_period or '_____________________'}</b>",
-            "{restraint_territory}": f"<b>{self.restraint_territory or '_____________________'}</b>",
-            "{mon_start}": f"<b>{format_time(self.mon_start or '00:00', 'HH:mm')}</b>",
-            "{mon_end}": f"<b>{format_time(self.mon_end or '00:00', 'HH:mm')}</b>",
-            "{tue_start}": f"<b>{format_time(self.tue_start or '00:00', 'HH:mm')}</b>",
-            "{tue_end}": f"<b>{format_time(self.tue_end or '00:00', 'HH:mm')}</b>",
-            "{wed_start}": f"<b>{format_time(self.wed_start or '00:00', 'HH:mm')}</b>",
-            "{wed_end}": f"<b>{format_time(self.wed_end or '00:00', 'HH:mm')}</b>",
-            "{thu_start}": f"<b>{format_time(self.thu_start or '00:00', 'HH:mm')}</b>",
-            "{thu_end}": f"<b>{format_time(self.thu_end or '00:00', 'HH:mm')}</b>",
-            "{fri_start}": f"<b>{format_time(self.fri_start or '00:00', 'HH:mm')}</b>",
-            "{fri_end}": f"<b>{format_time(self.fri_end or '00:00', 'HH:mm')}</b>",
-            "{sat_start}": f"<b>{format_time(self.sat_start or '00:00', 'HH:mm')}</b>",
-            "{sat_end}": f"<b>{format_time(self.sat_end or '00:00', 'HH:mm')}</b>",
-            "{sun_start}": f"<b>{format_time(self.sun_start or '00:00', 'HH:mm')}</b>",
-            "{sun_end}": f"<b>{format_time(self.sun_end or '00:00', 'HH:mm')}</b>",
-            "{rate}": f"<b>{format_with_space_separator(self.rate) + ' (' + number_to_words(self.rate) + ')' if self.rate else '__________'}</b>",
-            "{allowance_1}": f"<b>{format_with_space_separator(self.allowance_1_rate) + ' (' + number_to_words(self.allowance_1_rate) + ')'  if self.allowance_1_rate else '__________'}</b>",
-            "{allowance_2}": f"<b>{format_with_space_separator(self.allowance_2_rate) + ' (' + number_to_words(self.allowance_2_rate) + ')'  if self.allowance_2_rate else '__________'}</b>",
-            "{allowance_3}": f"<b>{format_with_space_separator(self.allowance_3_rate) + ' (' + number_to_words(self.allowance_3_rate) + ')'  if self.allowance_3_rate else '__________'}</b>",
-            "{allowance_4}": f"<b>{format_with_space_separator(self.allowance_4_rate) + ' (' + number_to_words(self.allowance_4_rate) + ')'  if self.allowance_4_rate else '__________'}</b>",
-            "{allowance_5}": f"<b>{format_with_space_separator(self.allowance_5_rate) + ' (' + number_to_words(self.allowance_5_rate) + ')'  if self.allowance_5_rate else '__________'}</b>",
-            "{retirement_age}": f"<b>{str(self.retirement_age) + ' (' + number_to_words(self.retirement_age) + ')' if self.retirement_age is not None else '__________'}</b>"
-        }
-
-        for placeholder, replacement in replacements.items():
-            contract_content = contract_content.replace(placeholder, replacement)
-
-        for sec_head, section_number in self.sec_head_to_number.items():
-            escaped_sec_head = re.escape(sec_head)
-            pattern = rf'\{{par\."{escaped_sec_head}"\}}'
-            contract_content = re.sub(pattern, str(section_number), contract_content)
-
-        contract_content = re.sub(r'//(.*?)//', r'<i>\1</i>', contract_content)  # Italic
-        contract_content = re.sub(r'__(.*?)__', r'<u>\1</u>', contract_content)  # Underline
-        contract_content = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', contract_content)  # Bold
-
-        self.generated_contract = contract_content
-
-    def before_submit(self):
-        if not self.signed_contract:
-            frappe.throw(_("You cannot submit the document without attaching the signed contract."))
-
-        if not self.employee:
-            frappe.throw(_("Please link an Employee before submitting."))
-
-        employee = frappe.get_doc("Employee", self.employee)
-
-        if self.has_expiry and self.end_date:
-            employee.employment_type = "Contract"
-            employee.contract_end_date = self.end_date
-
-        if self.retirement_age and employee.date_of_birth:
-            # Calculate retirement date: date_of_birth + retirement_age - 1 day
-            retirement_date = add_days(
-                add_years(getdate(employee.date_of_birth), int(self.retirement_age)),
-                -1
-            )
-            employee.date_of_retirement = retirement_date
-
-        # Save the Employee document to trigger Track Changes
-        employee.save(ignore_permissions=True)
+		# Save the Employee document to trigger Track Changes
+		employee.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
 def get_pending_status_change(employee):
-    """The employee's most relevant Draft Status Change Form that carries a
-    Designation or Branch change (latest effective_date, ties broken by
-    creation), if any - used by the client employee: handler to warn when a
-    new Contract is being drafted while a Branch/Designation change for this
-    employee is still pending submission.
+	"""The employee's most relevant Draft Status Change Form that carries a
+	Designation or Branch change (latest effective_date, ties broken by
+	creation), if any - used by the client employee: handler to warn when a
+	new Contract is being drafted while a Branch/Designation change for this
+	employee is still pending submission.
 
-    new_designation/new_branch no longer exist as Status Change Form's own
-    fields - Status Change Detail is the only input now, so both are read
-    from whichever Designation/Branch row that form carries (a Status
-    Change Form with neither - e.g. an allowance-only change - isn't
-    relevant here and is skipped)."""
-    if not employee:
-        return None
+	new_designation/new_branch no longer exist as Status Change Form's own
+	fields - Status Change Detail is the only input now, so both are read
+	from whichever Designation/Branch row that form carries (a Status
+	Change Form with neither - e.g. an allowance-only change - isn't
+	relevant here and is skipped)."""
+	if not employee:
+		return None
 
-    rows = frappe.db.sql(
-        """
-        SELECT scf.name, scf.effective_date, scd.change_type, scd.new_value
-        FROM `tabStatus Change Form` scf
-        INNER JOIN `tabStatus Change Detail` scd ON scd.parent = scf.name
-        WHERE scf.employee = %s
-            AND scf.docstatus = 0
-            AND scd.change_type IN ('Designation', 'Branch')
-        ORDER BY scf.effective_date DESC, scf.creation DESC
-        """,
-        (employee,),
-        as_dict=True,
-    )
-    if not rows:
-        return None
+	rows = frappe.db.sql(
+		"""
+		SELECT scf.name, scf.effective_date, scd.change_type, scd.new_value
+		FROM `tabStatus Change Form` scf
+		INNER JOIN `tabStatus Change Detail` scd ON scd.parent = scf.name
+		WHERE scf.employee = %s
+			AND scf.docstatus = 0
+			AND scd.change_type IN ('Designation', 'Branch')
+		ORDER BY scf.effective_date DESC, scf.creation DESC
+		""",
+		(employee,),
+		as_dict=True,
+	)
+	if not rows:
+		return None
 
-    top_name = rows[0].name
-    top_rows = [r for r in rows if r.name == top_name]
+	top_name = rows[0].name
+	top_rows = [r for r in rows if r.name == top_name]
 
-    return frappe._dict({
-        "name": top_name,
-        "effective_date": top_rows[0].effective_date,
-        "new_designation": next((r.new_value for r in top_rows if r.change_type == "Designation"), None),
-        "new_branch": next((r.new_value for r in top_rows if r.change_type == "Branch"), None),
-    })
+	return frappe._dict({
+		"name": top_name,
+		"effective_date": top_rows[0].effective_date,
+		"new_designation": next((r.new_value for r in top_rows if r.change_type == "Designation"), None),
+		"new_branch": next((r.new_value for r in top_rows if r.change_type == "Branch"), None),
+	})

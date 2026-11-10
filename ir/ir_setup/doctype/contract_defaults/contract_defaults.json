@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-09 20:47:54.524676",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "provident_fund_contribution",
+  "default_deductions_section",
+  "default_deductions"
+ ],
+ "fields": [
+  {
+   "description": "The standard Provident Fund contribution rate, used wherever a Contract of Employment Template's wording references the provident_fund_rate variable (replacing the historic hardcoded \"5%\").",
+   "fieldname": "provident_fund_contribution",
+   "fieldtype": "Float",
+   "label": "Provident Fund Contribution (%)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "default_deductions_section",
+   "fieldtype": "Section Break",
+   "label": "Default Deductions"
+  },
+  {
+   "description": "Salary Components automatically added to a new Contract of Employment's Deductions table when it's created.",
+   "fieldname": "default_deductions",
+   "fieldtype": "Table",
+   "label": "Default Deductions",
+   "options": "Contract Defaults Deduction"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-09 20:47:54.524676",
+ "modified_by": "Administrator",
+ "module": "IR Setup",
+ "name": "Contract Defaults",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "IR Officer",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

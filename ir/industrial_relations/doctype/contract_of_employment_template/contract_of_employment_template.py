@@ -33,10 +33,16 @@ Each line can carry, independently:
   never per template, so one template serves every pay basis, roster and
   component mix.
 - Repeat for each ({"coe-repeat": kind}): the line is written once per row of
-  that kind (each earning, deduction, working day or shift) at the same depth,
-  so every row becomes its own numbered sub-paragraph. Row variables
-  ({{earning_label}}, {{day_start}} ...) belong on repeat lines. A repeat with
-  no rows disappears.
+  that kind (each earning, working day or shift) at the same depth, so every
+  row becomes its own numbered sub-paragraph. Row variables ({{earning_label}},
+  {{day_start}} ...) belong on repeat lines. A repeat with no rows disappears.
+
+Deductions are the one exception: there's no per-row wording for them (the
+legacy "Deductions" section was always fixed boilerplate, never itemised),
+so a template inserts the single Deductions Table variable
+({{deductions_table}}) wherever the breakdown belongs - a contract fills it
+with one ready-made HTML table (name + description per row, no amount) built
+from its own Salary Components.
 
 Hidden lines are dropped and repeats expanded before numbering, so the
 numbers always close up.
@@ -183,13 +189,15 @@ class TemplateVariable:
 	label: str
 	group: str
 	# How Contract of Employment formats the raw value (see format_value):
-	# text | long_date | rand_words | int_words | number | time
+	# text | long_date | rand_words | int_words | number | percent | time | table
 	fmt: str = "text"
 	# Row variables only make sense on a line repeating this kind.
 	repeat: str | None = None
 	# The `{placeholder}` the legacy Contract Section wording used.
 	legacy_token: str | None = None
 	description: str = ""
+	# fmt="table" only: shown (italicised) when the contract has no rows for it.
+	blank: str = ""
 
 
 @dataclass(frozen=True)
@@ -201,7 +209,6 @@ class TemplateRepeat:
 
 REPEATS: tuple[TemplateRepeat, ...] = (
 	TemplateRepeat("earnings", "Earning", "Each allowance/earning on the contract other than the basic rate."),
-	TemplateRepeat("deductions", "Deduction", "Each deduction on the contract (UIF, PAYE, Provident Fund ...)."),
 	TemplateRepeat("working_days", "Working Day", "Each working day of a fixed shift (from the Shift Design)."),
 	TemplateRepeat("shifts", "Shift", "Each shift in a rotating roster (from the Shift Design)."),
 )
@@ -246,15 +253,22 @@ VARIABLES: tuple[TemplateVariable, ...] = (
 	),
 	TemplateVariable("earning_amount", "Earning Amount", "Each Earning", fmt="rand_words", repeat="earnings"),
 	TemplateVariable(
-		"earning_basis", "Earning Basis", "Each Earning", repeat="earnings", description="per month / per hour"
+		"deductions_table",
+		"Deductions Table",
+		"Deductions",
+		fmt="table",
+		description=(
+			"Every Deduction on this contract - name and description, no amount - built from its Salary "
+			"Components. Insert once, wherever the breakdown belongs."
+		),
+		blank="No deductions on this contract.",
 	),
-	TemplateVariable("deduction_label", "Deduction Name", "Each Deduction", repeat="deductions"),
 	TemplateVariable(
-		"deduction_amount",
-		"Deduction Amount",
-		"Each Deduction",
-		repeat="deductions",
-		description="An amount or a percentage, as on the contract.",
+		"provident_fund_rate",
+		"Provident Fund Contribution",
+		"Deductions",
+		fmt="percent",
+		description="The standard contribution rate, from Contract Defaults, e.g. 7.50%.",
 	),
 	# Working Hours
 	TemplateVariable("day_name", "Day", "Each Working Day", repeat="working_days", description="e.g. Monday"),
@@ -616,8 +630,12 @@ def _render_segment(seg: Segment, line: Line, context: ContractContext, anchors:
 		var = VARIABLES_BY_KEY.get(seg.value)
 		if not var:
 			return ""
+		if var.fmt == "table":
+			# Already a ready-made HTML table from the caller - never escaped,
+			# never bolded, and not blank-filled like a scalar value.
+			return context.values.get(var.key) or f"<i>{html.escape(var.blank)}</i>"
 		source = line.row if var.repeat else context.values
-		blank = context.blank_amount if var.fmt in ("rand_words", "int_words", "number") else context.blank
+		blank = context.blank_amount if var.fmt in ("rand_words", "int_words", "number", "percent") else context.blank
 		return f"<b>{(source or {}).get(var.key) or blank}</b>"
 	if seg.kind == "ref":
 		return html.escape(anchors.get(seg.value["anchor"], "??"))
@@ -636,6 +654,10 @@ def _render_segment(seg: Segment, line: Line, context: ContractContext, anchors:
 
 def format_value(var: TemplateVariable, raw) -> str:
 	"""Raw contract value -> the HTML a contract shows, per the variable's format."""
+	if var.fmt == "table":
+		# The caller already built the table (see render_contract/_render_segment);
+		# nothing left to format.
+		return raw or ""
 	if raw is None or raw == "":
 		return ""
 	if var.fmt == "long_date":
@@ -647,6 +669,8 @@ def format_value(var: TemplateVariable, raw) -> str:
 		return html.escape(f"{cint(raw)} ({number_to_words(cint(raw))})")
 	if var.fmt == "number":
 		return html.escape(f"{flt(raw):g}")
+	if var.fmt == "percent":
+		return html.escape(f"{flt(raw):.2f}%")
 	if var.fmt == "time":
 		return html.escape(str(raw)[:5])
 	return html.escape(str(raw))
@@ -696,6 +720,20 @@ def _int_words(n: int) -> str:
 # ---- preview ----
 
 
+def _preview_component_table(components: list[str]) -> str:
+	"""Sample Deductions Table: real Salary Component names and
+	descriptions, name/description only - matching Contract of Employment's
+	own Deductions (no Amount field)."""
+	if not components:
+		return ""
+	rows = []
+	for name in components:
+		description = frappe.db.get_value("Salary Component", name, "description")
+		detail = f"<br><small>{html.escape(description)}</small>" if description else ""
+		rows.append(f"<tr><td><b>{html.escape(name)}</b>{detail}</td></tr>")
+	return '<table border="0" cellpadding="5" cellspacing="0">' + "".join(rows) + "</table>"
+
+
 def preview_context(scenario: dict) -> ContractContext:
 	"""Sample contract for Preview: every value is a [Label] placeholder; the
 	scenario picks pay basis, retirement, earnings/deductions and working hours
@@ -713,14 +751,10 @@ def preview_context(scenario: dict) -> ContractContext:
 
 	earnings = [c for c in scenario.get("earnings") or [] if c]
 	deductions = [c for c in scenario.get("deductions") or [] if c]
-	basis = "per month"
 	context.rows["earnings"] = [
-		{"earning_label": html.escape(c), "earning_amount": label(_("{0} amount").format(c)), "earning_basis": basis}
-		for c in earnings
+		{"earning_label": html.escape(c), "earning_amount": label(_("{0} amount").format(c))} for c in earnings
 	]
-	context.rows["deductions"] = [
-		{"deduction_label": html.escape(c), "deduction_amount": label(_("{0} amount").format(c))} for c in deductions
-	]
+	context.values["deductions_table"] = _preview_component_table(deductions)
 	conditions.add("allowances:any" if earnings else "allowances:none")
 	conditions.update(f"{EARNING_PREFIX}{c}" for c in earnings)
 	conditions.update(f"{DEDUCTION_PREFIX}{c}" for c in deductions)
@@ -917,8 +951,12 @@ def import_legacy_contract_types(contract_types: list[str] | None = None) -> lis
 	results = []
 	for contract_type in names:
 		markdown, notes = _legacy_contract_markdown(contract_type)
+		# Matched by contract_name, not a dedicated link field - this draft
+		# IS named after its Contract Type (see the line below), and that's
+		# the only identity this one-time import needs; re-running it is
+		# what makes it idempotent, not a permanent traceability field.
 		existing = frappe.db.get_value(
-			"Contract of Employment Template", {"source_contract_type": contract_type, "docstatus": 0}, "name"
+			"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 0}, "name"
 		)
 		doc = (
 			frappe.get_doc("Contract of Employment Template", existing)
@@ -926,9 +964,22 @@ def import_legacy_contract_types(contract_types: list[str] | None = None) -> lis
 			else frappe.new_doc("Contract of Employment Template")
 		)
 		doc.contract_name = doc.contract_name or contract_type
-		doc.source_contract_type = contract_type
 		doc.contract_markdown = markdown
-		doc.contract_wording = None  # rebuild from the Markdown
+
+		classification = frappe.db.get_value(
+			"Contract Type", contract_type, ["has_expiry", "has_project", "has_retirement", "retirement_age"], as_dict=True
+		)
+		doc.has_expiry = classification.has_expiry
+		doc.has_project = classification.has_project
+		doc.has_retirement = classification.has_retirement
+		doc.retirement_age = classification.retirement_age
+		# Build contract_wording directly from this Markdown, rather than
+		# clearing it and relying on validate()'s lines_from_input() to
+		# notice contract_markdown changed - on a no-op re-run (source text
+		# unchanged since last import), has_value_changed("contract_markdown")
+		# is False, so lines_from_input() would fall through to parsing the
+		# now-blank contract_wording and silently wipe the draft's wording.
+		doc.contract_wording = json.dumps(to_delta(parse_markdown(markdown)), ensure_ascii=False)
 		doc.save()
 		results.append(f"{doc.name}: {'; '.join(notes) if notes else 'ok'}")
 	return results
@@ -950,10 +1001,13 @@ def _legacy_contract_markdown(contract_type: str) -> tuple[str, list[str]]:
 			sections.append(("Working Hours", _legacy_working_hours(), "working-hours"))
 		else:
 			section = frappe.get_doc("Contract Section", term.section)
-			paragraphs = [
-				(_legacy_depth(p), cint(p.ss_num), p.clause_text or "", None, None)
-				for p in sorted(section.sec_par, key=lambda p: p.idx)
-			]
+			if section.sec_head in ("Deductions", "MMS Deductions"):
+				paragraphs = _legacy_deductions(section)
+			else:
+				paragraphs = [
+					(_legacy_depth(p), cint(p.ss_num), p.clause_text or "", None, None)
+					for p in sorted(section.sec_par, key=lambda p: p.idx)
+				]
 			sections.append((section.sec_head, paragraphs, _slug(section.sec_head)))
 
 	# anchors: every heading, and every top-level clause (references point at
@@ -1044,16 +1098,66 @@ def _legacy_paragraph(contains: str, parent_like: str = "Remuneration (%") -> st
 
 
 def _legacy_remuneration():
-	"""The 29 legacy Remuneration sections as one dynamic section."""
-	allowance_line = "{earning_label}: **R** {earning_amount} per month;"
+	"""The 29 legacy Remuneration sections as one dynamic section. Each
+	allowance is its own numbered sub-clause (depth=1) via the earnings
+	repeat - restores the legacy per-row numbering (e.g. 4.2.1, 4.2.2 ...) -
+	now with the qualifying/discretionary disclaimer stated on every such
+	row, not only in the shared lead-in. Provident Fund's rate is now the
+	provident_fund_rate variable (from Contract Defaults) instead of the
+	historic hardcoded "5%"."""
+	allowance_line = (
+		"{earning_label}: **R** {earning_amount} per month, subject to the Employee still qualifying for "
+		"same, which allowance shall remain discretionary and subject to the policy governing such allowance;"
+	)
+	provident_fund = _legacy_paragraph("contribute 5%").replace("5%", "{provident_fund_rate}")
 	return [
 		(0, 1, _legacy_paragraph("per hour worked"), "pay:hourly", None),
 		(0, 1, _legacy_paragraph("per month worked"), "pay:monthly", None),
 		(0, 2, _legacy_paragraph("entitled to the following allowances"), "allowances:any", None),
 		(1, 0, allowance_line, "allowances:any", "earnings"),
-		(0, 3, _legacy_paragraph("contribute 5%"), None, None),
+		(0, 3, provident_fund, None, None),
 		(0, 4, _legacy_paragraph("No other form of remuneration"), None, None),
 	]
+
+
+# Literal substrings of the 5 generic bullet lines every real Deductions
+# section opens with (UIF/PAYE/Provident Fund/Medical Plan/Retirement Fund) -
+# confirmed identical, word for word, across all 6 real Deductions section
+# variants this site's 9 submitted Contract Types actually use.
+DEDUCTION_LINE_MARKERS = (
+	"UIF (Unemployment",
+	"Income Tax / PAYE",
+	"Provident Fund Contributions",
+	"Medical Plan Contributions",
+	"Retirement Fund Contributions",
+)
+
+
+def _legacy_deductions(section):
+	"""Every real Deductions section opens with this same generic, fixed
+	bullet list - it never actually reflected what's really deducted on a
+	given contract (Contract of Employment had no itemised deductions at
+	all before this engine). Collapsed here into one deductions_table
+	variable, in the same spot, built from this contract's own Deductions
+	table - i.e. its real Salary Components. Every other provision in the
+	section (advances, the cross-reference to .2, other agreed deductions,
+	and the later sub-sections about recovering losses/PPE/notice pay) is
+	legal boilerplate unrelated to Salary Components and is kept verbatim.
+	deductions_table's own "No deductions on this contract." blank-state
+	text (see VARIABLES) covers a contract with none - no condition needed
+	here."""
+	paragraphs = sorted(section.sec_par, key=lambda p: p.idx)
+	out = []
+	table_inserted = False
+	for p in paragraphs:
+		text = p.clause_text or ""
+		if any(marker in text for marker in DEDUCTION_LINE_MARKERS):
+			if not table_inserted:
+				out.append((_legacy_depth(p), cint(p.ss_num), "{deductions_table}", None, None))
+				table_inserted = True
+			continue
+		out.append((_legacy_depth(p), cint(p.ss_num), text, None, None))
+	return out
 
 
 def _legacy_working_hours():

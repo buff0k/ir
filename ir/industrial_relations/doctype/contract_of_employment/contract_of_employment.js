@@ -3,12 +3,30 @@
 
 frappe.ui.form.on('Contract of Employment', {
     refresh: function(frm) {
-        frm.events.toggle_allowance_sections(frm);
-        frm.events.toggle_working_hours_section(frm);
         frm.events.toggle_retirement_fields(frm);
         frm.events.toggle_expiry_field(frm);
         frm.events.toggle_project_fields(frm);
         frm.events.toggle_end_date_field(frm);
+        frm.events.toggle_working_hours_section(frm);
+        render_earnings_editor(frm);
+        render_deductions_editor(frm);
+    },
+
+    working_hours_type: function(frm) {
+        frm.events.toggle_working_hours_section(frm);
+    },
+
+    toggle_working_hours_section: function(frm) {
+        frm.toggle_display('monday_section', frm.doc.working_hours_type !== 'Shift Worker');
+    },
+
+    after_save: function(frm) {
+        render_earnings_editor(frm);
+        render_deductions_editor(frm);
+    },
+
+    onload: function(frm) {
+        frm.set_query('contract_template', () => ({ filters: { docstatus: 1 } }));
     },
 
     employee: function(frm) {
@@ -39,8 +57,31 @@ frappe.ui.form.on('Contract of Employment', {
                 }
             }).then(() => {
                 frm.events.check_pending_status_change(frm);
+                frm.events.prefill_contract_defaults(frm);
             });
         }
+    },
+
+    prefill_contract_defaults: function(frm) {
+        // Mirrors the server's own _prefill_contract_defaults() (contract_
+        // of_employment.py), just run the moment an Employee is picked on a
+        // new contract instead of only after the first save round-trip -
+        // only ever for a still-new document, and only for whichever of
+        // the two is still empty (so it never clobbers a value already
+        // typed in, e.g. after switching Employee).
+        if (!frm.is_new()) return;
+        frappe.db.get_doc('Contract Defaults').then((defaults) => {
+            if (!(frm.doc.deductions || []).length) {
+                (defaults.default_deductions || []).forEach((row) => {
+                    frm.add_child('deductions', { salary_component: row.salary_component });
+                });
+                frm.refresh_field('deductions');
+                render_deductions_editor(frm);
+            }
+            if (!frm.doc.provident_fund_contribution) {
+                frm.set_value('provident_fund_contribution', defaults.provident_fund_contribution);
+            }
+        });
     },
 
     check_pending_status_change: function(frm) {
@@ -82,23 +123,21 @@ frappe.ui.form.on('Contract of Employment', {
         });
     },
 
-    contract_type: function(frm) {
-        if (frm.doc.contract_type) {
-            frappe.model.with_doc('Contract Type', frm.doc.contract_type, function() {
-                let contract_type_doc = frappe.get_doc('Contract Type', frm.doc.contract_type);
+    contract_template: function(frm) {
+        // Period/Project/Retirement classification now comes from the
+        // Template, not Contract Type - Contract Type is deprecated and no
+        // longer drives any live behaviour, only kept on existing contracts
+        // for historical reference.
+        if (frm.doc.contract_template) {
+            frappe.model.with_doc('Contract of Employment Template', frm.doc.contract_template, function() {
+                let template_doc = frappe.get_doc('Contract of Employment Template', frm.doc.contract_template);
 
-                frm.set_value('has_expiry', contract_type_doc.has_expiry || 0);
-                frm.set_value('has_project', contract_type_doc.has_project || 0);
-                frm.set_value('has_retirement', contract_type_doc.has_retirement || 0);
-                frm.set_value('retirement_age', contract_type_doc.retirement_age || '');
+                frm.set_value('has_expiry', template_doc.has_expiry || 0);
+                frm.set_value('has_project', template_doc.has_project || 0);
+                frm.set_value('has_retirement', template_doc.has_retirement || 0);
+                frm.set_value('retirement_age', template_doc.retirement_age || '');
 
-                if (contract_type_doc.has_retirement) {
-                    let retirement_age = contract_type_doc.retirement_age;
-                    let retirement_date = addYears(frm.doc.date_of_birth, retirement_age);
-                    let notification_date = frappe.datetime.add_months(retirement_date, -1);
-                }
-
-                if (contract_type_doc.has_expiry) {
+                if (template_doc.has_expiry) {
                     frm.set_df_property('end_date', 'reqd', 1);
                     frm.set_df_property('project', 'reqd', 1);
                 } else {
@@ -106,7 +145,7 @@ frappe.ui.form.on('Contract of Employment', {
                     frm.set_df_property('project', 'reqd', 0);
                 }
 
-                if (contract_type_doc.has_project) {
+                if (template_doc.has_project) {
                     frm.set_df_property('project', 'reqd', 1);
                 } else {
                     frm.set_df_property('project', 'reqd', 0);
@@ -115,58 +154,6 @@ frappe.ui.form.on('Contract of Employment', {
                 frm.events.toggle_end_date_field(frm);
             });
         }
-    },
-
-    working_hours: function(frm) {
-        if (frm.doc.working_hours) {
-            frappe.db.get_doc('Contract Section', frm.doc.working_hours).then(doc => {
-                frm.set_value('has_hours', doc.has_hours || 0);
-            });
-        }
-    },
-
-    remuneration: function(frm) {
-        if (frm.doc.remuneration) {
-            frappe.db.get_doc('Contract Section', frm.doc.remuneration).then(doc => {
-                frm.set_value('has_allowances', doc.has_allowances || 0);
-                
-                const allowances = {
-                    allowance_1_desc: "",
-                    allowance_2_desc: "",
-                    allowance_3_desc: "",
-                    allowance_4_desc: "",
-                    allowance_5_desc: ""
-                };
-                
-                doc.sec_par.forEach(row => {
-                    if (row.clause_text) {
-                        if (row.clause_text.includes("{allowance_1}")) {
-                            allowances.allowance_1_desc = row.clause_text;
-                        } else if (row.clause_text.includes("{allowance_2}")) {
-                            allowances.allowance_2_desc = row.clause_text;
-                        } else if (row.clause_text.includes("{allowance_3}")) {
-                            allowances.allowance_3_desc = row.clause_text;
-                        } else if (row.clause_text.includes("{allowance_4}")) {
-                            allowances.allowance_4_desc = row.clause_text;
-                        } else if (row.clause_text.includes("{allowance_5}")) {
-                            allowances.allowance_5_desc = row.clause_text;
-                        }
-                    }
-                });
-                
-                frm.set_value('allowance_1_desc', allowances.allowance_1_desc);
-                frm.set_value('allowance_2_desc', allowances.allowance_2_desc);
-                frm.set_value('allowance_3_desc', allowances.allowance_3_desc);
-                frm.set_value('allowance_4_desc', allowances.allowance_4_desc);
-                frm.set_value('allowance_5_desc', allowances.allowance_5_desc);
-
-                frm.events.toggle_allowance_sections(frm);
-            });
-        }
-    },
-
-    has_hours: function(frm) {
-        frm.events.toggle_working_hours_section(frm);
     },
 
     has_retirement: function(frm) {
@@ -181,11 +168,6 @@ frappe.ui.form.on('Contract of Employment', {
     has_project: function(frm) {
         frm.events.toggle_project_fields(frm);
         frm.events.toggle_end_date_field(frm);
-    },
-
-    toggle_working_hours_section: function(frm) {
-        let should_display = frm.doc.has_hours ? 1 : 0;
-        frm.toggle_display('monday_section', should_display);
     },
 
     toggle_retirement_fields: function(frm) {
@@ -206,28 +188,137 @@ frappe.ui.form.on('Contract of Employment', {
         let should_display = frm.doc.has_expiry || frm.doc.has_project;
         frm.toggle_display('end_date', should_display);
     },
-
-    toggle_allowance_sections: function(frm) {
-        frm.toggle_display('allowance1', frm.doc.allowance_1_desc ? 1 : 0);
-        frm.toggle_display('allowance_1_desc', frm.doc.allowance_1_desc ? 1 : 0);
-        frm.toggle_display('allowance_1_rate', frm.doc.allowance_1_desc ? 1 : 0);
-        frm.toggle_display('allowance2', frm.doc.allowance_2_desc ? 1 : 0);
-        frm.toggle_display('allowance_2_desc', frm.doc.allowance_2_desc ? 1 : 0);
-        frm.toggle_display('allowance_2_rate', frm.doc.allowance_2_desc ? 1 : 0);
-        frm.toggle_display('allowance3', frm.doc.allowance_3_desc ? 1 : 0);
-        frm.toggle_display('allowance_3_desc', frm.doc.allowance_3_desc ? 1 : 0);
-        frm.toggle_display('allowance_3_rate', frm.doc.allowance_3_desc ? 1 : 0);
-        frm.toggle_display('allowance4', frm.doc.allowance_4_desc ? 1 : 0);
-        frm.toggle_display('allowance_4_desc', frm.doc.allowance_4_desc ? 1 : 0);
-        frm.toggle_display('allowance_4_rate', frm.doc.allowance_4_desc ? 1 : 0);
-        frm.toggle_display('allowance5', frm.doc.allowance_5_desc ? 1 : 0);
-        frm.toggle_display('allowance_5_desc', frm.doc.allowance_5_desc ? 1 : 0);
-        frm.toggle_display('allowance_5_rate', frm.doc.allowance_5_desc ? 1 : 0);
-    }
 });
 
-function addYears(dateStr, years) {
-    let dateObj = frappe.datetime.str_to_obj(dateStr);
-    dateObj.setFullYear(dateObj.getFullYear() + years);
-    return frappe.datetime.obj_to_str(dateObj);
+// ---- Earnings / Deductions HTML table editors ----
+// Modelled directly on status_change_form.js's status_change_details
+// editor: a plain HTML table bound to the child table, Link cells filtered
+// to the right Salary Component type, read-only once docstatus != 0. Reuses
+// ir_ui.css's existing .scd-table styling - it's generic table chrome, not
+// specific to Status Change Form.
+
+function render_earnings_editor(frm) {
+    render_component_table_editor(frm, {
+        fieldname: 'earnings',
+        html_fieldname: 'earnings_html',
+        child_doctype: 'Contract of Employment Earning',
+        component_type: 'Earning',
+        has_amount: true,
+        add_label: __('+ Add Earning'),
+    });
+}
+
+function render_deductions_editor(frm) {
+    // No Amount: Deductions only ever records which Salary Components
+    // apply (for conditions/reference) - it never had per-contract amounts
+    // historically either.
+    render_component_table_editor(frm, {
+        fieldname: 'deductions',
+        html_fieldname: 'deductions_html',
+        child_doctype: 'Contract of Employment Deduction',
+        component_type: 'Deduction',
+        has_amount: false,
+        add_label: __('+ Add Deduction'),
+    });
+}
+
+function render_component_table_editor(frm, opts) {
+    if (!frm.fields_dict[opts.html_fieldname]) return;
+
+    const $wrapper = frm.get_field(opts.html_fieldname).$wrapper;
+    const rows = frm.doc[opts.fieldname] || [];
+    const read_only = frm.doc.docstatus !== 0;
+
+    const column_count = opts.has_amount ? 3 : 2;
+    $wrapper.html(`
+        <table class="table table-sm scd-table">
+            <thead>
+                <tr>
+                    <th style="width: ${opts.has_amount ? '60%' : '90%'};">${__("Salary Component")}</th>
+                    ${opts.has_amount ? `<th style="width: 30%;">${__("Amount")}</th>` : ""}
+                    <th style="width: 10%;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                ${
+                    rows.length
+                        ? rows.map((row) => `<tr data-row="${row.name}"></tr>`).join("")
+                        : `<tr><td colspan="${column_count}" class="text-muted">${__("No rows yet.")}</td></tr>`
+                }
+            </tbody>
+        </table>
+        ${read_only ? "" : `<button type="button" class="btn btn-xs btn-default coe-add-row">${opts.add_label}</button>`}
+    `);
+
+    rows.forEach((row) => render_component_table_row(frm, $wrapper, row, read_only, opts));
+    bind_component_table_editor_events(frm, $wrapper, read_only, opts);
+}
+
+function render_component_table_row(frm, $wrapper, row, read_only, opts) {
+    const $tr = $wrapper.find(`tr[data-row="${row.name}"]`);
+
+    const $component_cell = $("<td></td>").appendTo($tr);
+    make_component_table_control(frm, $component_cell, row, read_only, opts, {
+        fieldname: "salary_component",
+        fieldtype: "Link",
+        options: "Salary Component",
+        get_query: () => ({ filters: { type: opts.component_type, disabled: 0 } }),
+    });
+
+    if (opts.has_amount) {
+        const $amount_cell = $("<td></td>").appendTo($tr);
+        make_component_table_control(frm, $amount_cell, row, read_only, opts, {
+            fieldname: "amount",
+            fieldtype: "Currency",
+        });
+    }
+
+    if (!read_only) {
+        $("<td></td>")
+            .html(`<button type="button" class="btn btn-xs btn-danger coe-remove-row" title="${__("Remove")}">×</button>`)
+            .appendTo($tr);
+    } else {
+        $("<td></td>").appendTo($tr);
+    }
+}
+
+function make_component_table_control(frm, $cell, row, read_only, opts, df) {
+    if (read_only) {
+        $cell.text(row[df.fieldname] != null && row[df.fieldname] !== "" ? row[df.fieldname] : "");
+        return;
+    }
+
+    const control = frappe.ui.form.make_control({
+        df: Object.assign({ label: "" }, df),
+        parent: $cell,
+        render_input: true,
+    });
+    control.$input.val(row[df.fieldname] != null ? row[df.fieldname] : "");
+    control.df.onchange = function () {
+        const value = this.get_value();
+        frappe.model.set_value(row.doctype, row.name, df.fieldname, value).then(() => {
+            frm.dirty();
+        });
+    };
+    control.$wrapper.find(".control-label").remove();
+}
+
+function bind_component_table_editor_events(frm, $wrapper, read_only, opts) {
+    $wrapper.off();
+    if (read_only) return;
+
+    $wrapper.on("click", ".coe-add-row", () => {
+        frm.add_child(opts.fieldname, {});
+        frm.dirty();
+        frm.refresh_field(opts.fieldname);
+        render_component_table_editor(frm, opts);
+    });
+
+    $wrapper.on("click", ".coe-remove-row", (e) => {
+        const row_name = $(e.currentTarget).closest("tr").data("row");
+        frappe.model.clear_doc(opts.child_doctype, row_name);
+        frm.dirty();
+        frm.refresh_field(opts.fieldname);
+        render_component_table_editor(frm, opts);
+    });
 }
