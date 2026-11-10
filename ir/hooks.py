@@ -55,34 +55,6 @@ fixtures = [
 		"Anonymous Report Investigator"
 	]]]},
 	{"dt": "Report", "filters": [["name", "in", ["Disciplinary Offence Report"]]]},
-	{"dt": "Contract Section", "filters": [["sec_head", "in", [
-		"Working Hours Placeholder",
-		"Remuneration Placeholder",
-		"Employment (Fixed Term Period)",
-		"Employment (Fixed Term Project)",
-		"Employment (Indefinite)",
-		"Position",
-		"Commencement and Nature of Contract (Fixed Term Period)",
-		"Commencement and Nature of Contract (Fixd Term Period)",
-		"Commencement and Nature of Contract (Indefinite)",
-		"Deductions (Fixed Term Period)",
-		"Deductions (Fixed Term Project)",
-		"Deductions (Indefinite)", "Leave",
-		"Duties", "Industrial Action",
-		"Termination of Employment (Fixed Term Period)",
-		"Termination of Employment (Fixed Term Project)",
-		"Termination of Employment (Indefinite)",
-		"Other Benefits", "Rules and Regulations",
-		"Safety and Security",
-		"Confidentiality of Company and/or Client Information",
-		"Protection of Personal Information in terms of the Protection of Personal Information Act, 2013 (POPIA)",
-		"General"
-	]]]},
-	{"dt": "Contract Type", "filters": [["name", "in", [
-		"2.1 Rev.24 - Period Based Fixed Term",
-		"2.2 Rev.24 - Project Based Fixed Term",
-		"2.3 Rev.24 - Indefinite"
-	]]]},
 	{"dt": "Employee Rights", "filters": [["name", "in", [
 		"Demotion",
 		"Disciplinary Hearing",

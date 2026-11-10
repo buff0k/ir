@@ -14,7 +14,6 @@ from ir.industrial_relations.doctype.contract_of_employment_template.contract_of
 	ContractContext,
 	_legacy_inline,
 	format_value,
-	import_legacy_contract_types,
 	long_date,
 	number_lines,
 	number_to_words,
@@ -183,6 +182,47 @@ class UnitTestTemplateEngine(UnitTestCase):
 		out = render_contract(lines, context())
 		self.assertIn("<i>No deductions on this contract.</i>", out)
 
+	def test_deductions_repeat_numbers_each_row_individually(self):
+		# The regression this repeat exists to fix: deductions_table crammed
+		# every row into one unnumbered nested table, inside a single
+		# numbered slot. deduction_label is a real repeat, so each row gets
+		# its own sub-paragraph, same as earning_label already does.
+		lines = parse_wording(
+			delta(
+				heading("Deductions"),
+				clause("The following deductions apply:", when="deductions:any"),
+				clause(var("deduction_label"), indent=1, repeat="deductions", when="deductions:any"),
+				clause("No deductions on this contract.", when="deductions:none"),
+			)
+		)
+		out = render_contract(
+			lines,
+			context(
+				{"deductions:any"},
+				deductions=[
+					{"deduction_label": "<b>Employee Provident Fund</b>"},
+					{"deduction_label": "<b>PAYE</b>"},
+				],
+			),
+		)
+		self.assertIn("<td><b>1.1</b></td><td>The following deductions apply:</td>", out)
+		self.assertIn("<td><b>1.1.1</b></td><td><b>Employee Provident Fund</b></td>", out)
+		self.assertIn("<td><b>1.1.2</b></td><td><b>PAYE</b></td>", out)
+		self.assertNotIn("No deductions on this contract.", out)
+
+	def test_deductions_repeat_shows_none_fallback_when_empty(self):
+		lines = parse_wording(
+			delta(
+				heading("Deductions"),
+				clause("The following deductions apply:", when="deductions:any"),
+				clause(var("deduction_label"), indent=1, repeat="deductions", when="deductions:any"),
+				clause("No deductions on this contract.", when="deductions:none"),
+			)
+		)
+		out = render_contract(lines, context({"deductions:none"}))
+		self.assertIn("<td><b>1.1</b></td><td>No deductions on this contract.</td>", out)
+		self.assertNotIn("following deductions apply", out)
+
 	def test_validation_catches_bad_variables_conditions_repeats_and_references(self):
 		lines = parse_wording(
 			delta(
@@ -345,43 +385,6 @@ class IntegrationTestContractofEmploymentTemplate(IntegrationTestCase):
 	def test_unknown_variable_blocks_save(self):
 		with self.assertRaises(frappe.ValidationError):
 			self.make("Test Bad Variable", delta(heading("H"), clause(var("nope"))))
-
-	def test_import_legacy_contract_types_backfills_classification(self):
-		# A synthetic Contract Type (not one of the 9 real ones already
-		# imported+submitted today - re-importing those would collide on
-		# today's date in the Template's own autoname) with a known
-		# Project/Retirement classification, to verify
-		# import_legacy_contract_types() itself carries it onto the new
-		# Template - Contract of Employment now reads it from there, not
-		# the deprecated Contract Type.
-		contract_type = frappe.get_doc(
-			{
-				"doctype": "Contract Type",
-				"doc_number": "ZZTEST",
-				"rev_date": frappe.utils.nowdate(),
-				"contract_type": "ZZTEST Classification Check",
-				"has_expiry": 0,
-				"has_project": 1,
-				"has_retirement": 1,
-				"retirement_age": 60,
-				"contract_terms": [
-					{"sec_no": 1, "section": "Remuneration Placeholder"},
-					{"sec_no": 2, "section": "Working Hours Placeholder"},
-				],
-			}
-		).insert(ignore_permissions=True)
-		contract_type.submit()
-
-		import_legacy_contract_types([contract_type.name])
-
-		template_name = frappe.db.get_value(
-			"Contract of Employment Template", {"contract_name": contract_type.name}, "name"
-		)
-		template = frappe.get_doc("Contract of Employment Template", template_name)
-		self.assertEqual(template.has_expiry, 0)
-		self.assertEqual(template.has_project, 1)
-		self.assertEqual(template.has_retirement, 1)
-		self.assertEqual(template.retirement_age, 60)
 
 	def test_component_conditions_use_real_salary_components(self):
 		component = frappe.db.get_value("Salary Component", {"type": "Deduction", "disabled": 0}, "name")

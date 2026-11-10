@@ -213,7 +213,9 @@ class ContractofEmployment(Document):
 			}
 			for row in extra_earnings
 		]
-		context.values["deductions_table"] = self._component_table(self.deductions)
+		context.rows["deductions"] = [
+			{"deduction_label": self._deduction_label(row.salary_component)} for row in self.deductions
+		]
 
 		is_shift_worker = self.working_hours_type == "Shift Worker"
 		context.rows["working_days"] = (
@@ -239,6 +241,7 @@ class ContractofEmployment(Document):
 		conditions.add("shift:rotating" if is_shift_worker else "shift:fixed")
 		conditions.add("pay:hourly" if self.pay_basis == "Hourly" else "pay:monthly")
 		conditions.add("allowances:any" if extra_earnings else "allowances:none")
+		conditions.add("deductions:any" if self.deductions else "deductions:none")
 		conditions.add("retirement:yes" if self.has_retirement else "retirement:no")
 		conditions.update(f"earning:{row.salary_component}" for row in self.earnings)
 		conditions.update(f"deduction:{row.salary_component}" for row in self.deductions)
@@ -246,18 +249,14 @@ class ContractofEmployment(Document):
 		return context
 
 	@staticmethod
-	def _component_table(rows) -> str:
-		"""One <tr> per Deduction row - component name and its live Salary
-		Component description. No amount: Deductions only records which
-		components apply."""
-		if not rows:
-			return ""
-		table_rows = []
-		for row in rows:
-			description = frappe.db.get_value("Salary Component", row.salary_component, "description")
-			detail = f"<br><small>{html.escape(description)}</small>" if description else ""
-			table_rows.append(f"<tr><td><b>{html.escape(row.salary_component)}</b>{detail}</td></tr>")
-		return '<table border="0" cellpadding="5" cellspacing="0">' + "".join(table_rows) + "</table>"
+	def _deduction_label(salary_component) -> str:
+		"""One Deduction row's rendered value: its name and live Salary
+		Component description, no amount - becomes its own numbered
+		sub-paragraph via the deductions repeat (contract_of_employment_
+		template.py), same as earning_label does for Allowances."""
+		description = frappe.db.get_value("Salary Component", salary_component, "description")
+		detail = f"<br><small>{html.escape(description)}</small>" if description else ""
+		return f"<b>{html.escape(salary_component)}</b>{detail}"
 
 	def before_submit(self):
 		if not self.signed_contract:

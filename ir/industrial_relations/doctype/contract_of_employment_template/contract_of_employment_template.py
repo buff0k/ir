@@ -33,16 +33,21 @@ Each line can carry, independently:
   never per template, so one template serves every pay basis, roster and
   component mix.
 - Repeat for each ({"coe-repeat": kind}): the line is written once per row of
-  that kind (each earning, working day or shift) at the same depth, so every
-  row becomes its own numbered sub-paragraph. Row variables ({{earning_label}},
-  {{day_start}} ...) belong on repeat lines. A repeat with no rows disappears.
+  that kind (each earning, deduction, working day or shift) at the same
+  depth, so every row becomes its own numbered sub-paragraph (e.g. 4.2.1,
+  4.2.2 for Allowances, 5.1.1, 5.1.2 for Deductions). Row variables
+  ({{earning_label}}, {{deduction_label}}, {{day_start}} ...) belong on
+  repeat lines. A repeat with no rows disappears - a template that wants a
+  "none on this contract" fallback line pairs the repeat with a when=
+  condition's :none counterpart (e.g. deductions:any / deductions:none),
+  same as _legacy_deductions() does.
 
-Deductions are the one exception: there's no per-row wording for them (the
-legacy "Deductions" section was always fixed boilerplate, never itemised),
-so a template inserts the single Deductions Table variable
-({{deductions_table}}) wherever the breakdown belongs - a contract fills it
-with one ready-made HTML table (name + description per row, no amount) built
-from its own Salary Components.
+{{deduction_label}} is built per Deduction from its own Salary Component
+(name + description, no amount). The older {{deductions_table}} variable -
+a single ready-made HTML table with every Deduction crammed into one
+sub-paragraph, so none of them were ever actually numbered - is kept only
+so any wording still storing it keeps rendering; never insert it from the
+picker.
 
 Hidden lines are dropped and repeats expanded before numbering, so the
 numbers always close up.
@@ -209,6 +214,7 @@ class TemplateRepeat:
 
 REPEATS: tuple[TemplateRepeat, ...] = (
 	TemplateRepeat("earnings", "Earning", "Each allowance/earning on the contract other than the basic rate."),
+	TemplateRepeat("deductions", "Deduction", "Each deduction on the contract."),
 	TemplateRepeat("working_days", "Working Day", "Each working day of a fixed shift (from the Shift Design)."),
 	TemplateRepeat("shifts", "Shift", "Each shift in a rotating roster (from the Shift Design)."),
 )
@@ -254,14 +260,27 @@ VARIABLES: tuple[TemplateVariable, ...] = (
 	TemplateVariable("earning_amount", "Earning Amount", "Each Earning", fmt="rand_words", repeat="earnings"),
 	TemplateVariable(
 		"deductions_table",
-		"Deductions Table",
+		"Deductions Table (legacy - do not use in new wording)",
 		"Deductions",
 		fmt="table",
 		description=(
-			"Every Deduction on this contract - name and description, no amount - built from its Salary "
-			"Components. Insert once, wherever the breakdown belongs."
+			"Superseded by the deduction_label row variable below, which numbers each Deduction as its own "
+			"sub-paragraph (e.g. 5.1.1, 5.1.2) the same way earning_label does for Earnings - this single-blob "
+			"table never numbered its rows at all. Kept only so any wording still storing the old placeholder "
+			"keeps rendering; never insert it from the picker."
 		),
 		blank="No deductions on this contract.",
+	),
+	TemplateVariable(
+		"deduction_label",
+		"Deduction",
+		"Each Deduction",
+		fmt="table",
+		repeat="deductions",
+		description=(
+			"One row per Deduction on the contract - component name and its live Salary Component description, "
+			"no amount. Each row becomes its own numbered sub-paragraph, same as earning_label."
+		),
 	),
 	TemplateVariable(
 		"provident_fund_rate",
@@ -318,6 +337,8 @@ STATIC_CONDITIONS: tuple[TemplateCondition, ...] = (
 	TemplateCondition("pay:monthly", "Monthly salary", "Pay Basis"),
 	TemplateCondition("allowances:any", "Has allowances", "Allowances", description="At least one earning row."),
 	TemplateCondition("allowances:none", "No allowances", "Allowances"),
+	TemplateCondition("deductions:any", "Has deductions", "Deductions", description="At least one deduction row."),
+	TemplateCondition("deductions:none", "No deductions", "Deductions"),
 	TemplateCondition("retirement:yes", "Has a retirement age", "Retirement"),
 	TemplateCondition("retirement:no", "No retirement age", "Retirement"),
 )
@@ -631,9 +652,13 @@ def _render_segment(seg: Segment, line: Line, context: ContractContext, anchors:
 		if not var:
 			return ""
 		if var.fmt == "table":
-			# Already a ready-made HTML table from the caller - never escaped,
-			# never bolded, and not blank-filled like a scalar value.
-			return context.values.get(var.key) or f"<i>{html.escape(var.blank)}</i>"
+			# Already ready-made HTML from the caller - never escaped, never
+			# bolded, and not blank-filled like a scalar value. A repeat
+			# variable (e.g. deduction_label) reads its row the same way any
+			# other repeat variable does; a non-repeat one (e.g. the legacy
+			# deductions_table) still reads the single contract-wide value.
+			source = line.row if var.repeat else context.values
+			return (source or {}).get(var.key) or f"<i>{html.escape(var.blank)}</i>"
 		source = line.row if var.repeat else context.values
 		blank = context.blank_amount if var.fmt in ("rand_words", "int_words", "number", "percent") else context.blank
 		return f"<b>{(source or {}).get(var.key) or blank}</b>"
@@ -720,18 +745,14 @@ def _int_words(n: int) -> str:
 # ---- preview ----
 
 
-def _preview_component_table(components: list[str]) -> str:
-	"""Sample Deductions Table: real Salary Component names and
-	descriptions, name/description only - matching Contract of Employment's
-	own Deductions (no Amount field)."""
-	if not components:
-		return ""
-	rows = []
-	for name in components:
-		description = frappe.db.get_value("Salary Component", name, "description")
-		detail = f"<br><small>{html.escape(description)}</small>" if description else ""
-		rows.append(f"<tr><td><b>{html.escape(name)}</b>{detail}</td></tr>")
-	return '<table border="0" cellpadding="5" cellspacing="0">' + "".join(rows) + "</table>"
+def _preview_deduction_label(name: str) -> str:
+	"""One sample Deduction row: real Salary Component name and description -
+	matching Contract of Employment's own Deductions (no Amount field).
+	Each row becomes its own numbered sub-paragraph via the deductions
+	repeat, same as deduction_label does for a real contract."""
+	description = frappe.db.get_value("Salary Component", name, "description")
+	detail = f"<br><small>{html.escape(description)}</small>" if description else ""
+	return f"<b>{html.escape(name)}</b>{detail}"
 
 
 def preview_context(scenario: dict) -> ContractContext:
@@ -754,8 +775,9 @@ def preview_context(scenario: dict) -> ContractContext:
 	context.rows["earnings"] = [
 		{"earning_label": html.escape(c), "earning_amount": label(_("{0} amount").format(c))} for c in earnings
 	]
-	context.values["deductions_table"] = _preview_component_table(deductions)
+	context.rows["deductions"] = [{"deduction_label": _preview_deduction_label(c)} for c in deductions]
 	conditions.add("allowances:any" if earnings else "allowances:none")
+	conditions.add("deductions:any" if deductions else "deductions:none")
 	conditions.update(f"{EARNING_PREFIX}{c}" for c in earnings)
 	conditions.update(f"{DEDUCTION_PREFIX}{c}" for c in deductions)
 
@@ -1137,15 +1159,18 @@ def _legacy_deductions(section):
 	"""Every real Deductions section opens with this same generic, fixed
 	bullet list - it never actually reflected what's really deducted on a
 	given contract (Contract of Employment had no itemised deductions at
-	all before this engine). Collapsed here into one deductions_table
-	variable, in the same spot, built from this contract's own Deductions
-	table - i.e. its real Salary Components. Every other provision in the
-	section (advances, the cross-reference to .2, other agreed deductions,
-	and the later sub-sections about recovering losses/PPE/notice pay) is
-	legal boilerplate unrelated to Salary Components and is kept verbatim.
-	deductions_table's own "No deductions on this contract." blank-state
-	text (see VARIABLES) covers a contract with none - no condition needed
-	here."""
+	all before this engine). Collapsed here into the deductions repeat (one
+	numbered sub-paragraph per Deduction, e.g. 5.1.1, 5.1.2 - same mechanism
+	earnings already uses for Allowances, via the deduction_label row
+	variable), built from this contract's own Deductions table - i.e. its
+	real Salary Components - plus a deductions:none fallback line for a
+	contract with none (a repeat with zero rows simply vanishes - see
+	resolve_lines - so this is spelled out explicitly rather than relying on
+	a blank-text fallback the way the single-blob deductions_table variable
+	used to). Every other provision in the section (advances, the
+	cross-reference to .2, other agreed deductions, and the later
+	sub-sections about recovering losses/PPE/notice pay) is legal
+	boilerplate unrelated to Salary Components and is kept verbatim."""
 	paragraphs = sorted(section.sec_par, key=lambda p: p.idx)
 	out = []
 	table_inserted = False
@@ -1153,7 +1178,9 @@ def _legacy_deductions(section):
 		text = p.clause_text or ""
 		if any(marker in text for marker in DEDUCTION_LINE_MARKERS):
 			if not table_inserted:
-				out.append((_legacy_depth(p), cint(p.ss_num), "{deductions_table}", None, None))
+				depth, ss = _legacy_depth(p), cint(p.ss_num)
+				out.append((depth, ss, "{deduction_label}", "deductions:any", "deductions"))
+				out.append((depth, ss, "No deductions on this contract.", "deductions:none", None))
 				table_inserted = True
 			continue
 		out.append((_legacy_depth(p), cint(p.ss_num), text, None, None))

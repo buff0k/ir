@@ -9,9 +9,6 @@ from frappe.utils import add_days, now_datetime, nowdate
 from ir.industrial_relations.doctype.external_dispute_resolution.external_dispute_resolution import (
 	get_latest_linked_records,
 )
-from ir.industrial_relations.doctype.contract_of_employment_template.contract_of_employment_template import (
-	import_legacy_contract_types,
-)
 from ir.tests.test_helpers import (
 	IRSyntheticDataTestCase,
 	get_reference_branch,
@@ -49,30 +46,24 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Retrenchment Process",
 ]
 
-# Real, already-submitted master data this bench's IR module uses for actual
-# contracts - deliberately not fabricated (see contract_of_employment's own
-# test module for the same reasoning).
+# Names of 2 of the 9 real, permanent, already-submitted Contract of
+# Employment Templates this bench's IR module uses for actual contracts -
+# deliberately not fabricated (see contract_of_employment's own test module
+# for the same reasoning, including why there's no self-heal fallback any
+# more - the now-deleted Contract Type doctype they were once imported from
+# no longer exists).
 REFERENCE_CONTRACT_TYPE = "2.3.MMS Rev.25 - Indefinite"
 REFERENCE_CONTRACT_TYPE_2 = "2.2.MMS Rev.25 - Project Based Fixed Term"
 
 
 def get_reference_contract_template(contract_type: str) -> str:
-	"""The submitted Contract of Employment Template imported from this
-	Contract Type - self-healing (imports + submits it on the fly), same as
-	contract_of_employment's own test module."""
+	"""The submitted Contract of Employment Template matching this name."""
 	template = frappe.db.get_value(
 		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 1}, "name"
 	)
-	if template:
-		return template
-
-	import_legacy_contract_types([contract_type])
-	draft = frappe.db.get_value(
-		"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 0}, "name"
-	)
-	doc = frappe.get_doc("Contract of Employment Template", draft)
-	doc.submit()
-	return doc.name
+	if not template:
+		frappe.throw(f"No submitted Contract of Employment Template named {contract_type!r} exists.")
+	return template
 
 
 class IntegrationTestExternalDisputeResolution(IRSyntheticDataTestCase):
