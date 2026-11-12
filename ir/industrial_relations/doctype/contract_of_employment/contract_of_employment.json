@@ -28,6 +28,7 @@
   "contract_template",
   "pay_basis",
   "working_hours_type",
+  "weekly_hours_of_work",
   "start_date",
   "restraint_period",
   "column_break_jkyr",
@@ -245,8 +246,16 @@
    "fieldname": "working_hours_type",
    "fieldtype": "Select",
    "label": "Working Hours Type",
-   "options": "Fixed Hours\nShift Worker",
+   "options": "Fixed Hours\nShift Worker\nWeekly Hours of Work",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.working_hours_type==\"Weekly Hours of Work\"",
+   "description": "Target number of hours per week - specific days/times aren't fixed in advance.",
+   "fieldname": "weekly_hours_of_work",
+   "fieldtype": "Int",
+   "label": "Weekly Hours of Work",
+   "mandatory_depends_on": "eval:doc.working_hours_type==\"Weekly Hours of Work\""
   },
   {
    "fieldname": "monday_section",
@@ -515,7 +524,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-10 10:00:00.000000",
+ "modified": "2026-11-12 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment",

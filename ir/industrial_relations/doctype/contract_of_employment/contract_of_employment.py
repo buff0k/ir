@@ -150,6 +150,14 @@ class ContractofEmployment(Document):
 			target = BASIC_COMPONENT_BY_PAY_BASIS.get(self.pay_basis, "Basic Salary")
 			frappe.throw(_("Add a {0} row to the Earnings table with the rate of pay.").format(target))
 
+		# mandatory_depends_on (contract_of_employment.json) only ever
+		# drives the client-side red asterisk - Frappe's own server-side
+		# mandatory check (Document._get_missing_mandatory_fields()) only
+		# ever looks at plain reqd=1, never mandatory_depends_on, so this
+		# has to be enforced here explicitly.
+		if self.working_hours_type == "Weekly Hours of Work" and not self.weekly_hours_of_work:
+			frappe.throw(_("Weekly Hours of Work is required when Working Hours Type is Weekly Hours of Work."))
+
 	def generate_contract(self):
 		"""Render this contract's wording through the Contract of Employment
 		Template engine (see contract_of_employment_template.py)."""
@@ -195,6 +203,7 @@ class ContractofEmployment(Document):
 			"restraint_territory": self.restraint_territory,
 			"rate": basic_row.amount if basic_row else None,
 			"provident_fund_rate": self.provident_fund_contribution,
+			"weekly_hours": self.weekly_hours_of_work,
 		}
 		for key, raw in raw_values.items():
 			context.values[key] = format_value(VARIABLES_BY_KEY[key], raw)
@@ -217,11 +226,14 @@ class ContractofEmployment(Document):
 			{"deduction_label": self._deduction_label(row.salary_component)} for row in self.deductions
 		]
 
-		is_shift_worker = self.working_hours_type == "Shift Worker"
+		# Fixed Hours is the only one of the three with a real weekly
+		# schedule (the Monday-Sunday Time fields) - Shift Worker's hours
+		# come from a roster, and Weekly Hours of Work has no fixed
+		# days/times at all (just a target hours-per-week count), so both
+		# render with an empty working_days repeat, same as each other.
+		is_fixed_hours = self.working_hours_type == "Fixed Hours"
 		context.rows["working_days"] = (
-			[]
-			if is_shift_worker
-			else [
+			[
 				{
 					"day_name": day_label,
 					# format_time first - a Time field's raw value isn't
@@ -234,11 +246,20 @@ class ContractofEmployment(Document):
 				for day_label, start_field, end_field in WORKING_DAYS
 				if self.get(start_field) and self.get(end_field)
 			]
+			if is_fixed_hours
+			else []
 		)
 		context.rows["shifts"] = []
 
+		if is_fixed_hours:
+			shift_condition = "shift:fixed"
+		elif self.working_hours_type == "Weekly Hours of Work":
+			shift_condition = "shift:weekly"
+		else:
+			shift_condition = "shift:rotating"
+
 		conditions = context.conditions
-		conditions.add("shift:rotating" if is_shift_worker else "shift:fixed")
+		conditions.add(shift_condition)
 		conditions.add("pay:hourly" if self.pay_basis == "Hourly" else "pay:monthly")
 		conditions.add("allowances:any" if extra_earnings else "allowances:none")
 		conditions.add("deductions:any" if self.deductions else "deductions:none")

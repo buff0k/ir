@@ -23,7 +23,11 @@ frappe.ui.form.on('Contract of Employment', {
     },
 
     toggle_working_hours_section: function(frm) {
-        frm.toggle_display('monday_section', frm.doc.working_hours_type !== 'Shift Worker');
+        // Only Fixed Hours has a real weekly schedule to fill in - Shift
+        // Worker's hours come from a roster, Weekly Hours of Work is just
+        // a target hours-per-week count (its own field uses depends_on,
+        // see contract_of_employment.json - no toggle needed here).
+        frm.toggle_display('monday_section', frm.doc.working_hours_type === 'Fixed Hours');
     },
 
     after_save: function(frm) {
