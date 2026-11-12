@@ -129,6 +129,20 @@ class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
 		self.assertNotIn("Shift Roster", fixed.generated_contract)
 		self.assertIn("Shift Roster", shift_worker.generated_contract)
 
+	def test_weekly_hours_of_work_renders_its_own_wording_with_the_hours_value(self):
+		weekly = self._make_contract(
+			self._make_employee(), working_hours_type="Weekly Hours of Work", weekly_hours_of_work=45
+		)
+
+		self.assertIn("45 (Forty-Five)", weekly.generated_contract)
+		self.assertIn("hours per week", weekly.generated_contract)
+		self.assertNotIn("Shift Roster", weekly.generated_contract)
+
+	def test_weekly_hours_of_work_requires_the_hours_field(self):
+		employee = self._make_employee()
+		with self.assertRaises(frappe.ValidationError):
+			self._make_contract(employee, working_hours_type="Weekly Hours of Work")
+
 	def test_earnings_feed_the_allowance_subclauses(self):
 		component = frappe.db.get_value(
 			"Salary Component",

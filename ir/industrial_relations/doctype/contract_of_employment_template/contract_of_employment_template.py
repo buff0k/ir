@@ -305,6 +305,13 @@ VARIABLES: tuple[TemplateVariable, ...] = (
 	),
 	TemplateVariable("shift_cycle_length", "Shift Cycle Length (days)", "Working Hours", fmt="int_words"),
 	TemplateVariable("shift_team_count", "Number of Shift Teams", "Working Hours", fmt="int_words"),
+	TemplateVariable(
+		"weekly_hours",
+		"Weekly Hours of Work",
+		"Working Hours",
+		fmt="int_words",
+		description="Hours per week for a contract whose specific days/times aren't fixed in advance.",
+	),
 )
 VARIABLES_BY_KEY = {v.key: v for v in VARIABLES}
 
@@ -333,6 +340,10 @@ class TemplateCondition:
 STATIC_CONDITIONS: tuple[TemplateCondition, ...] = (
 	TemplateCondition("shift:fixed", "Fixed shift", "Working Hours", description="Same hours every week."),
 	TemplateCondition("shift:rotating", "Rotating shift", "Working Hours", description="Hours follow a roster."),
+	TemplateCondition(
+		"shift:weekly", "Weekly hours of work", "Working Hours",
+		description="A target number of hours per week; days/times aren't fixed in advance.",
+	),
 	TemplateCondition("pay:hourly", "Hourly rate", "Pay Basis"),
 	TemplateCondition("pay:monthly", "Monthly salary", "Pay Basis"),
 	TemplateCondition("allowances:any", "Has allowances", "Allowances", description="At least one earning row."),
@@ -795,7 +806,10 @@ def preview_context(scenario: dict) -> ContractContext:
 		context.values["shift_cycle_length"] = html.escape(str(hours.cycle_length))
 		context.values["shift_team_count"] = html.escape(str(hours.number_of_teams))
 	else:
-		conditions.add("shift:rotating" if scenario.get("working_hours") == "rotating" else "shift:fixed")
+		working_hours = scenario.get("working_hours")
+		conditions.add(
+			"shift:rotating" if working_hours == "rotating" else "shift:weekly" if working_hours == "weekly" else "shift:fixed"
+		)
 		context.rows["working_days"] = [
 			{"day_name": day, "day_start": label(_("Start")), "day_end": label(_("End"))}
 			for day in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
@@ -1209,7 +1223,9 @@ def _legacy_deductions(paragraphs):
 
 
 def _legacy_working_hours():
-	"""Monday-Friday/Monday-Sunday (Fixed) and Shift Roster (Rotating) as one
+	"""Monday-Friday/Monday-Sunday (Fixed), Shift Roster (Rotating) and
+	Weekly Hours of Work (a target number of hours per week, with no fixed
+	days/times at all - added later, no legacy wording to draw from) as one
 	dynamic section; their remaining paragraphs were identical."""
 	fixed = "Working Hours (Monday to Friday)"
 	paragraphs = frappe.get_all(
@@ -1217,10 +1233,15 @@ def _legacy_working_hours():
 	)
 	lead_in = next(p.clause_text for p in paragraphs if cint(p.ss_num) == 1 and not cint(p.par_num))
 	roster = _legacy_paragraph("determined by a Shift Roster", "Working Hours (Shift Roster)")
+	weekly = (
+		"The Employee is required to work {weekly_hours} hours per week, the specific nature and timing of "
+		"which shall be determined by the Employer from time to time."
+	)
 	rest = [(0, cint(p.ss_num), p.clause_text, None, None) for p in paragraphs if cint(p.ss_num) > 1 and not cint(p.par_num)]
 	return [
 		(0, 1, lead_in, "shift:fixed", None),
 		(1, 0, "{day_name}s: {day_start} to {day_end}", "shift:fixed", "working_days"),
 		(0, 1, roster, "shift:rotating", None),
+		(0, 1, weekly, "shift:weekly", None),
 		*rest,
 	]

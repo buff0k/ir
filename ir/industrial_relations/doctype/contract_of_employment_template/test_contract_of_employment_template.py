@@ -172,6 +172,20 @@ class UnitTestTemplateEngine(UnitTestCase):
 		self.assertIn("<td><b>1.2</b></td><td>No other form", out)
 		self.assertIn("See 1.2", out)
 
+	def test_shift_weekly_renders_only_its_own_clause_with_the_hours_value(self):
+		lines = parse_wording(
+			delta(
+				heading("Working Hours"),
+				clause("Hours are: ", when="shift:fixed"),
+				clause("Per the Shift Roster.", when="shift:rotating"),
+				clause("Required to work ", var("weekly_hours"), " hours per week.", when="shift:weekly"),
+			)
+		)
+		out = render_contract(lines, context({"shift:weekly"}, values={"weekly_hours": "45 (Forty-Five)"}))
+		self.assertIn("Required to work <b>45 (Forty-Five)</b> hours per week.", out)
+		self.assertNotIn("Hours are:", out)
+		self.assertNotIn("Shift Roster", out)
+
 	def test_repeat_with_no_rows_disappears(self):
 		lines = parse_wording(delta(heading("H"), clause(var("day_name"), repeat="working_days"), clause("after")))
 		out = render_contract(lines, context())
