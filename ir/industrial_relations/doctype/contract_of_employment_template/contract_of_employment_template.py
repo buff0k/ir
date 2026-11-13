@@ -633,13 +633,45 @@ def resolve_lines(lines: list[Line], context: ContractContext) -> list[Line]:
 	return resolved
 
 
+# Inline, not an external stylesheet class - generated_contract renders in
+# more places than just this app's own Print Format (e.g. its own Text
+# Editor field on the form itself has no print CSS loaded at all), so the
+# number column's width has to be self-contained in the HTML to line up
+# consistently everywhere, including between a heading+first-row merge's
+# own nested table (see render_contract) and the outer table's regular rows.
+NUM_CELL_STYLE = "width:70px;vertical-align:top;"
+# table-layout:fixed is only as good as the column widths it has to work
+# with, and (confirmed empirically against a real generated contract, not
+# assumed) it derives those from whichever cells happen to be in each
+# table's *first* row - a rule that quietly breaks the moment that first
+# row is a colspan cell, as the outer table's always is here (the document
+# always opens on a heading, which is always merged with its first row -
+# see below). A <colgroup> sidesteps that row-sniffing entirely and pins
+# the column widths outright, regardless of what any row - first or not -
+# contains.
+COLGROUP = f'<colgroup><col style="width:70px;"><col></colgroup>'
+
+
+def _row_cells(kind: str, number: str | None, content: str) -> tuple[str, str]:
+	"""The (number cell, body cell) full <td>..</td> HTML for one row, by
+	kind - shared between the normal per-row rendering and the
+	heading+first-row merge below, so both stay in sync."""
+	if kind == "heading":
+		return f'<td style="{NUM_CELL_STYLE}"><b>{number}</b></td>', f"<td><b>{content}</b></td>"
+	if kind == "clause":
+		return f'<td style="{NUM_CELL_STYLE}"><b>{number}</b></td>', f"<td>{content}</td>"
+	if kind == "text_after_heading":
+		return f'<td style="{NUM_CELL_STYLE}"></td>', f"<td>{content}</td>"
+	return "", f'<td colspan="2">{content}</td>'  # text_before_heading: no number cell at all
+
+
 def render_contract(lines: list[Line], context: ContractContext) -> str:
 	"""Render to the same number | wording table layout legacy contracts use."""
 	lines = resolve_lines(lines, context)
 	numbers = number_lines(lines)
 	anchors = {line.anchor: number for line, number in zip(lines, numbers) if line.anchor and number}
 
-	rows = []
+	entries: list[tuple[str, str | None, str]] = []  # (kind, number, content)
 	seen_heading = False
 	for line, number in zip(lines, numbers):
 		if line.kind == "text" and line.is_blank():
@@ -647,14 +679,52 @@ def render_contract(lines: list[Line], context: ContractContext) -> str:
 		content = "".join(_render_segment(seg, line, context, anchors) for seg in line.segments)
 		if line.kind == "heading":
 			seen_heading = True
-			rows.append(f"<tr><td><b>{number}</b></td><td><b>{content}</b></td></tr>")
+			entries.append(("heading", number, content))
 		elif line.kind == "clause":
-			rows.append(f"<tr><td><b>{number}</b></td><td>{content}</td></tr>")
+			entries.append(("clause", number, content))
 		elif seen_heading:
-			rows.append(f"<tr><td></td><td>{content}</td></tr>")
+			entries.append(("text_after_heading", number, content))
 		else:
-			rows.append(f'<tr><td colspan="2">{content}</td></tr>')
-	return '<table border="0" cellpadding="5" cellspacing="0">' + "".join(rows) + "</table>"
+			entries.append(("text_before_heading", number, content))
+
+	rows = []
+	i = 0
+	while i < len(entries):
+		kind, number, content = entries[i]
+		# A heading alone at the bottom of a page, with its first row
+		# pushed to the next one, is a real problem with real contracts -
+		# and wkhtmltopdf doesn't honour page-break-after/before on a <tr>
+		# (confirmed against this engine, not just assumed) the way it
+		# reliably keeps one single <tr>'s own content together. So a
+		# heading and whatever immediately follows it are physically
+		# merged into that one, single, atomic <tr> instead - a small
+		# nested table standing in for the two rows they'd otherwise be,
+		# inside one cell of the outer table. Its own cellpadding/width
+		# are set the same way as the outer table's (see NUM_CELL_STYLE),
+		# so this merged block lines up with every other row instead of
+		# auto-sizing on its own, narrower, two-row content.
+		if kind == "heading" and i + 1 < len(entries) and entries[i + 1][0] != "heading":
+			next_kind, next_number, next_content = entries[i + 1]
+			num_cell, body_cell = _row_cells(next_kind, next_number, next_content)
+			heading_num_cell, heading_body_cell = _row_cells("heading", number, content)
+			rows.append(
+				'<tr><td colspan="2" style="padding:0;">'
+				'<table cellpadding="5" cellspacing="0" style="width:100%;table-layout:fixed;border-collapse:collapse;">'
+				+ COLGROUP
+				+ "<tbody>"
+				f"<tr>{heading_num_cell}{heading_body_cell}</tr>"
+				f"<tr>{num_cell}{body_cell}</tr>"
+				"</tbody></table></td></tr>"
+			)
+			i += 2
+			continue
+		num_cell, body_cell = _row_cells(kind, number, content)
+		rows.append(f"<tr>{num_cell}{body_cell}</tr>")
+		i += 1
+	return (
+		'<table border="0" cellpadding="5" cellspacing="0" '
+		'style="width:100%;table-layout:fixed;">' + COLGROUP + "".join(rows) + "</table>"
+	)
 
 
 def _render_segment(seg: Segment, line: Line, context: ContractContext, anchors: dict[str, str]) -> str:

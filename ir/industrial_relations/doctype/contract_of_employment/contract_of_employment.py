@@ -8,7 +8,7 @@ import html
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, add_years, format_time, getdate, now_datetime
+from frappe.utils import add_days, add_years, format_time, get_time, getdate, now_datetime
 
 from ir.industrial_relations.doctype.contract_of_employment_template.contract_of_employment_template import (
 	ContractContext,
@@ -119,6 +119,26 @@ class ContractofEmployment(Document):
 				self.append("deductions", {"salary_component": row.salary_component})
 		if not self.provident_fund_contribution:
 			self.provident_fund_contribution = defaults.provident_fund_contribution
+
+	def _is_real_working_day(self, start_field, end_field) -> bool:
+		"""A Monday-Sunday Time pair counts as an actual working day only if
+		start and end are both set and genuinely different - not just "both
+		truthy". A field just set this same request (e.g. from the client,
+		mid-insert) is still the raw value passed in (a non-empty string
+		like "00:00:00", which Python considers truthy), while the exact
+		same value read back after a DB round-trip comes back as a
+		datetime.timedelta(0) (which Python considers falsy) - so a plain
+		`start and end` truthiness check only caught an explicitly-"closed"
+		day (both fields left/set to the Saturday/Sunday default of 00:00)
+		on a reload-then-save, never on a fresh insert from the real UI,
+		where every such day was wrongly treated as a real 00:00-to-00:00
+		shift and printed in the wording. frappe.utils.get_time() parses
+		either representation into a plain datetime.time, so comparing
+		those is representation-independent."""
+		start_raw, end_raw = self.get(start_field), self.get(end_field)
+		if not start_raw or not end_raw:
+			return False
+		return get_time(start_raw) != get_time(end_raw)
 
 	def _basic_earning_row(self):
 		"""The one Earnings row for Basic/Wages matching pay_basis - the rate
@@ -244,7 +264,7 @@ class ContractofEmployment(Document):
 					"day_end": format_value(VARIABLES_BY_KEY["day_end"], format_time(self.get(end_field), "HH:mm")),
 				}
 				for day_label, start_field, end_field in WORKING_DAYS
-				if self.get(start_field) and self.get(end_field)
+				if self._is_real_working_day(start_field, end_field)
 			]
 			if is_fixed_hours
 			else []

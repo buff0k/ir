@@ -155,12 +155,12 @@ class UnitTestTemplateEngine(UnitTestCase):
 				],
 			),
 		)
-		self.assertIn("<td><b>1.1</b></td><td>Paid **R** <b>45.00</b> per hour worked.</td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1</b></td><td>Paid **R** <b>45.00</b> per hour worked.</td>", out)
 		self.assertNotIn("per month worked", out)
-		self.assertIn("<td><b>1.2.1</b></td><td><b>Housing Allowance</b>: R <b>1 500.00</b> per month;</td>", out)
-		self.assertIn("<td><b>1.2.2</b></td><td><b>Shift Allowance</b>", out)
-		self.assertIn("<td><b>1.3</b></td><td>The Company and Employee", out)
-		self.assertIn("<td><b>1.4</b></td><td>No other form", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.2.1</b></td><td><b>Housing Allowance</b>: R <b>1 500.00</b> per month;</td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.2.2</b></td><td><b>Shift Allowance</b>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.3</b></td><td>The Company and Employee", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.4</b></td><td>No other form", out)
 		self.assertIn("See 1.4", out)
 
 	def test_monthly_without_allowances_or_provident_fund_closes_up(self):
@@ -169,7 +169,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 		self.assertIn("<b>__________</b>", out)  # missing amount -> the legacy amount blank
 		self.assertNotIn("allowances", out)
 		self.assertNotIn("provident fund", out)
-		self.assertIn("<td><b>1.2</b></td><td>No other form", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.2</b></td><td>No other form", out)
 		self.assertIn("See 1.2", out)
 
 	def test_shift_weekly_renders_only_its_own_clause_with_the_hours_value(self):
@@ -189,7 +189,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 	def test_repeat_with_no_rows_disappears(self):
 		lines = parse_wording(delta(heading("H"), clause(var("day_name"), repeat="working_days"), clause("after")))
 		out = render_contract(lines, context())
-		self.assertIn("<td><b>1.1</b></td><td>after</td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1</b></td><td>after</td>", out)
 
 	def test_table_variable_with_no_value_shows_its_blank(self):
 		lines = parse_wording(delta(heading("H"), clause(var("deductions_table"))))
@@ -219,9 +219,9 @@ class UnitTestTemplateEngine(UnitTestCase):
 				],
 			),
 		)
-		self.assertIn("<td><b>1.1</b></td><td>The following deductions apply:</td>", out)
-		self.assertIn("<td><b>1.1.1</b></td><td><b>Employee Provident Fund</b></td>", out)
-		self.assertIn("<td><b>1.1.2</b></td><td><b>PAYE</b></td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1</b></td><td>The following deductions apply:</td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1.1</b></td><td><b>Employee Provident Fund</b></td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1.2</b></td><td><b>PAYE</b></td>", out)
 		self.assertNotIn("No deductions on this contract.", out)
 
 	def test_deductions_repeat_shows_none_fallback_when_empty(self):
@@ -234,7 +234,7 @@ class UnitTestTemplateEngine(UnitTestCase):
 			)
 		)
 		out = render_contract(lines, context({"deductions:none"}))
-		self.assertIn("<td><b>1.1</b></td><td>No deductions on this contract.</td>", out)
+		self.assertIn("<td style=\"width:70px;vertical-align:top;\"><b>1.1</b></td><td>No deductions on this contract.</td>", out)
 		self.assertNotIn("following deductions apply", out)
 
 	def test_validation_catches_bad_variables_conditions_repeats_and_references(self):

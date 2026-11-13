@@ -129,6 +129,31 @@ class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
 		self.assertNotIn("Shift Roster", fixed.generated_contract)
 		self.assertIn("Shift Roster", shift_worker.generated_contract)
 
+	def test_fixed_hours_omits_days_explicitly_set_to_00_00(self):
+		# Regression: a freshly-inserted Time field value is still the raw
+		# string the caller passed ("00:00:00", truthy in Python) - only a
+		# value already round-tripped through the DB comes back as a
+		# datetime.timedelta(0) (falsy). A plain truthiness check on start/
+		# end only ever caught the second case, so every Thursday/Friday/
+		# Saturday/Sunday explicitly closed on a brand new contract (the
+		# normal, real-UI case) was wrongly printed as a 00:00-to-00:00
+		# working day instead of being omitted.
+		contract = self._make_contract(
+			self._make_employee(),
+			thu_start="00:00:00",
+			thu_end="00:00:00",
+			fri_start="00:00:00",
+			fri_end="00:00:00",
+		)
+
+		self.assertIn("<b>Monday</b>s: <b>06:00</b> to <b>16:00</b>", contract.generated_contract)
+		self.assertNotIn(">Thursday<", contract.generated_contract)
+		self.assertNotIn(">Friday<", contract.generated_contract)
+		# Saturday/Sunday default to 00:00-00:00 and were never touched -
+		# also correctly omitted.
+		self.assertNotIn(">Saturday<", contract.generated_contract)
+		self.assertNotIn(">Sunday<", contract.generated_contract)
+
 	def test_weekly_hours_of_work_renders_its_own_wording_with_the_hours_value(self):
 		weekly = self._make_contract(
 			self._make_employee(), working_hours_type="Weekly Hours of Work", weekly_hours_of_work=45

@@ -432,7 +432,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Contract of Employment Template",
-   "link_filters": "[[\"Contract of Employment Template\",\"docstatus\",\"=\",1]]",
+   "link_filters": "[[\"Contract of Employment Template\",\"template_status\",\"=\",\"Active\"],[\"Contract of Employment Template\",\"docstatus\",\"=\",\"1\"]]",
    "options": "Contract of Employment Template",
    "reqd": 1
   },
@@ -524,7 +524,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-12 09:00:00.000000",
+ "modified": "2026-11-12 18:37:53.321670",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment",
