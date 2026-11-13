@@ -15,6 +15,8 @@
   "column_break_coe_tmpl_class",
   "has_retirement",
   "retirement_age",
+  "template_status",
+  "section_break_lfba",
   "text_editor",
   "contract_wording",
   "tab_markdown",
@@ -101,13 +103,25 @@
    "fieldtype": "Code",
    "label": "Contract Markdown",
    "options": "Markdown"
+  },
+  {
+   "fieldname": "section_break_lfba",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Draft",
+   "fieldname": "template_status",
+   "fieldtype": "Select",
+   "label": "Template Status",
+   "options": "Draft\nActive\nRetired"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-12 15:07:01.415298",
+ "modified": "2026-11-12 18:36:22.864756",
  "modified_by": "Administrator",
  "module": "Industrial Relations",
  "name": "Contract of Employment Template",
