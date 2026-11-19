@@ -100,7 +100,20 @@ def execute():
         )
     }
 
-    columns = ", ".join(f"`{f}`" for f in SOURCE_FIELDS)
+    # SOURCE_FIELDS was confirmed against one site's real schema - another
+    # site that never had, say, the opencast/phone allowance pair (or any
+    # other field here) doesn't have that column at all, and a raw SELECT
+    # naming a column that doesn't exist fails outright. Every field here
+    # is read via source.get(...) in build_status_change_detail_rows, which
+    # already treats a missing/blank value as "no change" (see its own
+    # docstring on fields that predate a given record) - so a column that
+    # doesn't exist on this site degrades the exact same safe way a column
+    # that exists but is merely blank already does. "name" is always
+    # present; it's how every other table in this schema is keyed.
+    present_fields = ["name"] + [
+        f for f in SOURCE_FIELDS[1:] if frappe.db.has_column("Status Change Form", f)
+    ]
+    columns = ", ".join(f"`{f}`" for f in present_fields)
     forms = frappe.db.sql(f"SELECT {columns} FROM `tabStatus Change Form`", as_dict=True)
 
     now = frappe.utils.now()
