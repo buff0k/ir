@@ -334,11 +334,24 @@ def _ensure_submitted_templates() -> dict[str, str]:
 
 	needs_import = [ct for ct in contract_types if ct not in mapping]
 	if needs_import:
-		import_legacy_contract_types(needs_import)
+		results = import_legacy_contract_types(needs_import)
+		skipped = [r for r in results if ": SKIPPED - " in r]
+		if skipped:
+			frappe.logger().warning(
+				"migrate_contract_of_employment_to_templates: could not build a Template for "
+				f"{len(skipped)} Contract Type(s) - their legacy wording doesn't match what this engine's "
+				f"hardcoded legacy-text lookups expect on this site, needs manual review: {skipped}"
+			)
 		for contract_type in needs_import:
 			draft = frappe.db.get_value(
 				"Contract of Employment Template", {"contract_name": contract_type, "docstatus": 0}, "name"
 			)
+			if not draft:
+				# import_legacy_contract_types() skipped this one - see the
+				# warning above. Its Contract of Employment records fall
+				# through to skipped_no_template in execute() below, same as
+				# any other Contract Type with no matching Template.
+				continue
 			doc = frappe.get_doc("Contract of Employment Template", draft)
 			doc.submit()
 			mapping[contract_type] = doc.name

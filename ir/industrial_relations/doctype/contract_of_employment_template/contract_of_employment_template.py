@@ -1056,7 +1056,19 @@ def import_legacy_contract_types(contract_types: list[str] | None = None) -> lis
 	names = contract_types or frappe.get_all("Contract Type", filters={"docstatus": 1}, pluck="name", order_by="name")
 	results = []
 	for contract_type in names:
-		markdown, notes = _legacy_contract_markdown(contract_type)
+		try:
+			markdown, notes = _legacy_contract_markdown(contract_type)
+		except frappe.ValidationError as e:
+			# The hardcoded legacy-paragraph substrings this engine looks for
+			# (see _legacy_paragraph) were confirmed against one site's real
+			# data - a different site's historic wording can legitimately
+			# differ enough that none of it matches. Guessing at replacement
+			# legal wording would be worse than not migrating this one
+			# Contract Type at all, so it's skipped (logged, not silently
+			# dropped) and left for manual review, rather than this one
+			# mismatch aborting every other Contract Type's import too.
+			results.append(f"{contract_type}: SKIPPED - {e}")
+			continue
 		# Matched by contract_name, not a dedicated link field - this draft
 		# IS named after its Contract Type (see the line below), and that's
 		# the only identity this one-time import needs; re-running it is
@@ -1301,7 +1313,19 @@ def _legacy_working_hours():
 	paragraphs = frappe.get_all(
 		"Contract Paragraph", filters={"parent": fixed}, fields=["ss_num", "par_num", "clause_text"], order_by="idx"
 	)
-	lead_in = next(p.clause_text for p in paragraphs if cint(p.ss_num) == 1 and not cint(p.par_num))
+	lead_in = next(
+		(p.clause_text for p in paragraphs if cint(p.ss_num) == 1 and not cint(p.par_num)),
+		None,
+	)
+	if lead_in is None:
+		# A bare next() with no default would raise StopIteration here
+		# instead - not a frappe.ValidationError, so it would slip past
+		# import_legacy_contract_types()'s own per-Contract-Type try/except
+		# and crash the whole migration the same way _legacy_paragraph's
+		# unguarded frappe.throw() used to. Raised the same way instead, so
+		# one Contract Type with no matching legacy "Working Hours (Monday
+		# to Friday)" paragraph is skipped and logged, not a hard abort.
+		frappe.throw(_("Legacy paragraph for 'Working Hours (Monday to Friday)' (ss_num 1) not found."))
 	roster = _legacy_paragraph("determined by a Shift Roster", "Working Hours (Shift Roster)")
 	weekly = (
 		"The Employee is required to work {weekly_hours} hours per week, the specific nature and timing of "
