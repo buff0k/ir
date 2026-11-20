@@ -56,13 +56,39 @@ def get(
         as_dict=True,
     )
 
+    # "Currently Open" is today's Draft records, bucketed by the day each
+    # was requested - same event-over-time shape as Opened/Closed above,
+    # just filtered to docstatus = 0 instead of docstatus < 2. Not a
+    # historical backlog reconstruction: docstatus only ever reflects this
+    # record's state right now, so a spike here on a given day means
+    # exactly that - of what was requested that day, this many are still
+    # sitting in Draft as of today.
+    currently_open_rows = frappe.db.sql(
+        """
+        SELECT DATE(request_date) AS dt, COUNT(*) AS total
+        FROM `tabDisciplinary Action`
+        WHERE docstatus = 0
+          AND request_date IS NOT NULL
+          AND DATE(request_date) BETWEEN %s AND %s
+        GROUP BY DATE(request_date)
+        ORDER BY DATE(request_date)
+        """,
+        (from_date, to_date),
+        as_dict=True,
+    )
+
     opened_map = {str(row.dt): row.total for row in opened_rows}
     closed_map = {str(row.dt): row.total for row in closed_rows}
+    currently_open_map = {str(row.dt): row.total for row in currently_open_rows}
 
     return {
         "labels": labels,
         "datasets": [
             {"name": _("Opened"), "values": [opened_map.get(label, 0) for label in labels]},
             {"name": _("Closed"), "values": [closed_map.get(label, 0) for label in labels]},
+            {
+                "name": _("Currently Open (Draft Status)"),
+                "values": [currently_open_map.get(label, 0) for label in labels],
+            },
         ],
     }
