@@ -5,6 +5,7 @@ import frappe
 from frappe import _
 from frappe.utils import add_days, getdate, nowdate
 from frappe.utils.dashboard import cache_source
+from frappe.utils.dateutils import get_from_date_from_timespan
 
 @frappe.whitelist()
 @cache_source
@@ -20,7 +21,19 @@ def get(
     heatmap_year=None,
 ):
     to_date = getdate(to_date) if to_date else getdate(nowdate())
-    from_date = getdate(from_date) if from_date else add_days(to_date, -30)
+    # The chart widget sends a preset ("Last Week"/"Last Month"/"Last
+    # Quarter"/"Last Year") as timespan, with from_date/to_date explicitly
+    # nulled - only "Select Date Range" sends real dates (see
+    # chart_widget.js's fetch_and_update_chart/render_date_range_field).
+    # This mirrors frappe's own built-in dashboard_chart.get_chart_config -
+    # the same resolver, so this chart's presets behave exactly like a
+    # standard Count/Sum chart's do.
+    if from_date:
+        from_date = getdate(from_date)
+    elif timespan and timespan != "Select Date Range":
+        from_date = getdate(get_from_date_from_timespan(to_date, timespan))
+    else:
+        from_date = add_days(to_date, -30)
 
     labels = []
     current = from_date
