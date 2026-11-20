@@ -56,25 +56,46 @@ def get(
         as_dict=True,
     )
 
-    # "Currently Open" is a running backlog total, not a per-day new-draft
-    # count like Opened/Closed above - most of today's Draft records were
-    # requested well before this chart's visible window (a case opened 2
-    # months ago and still unresolved is still part of today's backlog),
-    # so bucketing by "requested on this exact day" would hide almost all
-    # of them. Instead: for each day X in the window, count every record
-    # that is a Draft right now AND was already requested on or before X -
-    # an approximation (docstatus only reflects this record's state today,
-    # there's no per-day history of it), but the right one here: it's
-    # exactly "how many of today's open cases had already been raised by
-    # day X", which is what a backlog line is for.
-    currently_open_dates = sorted(
+    # "Currently Open" is a true running balance - opened-so-far minus
+    # closed-so-far, as of each day X - not today's docstatus backdated
+    # onto every past day (an earlier version of this did exactly that,
+    # which both hides a record's open days once it's since been closed
+    # and drops one that was open in the past but has since been
+    # cancelled). A real backlog needs every opened/closed event up to
+    # to_date - not just the ones inside the visible window - since a case
+    # opened before the window started, still unresolved, is still part of
+    # the backlog on day one of the window.
+    #
+    # "Closed" here is the record's actual submit date, not outcome_date -
+    # outcome_date is a plain Date field the IR practitioner fills in
+    # before submitting (required by before_submit()'s require_outcome_
+    # before_submit check), so it can already be set while the record is
+    # still sitting in Draft, days or weeks before it's actually
+    # submitted. modified is a reliable stand-in for the submit timestamp
+    # specifically because this doctype has zero allow_on_submit fields
+    # (confirmed against its own DocType JSON) - nothing can touch a
+    # submitted record afterwards, so a currently-submitted record's
+    # modified date is exactly the moment it was submitted.
+    all_opened_dates = sorted(
         getdate(d)
         for d in frappe.db.sql_list(
             """
             SELECT request_date
             FROM `tabDisciplinary Action`
-            WHERE docstatus = 0 AND request_date IS NOT NULL
+            WHERE docstatus < 2 AND request_date IS NOT NULL AND DATE(request_date) <= %s
+            """,
+            (to_date,),
+        )
+    )
+    all_closed_dates = sorted(
+        getdate(d)
+        for d in frappe.db.sql_list(
             """
+            SELECT modified
+            FROM `tabDisciplinary Action`
+            WHERE docstatus = 1 AND DATE(modified) <= %s
+            """,
+            (to_date,),
         )
     )
 
@@ -82,14 +103,17 @@ def get(
     closed_map = {str(row.dt): row.total for row in closed_rows}
 
     currently_open_map = {}
-    running_total = 0
-    next_idx = 0
+    opened_idx = closed_idx = 0
+    opened_count = closed_count = 0
     for label in labels:
         label_date = getdate(label)
-        while next_idx < len(currently_open_dates) and currently_open_dates[next_idx] <= label_date:
-            running_total += 1
-            next_idx += 1
-        currently_open_map[label] = running_total
+        while opened_idx < len(all_opened_dates) and all_opened_dates[opened_idx] <= label_date:
+            opened_count += 1
+            opened_idx += 1
+        while closed_idx < len(all_closed_dates) and all_closed_dates[closed_idx] <= label_date:
+            closed_count += 1
+            closed_idx += 1
+        currently_open_map[label] = opened_count - closed_count
 
     return {
         "labels": labels,
