@@ -56,13 +56,49 @@ def get(
         as_dict=True,
     )
 
+    # "Currently Open" is a running backlog total, not a per-day new-draft
+    # count like Opened/Closed above - most of today's Draft records were
+    # requested well before this chart's visible window (a case opened 2
+    # months ago and still unresolved is still part of today's backlog),
+    # so bucketing by "requested on this exact day" would hide almost all
+    # of them. Instead: for each day X in the window, count every record
+    # that is a Draft right now AND was already requested on or before X -
+    # an approximation (docstatus only reflects this record's state today,
+    # there's no per-day history of it), but the right one here: it's
+    # exactly "how many of today's open cases had already been raised by
+    # day X", which is what a backlog line is for.
+    currently_open_dates = sorted(
+        getdate(d)
+        for d in frappe.db.sql_list(
+            """
+            SELECT request_date
+            FROM `tabDisciplinary Action`
+            WHERE docstatus = 0 AND request_date IS NOT NULL
+            """
+        )
+    )
+
     opened_map = {str(row.dt): row.total for row in opened_rows}
     closed_map = {str(row.dt): row.total for row in closed_rows}
+
+    currently_open_map = {}
+    running_total = 0
+    next_idx = 0
+    for label in labels:
+        label_date = getdate(label)
+        while next_idx < len(currently_open_dates) and currently_open_dates[next_idx] <= label_date:
+            running_total += 1
+            next_idx += 1
+        currently_open_map[label] = running_total
 
     return {
         "labels": labels,
         "datasets": [
             {"name": _("Opened"), "values": [opened_map.get(label, 0) for label in labels]},
             {"name": _("Closed"), "values": [closed_map.get(label, 0) for label in labels]},
+            {
+                "name": _("Currently Open (Draft Status)"),
+                "values": [currently_open_map.get(label, 0) for label in labels],
+            },
         ],
     }
