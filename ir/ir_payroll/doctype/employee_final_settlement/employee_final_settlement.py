@@ -136,14 +136,14 @@ class EmployeeFinalSettlement(Document):
 
 		for component, amount in (
 			("Notice Pay", self.notice_pay),
-			("Severance Benefit", self.severance_pay),
-			("Leave Payout", self.leave_payout),
-			("Performance Bonus", self.bonus_prorata),
+			("Gratuities / Severance Benefits", self.severance_pay),
+			("Leave Paid Out", self.leave_payout),
+			("P/ Bonus", self.bonus_prorata),
 		):
 			if flt(amount):
 				slip.append("earnings", {"salary_component": component, "amount": flt(amount)})
 
-		for component, amount in (("PAYE", self.paye), ("UIF Employee Contribution", self.uif)):
+		for component, amount in (("Tax (PAYE)", self.paye), ("UIF - Employee", self.uif)):
 			if flt(amount):
 				slip.append("deductions", {"salary_component": component, "amount": flt(amount)})
 

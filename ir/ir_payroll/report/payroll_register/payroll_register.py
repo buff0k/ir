@@ -64,7 +64,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 				WHERE sd.parent = ss.name
 					AND sd.parentfield = 'earnings'
-					AND (sd.salary_component IN ('Basic', 'Basic Salary') OR sc.za_sars_payroll_code = '3601')
+					AND (sd.salary_component IN ('Basic Salary', 'Basic Hourly Pay') OR sc.za_sars_payroll_code = '3601')
 			) as basic,
 			ss.gross_pay,
 			ss.total_deduction,
@@ -75,7 +75,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 				WHERE sd.parent = ss.name
 					AND sd.parentfield = 'deductions'
-					AND (sd.salary_component = 'PAYE' OR sc.za_sars_payroll_code = '4102')
+					AND (sd.salary_component = 'Tax (PAYE)' OR sc.za_sars_payroll_code = '4102')
 			) as paye,
 			(
 				SELECT SUM(sd.amount)
@@ -83,7 +83,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 				WHERE sd.parent = ss.name
 					AND sd.parentfield = 'deductions'
-					AND (sd.salary_component IN ('UIF', 'UIF Employee Contribution') OR sc.za_sars_payroll_code = '4141')
+					AND (sd.salary_component IN ('UIF', 'UIF - Employee') OR sc.za_sars_payroll_code = '4141')
 			) as uif
 		FROM `tabSalary Slip` ss
 		INNER JOIN `tabEmployee` e ON e.name = ss.employee

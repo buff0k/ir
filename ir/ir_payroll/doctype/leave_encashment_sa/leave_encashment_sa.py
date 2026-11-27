@@ -36,7 +36,7 @@ class LeaveEncashmentSa(Document):
 		if not flt(self.encashment_amount):
 			frappe.throw(_("Encashment Amount is required"))
 
-		component = "Leave Encashment"
+		component = "Leave Paid Out"
 		if not frappe.db.exists("Salary Component", component):
 			component = frappe.db.get_value("Salary Component", {"type": "Earning"}, "name")
 		if not component:

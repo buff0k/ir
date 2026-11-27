@@ -88,7 +88,7 @@ class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
 		# fully deprecated) - contract_type here is only ever used to
 		# resolve the matching contract_template. There's also no separate
 		# rate field any more - the rate of pay is just the Earnings row
-		# for Basic Salary/Hourly Earnings, same as any allowance. Callers
+		# for Basic Salary/Basic Hourly Pay, same as any allowance. Callers
 		# overriding earnings= must include their own basic row if they
 		# still want one.
 		values = {
@@ -200,7 +200,7 @@ class IntegrationTestContractOfEmployment(IRSyntheticDataTestCase):
 		contract = self._make_contract(employee)
 
 		# The existing row is still "Basic Salary" - switching to Hourly
-		# with no "Hourly Earnings" row to match must be rejected, not
+		# with no "Basic Hourly Pay" row to match must be rejected, not
 		# silently left with no rate of pay at all.
 		contract.pay_basis = "Hourly"
 		with self.assertRaises(frappe.ValidationError):

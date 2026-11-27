@@ -81,10 +81,10 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 	# backfill patch's row-building logic -------------------------------
 
 	def test_classify_rate_component_cutoff(self):
-		self.assertEqual(classify_rate_component(1000), "Hourly Earnings")
-		self.assertEqual(classify_rate_component(1000.0), "Hourly Earnings")
+		self.assertEqual(classify_rate_component(1000), "Basic Hourly Pay")
+		self.assertEqual(classify_rate_component(1000.0), "Basic Hourly Pay")
 		self.assertEqual(classify_rate_component(1000.01), "Basic Salary")
-		self.assertEqual(classify_rate_component(0), "Hourly Earnings")
+		self.assertEqual(classify_rate_component(0), "Basic Hourly Pay")
 
 	def test_build_detail_rows_is_empty_when_nothing_changed(self):
 		source = {
@@ -139,7 +139,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		source = {"current_travel": 100, "new_travel": 250}
 		rows = build_status_change_detail_rows(source)
 		self.assertEqual(rows, [{
-			"change_type": "Salary Component", "salary_component": "Transport Allowance",
+			"change_type": "Salary Component", "salary_component": "Transport",
 			"old_amount": 100.0, "new_amount": 250.0,
 		}])
 
@@ -151,7 +151,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		source = {"current_rate": 500, "new_rate": 700}
 		rows = build_status_change_detail_rows(source)
 		self.assertEqual(rows, [{
-			"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			"change_type": "Salary Component", "salary_component": "Basic Hourly Pay",
 			"old_amount": 500.0, "new_amount": 700.0,
 		}])
 
@@ -159,7 +159,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		source = {"current_rate": 500, "new_rate": 5000}
 		rows = build_status_change_detail_rows(source)
 		self.assertEqual(rows, [
-			{"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			{"change_type": "Salary Component", "salary_component": "Basic Hourly Pay",
 			 "old_amount": 500.0, "new_amount": 0},
 			{"change_type": "Salary Component", "salary_component": "Basic Salary",
 			 "old_amount": 0, "new_amount": 5000.0},
@@ -171,7 +171,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		self.assertEqual(rows, [
 			{"change_type": "Salary Component", "salary_component": "Basic Salary",
 			 "old_amount": 5000.0, "new_amount": 0},
-			{"change_type": "Salary Component", "salary_component": "Hourly Earnings",
+			{"change_type": "Salary Component", "salary_component": "Basic Hourly Pay",
 			 "old_amount": 0, "new_amount": 500.0},
 		])
 
@@ -180,7 +180,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		self.assertEqual(build_status_change_detail_rows(source), [])
 
 	def test_build_detail_rows_rate_crossover_from_zero_omits_vacuous_old_row(self):
-		"""current_rate=0 classifies as Hourly Earnings by the cutoff rule,
+		"""current_rate=0 classifies as Basic Hourly Pay by the cutoff rule,
 		but a literal 0 never actually held an hourly rate - only the real
 		Basic Salary row should come out, not a spurious 0->0 Hourly row."""
 		source = {"current_rate": 0, "new_rate": 5000}
@@ -214,7 +214,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 		rows = build_status_change_detail_rows(source)
 		self.assertEqual(rows, [
 			{"change_type": "Designation", "old_value": "Boilermaker", "new_value": "Fitter"},
-			{"change_type": "Salary Component", "salary_component": "Housing Allowance",
+			{"change_type": "Salary Component", "salary_component": "Housing",
 			 "old_amount": 200.0, "new_amount": 350.0},
 		])
 
@@ -360,7 +360,7 @@ class IntegrationTestStatusChangeForm(IRSyntheticDataTestCase):
 			employee, current_designation, effective_date,
 			status_change_details=[{
 				"change_type": "Salary Component",
-				"salary_component": "Housing Allowance",
+				"salary_component": "Housing",
 				"old_amount": 0,
 				"new_amount": 500,
 			}],

@@ -14,19 +14,19 @@ pure costing math lives in retrenchment_costing.py.
 # be a Basic Salary, never an hourly rate - the user's own cutoff rule.
 RATE_CUTOFF = 1000
 
-HOURLY_RATE_COMPONENT = "Hourly Earnings"
+HOURLY_RATE_COMPONENT = "Basic Hourly Pay"
 BASIC_SALARY_COMPONENT = "Basic Salary"
 
 # Maps each of Status Change Form's simple current_X/new_X allowance field
 # pairs to the real Salary Component name confirmed by auditing this site's
-# actual tabSalary Component data (there is no "Travelling Allowance"
-# component - the real one is "Transport Allowance").
+# Salary Component names, which mirror SimplePay line labels (is_attendance
+# align_salary_components_with_simplepay patch). Opencast has no SimplePay line.
 SIMPLE_ALLOWANCE_COMPONENTS = {
-    "travel": "Transport Allowance",
-    "housing": "Housing Allowance",
-    "safety": "Safety Bonus",
-    "shift": "Shift Allowance",
-    "phone": "Cellphone Allowance",
+    "travel": "Transport",
+    "housing": "Housing",
+    "safety": "S/Bonus",
+    "shift": "Shi/All",
+    "phone": "Cell Al",
     "opencast": "Opencast Allowance",
 }
 

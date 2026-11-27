@@ -16,10 +16,10 @@ from ir.ir_payroll.fringe_benefits.calculations import (
 	prorate_monthly_value,
 )
 
-COMPANY_CAR_COMPONENT = "Company Car Benefit"
+COMPANY_CAR_COMPONENT = "Company Car Benefit - Taxable Portion"
 COMPANY_CAR_PAYE_ADJUSTMENT_COMPONENT = "Company Car PAYE Adjustment"
-HOUSING_COMPONENT = "Housing Fringe Benefit"
-LOW_INTEREST_LOAN_COMPONENT = "Low Interest Loan Fringe Benefit"
+HOUSING_COMPONENT = "Accommodation Benefit"
+LOW_INTEREST_LOAN_COMPONENT = "Loan Benefit"
 OTHER_COMPONENT = "Other Fringe Benefit"
 
 SERVICE_COMPONENTS = {
