@@ -34,8 +34,8 @@ def get_data(filters):
 		FROM (
 			SELECT
 				CASE
-					WHEN sd.salary_component = 'PAYE' OR sc.za_sars_payroll_code = '4102' THEN 'PAYE'
-					WHEN sd.salary_component IN ('UIF', 'UIF Employee Contribution') OR sc.za_sars_payroll_code = '4141' THEN 'UIF Employee Contribution'
+					WHEN sd.salary_component = 'Tax (PAYE)' OR sc.za_sars_payroll_code = '4102' THEN 'PAYE'
+					WHEN sd.salary_component IN ('UIF', 'UIF - Employee') OR sc.za_sars_payroll_code = '4141' THEN 'UIF Employee Contribution'
 					WHEN (sd.salary_component = 'ETI' OR sc.za_sars_payroll_code = '4118')
 						AND IFNULL(ss.za_monthly_eti, 0) = 0 THEN 'ETI'
 				END AS component,
@@ -52,8 +52,8 @@ def get_data(filters):
 
 			SELECT
 				CASE
-					WHEN cc.salary_component IN ('UIF Employer Contribution') OR sc.za_sars_payroll_code = '4141' THEN 'UIF Employer Contribution'
-					WHEN cc.salary_component IN ('SDL', 'SDL Contribution', 'Skills Development Levy') OR sc.za_sars_payroll_code = '4142' THEN 'SDL Contribution'
+					WHEN cc.salary_component IN ('UIF - Employer') OR sc.za_sars_payroll_code = '4141' THEN 'UIF Employer Contribution'
+					WHEN cc.salary_component IN ('SDL', 'SDL - Employer', 'Skills Development Levy') OR sc.za_sars_payroll_code = '4142' THEN 'SDL Contribution'
 				END AS component,
 				cc.amount AS amount
 			FROM `tabCompany Contribution` cc

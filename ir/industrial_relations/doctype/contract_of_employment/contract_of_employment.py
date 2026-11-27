@@ -35,7 +35,7 @@ WORKING_DAYS = (
 
 # pay_basis -> the real Salary Component that represents Basic/Wages for it
 # (both already curated as "Basic/Wages" in IR Payroll Cost Settings).
-BASIC_COMPONENT_BY_PAY_BASIS = {"Hourly": "Hourly Earnings", "Monthly": "Basic Salary"}
+BASIC_COMPONENT_BY_PAY_BASIS = {"Hourly": "Basic Hourly Pay", "Monthly": "Basic Salary"}
 
 
 class ContractofEmployment(Document):
@@ -143,7 +143,7 @@ class ContractofEmployment(Document):
 	def _basic_earning_row(self):
 		"""The one Earnings row for Basic/Wages matching pay_basis - the rate
 		of pay itself. There's no separate rate field any more: HR enters it
-		directly as an Earnings row (linked to Basic Salary/Hourly Earnings,
+		directly as an Earnings row (linked to Basic Salary/Basic Hourly Pay,
 		same as any allowance), via the same Earnings table/editor."""
 		target = BASIC_COMPONENT_BY_PAY_BASIS.get(self.pay_basis)
 		return next((row for row in self.earnings if row.salary_component == target and row.amount), None)

@@ -57,7 +57,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 				WHERE sd.parent = ss.name
 					AND sd.parentfield = 'deductions'
-					AND (sd.salary_component = 'PAYE' OR sc.za_sars_payroll_code = '4102')
+					AND (sd.salary_component = 'Tax (PAYE)' OR sc.za_sars_payroll_code = '4102')
 			)) as total_paye,
 			SUM((
 				SELECT IFNULL(SUM(sd.amount), 0)
@@ -65,7 +65,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = sd.salary_component
 				WHERE sd.parent = ss.name
 					AND sd.parentfield = 'deductions'
-					AND (sd.salary_component IN ('UIF', 'UIF Employee Contribution')
+					AND (sd.salary_component IN ('UIF', 'UIF - Employee')
 						OR sc.za_sars_payroll_code = '4141')
 			) + (
 				SELECT IFNULL(SUM(cc.amount), 0)
@@ -73,7 +73,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = cc.salary_component
 				WHERE cc.parent = ss.name
 					AND cc.parenttype = 'Salary Slip'
-					AND (cc.salary_component = 'UIF Employer Contribution'
+					AND (cc.salary_component = 'UIF - Employer'
 						OR sc.za_sars_payroll_code = '4141')
 			)) as total_uif,
 			SUM((
@@ -82,7 +82,7 @@ def get_data(filters):
 				LEFT JOIN `tabSalary Component` sc ON sc.name = cc.salary_component
 				WHERE cc.parent = ss.name
 					AND cc.parenttype = 'Salary Slip'
-					AND (cc.salary_component IN ('SDL', 'SDL Contribution', 'Skills Development Levy')
+					AND (cc.salary_component IN ('SDL', 'SDL - Employer', 'Skills Development Levy')
 						OR sc.za_sars_payroll_code = '4142')
 			)) as total_sdl
 		FROM `tabSalary Slip` ss

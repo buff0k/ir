@@ -232,17 +232,16 @@ def _get_or_create_account(company, account_name, account_type, parent=None, is_
 # ---------------------------------------------------------------------------
 
 DEFAULT_SALARY_COMPONENT_ACCOUNT_NAMES = {
-	"Basic": "Salaries and Wages",
 	"Basic Salary": "Salaries and Wages",
-	"Arrear": "Salaries and Wages",
-	"Leave Encashment": "Salaries and Wages",
-	"PAYE": "PAYE Payable - SARS",
-	"Income Tax": "PAYE Payable - SARS",
+	"Basic Hourly Pay": "Salaries and Wages",
+	"Backpay": "Salaries and Wages",
+	"Leave Paid Out": "Salaries and Wages",
+	"Tax (PAYE)": "PAYE Payable - SARS",
 	"UIF": "UIF Employee Contribution",
-	"UIF Employee Contribution": "UIF Employee Contribution",
-	"UIF Employer Contribution": "UIF Employer Expense",
+	"UIF - Employee": "UIF Employee Contribution",
+	"UIF - Employer": "UIF Employer Expense",
 	"SDL": "SDL Expense",
-	"SDL Contribution": "SDL Expense",
+	"SDL - Employer": "SDL Expense",
 	"COIDA": "COIDA Expense",
 	"COIDA Contribution": "COIDA Expense",
 }
